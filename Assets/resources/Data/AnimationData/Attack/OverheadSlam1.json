@@ -1,0 +1,50 @@
+{
+    "id": "overheadSlam1",
+    "windup": {
+      "animationInput": {"x": 0, "y": 0}, 
+      "phaseDuration": 0.1,
+      "cancelWindow": 0.0,
+      "rotationSpeed": 0.0
+    },
+    "attack": {
+      "animationInput": {"x": 0, "y": 0},
+      "phaseDuration": 0.4,
+      "cancelWindow": 0.0,
+      "rotationSpeed": 0.0
+    },
+    "recovery": {
+      "animationInput": {"x": 0, "y": 0}, 
+      "phaseDuration": 0.2,
+      "cancelWindow": 0.0,
+      "rotationSpeed": 0.0
+    },
+    "hitboxes": {
+      "sweetSpot": {
+        "hitboxDescription": "Sweet Spot",
+        "followWeapon": true,
+        "damageInfo": {
+          "damage": 25,
+          "knockback": 0.0,
+          "stun": 0.5,
+          "invulnerabilityWindow": 0.11
+        },
+        "duration": 0.1,
+        "radius": 1.0,
+        "size": {"x": 1, "y": 1},
+        "shape": "spawn"
+      },
+      "splashDamage": {
+        "hitboxDescription": "Splash Damage",
+        "followWeapon": false,
+        "duration": 0.1,
+        "radius": 1.0,
+        "damageInfo": {
+          "damage": 1,
+          "knockback": 0.1,
+          "stun": 0.1,
+          "invulnerabilityWindow": 0.11
+        },
+        "shape": "box"
+      }
+    }
+  }

@@ -1,0 +1,22 @@
+[
+	{
+		"title": "Start",
+		"tags": "",
+		"body": "Here is some test text, {player.characterClass}. [[Let's move on.|Node1]]",
+		"position": {
+			"x": 542,
+			"y": 261
+		},
+		"colorID": 0
+	},
+	{
+		"title": "Node1",
+		"tags": "",
+		"body": "Here's some more text.",
+		"position": {
+			"x": 541,
+			"y": 513
+		},
+		"colorID": 0
+	}
+]

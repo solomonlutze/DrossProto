@@ -1,0 +1,19 @@
+﻿<Properties StartupConfiguration="{9AEFBDA2-3E74-431B-ABDE-C178634319BA}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/CustomCamera.cs">
+    <Files>
+      <File FileName="Assets/Scripts/Character/Character.cs" Line="103" Column="39" />
+      <File FileName="Assets/Scripts/General/Constants.cs" Line="10" Column="2" />
+      <File FileName="Assets/CustomCamera.cs" Line="7" Column="2" />
+      <File FileName="Assets/Scripts/General/NewClass.cs" Line="5" Column="3" />
+      <File FileName="Assets/Scripts/Character/Player/PlayerController.cs" Line="58" Column="94" />
+      <File FileName="Assets/Scripts/General/GridManager.cs" Line="38" Column="24" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="Unity.Editor" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>

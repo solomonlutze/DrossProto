@@ -1,0 +1,36 @@
+{
+    "id": "swingClockwise1",
+    "windup": {
+      "animationInput": {"x": 0, "y": 0}, 
+      "phaseDuration": 0.05,
+      "cancelWindow": 0.0,
+      "rotationSpeed": 0.0
+    },
+    "attack": {
+      "animationInput": {"x": 0, "y": 0},
+      "phaseDuration": 0.25,
+      "cancelWindow": 0.0,
+      "rotationSpeed": 0.0
+    },
+    "recovery": {
+      "animationInput": {"x": 0, "y": 0}, 
+      "phaseDuration": 0.1,
+      "cancelWindow": 0.0,
+      "rotationSpeed": 0.0
+    },
+    "hitboxes": {
+      "hit": {
+        "hitboxDescription": "Hit",
+        "followWeapon": true,
+        "damageInfo": {
+          "damage": 5,
+          "knockback": 0.2,
+          "stun": 0.15,
+          "invulnerabilityWindow": 0.11
+        },
+        "duration": 0.1,
+        "radius": 1.0,
+        "shape": "spawn"
+      }
+    }
+  }

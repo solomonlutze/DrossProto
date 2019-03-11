@@ -1,0 +1,32 @@
+[
+	{
+		"title": "Start",
+		"tags": "",
+		"body": "<< if visited(\"MoveAlong\") is false >>\n[[MoveAlong]]\n<< else >>\n[[MoveAlong2]]\n<< endif >>",
+		"position": {
+			"x": 540,
+			"y": 260
+		},
+		"colorID": 0
+	},
+	{
+		"title": "MoveAlong2",
+		"tags": "",
+		"body": "I said, move along.",
+		"position": {
+			"x": 509,
+			"y": 829
+		},
+		"colorID": 0
+	},
+	{
+		"title": "MoveAlong",
+		"tags": "",
+		"body": "Move along.",
+		"position": {
+			"x": 216,
+			"y": 265
+		},
+		"colorID": 0
+	}
+]
