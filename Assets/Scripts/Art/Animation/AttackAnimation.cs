@@ -23,23 +23,19 @@ public class AnimationPhaseInfo
 public class AttackAnimation
 {
     [StringInList(typeof(PropertyDrawerHelpers), "AllAttackAnimationNames", new object[]{false})] public string attackAnimation;
- 
+
     public AnimationPhaseInfo windup;
     public AnimationPhaseInfo attack;
     public AnimationPhaseInfo recovery;
     public List<HitboxInfo> hitboxes;
 
     public void ResetDefaults() {
-        // Should read data on the 
-        Debug.Log("ResetDefaults called...");
         hitboxes.Clear();
         ReadFromScriptableObject();
     }
 
     private void ReadFromScriptableObject() {
-        Debug.Log("attackAnimation: "+attackAnimation);
         var datavar = Resources.Load("Data/AnimationData/Attack/"+attackAnimation);
-        Debug.Log(datavar);
         AttackAnimationData data = Resources.Load("Data/AnimationData/Attack/"+attackAnimation) as AttackAnimationData;
         this.windup = data.windup;
         this.attack = data.attack;

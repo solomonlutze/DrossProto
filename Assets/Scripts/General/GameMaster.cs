@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Yarn.Unity;
@@ -9,7 +10,6 @@ public class GameMaster : Singleton<GameMaster> {
 	public CanvasHandler canvasHandler;
 	public GameObject playerPrefab;
 	public DialogueRunner dialogueRunner;
-	public GridManager gridManager;
 	private PlayerController playerController;
 	private PathfindingSystem pathfinding;
 	private Constants.GameState gameStatus;
@@ -17,6 +17,8 @@ public class GameMaster : Singleton<GameMaster> {
 	// Saved when player dies so their next life can be preserved
 	private UpcomingLifeTraits cachedLarva;
 	private UpcomingLifeTraits cachedPupa;
+	public GameObject[] spawnPoints;
+	private int previousSpawnPoint = 0;
 
 	// Use this for initialization
 	void Start () {
@@ -35,7 +37,7 @@ public class GameMaster : Singleton<GameMaster> {
 				HandleDeadInput();
 				break;
 			default:
-				if (Input.GetKeyDown("=")) {
+				if (Input.GetKeyDown("=") && playerController != null) {
 					playerController.Die();
 				}
 				break;
@@ -49,28 +51,30 @@ public class GameMaster : Singleton<GameMaster> {
 	}
 
 	private void Respawn() {
-		Debug.Log("Respawning...");
 		GameObject player = GameObject.FindGameObjectWithTag("Player");
 		if (player != null) {
-			Debug.Log("player isn't null?");
 			playerController = player.GetComponent<PlayerController>();
+			Debug.Log("layer as string: "+player.layer.ToString());
+			Debug.Log("FloorLayer:"+Enum.Parse(typeof (FloorLayer), LayerMask.LayerToName(player.layer)));
+			playerController.currentFloor = (FloorLayer) Enum.Parse(typeof (FloorLayer), LayerMask.LayerToName(player.layer));
 		} else {
 			GameObject spawnPoint = ChooseSpawnPoint();
-			Vector3 spawnLocation = Vector3.zero;
+			FloorLayer fl = FloorLayer.F1;
 			if (spawnPoint != null) {
-				spawnLocation = spawnPoint.transform.position;
+				fl = spawnPoint.GetComponent<SpawnPoint>().GetTileLocation().floorLayer;
 			}
-			playerController = Instantiate(playerPrefab, spawnLocation, Quaternion.identity).GetComponent<PlayerController>();
+			playerController = Instantiate(playerPrefab, spawnPoint.transform.position, Quaternion.identity).GetComponent<PlayerController>();
+			playerController.currentFloor = fl;
 		}
+		playerController.SetCurrentFloor(playerController.currentFloor);
 		playerController.Init(cachedLarva, cachedPupa);
-		Debug.Log("Respawned!");
 		SetGameStatus(Constants.GameState.Play);
 	}
 
 	private GameObject ChooseSpawnPoint() {
-		GameObject[] spawnPoints = GameObject.FindGameObjectsWithTag("SpawnPoint"); // TODO: spawn points should register with GM
 		if (spawnPoints.Length > 0) {
-			return spawnPoints[0];
+			previousSpawnPoint = (int) Mathf.Repeat(previousSpawnPoint+1, spawnPoints.Length);
+			return spawnPoints[previousSpawnPoint];
 		}
 		return null;
 	}
@@ -80,7 +84,6 @@ public class GameMaster : Singleton<GameMaster> {
 	}
 
 	public void SetGameStatus(Constants.GameState newStatus) {
-		Debug.Log("setGameStatus "+newStatus);
 		gameStatus = newStatus;
 	}
 
@@ -108,22 +111,9 @@ public class GameMaster : Singleton<GameMaster> {
 		dialogueRunner.StartDialogue(startNode);
 	}
 
-	public Vector3Int GetCellFromWorldLocation(Vector3 loc) {
-		return gridManager.GetCellFromWorldLocation(loc);
-	}
-	public EnvironmentTile GetTileAtLocation(Vector3 loc, Constants.FloorLayer floor) {
-		return gridManager.GetTileAtLocation(loc, floor);
-	}
 
-	public void ReplaceAdjacentTile(Vector3 loc,  Constants.FloorLayer floor, EnvironmentTile replacementTile, TilemapDirection direction) {
-		gridManager.ReplaceAdjacentTile(loc, floor, replacementTile,direction);
-	}
-
-	public void DestroyObjectTileAtLocation(Vector3 loc, Constants.FloorLayer floor) {
-		gridManager.DestroyObjectTileAtLocation(loc, floor);
-	}
-
-	public void ReplaceTileAtLocation(Vector3 loc,  Constants.FloorLayer floor, EnvironmentTile replacementTile) {
-		gridManager.ReplaceTileAtLocation(loc, floor, replacementTile);
+	public void StopDialogue() {
+		if (!dialogueRunner.isDialogueRunning) { return; }
+		StartCoroutine(dialogueRunner.Interrupt());
 	}
 }

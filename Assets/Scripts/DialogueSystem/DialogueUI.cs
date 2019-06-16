@@ -30,6 +30,7 @@ using UnityEngine.UI;
 using System.Text;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using TMPro;
 
 namespace Yarn.Unity {
     /// Displays dialogue lines to the player, and sends
@@ -49,7 +50,7 @@ namespace Yarn.Unity {
 		public GameObject playerDialogueContainer;
 
         /// The UI element that displays lines
-        public SuperTextMesh lineText;
+        public TextMeshProUGUI lineText;
 
         /// A UI element that appears after lines have finished appearing
         public GameObject continuePrompt;
@@ -78,9 +79,9 @@ namespace Yarn.Unity {
 
             lineText.gameObject.SetActive (false);
 
-            // foreach (var button in optionButtons) {
-            //     button.gameObject.SetActive (false);
-            // }
+            foreach (var button in optionButtons) {
+                button.gameObject.SetActive (false);
+            }
 
             // Hide the continue prompt if it exists
             if (continuePrompt != null)
@@ -142,7 +143,7 @@ namespace Yarn.Unity {
         }
 
         /// Show a list of options, and wait for the player to make a selection.
-        public override IEnumerator RunOptions (Yarn.Options optionsCollection, 
+        public override IEnumerator RunOptions (Yarn.Options optionsCollection,
                                                 Yarn.OptionChooser optionChooser)
         {
             // Do a little bit of safety checking
@@ -155,7 +156,7 @@ namespace Yarn.Unity {
             int i = 0;
             foreach (var optionString in optionsCollection.options) {
                 optionButtons [i].gameObject.SetActive (true);
-                optionButtons [i].GetComponentInChildren<Text> ().text = optionString;
+                optionButtons [i].GetComponentInChildren<TextMeshProUGUI> ().text = optionString;
                 i++;
             }
 
@@ -182,7 +183,7 @@ namespace Yarn.Unity {
             SetSelectedOption (selectedOption);
 
             // Now remove the delegate so that the loop in RunOptions will exit
-            SetSelectedOption = null; 
+            SetSelectedOption = null;
         }
 
         /// Run an internal command.
@@ -197,7 +198,7 @@ namespace Yarn.Unity {
 		// Needs some work, probably;
 		// showing the container should happen on individual lines, since
 		// it might involve multiple containers
-		// 
+		//
         public override IEnumerator DialogueStarted ()
         {
             Debug.Log ("Dialogue starting!");
@@ -218,6 +219,9 @@ namespace Yarn.Unity {
         public override IEnumerator DialogueComplete ()
         {
             Debug.Log ("Complete!");
+            lineText.text = "";
+            lineText.gameObject.SetActive(false);
+            SetSelectedOption = null;
 
             // Hide the dialogue interface.
             if (dialogueContainer != null)

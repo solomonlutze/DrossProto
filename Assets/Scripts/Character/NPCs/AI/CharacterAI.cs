@@ -18,12 +18,14 @@ public class CharacterAI : Character {
 	public float minDistanceFromPathNode;
 	// the distance PAST the target's detectionRange that we will continue to pursue once we've noticed them
 	public float detectionRangeBuffer;
+	public float attackAngle;
 	private List<Node> path;
 	private Vector3 destination;
 	private BoxCollider2D col;
 
 	override protected void Awake () {
 		base.Awake();
+		base.Init();
 		aiState = AiStates.Docile;
 		col = GetComponent<BoxCollider2D>();
 		path = new List<Node>();
@@ -45,10 +47,8 @@ public class CharacterAI : Character {
 			if (objectOfInterest != null) {
 				// if (GetPathOpen()) {
 				if (GameMaster.Instance.IsPathClearOfHazards(col, objectOfInterest.GetTileLocation(), this)) {
-					Debug.Log("setting path to null");
 					path = null;
 				} else {
-					Debug.Log("CALCULATING PATH TO TARGET");
 					path = GameMaster.Instance.FindPath(transform.TransformPoint(col.offset), objectOfInterest.GetTileLocation(), this);
 				}
 			}
@@ -79,11 +79,11 @@ public class CharacterAI : Character {
 
 	protected override void HandleTile() {
 		base.HandleTile();
-		EnvironmentTile tile = GameMaster.Instance.GetTileAtLocation(transform.position, currentFloor);
-		if (tile.changesFloorLayer
+		EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(CalculateCurrentTileLocation());
+		if (tile.ChangesFloorLayer()
 			&& path != null
 			&& path.Count >= 1
-			&& (path[0].floor == tile.targetFloorLayer || path[1] != null || path[1].floor == tile.targetFloorLayer)
+			&& (path[0].floor == tile.GetTargetFloorLayer() || path[1] != null || path[1].floor == tile.GetTargetFloorLayer())
 		) {
 			UseTile();
 		}
@@ -95,7 +95,6 @@ public class CharacterAI : Character {
 	}
 
 	void InputAggroMovement() {
-		Debug.Log("Path.count: "+(path != null ? path.Count : 0));
 		if (path == null) {
 			// Debug.DrawLine(objectOfInterest.position, transform.position, Color.green, .25f, true);
 			movementInput = (objectOfInterest.transform.position - transform.position).normalized;
@@ -105,7 +104,6 @@ public class CharacterAI : Character {
 			Vector3 colliderCenterWorldSpace = transform.TransformPoint(col.offset);
 			movementInput = (nextNodeLocation - colliderCenterWorldSpace).normalized;
 			Debug.DrawLine(nextNodeLocation, colliderCenterWorldSpace, Color.red, .25f, true);
-			Debug.Log("next node: "+nextNodeLocation);
 			if (Vector3.Distance(nextNodeLocation, colliderCenterWorldSpace) < minDistanceFromPathNode) {
 				path.RemoveAt(0);
 			}
@@ -181,13 +179,23 @@ public class CharacterAI : Character {
 		}
 	}
 
+	bool WithinRangeOfTarget() {
+		return objectOfInterest != null
+			&& Vector3.Distance(objectOfInterest.transform.position, transform.position)
+		  		< characterAttack.range + Character.GetAttackValueModifier(attackModifiers, CharacterAttackValue.Range);
+	}
 	void HandleAggroBehavior() {
-		if (weapon != null
-		  && objectOfInterest != null
-		  && Vector3.Distance(objectOfInterest.transform.position, transform.position) < weapon.weaponData.range
-		  && GetAngleToTarget() < weapon.weaponData.attackAngle) {
+		if (characterAttack != null
+		  && WithinRangeOfTarget()
+		  && GetAngleToTarget() < attackAngle
+		) {
 			Attack();
 		}
-
+ 		// if (weapon != null
+		//   && objectOfInterest != null
+		//   && Vector3.Distance(objectOfInterest.transform.position, transform.position) < weapon.weaponData.range
+		//   && GetAngleToTarget() < weapon.weaponData.attackAngle) {
+		// 	Attack();
+		// }
 	}
 }

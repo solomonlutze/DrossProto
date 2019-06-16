@@ -36,7 +36,7 @@ public class Inventory : MonoBehaviour {
 
     public UpcomingLifeTraits upcomingLarva; // two lives from now
     public UpcomingLifeTraits upcomingPupa; // your next life
-    
+
     public int defaultNumPassiveTraits = 2;
     public int defaultNumActiveTraits = 2;
 
@@ -51,7 +51,7 @@ public class Inventory : MonoBehaviour {
             }
         }
     }
-    
+
     void Update() {
         if (Input.GetButtonDown("UseItem")) {
             UseActiveItem();
@@ -93,7 +93,7 @@ public class Inventory : MonoBehaviour {
                     entry.guid = System.Guid.NewGuid().ToString("N");
                     inventory[entry.guid] = entry;
                     break;
-                    
+
             }
             if (itemInfo.type == InventoryItemType.Consumable) {
                 AutoEquipConsumable(item.itemId);
@@ -118,16 +118,16 @@ public class Inventory : MonoBehaviour {
     public void RemoveFromInventory(string itemId, int quantity) {
         if (inventory.ContainsKey(itemId)){
             inventory[itemId].quantity = Mathf.Max(inventory[itemId].quantity - quantity, 0);
-        } 
+        }
     }
 
     public InventoryEntry GetInventoryEntry(string itemId) {
         if (inventory.ContainsKey(itemId)){
             return inventory[itemId];
-        } 
+        }
         return null;
     }
-    
+
     void AutoEquipConsumable(string newItemId) {
         for (int i = 0; i < equippedItems.Length; i++) {
             string equippedItem = equippedItems[i];
@@ -178,7 +178,7 @@ public class Inventory : MonoBehaviour {
             if (trait != null && trait.inventoryItem.guid == traitItemGuid) {
                 upcomingLarva.activeTraits[i] = null;
             }
-        }        
+        }
         for (int i = 0; i < upcomingLarva.passiveTraits.Length; i++) {
             UpcomingLifeTrait trait = upcomingLarva.passiveTraits[i];
             if (trait != null) {
@@ -196,7 +196,7 @@ public class Inventory : MonoBehaviour {
             if (trait != null && trait.inventoryItem.guid == traitItemGuid) {
                 upcomingPupa.activeTraits[i] = null;
             }
-        }        
+        }
         for (int i = 0; i < upcomingPupa.passiveTraits.Length; i++) {
             UpcomingLifeTrait trait = upcomingPupa.passiveTraits[i];
             if (trait != null) {
@@ -237,7 +237,7 @@ public class Inventory : MonoBehaviour {
 
     public void UseItem(string itemId) {
         InventoryEntry entry = inventory[itemId];
-        if (entry.quantity <= 0) { 
+        if (entry.quantity <= 0) {
             Debug.LogError ("No item quantity in inventory! Cannot use!");
             return;
         }

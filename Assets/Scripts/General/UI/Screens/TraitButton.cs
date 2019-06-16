@@ -21,7 +21,6 @@ public class TraitButton : ItemButton {
     }
 
     protected override void HandleClick() {
-        Debug.Log("the correct handleclick");
 		inventoryScreen.EquipTraitItem(item, slotNumber.GetValueOrDefault(), lifeTraitsToEquipTo, traitType);
 	}
 }

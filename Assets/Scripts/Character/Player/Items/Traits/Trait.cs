@@ -6,15 +6,15 @@ public enum TraitName {}; // just a list of names of every possible trait
 public enum TraitType {Passive, Active};
 
 [System.Serializable]
-public enum TraitEffectType { Resistance, TileHeightLevel, AnimationInput, CharacterStat, CharacterMovementAbility }
+public enum TraitEffectType { Resistance, AnimationInput, CharacterStat, CharacterAttack, CharacterMovementAbility }
 [System.Serializable]
 public class TraitEffect {
   public TraitEffectType effectType;
   public float magnitude;
   public DamageType damageType;
   public CharacterStat stat;
+	public CharacterAttackValue attackValue;
 	public CharacterMovementAbility movementAbility;
-  public TileHeight tileHeightLevel;
   public Vector2 animationInput;
   public bool blocksMovement;
 	public GameObject objectToSpawn;
@@ -55,11 +55,11 @@ public abstract class Trait : ScriptableObject {
 			case TraitEffectType.CharacterMovementAbility:
 				owner.AddMovementAbility(traitEffect.movementAbility);
 				break;
-			case TraitEffectType.TileHeightLevel:
-				owner.currentTileHeightLevel = traitEffect.tileHeightLevel;
+			case TraitEffectType.CharacterAttack:
+				owner.ApplyAttackModifier(traitEffect.attackValue, Mathf.RoundToInt(traitEffect.magnitude));
 				break;
       case TraitEffectType.CharacterStat:
-        Debug.LogError("character stats mods aren't implemented yet you dork");
+				owner.stats[traitEffect.stat] += traitEffect.magnitude;
         break;
 		}
 	}
@@ -75,23 +75,20 @@ public abstract class Trait : ScriptableObject {
 				owner.SetAnimationPreventsMoving(false);
 				break;
 			case TraitEffectType.CharacterMovementAbility:
-				owner.AddMovementAbility(traitEffect.movementAbility);
-				break;
-			case TraitEffectType.TileHeightLevel:
-				owner.currentTileHeightLevel = owner.defaultTileHeightLevel;
+				owner.RemoveMovementAbility(traitEffect.movementAbility);
 				break;
       case TraitEffectType.CharacterStat:
-        Debug.LogError("character stats mods aren't implemented yet you dork");
+				owner.stats[traitEffect.stat] -= traitEffect.magnitude;
         break;
 		}
 	}
 }
 
-public abstract class TraitMono : MonoBehaviour {
- TraitName traitName;
- abstract public TraitType traitType { get; set; }
- //  other?
-}
+// public abstract class TraitMono : MonoBehaviour {
+//  TraitName traitName;
+//  abstract public TraitType traitType { get; set; }
+//  //  other?
+// }
 
 public class UpcomingLifeTrait {
   public string traitName;

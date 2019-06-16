@@ -26,7 +26,7 @@ public class DialogueHandler : Interactable {
     private CharacterAI character;
     private SuperTextMesh activeStm;
     private JSONNode dialogueJson;
-    
+
     private bool[] readDialogues;
     private int currentLineIndex = 0;
     private bool continueRequired = false;
@@ -34,6 +34,10 @@ public class DialogueHandler : Interactable {
     public string startNode;
     // public TextMeshPro tmpScript;
 
+    public override string interactableText {
+        get { return "talk"; }
+        set {}
+    }
     void Start() {
         if (scriptToLoad != null) {
             FindObjectOfType<Yarn.Unity.DialogueRunner>().AddScript(scriptToLoad);
@@ -42,12 +46,13 @@ public class DialogueHandler : Interactable {
         // dialogueJson = JSON.Parse(dialogueText.text);
         // readDialogues = new bool[dialogueJson["dialogues"].AsArray.Count];
     }
-   
+
     // Go through each of our dialogues in order.
     // Check all of the requirements for that dialogue.
     // If they're met, say the dialogue, then mark the dialogue line as said (which by default makes it unsayable again).
     void PlayerActivate(PlayerController player) {
-        if (character.aiState == AiStates.PlayerAggro) { return; }
+        // if (character.aiState == AiStates.PlayerAggro) { return; }
+        Debug.Log("calling playerActivate for DialogueHandler");
         if (startNode != null) {
             GameMaster.Instance.StartDialogue(startNode);
         }
@@ -120,6 +125,10 @@ public class DialogueHandler : Interactable {
         // }
     }
 
+    public override void OnRemove() {
+        GameMaster.Instance.StopDialogue();
+    }
+
     bool MeetsRequirements(PlayerController player, JSONNode dialogueNode) {
         JSONNode requirements = dialogueNode["requirements"];
 
@@ -145,7 +154,7 @@ public class DialogueHandler : Interactable {
         }
         return true;
     }
-    
+
     bool MeetsIsClassRequirement(PlayerController player, string characterClass) {
         return player.characterClass == characterClass;
     }

@@ -9,7 +9,7 @@ using UnityEngine.UI;
 // - current quick items
 // When a piece of equipment is clicked, it opens the relevant item list (consumables or weapons)
 // Equipped items in the item list are a different color
-// Clicking an item equips it 
+// Clicking an item equips it
 
 public class InventoryScreen : MonoBehaviour {
 
@@ -40,17 +40,17 @@ public class InventoryScreen : MonoBehaviour {
 		consumableList.gameObject.SetActive(false);
 		traitList.gameObject.SetActive(false);
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
 	}
-	
+
 	public void Enable() {
 		PlayerController playerController = GameMaster.Instance.GetPlayerController();
 		if (playerController != null) {
 			CloseEquipConsumableMenu();
 			CloseEquipTraitMenu();
-			
+
             Inventory inventory = playerController.GetComponent<Inventory>();
 		 	PopulateEquippableItemList(inventory.GetAllItemsOfType(InventoryItemType.Weapon), weaponsListContent, null);
 		 	PopulateEquippedConsumablesList(inventory.GetEquippedConsumableInventoryEntries());
@@ -83,8 +83,6 @@ public class InventoryScreen : MonoBehaviour {
 		// TODO: DRY
 		for (int i = 0; i < equippedLarvaTraits.passiveTraits.Length; i++) {
 			UpcomingLifeTrait trait = equippedLarvaTraits.passiveTraits[i];
-			Debug.Log("trait: "+trait);
-			Debug.Log(trait == null);
 ;			EquippedTraitButton button = Instantiate(equippedTraitButtonPrefab).GetComponent<EquippedTraitButton>();
 			button.Init(trait, this, i, equippedLarvaTraits, TraitType.Passive);
 			button.gameObject.transform.SetParent(equippedTraitListLarvaContent);
@@ -118,16 +116,15 @@ public class InventoryScreen : MonoBehaviour {
 					playerController.EquipConsumableToSlot(itemToEquip.itemId, slotValue);
 					CloseEquipConsumableMenu();
 					break;
-			}	
+			}
 		}
 	}
 
-	// equip the appropriate Trait 
-	// on the appropriate InventoryEntry 
-	// to the appropriate slot 
+	// equip the appropriate Trait
+	// on the appropriate InventoryEntry
+	// to the appropriate slot
 	// in the appropriate UpcomingLifeTraits
 	public void EquipTraitItem(InventoryEntry itemToEquip, int slot, UpcomingLifeTraits traitsToEquipTo, TraitType type) {
-		Debug.Log("EQUIP TRAIT BUTTON");
 		PlayerController playerController = GameMaster.Instance.GetPlayerController();
 		if (playerController != null) {
 			playerController.EquipTrait(itemToEquip, slot, traitsToEquipTo, type);
@@ -169,13 +166,12 @@ public class InventoryScreen : MonoBehaviour {
 		traitList.gameObject.SetActive(true);
 	}
 
-	
+
 	public void PopulateEquippableTraitList(List<InventoryEntry> items, Transform contentParent, int? slot, UpcomingLifeTraits lifeTraits, TraitType type) {
 		foreach(Transform child in contentParent) {
 			Destroy(child.gameObject);
 		}
 		foreach (InventoryEntry item in items) {
-			Debug.Log("equippable trait: "+item.ToString());
 			TraitButton button = Instantiate(traitButtonPrefab).GetComponent<TraitButton>();
 			button.Init(item, this, slot, lifeTraits, type);
 			button.gameObject.transform.SetParent(contentParent);
@@ -197,8 +193,6 @@ public class InventoryScreen : MonoBehaviour {
 		PlayerController playerController = GameMaster.Instance.GetPlayerController();
 		if (playerController != null) {
             Inventory inventory = playerController.GetComponent<Inventory>();
-			Debug.Log("upcoming larva: "+inventory.GetUpcomingLarva().ToString());
-			Debug.Log("upcoming pupa: "+inventory.GetUpcomingPupa().ToString());
 			PopulateEquippedTraitsList(inventory.GetUpcomingLarva(), inventory.GetUpcomingPupa());
 		}
 		traitList.gameObject.SetActive(false);

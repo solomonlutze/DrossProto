@@ -14,7 +14,7 @@ using UnityEditor;
      environmentTile.changesFloorLayer = GUILayout.Toggle(environmentTile.changesFloorLayer, "Changes Floor Layer");
 
      if(environmentTile.changesFloorLayer) {
-       environmentTile.targetFloorLayer = (Constants.FloorLayer) EditorGUILayout.EnumPopup(environmentTile.targetFloorLayer);
+       environmentTile.targetFloorLayer = (FloorLayer) EditorGUILayout.EnumPopup(environmentTile.targetFloorLayer);
      }
    }
  }

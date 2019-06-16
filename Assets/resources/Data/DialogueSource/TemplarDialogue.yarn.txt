@@ -1,7 +1,9 @@
+
 title: Templar.Start
 tags: 
 colorID: 0
 position: 540,260
+parent: 
 ---
 << if visited("Templar.MoveAlong") is false >>
 [[Templar.MoveAlong]]
@@ -13,6 +15,7 @@ title: Templar.MoveAlong2
 tags: 
 colorID: 0
 position: 541,572
+parent: 
 ---
 I said, move along.
 ===
@@ -20,6 +23,7 @@ title: Templar.MoveAlong
 tags: 
 colorID: 0
 position: 216,265
+parent: 
 ---
 Move along.
 ===

@@ -37,7 +37,7 @@ public class CustomPhysicsController : MonoBehaviour {
 
 	public float skinWidth = .01f;
 
-	private Constants.FloorLayer currentFloor;
+	private FloorLayer currentFloor;
 	// Use this for initialization
 	void Awake () {
 		velocity = new Vector2(0,0);
@@ -54,11 +54,16 @@ public class CustomPhysicsController : MonoBehaviour {
 	void Start() {
 		owningCharacter = GetComponent<Character>();
 		if (owningCharacter != null) {
-			moveAcceleration = owningCharacter.acceleration;
+			moveAcceleration = owningCharacter.stats[CharacterStat.MoveAcceleration];
 			orientation = owningCharacter.orientation;
 		}
 	}
 
+	void Update() {
+		if (owningCharacter != null) {
+			moveAcceleration = owningCharacter.CalculateAcceleration();
+		}
+	}
 	public void OnLayerChange() {
 		contactFilter.SetLayerMask (Physics2D.GetLayerCollisionMask (gameObject.layer));
 		if (gameObject.GetComponent<Character>() != null) {
@@ -81,10 +86,17 @@ public class CustomPhysicsController : MonoBehaviour {
 		movementInput = newMovementInput;
 	}
 
+	// WARNING: Adjusting velocity should always be done by applying force.
+	// This function is only for forcing velocity to zero for particular effects
+	// such as respawn. Use sparinigly!
+	public void HardSetVelocityToZero() {
+		velocity = Vector2.zero;
+	}
 
 	// Called by animation to indicate desired animation movement.
 	// Applied exactly the same as movement input.
 	public void SetAnimationInput(Vector2 newAnimationInput) {
+		Debug.Log("setting animation input to "+newAnimationInput);
 		animationInput = newAnimationInput;
 	}
 
@@ -117,13 +129,13 @@ public class CustomPhysicsController : MonoBehaviour {
 	void CalculateMovementTopDown() {
 		Vector2 orientedAnimationInput = Vector2.zero;
 		if (orientation != null) { orientedAnimationInput = orientation.rotation * animationInput; }
-		Vector2 desiredMovement = ((movementInput * moveAcceleration + orientedAnimationInput) - (drag * velocity)) * Time.deltaTime;
+		maxVelocity = moveAcceleration - drag * Time.deltaTime;
+		Vector2 desiredMovement = ((movementInput.normalized * moveAcceleration + orientedAnimationInput) - (drag * velocity)) * Time.deltaTime;
 		Vector2 xMove = new Vector2(velocity.x + desiredMovement.x, 0);
 		if (!ignoreCollisionPhysics) {
 			xMove = CalculateCollisionForAxis(xMove);
 		}
 		velocity.x = xMove.x;
-		transform.position += new Vector3(xMove.x, xMove.y, 0);
 		Vector2 yMove = new Vector2(0, velocity.y + desiredMovement.y);
 		if (!ignoreCollisionPhysics) {
 			yMove = CalculateCollisionForAxis(yMove);
@@ -149,12 +161,7 @@ public class CustomPhysicsController : MonoBehaviour {
 
 	public bool GetPathOpen(Vector2 castVector,List<GameObject> objectsToIgnore) {
 		RaycastHit2D[] results;
-		Debug.Log("objects to ignore: "+objectsToIgnore);
 		int hits = GetHitsFor2DCast(castVector, objectsToIgnore, out results);
-		if (hits > 0) {
-			Debug.Log(results[0].collider.gameObject);
-		}
-		Debug.Log("hits: "+hits);
 		return hits <=0;
 	}
 	// Below's a hack; rigidbody.cast also casts triggers, which is Bad. This prevents that.
@@ -172,8 +179,6 @@ public class CustomPhysicsController : MonoBehaviour {
 				for (int i = 0; i < 20 - hits && i < myHits; i++) {
 					CustomPhysicsController otherPhysics = res[i].collider.gameObject.GetComponent<CustomPhysicsController>();
 					bool otherIgnoresCollisions = false;
-					// Debug.Log("otherPhysics: "+otherPhysics);
-					// Debug.Log("gameObject: "+res[i].collider.gameObject);
 					if (otherPhysics != null) {
 						otherIgnoresCollisions = otherPhysics.ignoreCollisionPhysics;
 						if (objectsToIgnore.Contains(otherPhysics.gameObject)) { continue; }
@@ -183,25 +188,22 @@ public class CustomPhysicsController : MonoBehaviour {
 						hitPos.x = res[i].point.x - 0.01f * res[i].normal.x;
 						hitPos.y = res[i].point.y - 0.01f * res[i].normal.y;
 						Vector3 offset = Vector3.zero;
-						EnvironmentTile tile1;
-						EnvironmentTile tile2;
+						EnvironmentTileInfo tile1;
+						EnvironmentTileInfo tile2;
 						if (hitPos.x - Mathf.Floor(hitPos.x) <= 0.0001) {
 							offset.x += .0001f;
 						}
 						if (hitPos.y - Mathf.Floor(hitPos.y) <= 0.0001) {
 							offset.y += .0001f;
 						}
-						tile1 = GameMaster.Instance.GetTileAtLocation(hitPos + offset, currentFloor);
-						tile2 = GameMaster.Instance.GetTileAtLocation(hitPos - offset, currentFloor);
+						tile1 = GridManager.Instance.GetTileAtLocation(new TileLocation(hitPos + offset, currentFloor));
+						tile2 = GridManager.Instance.GetTileAtLocation(new TileLocation(hitPos - offset, currentFloor));
 						if (owningCharacter != null) {
-							owningCharacter.HandleTileCollision(tile1, hitPos+offset, currentFloor);
+							owningCharacter.HandleTileCollision(tile1);
 							if (tile1 != tile2) {
-								Debug.Log("tile1 and tile2 are different!!");
-								owningCharacter.HandleTileCollision(tile2, hitPos-offset, currentFloor);
+								owningCharacter.HandleTileCollision(tile2);
 							}
 						}
-						// Debug.Log("res[i] point.x <= 0.0001: "+ (hitPos.x - Mathf.Floor(hitPos.x) <= 0.0001));
-						// Debug.Log("res normal x: "+res[i].normal.x+", y: "+res[i].normal.y);
 					}
 					if (!res[i].collider.isTrigger && !otherIgnoresCollisions && !Physics2D.GetIgnoreCollision(res[i].collider, col)) {
 						results[hits+nonTriggerHits] = res[i];

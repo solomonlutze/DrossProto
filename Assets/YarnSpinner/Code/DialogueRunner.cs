@@ -141,7 +141,6 @@ namespace Yarn.Unity
 
         /// Add a string of text to a script
         public void AddScript(string text) {
-            Debug.Log("adding Script: "+text);
             dialogue.LoadString(text);
         }
 
@@ -226,7 +225,6 @@ namespace Yarn.Unity
                     yield return StartCoroutine (this.dialogueUI.RunLine (lineResult.line));
 
                 } else if (step is Yarn.Dialogue.OptionSetResult) {
-
                     // Wait for user to finish picking an option
                     var optionSetResult = step as Yarn.Dialogue.OptionSetResult;
                     yield return StartCoroutine (
@@ -273,6 +271,14 @@ namespace Yarn.Unity
             }
 
             dialogue.UnloadAll();
+        }
+
+        public IEnumerator Interrupt() {
+            // Stop any processes that might be running already
+            yield return StartCoroutine (this.dialogueUI.DialogueComplete ());
+            StopAllCoroutines ();
+            dialogueUI.StopAllCoroutines ();
+            Stop();
         }
 
         /// Stop the dialogue

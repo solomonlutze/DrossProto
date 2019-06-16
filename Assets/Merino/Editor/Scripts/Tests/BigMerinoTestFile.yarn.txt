@@ -1,0 +1,315 @@
+title: NewNode5
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode4
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode3
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode5
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode4
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode3
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode5
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode4
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode3
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode5
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode4
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode3
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode5
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode4
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode3
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode5
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode4
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode3
+tags: 
+colorID: 0
+position: 0,22
+parent: 
+---
+Write stuff here.
+===
+title: NewNode5
+tags: 
+colorID: 0
+position: 25,2
+parent: 
+---
+Write stuff here.
+===
+title: NewNode4
+tags: 
+colorID: 0
+position: 52,64
+parent: 
+---
+Write stuff here.
+===
+title: NewNode3
+tags: 
+colorID: 0
+position: 10,20
+parent: 
+---
+Write stuff here.
+===
+title: NewNode5
+tags: 
+colorID: 0
+position: 11,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode4
+tags: 
+colorID: 0
+position: 0,23
+parent: 
+---
+Write stuff here.
+===
+title: NewNode3
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode5
+tags: 
+colorID: 0
+position: 2,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode4
+tags: 
+colorID: 0
+position: 4,0
+parent: 
+---
+Write stuff here.
+===
+title: NewNode3
+tags: 
+colorID: 0
+position: 74,0
+parent: 
+---
+Write stuff here.
+===
+title: Start_2
+tags: 
+colorID: 0
+position: 47,507
+parent: 
+---
+This node is called Start_MoreExamples.
+The second way to do choices in Yarn is with 'shortcut options' like this:
+
+->This is option 1
+	You selected option 1.
+->This is option 2
+	You selected option 2.
+	<<set $didOption2 to true>>
+
+Based on choices, you can set variables, and then check those variables later.
+<<if $didOption2 is true>>
+By checking $didOption2, I remember you chose option 2!
+<<else>>
+I can't detect a variable $didOption2, so that means you chose option 1
+<<endif>>
+
+Do you want to go back to Start now?
+-> Yes, send me back to Start.
+	[[Start]]
+-> No thanks, I want to stop.
+
+Ok here's the end, good luck!
+===
+title: NewNode14
+tags: 
+colorID: 0
+position: 420,401
+parent: 
+---
+Write here.
+
+===
+title: NewNode15
+tags: 
+colorID: 0
+position: 534,329
+parent: 
+---
+Write here. Does this work? I wonder. Hmmmm!!! I wonder?
+===
+title: NewNode7
+tags: 
+colorID: 0
+position: 316,30
+parent: 
+---
+Write stuff here. Is this going to work or what???
+===
+title: Start
+tags: 
+colorID: 0
+position: 144,284
+parent: 
+---
+This is the Start node. Write the beginning of your Yarn story here.
+// You can make comments with '//' and the player won't see it.
+
+// There's two ways to do choices in Yarn. The most basic way is to link to other nodes like this:
+[[Go see more examples|Start_MoreExamples]]
+[[Actually, let's restart this node again|Start]]
+
+// IMPORTANT: node options are only offered at the end of the passage
+Do you want to read more about Yarn features?
+===
+title: Start_MoreExamples
+tags: 
+colorID: 0
+position: 276,339
+parent: Start
+---
+This node is called Start_MoreExamples.
+The second way to do choices in Yarn is with 'shortcut options' like this:
+
+->This is option 1
+	You selected option 1.
+->This is option 2
+	You selected option 2.
+	<<set $didOption2 to true>>
+
+Based on choices, you can set variables, and then check those variables later.
+<<if $didOption2 is true>>
+By checking $didOption2, I remember you chose option 2!
+<<else>>
+I can't detect a variable $didOption2, so that means you chose option 1
+<<endif>>
+
+Do you want to go back to Start now?
+-> Yes, send me back to Start.
+	[[Start]]
+-> No thanks, I want to stop.
+
+Ok here's the end, good luck!
+===

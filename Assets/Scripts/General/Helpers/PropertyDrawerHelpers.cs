@@ -31,7 +31,7 @@ public static class PropertyDrawerHelpers {
     {
       string name = file.Substring(file.LastIndexOf('/')+1);
       if (name.Substring(name.Length - 4, 4) == "meta") { continue; }
-      name = name.Substring(0,name.Length-3);
+      name = name.Substring(0,name.Length-6);
       temp.Add(name);
     }
     return temp.ToArray();

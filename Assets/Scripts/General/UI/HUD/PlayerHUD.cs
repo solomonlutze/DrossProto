@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class PlayerHUD : MonoBehaviour {
+	//TODO: Use TextMeshProUGUI instead of STM
 	private SuperTextMesh healthFieldText;
 	private SuperTextMesh healthValueText;
 	private SuperTextMesh maxHealthValueText;
@@ -33,10 +35,8 @@ public class PlayerHUD : MonoBehaviour {
 			if (playerController.stats[CharacterStat.CurrentHealth] > 0) {
 				diedText.text = " ";
 			}
-			Debug.Log("HUD lastActivatedTrait: "+ playerController.lastActivatedTrait);
 			if (playerController.lastActivatedTrait != null && playerController.lastActivatedTrait != "") {
 				activatedAbilityText.text = playerController.lastActivatedTrait + " Activated!";
-				Debug.Log("activatedAbilityText: "+ activatedAbilityText.text );
 			} else {
 				activatedAbilityText.text = " ";
 			}

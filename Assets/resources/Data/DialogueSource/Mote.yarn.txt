@@ -1,0 +1,66 @@
+
+title: Mote
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+<<if $mote_met is false>>
+Uhhhhhh hmmmmmm 
+
+-> what?
+
+Well, it's the mushrooms
+
+outside, i mean.
+
+They're kind of poisonous.
+
+i mean.
+
+They're very poisonous.
+
+i mean, 
+
+you'll die.
+
+-> hm. 
+
+Right. Exactly!
+
+Hm.
+
+-> any advice?
+
+Once you leave the hole there's a path dead west of here,
+
+Wow that was a very unfortunate turn of phrase
+
+There's a path directly west of here - you have to cut across some mushrooms but. You'll probably survive.
+
+Good, luck.
+<<set $mote_met to true>>
+<<else>>
+
+Hi,
+-> where do I go again?
+	West - you have to cut through some mushrooms for a bit but you'll find a clearing and a path.
+[[who are you?|Mote.WhoAreYou]]
+<<endif>>
+===
+title: Mote.WhoAreYou
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Oh. I'm a ceramicist. We make you your new bodies. When you die, you'll be reincarneted in a body one of us has available, with the abilities from your last life's pupa.
+
+We all live pretty far apart so you might be kind of lost at first? I advise just looking around some.
+
+-> thanks
+-> no like, who are you
+	Oh. I'm Mote.
+	->Hi, Mote.
+		Hi.
+===

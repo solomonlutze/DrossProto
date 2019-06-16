@@ -15,21 +15,20 @@ public class EditTilemapTrigger : MonoBehaviour {
 	public Tilemap destinationObstacleTilemap;
 
 	//let's think about positioning
-	//I think every 
+	//I think every
 	void Start () {
 		foreach (TilemapRenderer renderer in gameObject.GetComponentsInChildren<TilemapRenderer>()) {
 			renderer.enabled = false;
 		}
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
-		
+
 	}
 
 	void OnTriggerEnter2D(Collider2D collider) {
 		if (collider.gameObject.tag == "Player") {
-			Debug.Log("applying tilemap changes...");
 			ApplyTilemapChanges();
             Destroy(gameObject);
 		}

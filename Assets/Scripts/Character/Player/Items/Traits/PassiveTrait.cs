@@ -27,21 +27,21 @@ public class PassiveTrait : Trait {
 }
 
 
-public class PassiveTraitMono : TraitMono {
+// public class PassiveTraitMono : TraitMono {
 
-	public override TraitType traitType {
-		get { return TraitType.Passive; }
-		set { }
-	}
+// 	public override TraitType traitType {
+// 		get { return TraitType.Passive; }
+// 		set { }
+// 	}
 
 
-	// Called when the trait is applied to the player (usually on spawn)
-	public virtual void OnTraitAdded (Character owner) {
+// 	// Called when the trait is applied to the player (usually on spawn)
+// 	public virtual void OnTraitAdded (Character owner) {
 
-	}
+// 	}
 
-	// Called when the trait is removed from the character (usually on death)
-	public virtual void OnTraitRemoved (Character owner) {
+// 	// Called when the trait is removed from the character (usually on death)
+// 	public virtual void OnTraitRemoved (Character owner) {
 
-	}
-}
+// 	}
+// }

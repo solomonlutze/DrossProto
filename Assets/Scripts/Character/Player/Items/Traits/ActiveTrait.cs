@@ -10,8 +10,8 @@ public enum SpawnedObjectSpawnLocation { Owner, Crosshair }
 
 //TODO: For now, only spawns hitboxes. We should make "things a gameobject spawns" more generic.
 [System.Serializable]
-public class TraitSpawnedObject {
-	public Hitbox hitboxPrefab;
+public class TraitSpawnedObjectData {
+	public GameObject prefabToSpawn;
 	public HitboxInfo hitboxInfo;
 	public SpawnedObjectSpawnLocation spawnLocation;
 	public bool followOwner;
@@ -34,7 +34,7 @@ public class ActiveTraitEffect {
 	public float applicationDuration;
 	public bool cancelOnButtonRelease;
 	public TraitEffect[] traitEffects;
-	public TraitSpawnedObject[] objectsToSpawn;
+	public TraitSpawnedObjectData[] objectsToSpawn;
 	public TraitChangedEnvironmentTile[] changedEnvironmentTiles;
 }
 
@@ -88,23 +88,32 @@ public class ActiveTraitInstance : MonoBehaviour {
 	private Character owner;
 	private List<GameObject> instancedGameObjects;
 
+	private List<TraitEffect> currentlyActiveEffects;
 
 	// Called when the trait is activated. Surprise!
 	// start a coroutine for each active effect
 	// then when it procs, apply the effects listed
 	public void Init(Character c, ActiveTrait td) {
 		instancedGameObjects = new List<GameObject>();
+		currentlyActiveEffects = new List<TraitEffect>();
 		owner = c;
 		traitData = td;
 		delayEffectCoroutines = new Dictionary<int, Coroutine>();
 		traitData.OnTraitAdded(c);
 	}
 
+	public void CancelActiveEffects() {
+		StopAllCoroutines();
+		foreach(TraitEffect e in currentlyActiveEffects) {
+			traitData.ExpireTraitEffect(owner, e);
+		}
+		currentlyActiveEffects.Clear();
+	}
+
 	public void OnActivateTraitPressed () {
 		if (abilityReady) {
 			PlayerController pc = (PlayerController) owner;
 			if (pc != null) { pc.lastActivatedTrait =  traitData.traitName;	}
-			Debug.Log("pc.lastActivatedTrait: "+pc.lastActivatedTrait);
 			abilityInUse = true;
 			if (traitData.cooldown > 0) {
 				abilityReady = false;
@@ -121,9 +130,16 @@ public class ActiveTraitInstance : MonoBehaviour {
 			if (nextActiveTraitEffect.delay <= timeSincePressed) {
 				ApplyActiveTraitEffect(nextActiveTraitEffect);
 				currentEffectIndex++;
+				if (nextActiveTraitEffect.duration > 0) {
+					StartCoroutine(WaitAndExpireEffect(nextActiveTraitEffect, nextActiveTraitEffect.duration));
+				}
 			}
 			timeSincePressed += Time.deltaTime;
 		}
+	}
+	public IEnumerator WaitAndExpireEffect(ActiveTraitEffect effect, float duration) {
+		yield return new WaitForSeconds(duration);
+		ExpireEffect(effect);
 	}
 
 	public void OnActivateTraitReleased () {
@@ -152,24 +168,29 @@ public class ActiveTraitInstance : MonoBehaviour {
 	private void ApplyActiveTraitEffect(ActiveTraitEffect activeTraitEffect) {
 		foreach (TraitEffect traitEffect in activeTraitEffect.traitEffects) {
 			Debug.Log("applying trait effect: input = "+traitEffect.animationInput);
+			currentlyActiveEffects.Add(traitEffect);
 			traitData.ApplyTraitEffect(owner, traitEffect);
+
 		}
 
-		foreach (TraitSpawnedObject traitSpawnedObject in activeTraitEffect.objectsToSpawn) {
-			SpawnTraitSpawnedObject(traitSpawnedObject);
+		foreach (TraitSpawnedObjectData traitSpawnedObjectData in activeTraitEffect.objectsToSpawn) {
+			SpawnTraitSpawnedObjectData(traitSpawnedObjectData);
 		}
 		foreach(TraitChangedEnvironmentTile changedEnvironmentTile in activeTraitEffect.changedEnvironmentTiles) {
 			ChangeEnvironmentTile(changedEnvironmentTile);
+		}
+		if (activeTraitEffect.changedEnvironmentTiles.Length > 0) {
+			owner.UseTile();
 		}
 	}
 
 	// TODO: Right now, only instantiates hitboxes.
 	// Make it more generic!!
-	private void SpawnTraitSpawnedObject(TraitSpawnedObject traitSpawnedObject) {
+	private void SpawnTraitSpawnedObjectData(TraitSpawnedObjectData TraitSpawnedObjectData) {
 		Transform spawnTransform;
 		Vector3 spawnPosition;
 		Quaternion spawnRotation;
-		switch (traitSpawnedObject.spawnLocation) {
+		switch (TraitSpawnedObjectData.spawnLocation) {
 			case SpawnedObjectSpawnLocation.Crosshair:
 				spawnTransform = owner.orientation.transform;
 				spawnPosition = owner.crosshair.position;
@@ -182,25 +203,32 @@ public class ActiveTraitInstance : MonoBehaviour {
 				spawnRotation = spawnTransform.rotation;
 				break;
 		}
-		Hitbox obj = Instantiate(traitSpawnedObject.hitboxPrefab, spawnPosition, spawnRotation);
-		if (obj != null) {
-			obj.Init(spawnTransform, owner, traitSpawnedObject.hitboxInfo);
+		GameObject obj = Instantiate(TraitSpawnedObjectData.prefabToSpawn, spawnPosition, spawnRotation).gameObject;
+		obj.gameObject.layer = owner.gameObject.layer;
+		TraitSpawnedObject tso = obj.GetComponent<TraitSpawnedObject>();
+		if (tso != null) {
+			tso.Init(owner);
+		}
+		Hitbox hb = obj.GetComponent<Hitbox>();
+		if (hb != null && TraitSpawnedObjectData.hitboxInfo != null) {
+			hb.Init(spawnTransform, owner, TraitSpawnedObjectData.hitboxInfo);
 			instancedGameObjects.Add(obj.gameObject);
 		}
 	}
 
 	private void ChangeEnvironmentTile(TraitChangedEnvironmentTile changedEnvironmentTile) {
 		if (changedEnvironmentTile == null) { return; }
-		EnvironmentTile currentFloorTile = GameMaster.Instance.GetTileAtLocation(owner.transform.position, owner.currentFloor);
-		GameMaster.Instance.ReplaceAdjacentTile(owner.transform.position, owner.currentFloor, changedEnvironmentTile.tileToSpawn, changedEnvironmentTile.spawnDirection);
+		GridManager.Instance.ReplaceAdjacentTile(owner.GetTileLocation(),changedEnvironmentTile.tileToSpawn, changedEnvironmentTile.spawnDirection);
 	}
 
 	private void ExpireEffect(ActiveTraitEffect activeTraitEffect) {
+		Debug.Log("expiring effects");
 		PlayerController pc = (PlayerController) owner;
 		if (pc.lastActivatedTrait == traitData.traitName) {
 			// pc.lastActivatedTrait = null;
 		}
 		foreach (TraitEffect traitEffect in activeTraitEffect.traitEffects) {
+			currentlyActiveEffects.Remove(traitEffect);
 			traitData.ExpireTraitEffect(owner, traitEffect);
 		}
 	}

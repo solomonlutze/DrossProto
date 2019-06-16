@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-
+using UnityEditor;
 // TODO: Character can probably extend CustomPhysicsController, which simplifies movement code a bit.
 public class AnimationInfoObject {
 	public Vector2 animationInput;
@@ -13,29 +13,77 @@ public enum CharacterStat {
 	CurrentMaxHealth,
 	MaxHealth,
 	CurrentEnvironmentalDamageCooldown,
-	CurrentMaxEnvironmentalDamageCooldown,
-	MaxEnvironmentalDamageCooldown
+	MaxEnvironmentalDamageCooldown,
+	MoveAcceleration,
+	RotationSpeed,
+}
+
+public enum CharacterAttackValue {
+	Damage,
+	Range,
+	HitboxSize,
+	Knockback,
+	Stun,
+	AttackSpeed,
+	Cooldown,
+	Venom
 }
 
 // Special modes of character movement.
 // Possibly unnecessary!!
 public enum CharacterMovementAbility {
-	WaterStride,
-	Burrow
+	Burrow,
+	FastFeet,
+	Halteres,
+	Hover,
+	StickyFeet,
+	WaterStride
 }
 
 [System.Serializable]
 public class CharacterStatModification {
     public CharacterStat statToModify;
     public float magnitude;
+
+	public float applicationDuration;
     public float duration;
     public float delay;
+
+	public CharacterStatModification(CharacterStat s, float m, float dur, float del) {
+		statToModify = s;
+		magnitude = m;
+		duration = dur;
+		delay = del;
+	}
+}
+
+[System.Serializable]
+public class CharacterAttack : ScriptableObject {
+	public Hitbox hitboxObject;
+	public HitboxInfo hitboxInfo;
+	public float attackSpeed;
+	public float range;
+	public float hitboxSize;
+	public float cooldown;
+
+	#if UNITY_EDITOR
+    // The following is a helper that adds a menu item to create an TraitItem Asset
+        [MenuItem("Assets/Create/CharacterAttack")]
+        public static void CreatePassiveTrait()
+        {
+            string path = EditorUtility.SaveFilePanelInProject("Save Character Attack", "New Character Attack", "Asset", "Save Character Attack", "Assets/resources/Data/CharacterData/AttackData");
+            if (path == "")
+                return;
+       		AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<CharacterAttack>(), path);
+        }
+    #endif
 }
 
 // TODO: Character should probably extend CustomPhysicsController, which should extend WorldObject
 public class Character : WorldObject {
 
 	public CharacterStatToFloatDictionary stats;
+	public CharacterAttackValueToIntDictionary attackModifiers;
 	public List<CharacterMovementAbility> movementAbilities;
 	public SuperTextMesh stm;
 
@@ -47,6 +95,8 @@ public class Character : WorldObject {
 	[HideInInspector]
     [SerializeField]
 	public string initialWeaponId;
+	public CharacterAttack characterAttack;
+	public Hitbox hitboxPrefab;
 
 	[HideInInspector]
     [SerializeField]
@@ -67,12 +117,11 @@ public class Character : WorldObject {
 	// how fast we move
 	public float acceleration;
 	// how fast we turn
-	public float rotationSpeed = 5;
-	public float defaultRotationSpeed = 5;
 	public Transform orientation;
 	public Transform crosshair;
 
 	public bool facingRight = true;
+
 	public Color damageFlashColor;
 	public float damageFlashSpeed = 0.05f;
 	public DamageTypeToFloatDictionary damageTypeResistances;
@@ -85,8 +134,10 @@ public class Character : WorldObject {
 
 	// are we presently attacking?
 	public bool attacking = false;
+	public Coroutine attackCoroutine;
 	// are we in an animation/
 	public bool animationPreventsMoving = false;
+	public bool sticking = false;
 
 	// animation object
 	protected Animator animator;
@@ -94,24 +145,19 @@ public class Character : WorldObject {
 	protected Weapon weapon;
 
 	// our physics object
-	protected CustomPhysicsController po;
+	public CustomPhysicsController po;
 	// movement desired by character
 	protected Vector2 movementInput;
 
 	// point in space we would like to face
 	protected Vector3 orientTowards;
-
-	// We will interact with tiles at the same tile height or above
-	// e.g. if our currentTileHeightLevel is Tall we will interact with Tall/Unpassable tiles but not Ground or Short tiles
-	public TileHeight defaultTileHeightLevel = TileHeight.Ground;
-	public TileHeight currentTileHeightLevel;
 	protected TileLocation currentTileLocation;
+	protected EnvironmentTileInfo currentTile;
 
-    public Constants.FloorLayer currentFloor;
+    public FloorLayer currentFloor;
 
-	public float maxTileStepHeight = 1.0f;
 	public CharacterData defaultCharacterData;
-	public Constants.FloorLayer? justCameFromFloor;
+	public FloorLayer? justCameFromFloor;
 	public Vector3 previousTilePosition;
 	protected virtual void Awake() {
 		orientation = transform.Find("Orientation");
@@ -122,9 +168,7 @@ public class Character : WorldObject {
 
 	// TODO: this long list of GetComponents is messy; can it be cleaned up?
 	protected virtual void Start () {
-		InitializeFromCharacterData();
 		movementInput = new Vector2(0,0);
-		po = GetComponent<CustomPhysicsController>();
 		animator = GetComponent<Animator>();
 		if (animator == null) {
 			Debug.LogError("No animator on Character object: "+gameObject.name);
@@ -143,13 +187,17 @@ public class Character : WorldObject {
         ChangeLayersRecursively(transform, currentFloor.ToString());
 	}
 
+	protected virtual void Init() {
+		InitializeFromCharacterData();
+	}
+
 	private void InitializeFromCharacterData() {
 		if (defaultCharacterData != null) {
-			stats = defaultCharacterData.defaultStats;
+			CharacterData dataInstance = (CharacterData) ScriptableObject.Instantiate(defaultCharacterData);
+			stats = dataInstance.defaultStats;
 			ResetStats();
-			damageTypeResistances = defaultCharacterData.damageTypeResistances;
-			movementAbilities.AddRange(defaultCharacterData.movementAbilities);
-			Debug.Log("movementAbilities: "+movementAbilities);
+			damageTypeResistances = dataInstance.damageTypeResistances;
+			movementAbilities.AddRange(dataInstance.movementAbilities);
 		}
 	}
 
@@ -160,6 +208,7 @@ public class Character : WorldObject {
 	}
 	// non-physics biz
 	protected virtual void Update() {
+		HandleHealth();
 		HandleFacingDirection();
 		HandleTile();
 	}
@@ -183,6 +232,51 @@ public class Character : WorldObject {
 
 	// called via play input or npc AI
 	protected void Attack() {
+		if (characterAttack != null) {
+			if (!attacking) {
+				attackCoroutine = StartCoroutine(DoAttack());
+			}
+		}
+	}
+
+	public IEnumerator DoAttack() {
+		attacking = true;
+		yield return new WaitForSeconds(characterAttack.attackSpeed);
+		CreateHitbox();
+		yield return new WaitForSeconds(characterAttack.cooldown);
+		attacking = false;
+		attackCoroutine = null;
+	}
+	public static float GetAttackValueModifier(CharacterAttackValueToIntDictionary attackModifiers, CharacterAttackValue value) {
+		if (attackModifiers == null || !attackModifiers.ContainsKey(value)) {
+			return 0;
+		}
+		return attackModifiers[value] * Constants.CharacterAttackAdjustmentIncrements[value];
+	}
+
+	// TODO: Refactor attack info so that it all lives on a single object (...maybe)
+	public void CreateHitbox() {
+		HitboxInfo hbi = characterAttack.hitboxInfo;
+		if (hbi == null) { Debug.LogError("no attack object defined for "+gameObject.name); }
+		Vector3 pos = orientation.TransformPoint(Vector3.right * (characterAttack.range + Character.GetAttackValueModifier(attackModifiers, CharacterAttackValue.Range)));
+ 		Hitbox hb = GameObject.Instantiate(hitboxPrefab, pos, orientation.rotation) as Hitbox;
+		hb.gameObject.layer = LayerMask.NameToLayer(currentFloor.ToString());
+		hb.gameObject.GetComponent<SpriteRenderer>().sortingLayerName = currentFloor.ToString();
+		hb.Init(orientation, this, hbi, characterAttack.hitboxInfo.damageMultipliers, attackModifiers);
+	}
+	public float CalculateAcceleration() {
+		float environmentAccelerationMod = currentTile != null ? currentTile.GetAccelerationMod() : 0;
+		if (movementAbilities.Contains(CharacterMovementAbility.FastFeet)) {
+			environmentAccelerationMod = Mathf.Max(environmentAccelerationMod, 0);
+		}
+		return stats[CharacterStat.MoveAcceleration] + environmentAccelerationMod;
+	}
+
+	public void ApplyAttackModifier(CharacterAttackValue attackValue, int magnitude) {
+		attackModifiers[attackValue] += magnitude;
+	}
+// called via play input or npc AI
+	protected void OLD__Attack() {
 		if (weapon != null) {
 			if (!attacking) {
 				weapon.BeginAttack();
@@ -192,12 +286,11 @@ public class Character : WorldObject {
 			}
 		}
 	}
-
 	// ANIMATION HOOKS
 	// These are functions called by animations, and are often passthroughs
 	// to components on child objects.
 	// They are either called from animation events or from animation state behaviors.
-	public void CreateHitbox(string hitboxId) {
+	public void OLD__CreateHitbox(string hitboxId) {
 		weapon.CreateHitbox(hitboxId);
 	}
 
@@ -224,20 +317,19 @@ public class Character : WorldObject {
 		po.SetAnimationInput(newAnimationInput);
 	}
 
-	public void SetRotationSpeed(float newRotationSpeed) {
-		rotationSpeed = newRotationSpeed;
-	}
-
 	public void SetAnimationPreventsMoving(bool newAnimationPreventsMoving) {
 		animationPreventsMoving = newAnimationPreventsMoving;
 	}
 	// Point character towards a rotation target.
 	void HandleFacingDirection() {
-		if (attacking || animationPreventsMoving) {
+		if (
+			(attacking || animationPreventsMoving)
+			&& !movementAbilities.Contains(CharacterMovementAbility.Halteres)
+		) {
 			return;
 		}
 		Quaternion targetDirection = GetTargetDirection();
-		orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, rotationSpeed * Time.deltaTime);
+		orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, stats[CharacterStat.RotationSpeed] * Time.deltaTime);
 		facingRight = true;
 		if (orientation.eulerAngles.z > 90 || orientation.eulerAngles.z < 270) {
 			facingRight = false;
@@ -272,11 +364,13 @@ public class Character : WorldObject {
 
 	// determines if input-based movement is allowed
 	protected virtual bool CanMove() {
-		if (attacking) {
-			return false;
-		}
-		if (animationPreventsMoving) {
-			return false;
+		if (!movementAbilities.Contains(CharacterMovementAbility.Halteres)) {
+			if (attacking) {
+				return false;
+			}
+			if (animationPreventsMoving) {
+				return false;
+			}
 		}
 		if (stunned) {
 			return false;
@@ -290,15 +384,14 @@ public class Character : WorldObject {
 	protected void TakeDamage(DamageObject damageObj) {
 		if (invulnerable && !damageObj.ignoreInvulnerability) { return; }
 		float damageAfterResistances = (1 - damageTypeResistances[damageObj.damageType]) * damageObj.damage;
-		if (damageAfterResistances <= 0) { return; }
+		if (damageAfterResistances <= 0 && damageObj.characterStatModifications.Count == 0) { return; }
 		if (damageObj.attackerTransform == transform) { return; }
 		InterruptAnimation();
 		AdjustHealth(Mathf.Floor(-damageAfterResistances));
-		if (stats[CharacterStat.CurrentHealth] <= 0) {
-			Die();
-			return;
-		}
 		CalculateAndApplyStun(damageObj.stun);
+		foreach(CharacterStatModification mod in damageObj.characterStatModifications) {
+			ModCharacterStat(mod);
+		}
 		StartCoroutine(ApplyInvulnerability(damageObj.invulnerabilityWindow));
 		StartCoroutine(ApplyDamageFlash(damageObj));
 		if (damageObj.attackerTransform != null && damageObj.hitboxTransform != null) {
@@ -342,8 +435,10 @@ public class Character : WorldObject {
 	}
 
 	// Determines if we should be stunned, and stuns us if so.
-	void CalculateAndApplyStun(float stunDuration) {
-		// TODO: Stun resistance/reduction should happen here
+	protected void CalculateAndApplyStun(float stunDuration, bool overrideStunResistance = false) {
+		if (!overrideStunResistance) {
+			// TODO: Stun resistance/reduction should happen here
+		}
 		if (stunDuration > 0) {
 			StartCoroutine(ApplyStun(stunDuration));
 		}
@@ -376,11 +471,11 @@ public class Character : WorldObject {
 
 	public IEnumerator ModCharacterStatCoroutine(CharacterStatModification mod) {
 		yield return new WaitForSeconds(mod.delay);
-		if (mod.duration > 0) {
+		if (mod.applicationDuration > 0) {
 			float t = 0;
-			while (t < mod.duration) {
+			while (t < mod.applicationDuration) {
 				t += Time.deltaTime;
-				AdjustStat(mod.statToModify, mod.magnitude * Time.deltaTime / mod.duration);
+				AdjustStat(mod.statToModify, mod.magnitude * Time.deltaTime / mod.applicationDuration);
 				yield return null;
 			}
 			// HACK: this line is probably going to result in some weird edge cases around stat mods.
@@ -391,12 +486,14 @@ public class Character : WorldObject {
 		} else {
 			AdjustStat(mod.statToModify, mod.magnitude);
 		}
+		if (mod.duration > 0) {
+			yield return new WaitForSeconds(mod.duration);
+			AdjustStat(mod.statToModify, -mod.magnitude);
+		}
 	}
 
 	public void AddMovementAbility(CharacterMovementAbility movementAbility) {
 		movementAbilities.Add(movementAbility);
-		Debug.Log("adding movement ability: "+movementAbility);
-		Debug.Log("movementAbilities: "+movementAbilities);
 	}
 
 	public void RemoveMovementAbility(CharacterMovementAbility movementAbility) {
@@ -411,6 +508,9 @@ public class Character : WorldObject {
 			case CharacterStat.CurrentMaxHealth:
 				AdjustCurrentMaxHealth(magnitude);
 				break;
+			case CharacterStat.MoveAcceleration:
+				AdjustMoveAcceleration(magnitude);
+				break;
 		}
 	}
 	public void AdjustHealth(float adjustment) {
@@ -420,6 +520,18 @@ public class Character : WorldObject {
 	public void AdjustCurrentMaxHealth(float adjustment) {
 		stats[CharacterStat.CurrentMaxHealth] = Mathf.Max(stats[CharacterStat.CurrentMaxHealth] + adjustment, 0);
 		stats[CharacterStat.CurrentHealth] = Mathf.Min(stats[CharacterStat.CurrentHealth], stats[CharacterStat.CurrentMaxHealth]);
+	}
+
+	public void AdjustMoveAcceleration(float adjustment) {
+		float actualAdjust = adjustment;
+		if (movementAbilities.Contains(CharacterMovementAbility.FastFeet)) {
+			actualAdjust = Mathf.Max(adjustment, 0);
+		}
+		stats[CharacterStat.MoveAcceleration] = Mathf.Max(stats[CharacterStat.MoveAcceleration] + actualAdjust, 0);
+	}
+
+	public void AdjustRotationSpeed(float adjustment) {
+		stats[CharacterStat.RotationSpeed] = Mathf.Max(stats[CharacterStat.RotationSpeed] + adjustment, 0);
 	}
 
 	public void InitializeWeapon(string weaponId) {
@@ -435,7 +547,7 @@ public class Character : WorldObject {
 		weapon.Init();
 	}
 
-    public void SetCurrentFloor(Constants.FloorLayer newFloorLayer)
+    public virtual void SetCurrentFloor(FloorLayer newFloorLayer)
     {
 		justCameFromFloor = currentFloor;
         currentFloor = newFloorLayer;
@@ -444,11 +556,10 @@ public class Character : WorldObject {
 		po.OnLayerChange();
     }
 
-	protected void UseTile() {
-		Debug.Log("usetile - currentTileLocation floor: "+currentTileLocation.floorLayer);
-		EnvironmentTile et = GameMaster.Instance.GetTileAtLocation(currentTileLocation.position, currentTileLocation.floorLayer);
-		if (et.changesFloorLayer) {
-			SetCurrentFloor(et.targetFloorLayer);
+	public void UseTile() {
+		EnvironmentTileInfo et = GridManager.Instance.GetTileAtLocation(currentTileLocation);
+		if (et.ChangesFloorLayer()) {
+			SetCurrentFloor(et.GetTargetFloorLayer());
 		}
 	}
 
@@ -465,39 +576,67 @@ public class Character : WorldObject {
 		}
  	}
 
+	//TODO: this could potentially cause offset issues
 	public TileLocation CalculateCurrentTileLocation() {
 		return new TileLocation(
-			new Vector3(
-				Mathf.FloorToInt(transform.position.x) + .5f,
-				Mathf.FloorToInt(transform.position.y) + .5f,
-				Mathf.FloorToInt(transform.position.z)
+			new Vector2Int(
+				Mathf.FloorToInt(transform.position.x),
+				Mathf.FloorToInt(transform.position.y)
 			),
 			currentFloor
 		);
 	}
-
+	protected virtual void HandleHealth() {
+		if (stats[CharacterStat.CurrentHealth] <= 0) {
+			Die();
+		}
+	}
 	protected virtual void HandleTile() {
-		EnvironmentTile tile = GameMaster.Instance.GetTileAtLocation(transform.position, currentFloor);
+		EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(CalculateCurrentTileLocation());
+		if (tile == null) {
+			Debug.LogError("WARNING: no tile found at "+CalculateCurrentTileLocation().ToString());
+			return;
+		}
+		if (tile != currentTile) {
+			currentTile = tile;
+		}
 		TileLocation nowTileLocation = CalculateCurrentTileLocation();
 		if (currentTileLocation != nowTileLocation) {
 			currentTileLocation = nowTileLocation;
 			justCameFromFloor = null;
 		}
+		if (stats[CharacterStat.CurrentEnvironmentalDamageCooldown] > 0) {
+			stats[CharacterStat.CurrentEnvironmentalDamageCooldown] -= Time.deltaTime;
+		}
+		if (tile.objectTileType == null && tile.groundTileType == null) {
+			if (
+				(movementAbilities.Contains(CharacterMovementAbility.StickyFeet)
+				&& GridManager.Instance.CanStickToAdjacentTile(transform.position, currentFloor))
+				|| sticking
+			) {
+				// do nothing. no fall plz.
+			} else {
+				transform.position = new Vector3 (
+					nowTileLocation.position.x + .5f,
+					nowTileLocation.position.y + .5f,
+					0f
+				);
+				SetCurrentFloor(currentFloor - 1);
+			}
+			return;
+		}
 		if (tile.dealsDamage && tile.environmentalDamage != null && stats[CharacterStat.CurrentEnvironmentalDamageCooldown] <= 0) {
 			TakeDamage(tile.environmentalDamage);
 			stats[CharacterStat.CurrentEnvironmentalDamageCooldown] = stats[CharacterStat.MaxEnvironmentalDamageCooldown];
 		}
-		if (stats[CharacterStat.CurrentEnvironmentalDamageCooldown] > 0) {
-			stats[CharacterStat.CurrentEnvironmentalDamageCooldown] -= Time.deltaTime;
-		}
 	}
 
-	public virtual void HandleTileCollision(EnvironmentTile tile, Vector3 loc, Constants.FloorLayer floor) {
-		if (tile.colliderType == Tile.ColliderType.None) {
+	public virtual void HandleTileCollision(EnvironmentTileInfo tile) {
+		if (tile.GetColliderType() == Tile.ColliderType.None) {
 			return;
 		}
 		else {
-			Debug.Log("collided with "+tile);
+			// Debug.Log("collided with "+tile);
 		}
 	}
 }

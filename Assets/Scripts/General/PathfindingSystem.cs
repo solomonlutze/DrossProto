@@ -12,7 +12,7 @@ public class Node {
     public int h;
     public string id;
     public Node parent;
-    public Constants.FloorLayer floor;
+    public FloorLayer floor;
 }
 
 // data structures we need backing this:
@@ -45,7 +45,6 @@ public class PathfindingSystem : MonoBehaviour {
                     n = n.parent;
                 }
                 finalPath.Reverse();
-                Debug.Log("Found a path!");
                 break;
             }
             adjacentNodes = GetAdjacentNodes(nextNode, targetLocation, ai);
@@ -91,7 +90,6 @@ public class PathfindingSystem : MonoBehaviour {
 
     public bool IsPathClearOfHazards(Collider2D col, TileLocation target, CharacterAI ai) {
 		if (target.floorLayer != ai.currentFloor) {
-            Debug.Log("PathClearOfHazards - false, floors differ");
             return false;
         }
         Vector3[] colliderCorners = new Vector3[]{
@@ -106,18 +104,16 @@ public class PathfindingSystem : MonoBehaviour {
         }
         foreach(EnvironmentTile et in tilesAlongPath) {
             if (!CanPassOverTile(et, ai)) {
-                Debug.Log("PathClearOfHazards - false, can't pass over tile "+et.name);
                 return false;
             }
         }
-        Debug.Log("PathClearOfHazards - true!!");
         return true;
     }
 
     private bool CanPassOverTile(EnvironmentTile tile, CharacterAI ai) {
         return
             tile != null &&
-            (ai.currentTileHeightLevel > tile.tileHeight || (tile.colliderType == Tile.ColliderType.None && !tile.dealsDamage) && !tile.ShouldRespawnPlayer())
+            ((tile.colliderType == Tile.ColliderType.None && !tile.dealsDamage) && !tile.ShouldRespawnPlayer())
         ;
     }
 
@@ -148,7 +144,7 @@ public class PathfindingSystem : MonoBehaviour {
             LayerFloor layer = gridManager.layerFloors[target.floorLayer];
             Vector3Int pos = new Vector3Int (currentX, currentY, 0);
             res.Add((EnvironmentTile) layer.groundTilemap.GetTile (pos));
-            EnvironmentTile objectTile = (EnvironmentTile) layer.objectTilemap.GetTile (new Vector3Int (currentX, currentY, 0));
+            EnvironmentTile objectTile = (EnvironmentTile) layer.objectTilemap.GetTile(new Vector3Int (currentX, currentY, 0));
             if (objectTile != null) {
                 res.Add(objectTile);
             }
@@ -165,7 +161,7 @@ public class PathfindingSystem : MonoBehaviour {
         return res;
     }
 
-    bool ConnectionBetweenNodesOnDifferentFloorsExists(Node currentNode, Constants.FloorLayer newFloor) {
+    bool ConnectionBetweenNodesOnDifferentFloorsExists(Node currentNode, FloorLayer newFloor) {
         LayerFloor layer = gridManager.layerFloors[currentNode.floor];
         if (layer == null || layer.groundTilemap == null || layer.objectTilemap == null) {
             // this should not happen
@@ -174,7 +170,7 @@ public class PathfindingSystem : MonoBehaviour {
         }
         EnvironmentTile groundTile = (EnvironmentTile) layer.groundTilemap.GetTile (new Vector3Int (currentNode.x, currentNode.y, 0)); // is this in our floor?
         EnvironmentTile objectTile = (EnvironmentTile) layer.objectTilemap.GetTile (new Vector3Int (currentNode.x, currentNode.y, 0)); // is this in our floor?
-        Constants.FloorLayer? targetLayer = null;
+        FloorLayer? targetLayer = null;
         if (objectTile != null && objectTile.changesFloorLayer) {
             targetLayer = objectTile.targetFloorLayer;
         } else if (groundTile != null && groundTile.changesFloorLayer) {
@@ -183,7 +179,7 @@ public class PathfindingSystem : MonoBehaviour {
         return (targetLayer != null && targetLayer == newFloor);
     }
 
-    void MaybeAddNode(List<Node> nodeList, int x, int y, Constants.FloorLayer floor, Node originNode, TileLocation targetLocation, CharacterAI ai) {
+    void MaybeAddNode(List<Node> nodeList, int x, int y, FloorLayer floor, Node originNode, TileLocation targetLocation, CharacterAI ai) {
         if (!gridManager.layerFloors.ContainsKey(floor)) { return; }
         LayerFloor layer = gridManager.layerFloors[floor];
         if (layer == null || layer.groundTilemap == null || layer.objectTilemap == null) {
@@ -199,17 +195,13 @@ public class PathfindingSystem : MonoBehaviour {
             return;
         }
         et = (EnvironmentTile) layer.objectTilemap.GetTile(tilePos);
-        if (et != null && et.name == "RockTile") {
-            Debug.Log("checking rockTile...");
-            Debug.Log("canPassOverRockTile: "+CanPassOverTile(et, ai));
-        }
         if (et != null && !CanPassOverTile(et, ai)) {
             return;
         }
         nodeList.Add(InitNewNode(x, y, floor, originNode, targetLocation));
     }
 
-    Node InitNewNode(int x, int y, Constants.FloorLayer floor, Node parent, TileLocation targetLocation) {
+    Node InitNewNode(int x, int y, FloorLayer floor, Node parent, TileLocation targetLocation) {
         Node newNode = new Node();
         newNode.id = x+","+y+","+floor;
         newNode.x = x;

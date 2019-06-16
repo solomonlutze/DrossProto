@@ -9,14 +9,18 @@ public class CharacterData : ScriptableObject {
 
     public CharacterStatToFloatDictionary defaultStats;
     public DamageTypeToFloatDictionary damageTypeResistances;
+    public CharacterAttackValueToIntDictionary attackModifiers;
     public List<CharacterMovementAbility> movementAbilities;
-    
+
     public void Awake() {
         if (defaultStats == null) {
             defaultStats = new CharacterStatToFloatDictionary();
         }
         if (damageTypeResistances == null) {
             damageTypeResistances = new DamageTypeToFloatDictionary();
+        }
+        if (attackModifiers == null) {
+            attackModifiers = new CharacterAttackValueToIntDictionary();
         }
         if (movementAbilities == null) {
             movementAbilities = new List<CharacterMovementAbility>();
@@ -40,7 +44,7 @@ public class CharacterData : ScriptableObject {
                 return;
         AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<CharacterData>(), path);
         }
-        
+
     // The following is a helper that adds a menu item to create an PlayerCharacterData Asset
         [MenuItem("Assets/Create/CharacterData/NpcData")]
         public static void CreateNPCData()

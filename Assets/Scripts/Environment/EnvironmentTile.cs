@@ -8,8 +8,7 @@ using UnityEditor;
 #endif
 
 // Interaction tile heights. If characters are in the air they ignore interactions iwth anything on a lower height than them.
-
-public enum TileHeight { Ground = 0, Short = 1, Tall = 3, Unpassable = 100 }
+public enum FloorLayer { B6, B5, B4, B3, B2, B1, F1, F2, F3, F4, F5, F6 }
 public enum TileDurability { Delicate = 1, Soft = 3, Medium = 5, Hard = 7, Indestructable = 100 }
 public enum TileTag {Ground, Water}
 public enum FloorTilemapType { Ground, Object }
@@ -19,21 +18,24 @@ public class EnvironmentTile : Tile {
     public bool dealsDamage = false;
     public List<TileTag> tileTags;
     public DamageObject environmentalDamage;
+    public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage;
 
     [HideInInspector]
     public bool changesFloorLayer;
     // Which floor layer the tile sends the character to
     [HideInInspector]
-    public Constants.FloorLayer targetFloorLayer;
-
-    public TileHeight tileHeight = TileHeight.Ground;
+    public FloorLayer targetFloorLayer;
     public TileDurability tileDurability = TileDurability.Indestructable;
     public FloorTilemapType floorTilemapType = FloorTilemapType.Ground;
     public EnvironmentTile replacedByWhenDestroyed;
+    //TODO: should we just have statMods?
+    public float accelerationMod;
     public Sprite[] maskingSprites;
 
     // Eventually this'll be a more complex thing, probably
     public bool shouldRespawnPlayer = false;
+    public List<CharacterMovementAbility> movementAbilitiesWhichBypassRespawn;
+    public bool isClimbable = false;
     private string tileType;
     private Renderer _renderer;
     public ShaderData shaderData;
@@ -192,17 +194,6 @@ public class EnvironmentTile : Tile {
         return shouldRespawnPlayer;
     }
 
-    // TODO: Right now tiles don't know where they are in the world, which is silly. We should fix that.
-    public void TakeDamage(Vector3 location, Constants.FloorLayer floor, DamageObject damageObj) {
-        if (damageObj.durabilityDamageLevel > tileDurability && replacedByWhenDestroyed != null) {
-            GameMaster.Instance.ReplaceTileAtLocation(location, floor, replacedByWhenDestroyed);
-        }
-    }
-
-    public void Destroy(Vector3 loc, Constants.FloorLayer floor) {
-        Debug.Log("destroying "+name);
-        GameMaster.Instance.DestroyObjectTileAtLocation(loc, floor);
-    }
     // TODO: don't do this
     public bool IsSameTileTypeAs(ITilemap tilemap, Vector3Int position) {
         return tilemap.GetTile(position) == this;
