@@ -20,7 +20,6 @@ public class CustomCamera : MonoBehaviour
         if (player != null)
         {
             floorLayer = player.currentFloor;
-            Debug.Log("camera - player current floor: "+player.currentFloor);
             int mask = 0;
             for (
                 int i = Constants.firstFloorLayerIndex;

@@ -10,7 +10,7 @@ public static class EditorHelpers {
     var temp = new List<string>();
     var path =  Application.dataPath + "/resources/Data/ItemData/"+itemType+"/";
     foreach (string file in System.IO.Directory.GetFiles(path))
-    { 
+    {
       string name = file.Substring(file.LastIndexOf('/')+1);
       if (name.Substring(name.Length - 4, 4) == "meta") { continue; }
       name = name.Substring(0,name.Length-6);
@@ -27,11 +27,10 @@ public static class EditorHelpers {
     if (includeNone) { temp.Add("[None]");}
     var path =  Application.dataPath + "/resources/Prefabs/Items/Weapons/";
     foreach (string file in System.IO.Directory.GetFiles(path))
-    { 
+    {
       string name = file.Substring(file.LastIndexOf('/')+1);
       if (name.Substring(name.Length - 4, 4) == "meta") { continue; }
       name = name.Substring(0,name.Length-7);
-      Debug.Log("adding "+name);
       temp.Add(name);
     }
     return temp.ToArray();

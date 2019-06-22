@@ -151,7 +151,9 @@ public class Inventory : MonoBehaviour {
     public void EquipTraitToUpcomingLifeTrait(InventoryEntry itemToEquip, int slot, UpcomingLifeTraits traitsToEquipTo, TraitType type) {
         UpcomingLifeTrait[] traitsList;
         string traitName;
-        TraitItemData itemInfo = (Resources.Load("Data/ItemData/Trait/"+itemToEquip.itemId) as GameObject).GetComponent<TraitItemData>();
+        Debug.Log("itemId: "+itemToEquip.itemId);
+        Debug.Log("loaded thing: "+Resources.Load("Data/ItemData/Trait/"+itemToEquip.itemId));
+        TraitItemData itemInfo = Resources.Load("Data/ItemData/Trait/"+itemToEquip.itemId) as TraitItemData;
         UnequipTraitItem(itemToEquip.guid);
         switch(type) {
             case TraitType.Passive:

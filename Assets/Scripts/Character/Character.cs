@@ -8,6 +8,11 @@ public class AnimationInfoObject {
 	public Vector2 animationInput;
 }
 
+//TODO: Character stats should not be referenced from here.
+// We should have a getter for each stat that gets the actual value from here,
+// then applies stat mods on top of it.
+// CharacterStatModifiers should be a dictionary<CharacterStat, CharacterStatModifier>
+// CharacterStatModifier should be a struct with source and magnitude
 public enum CharacterStat {
 	CurrentHealth,
 	CurrentMaxHealth,
@@ -177,10 +182,10 @@ public class Character : WorldObject {
 		if ((initialWeaponId != null && initialWeaponId != "") || weapon != null) {
 			InitializeWeapon(initialWeaponId);
 		}
-		stm = transform.GetComponentInChildren<SuperTextMesh>();
-		if (stm == null) {
-			Debug.LogError("No SuperTextMesh component on any of Character's children: "+gameObject.name);
-		}
+		// stm = transform.GetComponentInChildren<SuperTextMesh>();
+		// if (stm == null) {
+		// 	Debug.LogError("No SuperTextMesh component on any of Character's children: "+gameObject.name);
+		// }
 		if (po == null) {
 			Debug.LogError("No physics controller component on Character object: "+gameObject.name);
 		}

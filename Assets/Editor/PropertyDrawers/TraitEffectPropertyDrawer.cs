@@ -48,6 +48,11 @@ public class TraitEffectPropertyDrawer : PropertyDrawer
                 EditorGUI.PropertyField(resistanceRect, property.FindPropertyRelative("damageType"), new GUIContent("Damage Type: "));
                 EditorGUI.PropertyField(resistanceMagnitudeRect, property.FindPropertyRelative("magnitude"), GUIContent.none);
                 break;
+
+            case TraitEffectType.DetectionRange:
+                Rect detectionRangeMagnitudeRect = new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight, (position.width), EditorGUIUtility.singleLineHeight);
+                EditorGUI.PropertyField(detectionRangeMagnitudeRect, property.FindPropertyRelative("magnitude"),  new GUIContent("Magnitude: "));
+                break;
             case TraitEffectType.AnimationInput:
                 Rect animationInputRect = new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight, position.width, EditorGUIUtility.singleLineHeight);
                 Rect blocksMovementRect = new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight * 2, position.width, EditorGUIUtility.singleLineHeight);

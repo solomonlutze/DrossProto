@@ -144,7 +144,11 @@ public class PathfindingSystem : MonoBehaviour {
             LayerFloor layer = gridManager.layerFloors[target.floorLayer];
             Vector3Int pos = new Vector3Int (currentX, currentY, 0);
             res.Add((EnvironmentTile) layer.groundTilemap.GetTile (pos));
-            EnvironmentTile objectTile = (EnvironmentTile) layer.objectTilemap.GetTile(new Vector3Int (currentX, currentY, 0));
+            Debug.Log("pos: "+ pos);
+            if (layer.objectTilemap.GetTile(pos)!= null) {
+                Debug.Log("tile: "+layer.objectTilemap.GetTile(pos).name);
+            }
+            EnvironmentTile objectTile = (EnvironmentTile) layer.objectTilemap.GetTile(pos);
             if (objectTile != null) {
                 res.Add(objectTile);
             }

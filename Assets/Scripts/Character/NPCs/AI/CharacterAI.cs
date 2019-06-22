@@ -23,6 +23,8 @@ public class CharacterAI : Character {
 	private Vector3 destination;
 	private BoxCollider2D col;
 
+	public List<PickupItem> spawnsOnDeath;
+
 	override protected void Awake () {
 		base.Awake();
 		base.Init();
@@ -123,7 +125,6 @@ public class CharacterAI : Character {
 			objectOfInterest = (WorldObject) player;
 		}
 		// objectOfInterest = (WorldObject) gameMaster.GetPlayerController().gameObject.GetComponent<Character>();
-		Debug.Log("setting objectOfInterest: "+objectOfInterest);
 		// switch(aiState) {
 		// 	case AiStates.PlayerAggro:
 		// 		objectOfInterest = (WorldObject) gameMaster.GetPlayerController().gameObject.GetComponent<Character>();
@@ -146,14 +147,15 @@ public class CharacterAI : Character {
 		switch(aiState) {
 			case AiStates.Aggro:
 			case AiStates.PlayerAggro:
-				if (objectOfInterest == null || objectOfInterest.transform.position.sqrMagnitude >
+				if (objectOfInterest == null
+					|| (objectOfInterest.transform.position - transform.position).sqrMagnitude >
 					(objectOfInterest.detectionRange + detectionRangeBuffer) * (objectOfInterest.detectionRange + detectionRangeBuffer)) { // our target is gone
 					aiState = AiStates.Docile;
 				}
 				break;
 			case AiStates.Docile:
 				if (objectOfInterest != null) { // we got new target
-					Vector3 distanceFromTarget = objectOfInterest.transform.position - transform.TransformPoint(col.offset);
+					Vector3 distanceFromTarget = objectOfInterest.transform.position - transform.position;
 					if (distanceFromTarget.sqrMagnitude < objectOfInterest.detectionRange * objectOfInterest.detectionRange) {
 						aiState = AiStates.PlayerAggro;
 					}
@@ -197,5 +199,18 @@ public class CharacterAI : Character {
 		//   && GetAngleToTarget() < weapon.weaponData.attackAngle) {
 		// 	Attack();
 		// }
+	}
+
+	private void SpawnDroppedItems() {
+		foreach(PickupItem item in spawnsOnDeath) {
+			GameObject instantiatedItem = Instantiate(item.gameObject, transform.position, transform.rotation);
+			instantiatedItem.layer = gameObject.layer;
+			instantiatedItem.GetComponent<SpriteRenderer>().sortingLayerName = LayerMask.LayerToName(gameObject.layer);
+		}
+	}
+
+	public override void Die(){
+		SpawnDroppedItems();
+		base.Die();
 	}
 }
