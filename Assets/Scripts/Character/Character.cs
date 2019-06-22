@@ -87,6 +87,7 @@ public class CharacterAttack : ScriptableObject {
 // TODO: Character should probably extend CustomPhysicsController, which should extend WorldObject
 public class Character : WorldObject {
 
+  public TestDictionary testDictionary;
 	public CharacterStatToFloatDictionary stats;
 	public CharacterAttackValueToIntDictionary attackModifiers;
 	public List<CharacterMovementAbility> movementAbilities;
@@ -193,10 +194,12 @@ public class Character : WorldObject {
 	}
 
 	protected virtual void Init() {
+    Debug.Log("InitializeFromCharacterData!!");
 		InitializeFromCharacterData();
 	}
 
 	private void InitializeFromCharacterData() {
+    Debug.Log("defaultCharacterData: "+defaultCharacterData);
 		if (defaultCharacterData != null) {
 			CharacterData dataInstance = (CharacterData) ScriptableObject.Instantiate(defaultCharacterData);
 			stats = dataInstance.defaultStats;

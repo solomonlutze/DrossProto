@@ -34,7 +34,6 @@ public static class PropertyDrawerHelpers {
       name = name.Substring(0,name.Length-6);
       temp.Add(name);
     }
-    Debug.Log("propertydrawerhelper temp: "+temp);
     return temp.ToArray();
   }
 
