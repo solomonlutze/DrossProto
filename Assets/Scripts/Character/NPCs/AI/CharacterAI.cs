@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // How detection works
-// The range at which an entity enters detection, by default, is its detectionRange.
-// TODO: That range could be increased or decreased by the AI's detectionRangeModifier (not defined yet)
-// The range at which an entity LEAVES detection is its detectionRange plus the detector's detectedRangeBuffer.
+// The range at which an entity enters detection, by default, is its DetectableRange.
+// TODO: That range could be increased or decreased by the AI's DetectableRangeModifier (not defined yet)
+// The range at which an entity LEAVES detection is its DetectableRange plus the detector's detectedRangeBuffer.
 
 public enum AiStates { PlayerAggro, Aggro, Docile }
 public class CharacterAI : Character {
@@ -16,8 +16,8 @@ public class CharacterAI : Character {
 
 	public bool debugStayDocile;
 	public float minDistanceFromPathNode;
-	// the distance PAST the target's detectionRange that we will continue to pursue once we've noticed them
-	public float detectionRangeBuffer;
+	// the distance PAST the target's DetectableRange that we will continue to pursue once we've noticed them
+	public float DetectableRangeBuffer;
 	public float attackAngle;
 	private List<Node> path;
 	private Vector3 destination;
@@ -149,14 +149,14 @@ public class CharacterAI : Character {
 			case AiStates.PlayerAggro:
 				if (objectOfInterest == null
 					|| (objectOfInterest.transform.position - transform.position).sqrMagnitude >
-					(objectOfInterest.detectionRange + detectionRangeBuffer) * (objectOfInterest.detectionRange + detectionRangeBuffer)) { // our target is gone
+					(objectOfInterest.DetectableRange + DetectableRangeBuffer) * (objectOfInterest.DetectableRange + DetectableRangeBuffer)) { // our target is gone
 					aiState = AiStates.Docile;
 				}
 				break;
 			case AiStates.Docile:
 				if (objectOfInterest != null) { // we got new target
 					Vector3 distanceFromTarget = objectOfInterest.transform.position - transform.position;
-					if (distanceFromTarget.sqrMagnitude < objectOfInterest.detectionRange * objectOfInterest.detectionRange) {
+					if (distanceFromTarget.sqrMagnitude < objectOfInterest.DetectableRange * objectOfInterest.DetectableRange) {
 						aiState = AiStates.PlayerAggro;
 					}
 				}

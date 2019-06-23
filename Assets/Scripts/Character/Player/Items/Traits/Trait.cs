@@ -6,7 +6,14 @@ public enum TraitName {}; // just a list of names of every possible trait
 public enum TraitType {Passive, Active};
 
 [System.Serializable]
-public enum TraitEffectType { Resistance, AnimationInput, CharacterStat, CharacterAttack, CharacterMovementAbility, DetectionRange }
+public enum TraitEffectType {
+  Resistance,
+  AnimationInput,
+  CharacterStat,
+  CharacterAttack,
+  CharacterMovementAbility,
+  DetectableRange,
+}
 [System.Serializable]
 public class TraitEffect {
   public TraitEffectType effectType;
@@ -46,8 +53,8 @@ public abstract class Trait : ScriptableObject {
 			case TraitEffectType.Resistance:
 				owner.damageTypeResistances[traitEffect.damageType] += traitEffect.magnitude;
 				break;
-			case TraitEffectType.DetectionRange:
-				owner.detectionRange -= traitEffect.magnitude;
+			case TraitEffectType.DetectableRange:
+				owner.DetectableRange -= traitEffect.magnitude;
 				break;
 			case TraitEffectType.AnimationInput:
 				owner.SetAnimationInput(traitEffect.animationInput);
@@ -73,8 +80,8 @@ public abstract class Trait : ScriptableObject {
 			case TraitEffectType.Resistance:
 				owner.damageTypeResistances[traitEffect.damageType] -= traitEffect.magnitude;
 				break;
-			case TraitEffectType.DetectionRange:
-				owner.detectionRange += traitEffect.magnitude;
+			case TraitEffectType.DetectableRange:
+				owner.DetectableRange += traitEffect.magnitude;
 				break;
 			case TraitEffectType.AnimationInput:
 				owner.SetAnimationInput(Vector2.zero);
