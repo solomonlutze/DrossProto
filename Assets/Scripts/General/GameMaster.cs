@@ -23,7 +23,7 @@ public class GameMaster : Singleton<GameMaster> {
 	// Use this for initialization
 	void Start () {
 		pathfinding = GetComponent<PathfindingSystem>();
-		Respawn();
+		Respawn(true);
 	}
 
 	// Update is called once per frame
@@ -50,12 +50,10 @@ public class GameMaster : Singleton<GameMaster> {
 		}
 	}
 
-	private void Respawn() {
+	private void Respawn(bool initialSpawn = false) {
 		GameObject player = GameObject.FindGameObjectWithTag("Player");
 		if (player != null) {
 			playerController = player.GetComponent<PlayerController>();
-			Debug.Log("layer as string: "+player.layer.ToString());
-			Debug.Log("FloorLayer:"+Enum.Parse(typeof (FloorLayer), LayerMask.LayerToName(player.layer)));
 			playerController.currentFloor = (FloorLayer) Enum.Parse(typeof (FloorLayer), LayerMask.LayerToName(player.layer));
 		} else {
 			GameObject spawnPoint = ChooseSpawnPoint();
@@ -67,7 +65,7 @@ public class GameMaster : Singleton<GameMaster> {
 			playerController.currentFloor = fl;
 		}
 		playerController.SetCurrentFloor(playerController.currentFloor);
-		playerController.Init(cachedLarva, cachedPupa);
+		playerController.Init(initialSpawn, cachedLarva, cachedPupa);
 		SetGameStatus(Constants.GameState.Play);
 	}
 

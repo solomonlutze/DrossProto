@@ -1,16 +1,25 @@
-﻿using RotaryHeart.Lib.SerializableDictionary;
+﻿using System;
+using RotaryHeart.Lib.SerializableDictionary;
 using UnityEngine;
 
 public class SerializableDictionaries : MonoBehaviour {
 
 }
 [System.Serializable]
-public class TestDictionary : SerializableDictionaryBase<DamageType, float> { }
+public class TraitSlotToTraitDictionary : SerializableDictionaryBase<TraitSlot, PassiveTrait> {
+
+    public TraitSlotToTraitDictionary() {
+      foreach(TraitSlot slot in (TraitSlot[]) Enum.GetValues(typeof(TraitSlot))) {
+        Add(slot, null);
+      }
+    }
+}
 [System.Serializable]
 public class DamageTypeToFloatDictionary : SerializableDictionaryBase<DamageType, float>{ }
 
 [System.Serializable]
-public class CharacterStatToFloatDictionary : SerializableDictionaryBase<CharacterStat, float>{ }
+public class CharacterStatToFloatDictionary : SerializableDictionaryBase<CharacterStat, float>{
+ }
 
 [System.Serializable]
 public class LayerToLayerFloorDictionary : SerializableDictionaryBase<FloorLayer, LayerFloor>{ }

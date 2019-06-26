@@ -34,13 +34,17 @@ public class PlayerController : Character {
 		base.Start();
 	}
 
-	public void Init(UpcomingLifeTraits previousLarva, UpcomingLifeTraits previousPupa) {
+	public void Init(bool initialSpawn, UpcomingLifeTraits previousLarva, UpcomingLifeTraits previousPupa) {
 		base.Init();
 		availableContextualActions = new List<ContextualAction>();
 		interactables = new List<GameObject>();
 		inventory = GetComponent<Inventory>();
 		inventory.owner = this;
-		inventory.AdvanceUpcomingLifeTraits(previousLarva, previousPupa);
+    if (initialSpawn) {
+      AssignTraitsForFirstLife();
+    } else {
+  		inventory.AdvanceUpcomingLifeTraits(previousLarva, previousPupa);
+    }
 	}
 	// Player specific non-physics biz.
 
@@ -276,26 +280,22 @@ public class PlayerController : Character {
 		inventory.EquipTraitToUpcomingLifeTrait(itemToEquip, slot, traitsToEquipTo, type);
 	}
 
-	override public void AssignTraitsForNextLife(UpcomingLifeTraits nextLifeTraits) {
-		Debug.Log("upcoming life traits: "+nextLifeTraits);
-		if (initialPassiveTrait1 != null || initialPassiveTrait2 != null) {
-			PassiveTrait passiveTrait = Resources.Load("Data/TraitData/PassiveTraits/"+initialPassiveTrait1) as PassiveTrait;
-			if (passiveTrait != null) { Debug.Log("added "+passiveTrait); passiveTrait.OnTraitAdded(this); }
-			passiveTrait = Resources.Load("Data/TraitData/PassiveTraits/"+initialPassiveTrait2) as PassiveTrait;
-			if (passiveTrait != null) { Debug.Log("added "+passiveTrait); passiveTrait.OnTraitAdded(this); }
-			initialPassiveTrait1 = null;
-			initialPassiveTrait2 = null;
-		} else {
-			PassiveTrait passiveTrait;
-			foreach (UpcomingLifeTrait trait in nextLifeTraits.passiveTraits) {
-				if (trait != null) {
-					passiveTrait = Resources.Load("Data/TraitData/PassiveTraits/"+initialPassiveTrait1) as PassiveTrait;
-					if (passiveTrait != null) { passiveTrait.OnTraitAdded(this); }
-				}
-			}
-		}
-		if (initialActiveTrait1 != null || initialActiveTrait2 != null) {
-			ActiveTraitInstance activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
+  private void AssignTraitsForFirstLife() {
+    TraitSlotToTraitDictionary et = initialEquippedTraits.EquippedTraits();
+    foreach(TraitSlot traitSlot in et.Keys) {
+      PassiveTrait trait = et[traitSlot];
+      if (et[traitSlot] != null) {
+        Debug.Log("added "+trait);
+        trait.OnTraitAdded(this);
+      }
+      equippedTraits[traitSlot] = trait;
+    }
+
+			// PassiveTrait passiveTrait = Resources.Load("Data/TraitData/PassiveTraits/"+initialPassiveTrait1) as PassiveTrait;
+			// if (passiveTrait != null) { Debug.Log("added "+passiveTrait); passiveTrait.OnTraitAdded(this); }
+			// passiveTrait = Resources.Load("Data/TraitData/PassiveTraits/"+initialPassiveTrait2) as PassiveTrait;
+			// if (passiveTrait != null) { Debug.Log("added "+passiveTrait); passiveTrait.OnTraitAdded(this); }
+      ActiveTraitInstance activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
 			ActiveTrait activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+initialActiveTrait1) as ActiveTrait;
 			if (activeTrait != null && activeTraitData != null) {
 				activeTrait1 = activeTrait;
@@ -309,21 +309,29 @@ public class PlayerController : Character {
 				activeTrait2 = activeTrait;
 				activeTrait2.Init(this, activeTraitData);
 			}
-		} else {
-			ActiveTraitInstance activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
-			ActiveTrait activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+nextLifeTraits.activeTraits[0].traitName) as ActiveTrait;
-			if (activeTrait != null) {
-				activeTrait1 = activeTrait;
-				activeTrait1.Init(this, activeTraitData);
-			}
-			activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
-			activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+nextLifeTraits.activeTraits[1].traitName) as ActiveTrait;
-			if (activeTrait != null) {
-				activeTrait2 = activeTrait;
-				activeTrait2.Init(this, activeTraitData);
-			}
-		}
+  }
 
+	override public void AssignTraitsForNextLife(UpcomingLifeTraits nextLifeTraits) {
+		string[] initialTraitNames = initialEquippedTraits.AllPopulatedTraitNames;
+    PassiveTrait passiveTrait;
+    foreach (UpcomingLifeTrait trait in nextLifeTraits.passiveTraits) {
+      if (trait != null) {
+        passiveTrait = Resources.Load("Data/TraitData/PassiveTraits/"+trait.traitName) as PassiveTrait;
+        if (passiveTrait != null) { passiveTrait.OnTraitAdded(this); }
+      }
+		}
+    ActiveTraitInstance activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
+    ActiveTrait activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+nextLifeTraits.activeTraits[0].traitName) as ActiveTrait;
+    if (activeTrait != null) {
+      activeTrait1 = activeTrait;
+      activeTrait1.Init(this, activeTraitData);
+    }
+    activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
+    activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+nextLifeTraits.activeTraits[1].traitName) as ActiveTrait;
+    if (activeTrait != null) {
+      activeTrait2 = activeTrait;
+      activeTrait2.Init(this, activeTraitData);
+    }
 	}
 	// for each of your UpcomingLifeTraits, give your character the relevant abilities
 	// override public void AssignTraitsForNextLife(UpcomingLifeTraits nextLifeTraits) {

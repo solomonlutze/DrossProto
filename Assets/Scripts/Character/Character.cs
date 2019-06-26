@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -48,7 +49,8 @@ public enum CharacterMovementAbility {
 [System.Serializable]
 public class CharacterStatModification {
     public CharacterStat statToModify;
-    public float magnitude;
+
+  public float magnitude;
 
 	public float applicationDuration;
     public float duration;
@@ -83,12 +85,46 @@ public class CharacterAttack : ScriptableObject {
         }
     #endif
 }
+[System.Serializable]
+public class EquippedTraitsStringNames {
+
+  [SerializeField]
+  public string head;
+  public string thorax;
+  public string abdomen;
+  public string legs;
+  public string wings;
+
+  public TraitSlotToTraitDictionary EquippedTraits() {
+    Debug.Log("wtf");
+    TraitSlotToTraitDictionary d = new TraitSlotToTraitDictionary();
+    d[TraitSlot.Head] = Resources.Load("Data/TraitData/PassiveTraits/"+head) as PassiveTrait;
+    d[TraitSlot.Thorax] = Resources.Load("Data/TraitData/PassiveTraits/"+thorax) as PassiveTrait;
+    d[TraitSlot.Abdomen] = Resources.Load("Data/TraitData/PassiveTraits/"+abdomen) as PassiveTrait;
+    d[TraitSlot.Legs] = Resources.Load("Data/TraitData/PassiveTraits/"+legs) as PassiveTrait;
+    d[TraitSlot.Wings] = Resources.Load("Data/TraitData/PassiveTraits/"+wings) as PassiveTrait;
+    return d;
+  }
+
+  public string[] AllPopulatedTraitNames {
+    get {
+      List<string> ret = new List<string>();
+      foreach (string traitName in new string[] {head, thorax, abdomen, legs, wings }) {
+        if (traitName != null) {
+          ret.Add(traitName);
+        }
+      }
+      return ret.ToArray();
+    }
+  }
+}
 
 // TODO: Character should probably extend CustomPhysicsController, which should extend WorldObject
 public class Character : WorldObject {
 
-  public TestDictionary testDictionary;
-	public CharacterStatToFloatDictionary stats;
+  public EquippedTraitsStringNames initialEquippedTraits;
+  public TraitSlotToTraitDictionary equippedTraits;
+  public CharacterStatToFloatDictionary stats;
 	public CharacterAttackValueToIntDictionary attackModifiers;
 	public List<CharacterMovementAbility> movementAbilities;
 	public SuperTextMesh stm;
@@ -105,17 +141,17 @@ public class Character : WorldObject {
 	public Hitbox hitboxPrefab;
 
 	[HideInInspector]
-    [SerializeField]
+  [SerializeField]
 	public string initialPassiveTrait1;
 	[HideInInspector]
-    [SerializeField]
+  [SerializeField]
 	public string initialPassiveTrait2;
 
 	[HideInInspector]
-    [SerializeField]
+  [SerializeField]
 	public string initialActiveTrait1;
 	[HideInInspector]
-    [SerializeField]
+  [SerializeField]
 	public string initialActiveTrait2;
 
 	public string equippedWeaponId;
@@ -199,11 +235,11 @@ public class Character : WorldObject {
 	}
 
 	private void InitializeFromCharacterData() {
-    Debug.Log("defaultCharacterData: "+defaultCharacterData);
 		if (defaultCharacterData != null) {
 			CharacterData dataInstance = (CharacterData) ScriptableObject.Instantiate(defaultCharacterData);
 			stats = dataInstance.defaultStats;
 			ResetStats();
+      attackModifiers = dataInstance.attackModifiers;
 			damageTypeResistances = dataInstance.damageTypeResistances;
 			movementAbilities.AddRange(dataInstance.movementAbilities);
 		}

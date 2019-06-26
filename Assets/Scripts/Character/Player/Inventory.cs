@@ -103,9 +103,6 @@ public class Inventory : MonoBehaviour {
         pui.itemId = item.itemId;
         pui.itemName = entry.itemName;
         pui.quantity = item.quantity;
-        Debug.Log(pui.itemId);
-        Debug.Log(pui.itemName);
-        Debug.Log(pui.quantity);
         lastPickedUpItems.Add(pui);
     }
 

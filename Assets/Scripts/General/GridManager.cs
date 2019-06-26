@@ -96,10 +96,6 @@ public class GridManager : Singleton<GridManager> {
 			minYAcrossAllFloors = Mathf.Min(minYAcrossAllFloors, groundTilemap.cellBounds.yMin);
 			maxYAcrossAllFloors = Mathf.Max(maxYAcrossAllFloors, groundTilemap.cellBounds.yMax);
 		}
-		Debug.Log("minXAcrossAllFloors: "+minXAcrossAllFloors);
-		Debug.Log("maxXAcrossAllFloors: "+maxXAcrossAllFloors);
-		Debug.Log("minYAcrossAllFloors : "+minYAcrossAllFloors);
-		Debug.Log("maxYAcrossAllFloors: "+maxYAcrossAllFloors);
 		foreach (FloorLayer layer in Enum.GetValues(typeof(FloorLayer))) {
 			floor.Clear();
 			worldGrid[layer] = new Dictionary<Vector2Int, EnvironmentTileInfo>();

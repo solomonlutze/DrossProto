@@ -5,6 +5,7 @@ using UnityEngine;
 public enum TraitName {}; // just a list of names of every possible trait
 public enum TraitType {Passive, Active};
 
+public enum TraitSlot {Head, Thorax, Abdomen, Legs, Wings}
 [System.Serializable]
 public enum TraitEffectType {
   Resistance,
@@ -47,7 +48,6 @@ public abstract class Trait : ScriptableObject {
 		}
 	}
 	public void ApplyTraitEffect(Character owner, TraitEffect traitEffect) {
-		Debug.Log("applying trait effect: "+traitEffect.effectType);
 		switch (traitEffect.effectType)
 		{
 			case TraitEffectType.Resistance:
