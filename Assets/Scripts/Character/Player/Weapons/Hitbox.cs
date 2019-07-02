@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -38,7 +39,15 @@ public class DamageObject {
 
     public DamageType damageType;
     public List<CharacterStatModification> characterStatModifications;
-
+    private string _sourceString = "";
+    public string sourceString {
+      get {
+        if (_sourceString == "") {
+          _sourceString = Guid.NewGuid().ToString("N").Substring(0, 15);
+        }
+        return _sourceString;
+      }
+    }
     // public DamageObject() {}
     public DamageObject(){}
     public DamageObject(float d, float k, float s, float i, DamageType dt, TileDurability durabilityDamage, Transform hitboxT, Transform attackerT) {
@@ -140,15 +149,16 @@ public class Hitbox : MonoBehaviour {
 		damageObj.damage += Character.GetAttackValueModifier(attackModifiers, CharacterAttackValue.Damage);
 		damageObj.knockback += Character.GetAttackValueModifier(attackModifiers, CharacterAttackValue.Knockback);
 		damageObj.stun += Character.GetAttackValueModifier(attackModifiers, CharacterAttackValue.Stun);
-        if (attackModifiers[CharacterAttackValue.Venom] > 0) {
-            damageObj.characterStatModifications.Add(new CharacterStatModification(
-                CharacterStat.CurrentHealth,
-                Character.GetAttackValueModifier(attackModifiers, CharacterAttackValue.Venom),
-                5.0f,
-                0f
-            ));
-        }
-        Debug.Log("stat modifiers: "+damageObj.characterStatModifications.Count);
+    // TODO: Venom should do something!
+    // if (attackModifiers[CharacterAttackValue.Venom] > 0) {
+    //     damageObj.characterStatModifications.Add(new CharacterStatModification(
+    //         CharacterStat.CurrentHealth,
+    //         Character.GetAttackValueModifier(attackModifiers, CharacterAttackValue.Venom),
+    //         5.0f,
+    //         0f,
+    //         Guid.NewGuid().ToString()
+    //     ));
+    // }
 	}
     // Characteristics of hitbox initialized by weapon.
     public void OLD__Init(Transform initializingTransform, Character owner, HitboxInfo info) {
@@ -205,6 +215,7 @@ public class Hitbox : MonoBehaviour {
         // TODO: this should work for other collider shapes, not just boxes.
         // It should also work for bigger box colliders, which this doesn't.
         BoxCollider2D b = GetComponent<BoxCollider2D>();
+        if (b == null ) { return; }
         Vector3[] corners = {
             transform.TransformPoint(b.offset + new Vector2(b.size.x, b.size.y)*0.5f),
             transform.TransformPoint(b.offset + new Vector2(-b.size.x, b.size.y)*0.5f),

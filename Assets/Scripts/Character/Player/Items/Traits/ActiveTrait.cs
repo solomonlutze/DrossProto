@@ -105,7 +105,7 @@ public class ActiveTraitInstance : MonoBehaviour {
 	public void CancelActiveEffects() {
 		StopAllCoroutines();
 		foreach(TraitEffect e in currentlyActiveEffects) {
-			traitData.ExpireTraitEffect(owner, e);
+			e.Expire(owner);
 		}
 		currentlyActiveEffects.Clear();
 	}
@@ -169,8 +169,7 @@ public class ActiveTraitInstance : MonoBehaviour {
 		foreach (TraitEffect traitEffect in activeTraitEffect.traitEffects) {
 			Debug.Log("applying trait effect: input = "+traitEffect.animationInput);
 			currentlyActiveEffects.Add(traitEffect);
-			traitData.ApplyTraitEffect(owner, traitEffect);
-
+			traitEffect.Apply(owner);
 		}
 
 		foreach (TraitSpawnedObjectData traitSpawnedObjectData in activeTraitEffect.objectsToSpawn) {
@@ -229,7 +228,7 @@ public class ActiveTraitInstance : MonoBehaviour {
 		}
 		foreach (TraitEffect traitEffect in activeTraitEffect.traitEffects) {
 			currentlyActiveEffects.Remove(traitEffect);
-			traitData.ExpireTraitEffect(owner, traitEffect);
+			traitEffect.Expire(owner);
 		}
 	}
 

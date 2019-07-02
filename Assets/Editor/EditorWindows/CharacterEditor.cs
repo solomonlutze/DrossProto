@@ -41,8 +41,6 @@ public class EquippedTraitsPropertyDrawer : PropertyDrawer
 public class CharacterEditor : Editor
 {
   SerializedProperty initialWeaponId;
-  SerializedProperty initialPassiveTrait1;
-  SerializedProperty initialPassiveTrait2;
   SerializedProperty initialActiveTrait1;
   SerializedProperty initialActiveTrait2;
 
@@ -52,15 +50,13 @@ public class CharacterEditor : Editor
   {
     initialWeaponId = serializedObject.FindProperty("initialWeaponId");
     equippedTraitsDictionary = serializedObject.FindProperty("equippedTraitsDictionary");
-    initialPassiveTrait1 = serializedObject.FindProperty("initialPassiveTrait1");
-    initialPassiveTrait2 = serializedObject.FindProperty("initialPassiveTrait2");
     initialActiveTrait1 = serializedObject.FindProperty("initialActiveTrait1");
     initialActiveTrait2 = serializedObject.FindProperty("initialActiveTrait2");
   }
   public override void OnInspectorGUI()
   {
       this.serializedObject.Update();
-      DrawDefaultInspector ();
+      DrawDefaultInspector();
       DrawWeaponSelect();
       DrawTraitSelect();
       this.serializedObject.ApplyModifiedProperties();
@@ -80,8 +76,6 @@ public class CharacterEditor : Editor
     }
 
     private void DrawTraitSelect() {
-        DrawPopup(PropertyDrawerHelpers.AllPassiveTraitNames(includeNone: true), initialPassiveTrait1, "Initial Passive Trait 1");
-        DrawPopup(PropertyDrawerHelpers.AllPassiveTraitNames(includeNone: true), initialPassiveTrait2, "Initial Passive Trait 2");
         DrawPopup(PropertyDrawerHelpers.AllActiveTraitNames(includeNone: true), initialActiveTrait1, "Initial Active Trait 1");
         DrawPopup(PropertyDrawerHelpers.AllActiveTraitNames(includeNone: true), initialActiveTrait2, "Initial Active Trait 2");
     }

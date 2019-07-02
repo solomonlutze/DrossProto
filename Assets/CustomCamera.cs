@@ -16,24 +16,25 @@ public class CustomCamera : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        PlayerController player = GameMaster.Instance.GetPlayerController();
-        if (player != null)
+      int firstFloorLayerIndex = LayerMask.NameToLayer("B6");
+      PlayerController player = GameMaster.Instance.GetPlayerController();
+      if (player != null)
         {
-            floorLayer = player.currentFloor;
-            int mask = 0;
-            for (
-                int i = Constants.firstFloorLayerIndex;
-                i < Constants.firstFloorLayerIndex + Constants.numberOfFloorLayers;
-                i++
-            )
-            {
-                int layerValue =
-                //   i <= Constants.firstFloorLayerIndex + (int)floorLayer + 1 // NOTE: This +1 makes the layer above you visible!!
-                i <= Constants.firstFloorLayerIndex + (int)floorLayer
-                  ? 1 : 0;
-                mask |= layerValue << i;
-            }
-            ownCamera.cullingMask = mask;
+        floorLayer = player.currentFloor;
+        int mask = 0;
+        for (
+            int i = firstFloorLayerIndex;
+            i < firstFloorLayerIndex + Constants.numberOfFloorLayers;
+            i++
+        )
+        {
+            int layerValue =
+            //   i <= Constants.firstFloorLayerIndex + (int)floorLayer + 1 // NOTE: This +1 makes the layer above you visible!!
+            i <= firstFloorLayerIndex + (int)floorLayer
+              ? 1 : 0;
+            mask |= layerValue << i;
         }
+        ownCamera.cullingMask = mask;
     }
+  }
 }

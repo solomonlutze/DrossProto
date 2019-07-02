@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using RotaryHeart.Lib.SerializableDictionary;
 using UnityEngine;
 
@@ -16,6 +17,27 @@ public class TraitSlotToTraitDictionary : SerializableDictionaryBase<TraitSlot, 
 }
 [System.Serializable]
 public class DamageTypeToFloatDictionary : SerializableDictionaryBase<DamageType, float>{ }
+
+
+[System.Serializable]
+public class StringToIntDictionary : SerializableDictionaryBase<string, int> {
+}
+[System.Serializable]
+public class StatToActiveStatModificationsDictionary : SerializableDictionaryBase<CharacterStat, StringToIntDictionary>{
+  public StatToActiveStatModificationsDictionary() {
+      foreach(CharacterStat stat in (CharacterStat[]) Enum.GetValues(typeof(CharacterStat))) {
+        Add(stat, new StringToIntDictionary());
+      }
+    }
+  }
+
+[System.Serializable]
+public class CharacterVitalToFloatDictionary : SerializableDictionaryBase<CharacterVital, float>{
+    public CharacterVitalToFloatDictionary() {
+      Add(CharacterVital.CurrentHealth, Constants.BaseCharacterStats[CharacterStat.MaxHealth]);
+      Add(CharacterVital.CurrentEnvironmentalDamageCooldown, Constants.BaseCharacterStats[CharacterStat.MaxEnvironmentalDamageCooldown]);
+    }
+  }
 
 [System.Serializable]
 public class CharacterStatToFloatDictionary : SerializableDictionaryBase<CharacterStat, float>{

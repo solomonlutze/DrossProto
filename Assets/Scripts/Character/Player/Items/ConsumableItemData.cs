@@ -14,7 +14,7 @@ public class ConsumableItemData : ItemData {
 
 	public void Use(Character user) {
         foreach (CharacterStatModification mod in ownStatModifications) {
-            user.ModCharacterStat(mod);
+            user.AddStatMod(mod);
         }
 	}
 

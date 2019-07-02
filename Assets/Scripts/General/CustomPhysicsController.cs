@@ -54,14 +54,14 @@ public class CustomPhysicsController : MonoBehaviour {
 	void Start() {
 		owningCharacter = GetComponent<Character>();
 		if (owningCharacter != null) {
-			moveAcceleration = owningCharacter.stats[CharacterStat.MoveAcceleration];
+			moveAcceleration = owningCharacter.GetStat(CharacterStat.MoveAcceleration);
 			orientation = owningCharacter.orientation;
 		}
 	}
 
 	void Update() {
 		if (owningCharacter != null) {
-			moveAcceleration = owningCharacter.CalculateAcceleration();
+			moveAcceleration = owningCharacter.GetStat(CharacterStat.MoveAcceleration);
 		}
 	}
 	public void OnLayerChange() {

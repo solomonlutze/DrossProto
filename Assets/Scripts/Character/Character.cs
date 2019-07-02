@@ -9,16 +9,13 @@ public class AnimationInfoObject {
 	public Vector2 animationInput;
 }
 
-//TODO: Character stats should not be referenced from here.
-// We should have a getter for each stat that gets the actual value from here,
-// then applies stat mods on top of it.
-// CharacterStatModifiers should be a dictionary<CharacterStat, CharacterStatModifier>
-// CharacterStatModifier should be a struct with source and magnitude
+public enum CharacterVital {
+  CurrentHealth,
+  CurrentEnvironmentalDamageCooldown
+}
 public enum CharacterStat {
-	CurrentHealth,
-	CurrentMaxHealth,
 	MaxHealth,
-	CurrentEnvironmentalDamageCooldown,
+  DetectableRange,
 	MaxEnvironmentalDamageCooldown,
 	MoveAcceleration,
 	RotationSpeed,
@@ -48,19 +45,33 @@ public enum CharacterMovementAbility {
 
 [System.Serializable]
 public class CharacterStatModification {
-    public CharacterStat statToModify;
+  public CharacterStat statToModify;
 
-  public float magnitude;
+  public int magnitude;
 
 	public float applicationDuration;
-    public float duration;
-    public float delay;
+  public float duration;
+  public float delay;
 
-	public CharacterStatModification(CharacterStat s, float m, float dur, float del) {
+  public string source;
+
+	public CharacterStatModification(CharacterStat s, int m, float dur, float del, string src) {
 		statToModify = s;
 		magnitude = m;
 		duration = dur;
 		delay = del;
+    source = src;
+	}
+}
+
+[System.Serializable]
+public class ActiveStatModification {
+  public int magnitude;
+  public string source;
+
+  public ActiveStatModification(int m, string s) {
+    magnitude = m;
+    source = s;
 	}
 }
 
@@ -96,7 +107,6 @@ public class EquippedTraitsStringNames {
   public string wings;
 
   public TraitSlotToTraitDictionary EquippedTraits() {
-    Debug.Log("wtf");
     TraitSlotToTraitDictionary d = new TraitSlotToTraitDictionary();
     d[TraitSlot.Head] = Resources.Load("Data/TraitData/PassiveTraits/"+head) as PassiveTrait;
     d[TraitSlot.Thorax] = Resources.Load("Data/TraitData/PassiveTraits/"+thorax) as PassiveTrait;
@@ -122,9 +132,12 @@ public class EquippedTraitsStringNames {
 // TODO: Character should probably extend CustomPhysicsController, which should extend WorldObject
 public class Character : WorldObject {
 
-  public EquippedTraitsStringNames initialEquippedTraits;
   public TraitSlotToTraitDictionary equippedTraits;
-  public CharacterStatToFloatDictionary stats;
+  public StatToActiveStatModificationsDictionary statModifications;
+  public CharacterVitalToFloatDictionary vitals;
+  public EquippedTraitsStringNames initialEquippedTraits;
+  public List<TraitEffect> conditionallyActivatedTraitEffects;
+  public List<TraitEffect> activeConditionallyActivatedTraitEffects;
 	public CharacterAttackValueToIntDictionary attackModifiers;
 	public List<CharacterMovementAbility> movementAbilities;
 	public SuperTextMesh stm;
@@ -135,17 +148,10 @@ public class Character : WorldObject {
 	public CharacterData defaultData;
 
 	[HideInInspector]
-    [SerializeField]
+  [SerializeField]
 	public string initialWeaponId;
 	public CharacterAttack characterAttack;
 	public Hitbox hitboxPrefab;
-
-	[HideInInspector]
-  [SerializeField]
-	public string initialPassiveTrait1;
-	[HideInInspector]
-  [SerializeField]
-	public string initialPassiveTrait2;
 
 	[HideInInspector]
   [SerializeField]
@@ -188,6 +194,10 @@ public class Character : WorldObject {
 
 	// our physics object
 	public CustomPhysicsController po;
+  public FloorLayer currentFloor;
+	public CharacterData defaultCharacterData;
+	public FloorLayer? justCameFromFloor;
+	public Vector3 previousTilePosition;
 	// movement desired by character
 	protected Vector2 movementInput;
 
@@ -195,12 +205,10 @@ public class Character : WorldObject {
 	protected Vector3 orientTowards;
 	protected TileLocation currentTileLocation;
 	protected EnvironmentTileInfo currentTile;
+  protected float timeStandingStill = 0;
 
-    public FloorLayer currentFloor;
-
-	public CharacterData defaultCharacterData;
-	public FloorLayer? justCameFromFloor;
-	public Vector3 previousTilePosition;
+  protected Dictionary<string, GameObject> traitSpawnedGameObjects;
+  protected List<string> sourceInvulnerabilities;
 	protected virtual void Awake() {
 		orientation = transform.Find("Orientation");
 		if (orientation == null) {
@@ -212,17 +220,10 @@ public class Character : WorldObject {
 	protected virtual void Start () {
 		movementInput = new Vector2(0,0);
 		animator = GetComponent<Animator>();
-		if (animator == null) {
-			Debug.LogError("No animator on Character object: "+gameObject.name);
-		}
 		weapon = GetComponentInChildren<Weapon>();
 		if ((initialWeaponId != null && initialWeaponId != "") || weapon != null) {
 			InitializeWeapon(initialWeaponId);
 		}
-		// stm = transform.GetComponentInChildren<SuperTextMesh>();
-		// if (stm == null) {
-		// 	Debug.LogError("No SuperTextMesh component on any of Character's children: "+gameObject.name);
-		// }
 		if (po == null) {
 			Debug.LogError("No physics controller component on Character object: "+gameObject.name);
 		}
@@ -230,31 +231,28 @@ public class Character : WorldObject {
 	}
 
 	protected virtual void Init() {
-    Debug.Log("InitializeFromCharacterData!!");
+    sourceInvulnerabilities = new List<string>();
+    conditionallyActivatedTraitEffects = new List<TraitEffect>();
+    traitSpawnedGameObjects = new Dictionary<string, GameObject>();
 		InitializeFromCharacterData();
 	}
 
 	private void InitializeFromCharacterData() {
 		if (defaultCharacterData != null) {
 			CharacterData dataInstance = (CharacterData) ScriptableObject.Instantiate(defaultCharacterData);
-			stats = dataInstance.defaultStats;
-			ResetStats();
       attackModifiers = dataInstance.attackModifiers;
 			damageTypeResistances = dataInstance.damageTypeResistances;
 			movementAbilities.AddRange(dataInstance.movementAbilities);
 		}
+    vitals = new CharacterVitalToFloatDictionary();
 	}
 
-	private void ResetStats() {
-		stats[CharacterStat.CurrentMaxHealth] = stats[CharacterStat.MaxHealth];
-		stats[CharacterStat.CurrentHealth] = stats[CharacterStat.MaxHealth];
-
-	}
 	// non-physics biz
 	protected virtual void Update() {
 		HandleHealth();
 		HandleFacingDirection();
 		HandleTile();
+    HandleConditionallyActivatedTraits();
 	}
 
 	// physics biz
@@ -308,13 +306,6 @@ public class Character : WorldObject {
 		hb.gameObject.GetComponent<SpriteRenderer>().sortingLayerName = currentFloor.ToString();
 		hb.Init(orientation, this, hbi, characterAttack.hitboxInfo.damageMultipliers, attackModifiers);
 	}
-	public float CalculateAcceleration() {
-		float environmentAccelerationMod = currentTile != null ? currentTile.GetAccelerationMod() : 0;
-		if (movementAbilities.Contains(CharacterMovementAbility.FastFeet)) {
-			environmentAccelerationMod = Mathf.Max(environmentAccelerationMod, 0);
-		}
-		return stats[CharacterStat.MoveAcceleration] + environmentAccelerationMod;
-	}
 
 	public void ApplyAttackModifier(CharacterAttackValue attackValue, int magnitude) {
 		attackModifiers[attackValue] += magnitude;
@@ -367,13 +358,13 @@ public class Character : WorldObject {
 	// Point character towards a rotation target.
 	void HandleFacingDirection() {
 		if (
-			(attacking || animationPreventsMoving)
+			(attacking || animationPreventsMoving || stunned)
 			&& !movementAbilities.Contains(CharacterMovementAbility.Halteres)
 		) {
 			return;
 		}
 		Quaternion targetDirection = GetTargetDirection();
-		orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, stats[CharacterStat.RotationSpeed] * Time.deltaTime);
+		orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, GetStat(CharacterStat.RotationSpeed) * Time.deltaTime);
 		facingRight = true;
 		if (orientation.eulerAngles.z > 90 || orientation.eulerAngles.z < 270) {
 			facingRight = false;
@@ -399,7 +390,13 @@ public class Character : WorldObject {
 	// add input to our velocity, if necessary/possible.
 	protected void CalculateMovement() {
 		if (CanMove()) {
-			po.SetMovementInput(new Vector2(movementInput.x, movementInput.y));
+      if (movementInput == Vector2.zero) { // should be an approximate equals
+        timeStandingStill += Time.deltaTime;
+      } else {
+        timeStandingStill = 0f;
+      }
+      po.SetMovementInput(new Vector2(movementInput.x, movementInput.y));
+
 		}
 		else {
 			po.SetMovementInput(Vector2.zero);
@@ -426,17 +423,24 @@ public class Character : WorldObject {
 
 	// Called from Hitbox's OnTriggerEnter. Calls other functions to determine outcome of getting hit.
 	protected void TakeDamage(DamageObject damageObj) {
-		if (invulnerable && !damageObj.ignoreInvulnerability) { return; }
-		float damageAfterResistances = (1 - damageTypeResistances[damageObj.damageType]) * damageObj.damage;
-		if (damageAfterResistances <= 0 && damageObj.characterStatModifications.Count == 0) { return; }
+		if (
+      sourceInvulnerabilities.Contains(damageObj.sourceString)
+      && !damageObj.ignoreInvulnerability)
+    { return; }
+		float damageAfterResistances = (100 - damageTypeResistances[damageObj.damageType]) * damageObj.damage;
+		if (
+      damageAfterResistances <= 0
+      && damageObj.damage > 0
+      && damageObj.characterStatModifications.Count == 0
+    ) { return; }
 		if (damageObj.attackerTransform == transform) { return; }
 		InterruptAnimation();
 		AdjustHealth(Mathf.Floor(-damageAfterResistances));
 		CalculateAndApplyStun(damageObj.stun);
 		foreach(CharacterStatModification mod in damageObj.characterStatModifications) {
-			ModCharacterStat(mod);
+			AddStatMod(mod);
 		}
-		StartCoroutine(ApplyInvulnerability(damageObj.invulnerabilityWindow));
+		StartCoroutine(ApplyInvulnerability(damageObj));
 		StartCoroutine(ApplyDamageFlash(damageObj));
 		if (damageObj.attackerTransform != null && damageObj.hitboxTransform != null) {
 			po.ApplyImpulseForce(damageObj.knockback *
@@ -455,16 +459,19 @@ public class Character : WorldObject {
 	}
 
 	// Make us invulnerable, then un-make-us invulnerable. Damage is ignorned while invulnerable.
-	void CalculateAndApplyInvulnerability(float invulnerabilityDuration) {
-		if (invulnerabilityDuration > 0) {
-			StartCoroutine(ApplyInvulnerability(invulnerabilityDuration));
+	void CalculateAndApplyInvulnerability(DamageObject dObj) {
+		if (dObj.invulnerabilityWindow > 0) {
+			StartCoroutine(ApplyInvulnerability(dObj));
 		}
 	}
 
-	IEnumerator ApplyInvulnerability(float duration) {
-		invulnerable = true;
-		yield return new WaitForSeconds(duration);
-		invulnerable = false;
+	IEnumerator ApplyInvulnerability(DamageObject dObj) {
+    string src = dObj.sourceString;
+		sourceInvulnerabilities.Add(src);
+		yield return new WaitForSeconds(dObj.invulnerabilityWindow);
+		if (sourceInvulnerabilities.Contains(src)) {
+      sourceInvulnerabilities.Remove(src);
+    }
 	}
 
 	IEnumerator ApplyDamageFlash(DamageObject damageObj) {
@@ -509,32 +516,41 @@ public class Character : WorldObject {
 	}
 	// END DAMAGE FUNCTIONS
 
-	public void ModCharacterStat(CharacterStatModification mod) {
-		StartCoroutine(ModCharacterStatCoroutine(mod));
-	}
+  public float GetStat(CharacterStat statToGet) {
+    StringToIntDictionary statMods = statModifications[statToGet];
+    int modValue = 0;
+    float returnValue = Constants.BaseCharacterStats[statToGet];
+    foreach(int modMagnitude in statMods.Values) {
+      modValue += modMagnitude;
+    }
+    modValue = Mathf.Clamp(-10, modValue, 10);
+    if (modValue >= 0) {
+      returnValue *= ((3 + modValue) / 3);
+    } else {
+      Debug.Log ("some math: "+ 3f / (3 + Mathf.Abs(modValue)));
+      returnValue *= (3f / (3 + Mathf.Abs(modValue)));
+      Debug.Log ("return value: "+ returnValue);
+    }
+    return returnValue;
+  }
 
-	public IEnumerator ModCharacterStatCoroutine(CharacterStatModification mod) {
-		yield return new WaitForSeconds(mod.delay);
-		if (mod.applicationDuration > 0) {
-			float t = 0;
-			while (t < mod.applicationDuration) {
-				t += Time.deltaTime;
-				AdjustStat(mod.statToModify, mod.magnitude * Time.deltaTime / mod.applicationDuration);
-				yield return null;
-			}
-			// HACK: this line is probably going to result in some weird edge cases around stat mods.
-			// If health is flickering or odd cases come up when multiple duration effects happen at once,
-			// this may be the culprit!
-			stats[mod.statToModify] = Mathf.Round(stats[mod.statToModify]);
+public void AddStatMod(CharacterStatModification mod) {
+  AddStatMod(mod.statToModify, mod.magnitude, mod.source);
+}
 
-		} else {
-			AdjustStat(mod.statToModify, mod.magnitude);
-		}
-		if (mod.duration > 0) {
-			yield return new WaitForSeconds(mod.duration);
-			AdjustStat(mod.statToModify, -mod.magnitude);
-		}
-	}
+public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
+    Debug.Log("addStatMod " + statToMod + source + magnitude);
+    statModifications[statToMod][source] = magnitude;
+  }
+
+  public void RemoveStatMod(string source) {
+    foreach(CharacterStat stat in (CharacterStat[]) Enum.GetValues(typeof(CharacterStat))) {
+      StringToIntDictionary statMods =  statModifications[stat];
+      if (statMods.ContainsKey(source)) {
+        statMods.Remove(source);
+      }
+    }
+  }
 
 	public void AddMovementAbility(CharacterMovementAbility movementAbility) {
 		movementAbilities.Add(movementAbility);
@@ -544,43 +560,18 @@ public class Character : WorldObject {
 		movementAbilities.Remove(movementAbility);
 	}
 
-	public void AdjustStat(CharacterStat statToAdjust, float magnitude) {
-		switch (statToAdjust) {
-			case CharacterStat.CurrentHealth:
-				AdjustHealth(magnitude);
-				break;
-			case CharacterStat.CurrentMaxHealth:
-				AdjustCurrentMaxHealth(magnitude);
-				break;
-			case CharacterStat.MoveAcceleration:
-				AdjustMoveAcceleration(magnitude);
-				break;
-		}
-	}
+
+//TODO: SHOULD PROBS BE DEPRECATED
 	public void AdjustHealth(float adjustment) {
-		stats[CharacterStat.CurrentHealth] = Mathf.Clamp(stats[CharacterStat.CurrentHealth] + adjustment, 0, stats[CharacterStat.CurrentMaxHealth]);
+		vitals[CharacterVital.CurrentHealth] =
+      Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, 0, GetStat(CharacterStat.MaxHealth));
 	}
 
-	public void AdjustCurrentMaxHealth(float adjustment) {
-		stats[CharacterStat.CurrentMaxHealth] = Mathf.Max(stats[CharacterStat.CurrentMaxHealth] + adjustment, 0);
-		stats[CharacterStat.CurrentHealth] = Mathf.Min(stats[CharacterStat.CurrentHealth], stats[CharacterStat.CurrentMaxHealth]);
-	}
-
-	public void AdjustMoveAcceleration(float adjustment) {
-		float actualAdjust = adjustment;
-		if (movementAbilities.Contains(CharacterMovementAbility.FastFeet)) {
-			actualAdjust = Mathf.Max(adjustment, 0);
-		}
-		stats[CharacterStat.MoveAcceleration] = Mathf.Max(stats[CharacterStat.MoveAcceleration] + actualAdjust, 0);
-	}
-
-	public void AdjustRotationSpeed(float adjustment) {
-		stats[CharacterStat.RotationSpeed] = Mathf.Max(stats[CharacterStat.RotationSpeed] + adjustment, 0);
-	}
 
 	public void InitializeWeapon(string weaponId) {
 		InitializeWeapon(weaponId, false);
 	}
+
 	public void InitializeWeapon(string weaponId, bool overrideExistingWeapon) {
 		if (weapon == null || overrideExistingWeapon) {
 			weapon = Instantiate(Resources.Load("Prefabs/Items/Weapons/"+weaponId) as GameObject, weaponParent, false).GetComponent<Weapon>();
@@ -591,7 +582,7 @@ public class Character : WorldObject {
 		weapon.Init();
 	}
 
-    public virtual void SetCurrentFloor(FloorLayer newFloorLayer)
+  public virtual void SetCurrentFloor(FloorLayer newFloorLayer)
     {
 		justCameFromFloor = currentFloor;
         currentFloor = newFloorLayer;
@@ -631,7 +622,7 @@ public class Character : WorldObject {
 		);
 	}
 	protected virtual void HandleHealth() {
-		if (stats[CharacterStat.CurrentHealth] <= 0) {
+		if (vitals[CharacterVital.CurrentHealth] <= 0) {
 			Die();
 		}
 	}
@@ -649,8 +640,8 @@ public class Character : WorldObject {
 			currentTileLocation = nowTileLocation;
 			justCameFromFloor = null;
 		}
-		if (stats[CharacterStat.CurrentEnvironmentalDamageCooldown] > 0) {
-			stats[CharacterStat.CurrentEnvironmentalDamageCooldown] -= Time.deltaTime;
+		if (vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] > 0) {
+			vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] -= Time.deltaTime;
 		}
 		if (tile.objectTileType == null && tile.groundTileType == null) {
 			if (
@@ -669,9 +660,9 @@ public class Character : WorldObject {
 			}
 			return;
 		}
-		if (tile.dealsDamage && tile.environmentalDamage != null && stats[CharacterStat.CurrentEnvironmentalDamageCooldown] <= 0) {
+		if (tile.dealsDamage && tile.environmentalDamage != null && vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] <= 0) {
 			TakeDamage(tile.environmentalDamage);
-			stats[CharacterStat.CurrentEnvironmentalDamageCooldown] = stats[CharacterStat.MaxEnvironmentalDamageCooldown];
+			vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
 		}
 	}
 
@@ -683,4 +674,34 @@ public class Character : WorldObject {
 			// Debug.Log("collided with "+tile);
 		}
 	}
+
+  public virtual void HandleConditionallyActivatedTraits() {
+    foreach(TraitEffect trait in conditionallyActivatedTraitEffects) {
+      switch (trait.activatingCondition) {
+        case ConditionallyActivatedTraitCondition.NotMoving:
+          if (timeStandingStill > trait.activatingConditionRequiredDuration) {
+            trait.Apply(this);
+          }
+          else {
+            trait.Expire(this);
+          }
+          break;
+      }
+    }
+  }
+
+  public virtual void AddAura(TraitEffect effect) {
+    GameObject go = GameObject.Instantiate(effect.auraPrefab, transform.position, transform.rotation);
+    go.layer = gameObject.layer;
+    go.GetComponent<Renderer>().sortingLayerName = LayerMask.LayerToName(go.layer);
+    go.transform.parent = transform;
+    traitSpawnedGameObjects.Add(effect.sourceString, go);
+  }
+
+  public virtual void RemoveAura(TraitEffect effect) {
+    if (traitSpawnedGameObjects.ContainsKey(effect.sourceString)) {
+      Destroy(traitSpawnedGameObjects[effect.sourceString]);
+      traitSpawnedGameObjects.Remove(effect.sourceString);
+    }
+  }
 }

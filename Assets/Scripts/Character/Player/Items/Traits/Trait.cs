@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 public enum TraitName {}; // just a list of names of every possible trait
@@ -13,19 +12,99 @@ public enum TraitEffectType {
   CharacterStat,
   CharacterAttack,
   CharacterMovementAbility,
-  DetectableRange,
+  Aura,
+  SpawnsObject
 }
+
+public enum ConditionallyActivatedTraitCondition { None, NotMoving };
 [System.Serializable]
 public class TraitEffect {
   public TraitEffectType effectType;
-  public float magnitude;
+  public int magnitude;
   public DamageType damageType;
   public CharacterStat stat;
 	public CharacterAttackValue attackValue;
 	public CharacterMovementAbility movementAbility;
   public Vector2 animationInput;
   public bool blocksMovement;
-	public GameObject objectToSpawn;
+	public GameObject auraPrefab;
+  public ConditionallyActivatedTraitCondition activatingCondition;
+  public float activatingConditionRequiredDuration;
+
+  private string _sourceString = "";
+  public string sourceString {
+    get {
+      if (_sourceString == "") {
+        _sourceString = Guid.NewGuid().ToString("N").Substring(0, 15);
+      }
+      return _sourceString;
+    }
+  }
+
+  public void Apply(Character owner) {
+    Debug.Log("contains this (pre-add): " + owner.activeConditionallyActivatedTraitEffects.Contains(this));
+    if (activatingCondition != ConditionallyActivatedTraitCondition.None) {
+      if (owner.activeConditionallyActivatedTraitEffects.Contains(this)) {
+        Debug.Log("Already applied trait effect. returning!");
+        return;
+      } else {
+        owner.activeConditionallyActivatedTraitEffects.Add(this);
+      }
+    }
+    switch (effectType)
+		{
+			case TraitEffectType.Resistance:
+				owner.damageTypeResistances[damageType] += magnitude;
+				break;
+			case TraitEffectType.AnimationInput:
+				owner.SetAnimationInput(animationInput);
+				if (blocksMovement) {
+					owner.SetAnimationPreventsMoving(blocksMovement);
+				}
+				break;
+			case TraitEffectType.CharacterMovementAbility:
+				owner.AddMovementAbility(movementAbility);
+				break;
+			case TraitEffectType.CharacterAttack:
+				owner.ApplyAttackModifier(attackValue, magnitude);
+				break;
+      case TraitEffectType.CharacterStat:
+				owner.AddStatMod(stat, magnitude, sourceString);
+        break;
+      case TraitEffectType.Aura:
+        Debug.Log("addingStatMod - Aura");
+        owner.AddAura(this);
+        break;
+		}
+	}
+
+	public void Expire(Character owner) {
+    switch (effectType)
+		{
+			case TraitEffectType.Resistance:
+				owner.damageTypeResistances[damageType] -= magnitude;
+				break;
+			case TraitEffectType.AnimationInput:
+				owner.SetAnimationInput(Vector2.zero);
+				owner.SetAnimationPreventsMoving(false);
+				break;
+			case TraitEffectType.CharacterMovementAbility:
+				owner.RemoveMovementAbility(movementAbility);
+				break;
+      case TraitEffectType.CharacterStat:
+				owner.RemoveStatMod(sourceString);
+        break;
+      case TraitEffectType.Aura:
+        owner.RemoveAura(this);
+        break;
+		}
+    if (activatingCondition != ConditionallyActivatedTraitCondition.None
+      && owner.activeConditionallyActivatedTraitEffects.Contains(this)
+    ) {
+      Debug.Log("removing condiitonally active trait effect");
+      owner.activeConditionallyActivatedTraitEffects.Remove(this);
+    }
+	}
 }
 
 public abstract class Trait : ScriptableObject {
@@ -37,62 +116,19 @@ public abstract class Trait : ScriptableObject {
 		// Called when the trait is applied to the player (usually on spawn)
 	public void OnTraitAdded (Character owner) {
 		foreach (TraitEffect traitEffect in passiveTraitEffects) {
-			ApplyTraitEffect(owner, traitEffect);
+      if (traitEffect.activatingCondition != ConditionallyActivatedTraitCondition.None) {
+        owner.conditionallyActivatedTraitEffects.Add(traitEffect);
+        Debug.Log("added "+traitEffect+ " to conditionally activated trait effects");
+        continue;
+      }
+			traitEffect.Apply(owner);
 		}
 	}
 
 	// Called when the trait is removed from the character (usually on death)
 	public void OnTraitRemoved (Character owner) {
 		foreach (TraitEffect traitEffect in passiveTraitEffects) {
-			ExpireTraitEffect(owner, traitEffect);
-		}
-	}
-	public void ApplyTraitEffect(Character owner, TraitEffect traitEffect) {
-		switch (traitEffect.effectType)
-		{
-			case TraitEffectType.Resistance:
-				owner.damageTypeResistances[traitEffect.damageType] += traitEffect.magnitude;
-				break;
-			case TraitEffectType.DetectableRange:
-				owner.DetectableRange -= traitEffect.magnitude;
-				break;
-			case TraitEffectType.AnimationInput:
-				owner.SetAnimationInput(traitEffect.animationInput);
-				if (traitEffect.blocksMovement) {
-					owner.SetAnimationPreventsMoving(traitEffect.blocksMovement);
-				}
-				break;
-			case TraitEffectType.CharacterMovementAbility:
-				owner.AddMovementAbility(traitEffect.movementAbility);
-				break;
-			case TraitEffectType.CharacterAttack:
-				owner.ApplyAttackModifier(traitEffect.attackValue, Mathf.RoundToInt(traitEffect.magnitude));
-				break;
-      case TraitEffectType.CharacterStat:
-				owner.stats[traitEffect.stat] += traitEffect.magnitude;
-        break;
-		}
-	}
-
-	public void ExpireTraitEffect(Character owner, TraitEffect traitEffect) {
-		switch (traitEffect.effectType)
-		{
-			case TraitEffectType.Resistance:
-				owner.damageTypeResistances[traitEffect.damageType] -= traitEffect.magnitude;
-				break;
-			case TraitEffectType.DetectableRange:
-				owner.DetectableRange += traitEffect.magnitude;
-				break;
-			case TraitEffectType.AnimationInput:
-				owner.SetAnimationInput(Vector2.zero);
-				owner.SetAnimationPreventsMoving(false);
-				break;
-			case TraitEffectType.CharacterMovementAbility:
-				owner.RemoveMovementAbility(traitEffect.movementAbility);
-				break;
-      case TraitEffectType.CharacterStat:
-				owner.stats[traitEffect.stat] -= traitEffect.magnitude;
-        break;
+			traitEffect.Expire(owner);
 		}
 	}
 }

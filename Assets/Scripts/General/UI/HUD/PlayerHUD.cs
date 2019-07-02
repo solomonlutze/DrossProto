@@ -30,9 +30,9 @@ public class PlayerHUD : MonoBehaviour {
 		PlayerController playerController = GameMaster.Instance.GetPlayerController();
 		if (playerController != null) {
 			healthFieldText.text = "Health: ";
-			healthValueText.text = Mathf.Max(Mathf.Round(playerController.stats[CharacterStat.CurrentHealth]), 0).ToString();
-			maxHealthValueText.text = Mathf.Round(playerController.stats[CharacterStat.CurrentMaxHealth]).ToString();
-			if (playerController.stats[CharacterStat.CurrentHealth] > 0) {
+			healthValueText.text = Mathf.Max(Mathf.Round(playerController.vitals[CharacterVital.CurrentHealth]), 0).ToString();
+			maxHealthValueText.text = Mathf.Round(playerController.GetStat(CharacterStat.MaxHealth)).ToString();
+			if (playerController.vitals[CharacterVital.CurrentHealth] > 0) {
 				diedText.text = " ";
 			}
 			if (playerController.lastActivatedTrait != null && playerController.lastActivatedTrait != "") {

@@ -110,12 +110,12 @@ public class CharacterAI : Character {
 				path.RemoveAt(0);
 			}
 		} else {
-			movementInput = new Vector3(0, 0, 0);
+			movementInput = Vector2.zero;
 		}
 	}
 
 	void InputIdleMovement() {
-		movementInput = new Vector3(0, 0, 0);
+		movementInput = Vector2.zero;
 	}
 
 	// TODO: this should probably be state-driven

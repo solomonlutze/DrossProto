@@ -291,11 +291,7 @@ public class PlayerController : Character {
       equippedTraits[traitSlot] = trait;
     }
 
-			// PassiveTrait passiveTrait = Resources.Load("Data/TraitData/PassiveTraits/"+initialPassiveTrait1) as PassiveTrait;
-			// if (passiveTrait != null) { Debug.Log("added "+passiveTrait); passiveTrait.OnTraitAdded(this); }
-			// passiveTrait = Resources.Load("Data/TraitData/PassiveTraits/"+initialPassiveTrait2) as PassiveTrait;
-			// if (passiveTrait != null) { Debug.Log("added "+passiveTrait); passiveTrait.OnTraitAdded(this); }
-      ActiveTraitInstance activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
+	ActiveTraitInstance activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
 			ActiveTrait activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+initialActiveTrait1) as ActiveTrait;
 			if (activeTrait != null && activeTraitData != null) {
 				activeTrait1 = activeTrait;
@@ -333,47 +329,6 @@ public class PlayerController : Character {
       activeTrait2.Init(this, activeTraitData);
     }
 	}
-	// for each of your UpcomingLifeTraits, give your character the relevant abilities
-	// override public void AssignTraitsForNextLife(UpcomingLifeTraits nextLifeTraits) {
-	// 	Debug.Log("upcoming life traits: "+nextLifeTraits);
-	// 	if (initialPassiveTrait1 != null || initialPassiveTrait2 != null) {
-	// 			PassiveTraitMono passiveTrait = gameObject.AddComponent(Type.GetType(initialPassiveTrait1)) as PassiveTraitMono;
-	// 			if (passiveTrait != null) { passiveTrait.OnTraitAdded(this); }
-	// 			passiveTrait = gameObject.AddComponent(Type.GetType(initialPassiveTrait2)) as PassiveTraitMono;
-	// 			if (passiveTrait != null) { passiveTrait.OnTraitAdded(this); }
-	// 			initialPassiveTrait1 = null;
-	// 			initialPassiveTrait2 = null;
-	// 	} else {
-	// 		foreach (UpcomingLifeTrait trait in nextLifeTraits.passiveTraits) {
-	// 			if (trait != null) {
-	// 				PassiveTraitMono passiveTrait = gameObject.AddComponent(Type.GetType(trait.traitName)) as PassiveTraitMono;
-	// 				passiveTrait.OnTraitAdded(this);
-	// 			}
-	// 		}
-	// 	}
-	// 	if (initialActiveTrait1 != null || initialActiveTrait2 != null) {
-	// 			ActiveTraitMono activeTrait = gameObject.AddComponent(Type.GetType(initialActiveTrait1)) as ActiveTraitMono;
-	// 			if (activeTrait != null) {
-	// 				activeTrait1Mono = activeTrait;
-	// 			}
-	// 			activeTrait = gameObject.AddComponent(Type.GetType(initialActiveTrait2)) as ActiveTraitMono;
-	// 			if (activeTrait != null) {
-	// 				activeTrait2Mono = activeTrait;
-	// 			}
-	// 			initialActiveTrait1 = null;
-	// 			initialActiveTrait2 = null;
-	// 	} else {
-	// 		ActiveTraitMono activeTrait;
-	// 		activeTrait = gameObject.AddComponent(Type.GetType(nextLifeTraits.activeTraits[0].traitName)) as ActiveTraitMono;
-	// 		if (activeTrait != null) {
-	// 			activeTrait1Mono = activeTrait;
-	// 		}
-	// 		activeTrait = gameObject.AddComponent(Type.GetType(nextLifeTraits.activeTraits[1].traitName)) as ActiveTraitMono;
-	// 		if (activeTrait != null) {
-	// 			activeTrait2Mono = activeTrait;
-	// 		}
-	// 	}
-	// }
 
 	override public void Die(){
 		GameMaster.Instance.KillPlayer(inventory.GetUpcomingLarva(), inventory.GetUpcomingPupa());
