@@ -10,6 +10,7 @@ public class PickedUpItem {
     public string itemName;
     public int quantity;
 }
+[System.Serializable]
 public class InventoryEntry {
     public string id;
     public bool equipped;
@@ -34,11 +35,7 @@ public class Inventory : MonoBehaviour {
     public Character owner;
     public InventoryScreen inventoryScreen;
 
-    public UpcomingLifeTraits upcomingLarva; // two lives from now
-    public UpcomingLifeTraits upcomingPupa; // your next life
-
-    public int defaultNumPassiveTraits = 2;
-    public int defaultNumActiveTraits = 2;
+    public TraitSlotToUpcomingTraitDictionary upcomingPupa; // your next life
 
     // TODO: Some of this should get bumped into an Init that's called by PlayerController when we make a new character
     void Awake() {
@@ -78,6 +75,9 @@ public class Inventory : MonoBehaviour {
         } else {
             // TODO: the below line is really unsafe!!
             ItemData itemInfo = (ItemData) (Resources.Load("Data/ItemData/"+item.itemType.ToString() + "/"+item.itemId) as ScriptableObject);
+            if (itemInfo == null) {
+              Debug.Log("no item data found for "+item.itemId + " of type "+item.itemType);
+            }
             entry.itemId = item.itemId;
             entry.quantity = item.quantity;
             entry.type = itemInfo.type;
@@ -145,76 +145,48 @@ public class Inventory : MonoBehaviour {
         }
     }
 
-    public void EquipTraitToUpcomingLifeTrait(InventoryEntry itemToEquip, int slot, UpcomingLifeTraits traitsToEquipTo, TraitType type) {
-        UpcomingLifeTrait[] traitsList;
-        string traitName;
-        Debug.Log("itemId: "+itemToEquip.itemId);
-        Debug.Log("loaded thing: "+Resources.Load("Data/ItemData/Trait/"+itemToEquip.itemId));
-        TraitItemData itemInfo = Resources.Load("Data/ItemData/Trait/"+itemToEquip.itemId) as TraitItemData;
-        UnequipTraitItem(itemToEquip.guid);
-        switch(type) {
-            case TraitType.Passive:
-                traitsList = traitsToEquipTo.passiveTraits;
-                traitName = itemInfo.passiveTrait;
-                break;
-            case TraitType.Active:
-            default:
-                traitsList = traitsToEquipTo.activeTraits;
-                traitName = itemInfo.activeTrait;
-                break;
-        }
-        traitsList[slot] = new UpcomingLifeTrait(traitName, itemToEquip);
+    public void EquipTraitToUpcomingLifeTrait(InventoryEntry itemToEquip, TraitSlot slot) {
+      UnequipTraitItem(itemToEquip.guid);
+      TraitItemData itemInfo = Resources.Load("Data/ItemData/Trait/"+itemToEquip.itemId) as TraitItemData;
+      upcomingPupa[slot] = new UpcomingLifeTrait(itemInfo.traits.EquippedTraits()[slot], itemToEquip);
+      Debug.Log("should have equipped trait " + itemInfo.traits.EquippedTraits()[slot] + ", item " + itemToEquip.itemId);
+        // UpcomingLifeTrait[] traitsList;
+        // string traitName;
+        // Debug.Log("itemId: "+itemToEquip.itemId);
+        // Debug.Log("loaded thing: "+Resources.Load("Data/ItemData/Trait/"+itemToEquip.itemId));
+        // TraitItemData itemInfo = Resources.Load("Data/ItemData/Trait/"+itemToEquip.itemId) as TraitItemData;
+        // UnequipTraitItem(itemToEquip.guid);
+        // switch(type) {
+        //     case TraitType.Passive:
+        //         traitsList = traitsToEquipTo.passiveTraits;
+        //         traitName = itemInfo.passiveTrait;
+        //         break;
+        //     case TraitType.Active:
+        //     default:
+        //         traitsList = traitsToEquipTo.activeTraits;
+        //         traitName = itemInfo.activeTrait;
+        //         break;
+        // }
+        // traitsList[slot] = new UpcomingLifeTrait(traitName, itemToEquip);
     }
 
     // TODO: DRY
     public void UnequipTraitItem(string traitItemGuid) {
-        Debug.Log("traitItemGuid: "+traitItemGuid);
-        for (int i = 0; i < upcomingLarva.activeTraits.Length; i++) {
-            UpcomingLifeTrait trait = upcomingLarva.activeTraits[i];
-            if (trait != null) {
-                Debug.Log("guid comparing against: "+trait.inventoryItem.guid);
-            }
-            if (trait != null && trait.inventoryItem.guid == traitItemGuid) {
-                upcomingLarva.activeTraits[i] = null;
-            }
+      List<TraitSlot> keys = new List<TraitSlot> (upcomingPupa.Keys);
+      foreach(TraitSlot s in keys) {
+        if (upcomingPupa[s] != null && upcomingPupa[s].inventoryItem.guid == traitItemGuid) {
+          upcomingPupa[s] = new UpcomingLifeTrait(null, null);
         }
-        for (int i = 0; i < upcomingLarva.passiveTraits.Length; i++) {
-            UpcomingLifeTrait trait = upcomingLarva.passiveTraits[i];
-            if (trait != null) {
-                Debug.Log("guid comparing against: "+trait.inventoryItem.guid);
-            }
-            if (trait != null && trait.inventoryItem.guid == traitItemGuid) {
-                upcomingLarva.passiveTraits[i] = null;
-            }
-        }
-        for (int i = 0; i < upcomingPupa.activeTraits.Length; i++) {
-            UpcomingLifeTrait trait = upcomingPupa.activeTraits[i];
-            if (trait != null) {
-                Debug.Log("guid comparing against: "+trait.inventoryItem.guid);
-            }
-            if (trait != null && trait.inventoryItem.guid == traitItemGuid) {
-                upcomingPupa.activeTraits[i] = null;
-            }
-        }
-        for (int i = 0; i < upcomingPupa.passiveTraits.Length; i++) {
-            UpcomingLifeTrait trait = upcomingPupa.passiveTraits[i];
-            if (trait != null) {
-                Debug.Log("guid comparing against: "+trait.inventoryItem.guid);
-            }
-            if (trait != null && trait.inventoryItem.guid == traitItemGuid) {
-                upcomingPupa.passiveTraits[i] = null;
-            }
-        }
+      }
     }
+
     public InventoryEntry[] GetEquippedConsumableInventoryEntries() {
         return equippedItems.Select(entry => entry == null ? null : GetInventoryEntry(entry)).ToArray();
     }
-    public UpcomingLifeTraits GetUpcomingLarva() {
-        return upcomingLarva;
-    }
 
-    public UpcomingLifeTraits GetUpcomingPupa() {
-        return upcomingPupa;
+    public TraitSlotToUpcomingTraitDictionary GetUpcomingPupa() {
+      Debug.Log("upcoming pupa: "+upcomingPupa);
+      return upcomingPupa;
     }
 
     // increase activeItemIndex and loop to 0 if it's greater than the length of our equippedItems list
@@ -261,15 +233,14 @@ public class Inventory : MonoBehaviour {
         }
     }
     // called each time you respawn
-    public void AdvanceUpcomingLifeTraits(UpcomingLifeTraits previousLarva, UpcomingLifeTraits previousPupa) {
-        owner.AssignTraitsForNextLife(previousPupa == null ? CreateNewUpcomingTraits() : previousPupa);
-        upcomingPupa = previousLarva == null ? CreateNewUpcomingTraits() : previousLarva;
-        upcomingLarva = CreateNewUpcomingTraits();
+    public void AdvanceUpcomingLifeTraits(TraitSlotToUpcomingTraitDictionary previousPupa) {
+        owner.AssignTraitsForNextLife(previousPupa == null ? new TraitSlotToUpcomingTraitDictionary() : previousPupa);
+        upcomingPupa = CreateNewUpcomingTraits();
     }
 
-    private UpcomingLifeTraits CreateNewUpcomingTraits() {
+    private TraitSlotToUpcomingTraitDictionary CreateNewUpcomingTraits() {
     // eventually this could assign default traits based on spawn region
-        return new UpcomingLifeTraits(defaultNumPassiveTraits, defaultNumActiveTraits);
+        return new TraitSlotToUpcomingTraitDictionary();
     }
 
     public List<InventoryEntry> GetAllItemsOfType(InventoryItemType type) {

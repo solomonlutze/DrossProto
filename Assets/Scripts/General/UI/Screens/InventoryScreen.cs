@@ -25,8 +25,6 @@ public class InventoryScreen : MonoBehaviour {
 	public Transform equippedConsumableListContent;
 	public GameObject equippedConsumableButtonPrefab;
 
-	public Transform equippedTraitListLarva;
-	public Transform equippedTraitListLarvaContent;
 	public Transform equippedTraitListPupa;
 	public Transform equippedTraitListPupaContent;
 	public GameObject equippedTraitButtonPrefab;
@@ -51,10 +49,9 @@ public class InventoryScreen : MonoBehaviour {
 			CloseEquipConsumableMenu();
 			CloseEquipTraitMenu();
 
-            Inventory inventory = playerController.GetComponent<Inventory>();
-		 	PopulateEquippableItemList(inventory.GetAllItemsOfType(InventoryItemType.Weapon), weaponsListContent, null);
+      Inventory inventory = playerController.GetComponent<Inventory>();
 		 	PopulateEquippedConsumablesList(inventory.GetEquippedConsumableInventoryEntries());
-			PopulateEquippedTraitsList(inventory.GetUpcomingLarva(), inventory.GetUpcomingPupa());
+			PopulateEquippedTraitsList(inventory.GetUpcomingPupa());
 		}
 	}
 
@@ -70,47 +67,31 @@ public class InventoryScreen : MonoBehaviour {
 			button.gameObject.transform.localScale = Vector3.one;
 		}
 	}
-	public void PopulateEquippedTraitsList(UpcomingLifeTraits equippedLarvaTraits, UpcomingLifeTraits equippedPupaTraits) {
-		foreach(Transform child in equippedTraitListLarvaContent) {
-			Destroy(child.gameObject);
-		}
+	public void PopulateEquippedTraitsList(TraitSlotToUpcomingTraitDictionary equippedPupaTraits) {
+
 		foreach(Transform child in equippedTraitListPupaContent) {
 			Destroy(child.gameObject);
 		}
-		// note that we display all upcoming pupa traits, both passive and active,
-		// but only display 1 of those for the larva
-
-		// TODO: DRY
-		for (int i = 0; i < equippedLarvaTraits.passiveTraits.Length; i++) {
-			UpcomingLifeTrait trait = equippedLarvaTraits.passiveTraits[i];
-;			EquippedTraitButton button = Instantiate(equippedTraitButtonPrefab).GetComponent<EquippedTraitButton>();
-			button.Init(trait, this, i, equippedLarvaTraits, TraitType.Passive);
-			button.gameObject.transform.SetParent(equippedTraitListLarvaContent);
-			button.gameObject.transform.localScale = Vector3.one;
-		}
-		for (int i = 0; i < equippedPupaTraits.passiveTraits.Length; i++) {
-			UpcomingLifeTrait trait = equippedPupaTraits.passiveTraits[i];
-			DisabledEquippedTraitButton button = Instantiate(disabledEquippedTraitButtonPrefab).GetComponent<DisabledEquippedTraitButton>();
-			button.Init(trait, this, i, equippedPupaTraits, TraitType.Passive);
-			button.gameObject.transform.SetParent(equippedTraitListPupaContent);
-			button.gameObject.transform.localScale = Vector3.one;
-		}
-		for (int i = 0; i < equippedPupaTraits.activeTraits.Length; i++) {
-			UpcomingLifeTrait trait = equippedPupaTraits.activeTraits[i];
+		foreach (TraitSlot s in equippedPupaTraits.Keys) {
+			UpcomingLifeTrait trait = equippedPupaTraits[s];
 			EquippedTraitButton button = Instantiate(equippedTraitButtonPrefab).GetComponent<EquippedTraitButton>();
-			button.Init(trait, this, i, equippedPupaTraits, TraitType.Active);
+			button.Init(trait, this, s);
 			button.gameObject.transform.SetParent(equippedTraitListPupaContent);
 			button.gameObject.transform.localScale = Vector3.one;
 		}
+		// for (int i = 0; i < equippedPupaTraits.activeTraits.Length; i++) {
+		// 	UpcomingLifeTrait trait = equippedPupaTraits.activeTraits[i];
+		// 	EquippedTraitButton button = Instantiate(equippedTraitButtonPrefab).GetComponent<EquippedTraitButton>();
+		// 	button.Init(trait, this, i, equippedPupaTraits, TraitType.Active);
+		// 	button.gameObject.transform.SetParent(equippedTraitListPupaContent);
+		// 	button.gameObject.transform.localScale = Vector3.one;
+		// }
 	}
 
 	public void EquipItem(InventoryEntry itemToEquip, int? slot) {
 		PlayerController playerController = GameMaster.Instance.GetPlayerController();
 		if (playerController != null) {
 			switch (itemToEquip.type) {
-				case InventoryItemType.Weapon:
-					playerController.EquipWeapon(itemToEquip);
-					break;
 				case InventoryItemType.Consumable:
             		int slotValue = slot.GetValueOrDefault();
 					playerController.EquipConsumableToSlot(itemToEquip.itemId, slotValue);
@@ -124,10 +105,10 @@ public class InventoryScreen : MonoBehaviour {
 	// on the appropriate InventoryEntry
 	// to the appropriate slot
 	// in the appropriate UpcomingLifeTraits
-	public void EquipTraitItem(InventoryEntry itemToEquip, int slot, UpcomingLifeTraits traitsToEquipTo, TraitType type) {
+	public void EquipTraitItem(InventoryEntry itemToEquip, TraitSlot slot) {
 		PlayerController playerController = GameMaster.Instance.GetPlayerController();
 		if (playerController != null) {
-			playerController.EquipTrait(itemToEquip, slot, traitsToEquipTo, type);
+			playerController.EquipTrait(itemToEquip, slot);
 			CloseEquipTraitMenu();
 		}
 	}
@@ -141,7 +122,7 @@ public class InventoryScreen : MonoBehaviour {
 		equippedConsumableList.gameObject.SetActive(false);
 		consumableList.gameObject.SetActive(true);
 	}
-	public void PopulateEquippableItemList(List<InventoryEntry> items, Transform contentParent, int? slot) {
+	public void PopulateEquippableItemList(List<InventoryEntry> items, Transform contentParent, int slot) {
 		foreach(Transform child in contentParent) {
 			Destroy(child.gameObject);
 		}
@@ -155,25 +136,24 @@ public class InventoryScreen : MonoBehaviour {
 
 	// make both UpcomingLife menus inactive
 	// PopulateEquippableItemList
-	public void OpenEquipTraitMenu(int slotNumber, UpcomingLifeTraits traits, TraitType type) {
+	public void OpenEquipTraitMenu(TraitSlot slot) {
 		PlayerController playerController = GameMaster.Instance.GetPlayerController();
 		if (playerController != null) {
-            Inventory inventory = playerController.GetComponent<Inventory>();
-			PopulateEquippableTraitList(inventory.GetAllItemsOfType(InventoryItemType.Trait), traitListContent, slotNumber, traits, type);
+      Inventory inventory = playerController.GetComponent<Inventory>();
+			PopulateEquippableTraitList(inventory.GetAllItemsOfType(InventoryItemType.Trait), traitListContent, slot);
 		}
-		equippedTraitListLarva.gameObject.SetActive(false);
 		equippedTraitListPupa.gameObject.SetActive(false);
 		traitList.gameObject.SetActive(true);
 	}
 
 
-	public void PopulateEquippableTraitList(List<InventoryEntry> items, Transform contentParent, int? slot, UpcomingLifeTraits lifeTraits, TraitType type) {
+	public void PopulateEquippableTraitList(List<InventoryEntry> items, Transform contentParent, TraitSlot slot) {
 		foreach(Transform child in contentParent) {
 			Destroy(child.gameObject);
 		}
 		foreach (InventoryEntry item in items) {
 			TraitButton button = Instantiate(traitButtonPrefab).GetComponent<TraitButton>();
-			button.Init(item, this, slot, lifeTraits, type);
+			button.Init(item, this, slot);
 			button.gameObject.transform.SetParent(contentParent);
 			button.gameObject.transform.localScale = Vector3.one;
 		}
@@ -192,11 +172,10 @@ public class InventoryScreen : MonoBehaviour {
 	public void CloseEquipTraitMenu() {
 		PlayerController playerController = GameMaster.Instance.GetPlayerController();
 		if (playerController != null) {
-            Inventory inventory = playerController.GetComponent<Inventory>();
-			PopulateEquippedTraitsList(inventory.GetUpcomingLarva(), inventory.GetUpcomingPupa());
+      Inventory inventory = playerController.GetComponent<Inventory>();
+			PopulateEquippedTraitsList(inventory.GetUpcomingPupa());
 		}
 		traitList.gameObject.SetActive(false);
-		equippedTraitListLarva.gameObject.SetActive(true);
 		equippedTraitListPupa.gameObject.SetActive(true);
 	}
 }

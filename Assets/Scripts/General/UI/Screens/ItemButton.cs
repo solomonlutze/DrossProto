@@ -18,7 +18,7 @@ public class ItemButton : MonoBehaviour {
         button.onClick.AddListener(HandleClick);
 		GetComponent<Image>().color = defaultColor;
 	}
-	
+
 	void Update() {
 		if (item.equipped) {
 			GetComponent<Image>().color = equippedColor;
@@ -27,7 +27,7 @@ public class ItemButton : MonoBehaviour {
 		}
 	}
 
-	public void Init(InventoryEntry itemEntryInfo, InventoryScreen parentScreen, int? slot) {
+	public void Init(InventoryEntry itemEntryInfo, InventoryScreen parentScreen, int slot = -1) {
 		item = itemEntryInfo;
 		slotNumber = slot;
 		nameLabel.text = itemEntryInfo.itemName;

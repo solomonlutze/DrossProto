@@ -34,7 +34,7 @@ public class PlayerController : Character {
 		base.Start();
 	}
 
-	public void Init(bool initialSpawn, UpcomingLifeTraits previousLarva, UpcomingLifeTraits previousPupa) {
+	public void Init(bool initialSpawn, TraitSlotToUpcomingTraitDictionary previousPupa) {
 		base.Init();
 		availableContextualActions = new List<ContextualAction>();
 		interactables = new List<GameObject>();
@@ -43,7 +43,7 @@ public class PlayerController : Character {
     if (initialSpawn) {
       AssignTraitsForFirstLife();
     } else {
-  		inventory.AdvanceUpcomingLifeTraits(previousLarva, previousPupa);
+  		inventory.AdvanceUpcomingLifeTraits(previousPupa);
     }
 	}
 	// Player specific non-physics biz.
@@ -86,7 +86,7 @@ public class PlayerController : Character {
 		base.HandleTile();
 		if (tile == null) { return; }
 		if (tile.CanRespawnPlayer()) {
-			if (!tile.CharacterCanCrossTile(movementAbilities)) {
+			if (!tile.CharacterCanCrossTile(activeMovementAbilities)) {
 				RespawnPlayerAtLatSafeLocation();
 			}
 		} else {
@@ -100,7 +100,7 @@ public class PlayerController : Character {
 		}
 		else {
 			Debug.Log("collided with "+tile);
-			if (tile.tileTags.Contains(TileTag.Ground) && movementAbilities.Contains(CharacterMovementAbility.Burrow)) {
+			if (tile.tileTags.Contains(TileTag.Ground) && activeMovementAbilities.Contains(CharacterMovementAbility.Burrow)) {
 				tile.DestroyTile();
 			}
 		}
@@ -120,7 +120,7 @@ public class PlayerController : Character {
 		if (tile.isInteractable) {
 			AddContextualAction(tile.GetInteractableText(this), UseTile);
 		}
-		if (movementAbilities.Contains(CharacterMovementAbility.StickyFeet) && GridManager.Instance.CanClimbAdjacentTile(transform.position, currentFloor)) {
+		if (activeMovementAbilities.Contains(CharacterMovementAbility.StickyFeet) && GridManager.Instance.CanClimbAdjacentTile(transform.position, currentFloor)) {
 			AddContextualAction("climb", ClimbAdjacentTile);
 		}
 		if (interactables.Count > 0) {
@@ -263,21 +263,8 @@ public class PlayerController : Character {
 		inventory.RemoveFromInventory(itemId, quantity);
 	}
 
-	public void EquipWeapon(InventoryEntry weaponToEquip) {
-		if (weapon != null) {
-			inventory.MarkItemUnequipped(equippedWeaponId);
-			Destroy(weapon.gameObject);
-		}
-		inventory.MarkItemEquipped(weaponToEquip.itemId);
-		InitializeWeapon(weaponToEquip.itemId, true);
-	}
-
 	public void EquipConsumableToSlot(string itemToEquip, int slot) {
 		inventory.EquipConsumableToSlot(itemToEquip, slot);
-	}
-
-	public void EquipTrait(InventoryEntry itemToEquip, int slot, UpcomingLifeTraits traitsToEquipTo, TraitType type) {
-		inventory.EquipTraitToUpcomingLifeTrait(itemToEquip, slot, traitsToEquipTo, type);
 	}
 
   private void AssignTraitsForFirstLife() {
@@ -307,31 +294,33 @@ public class PlayerController : Character {
 			}
   }
 
-	override public void AssignTraitsForNextLife(UpcomingLifeTraits nextLifeTraits) {
-		string[] initialTraitNames = initialEquippedTraits.AllPopulatedTraitNames;
-    PassiveTrait passiveTrait;
-    foreach (UpcomingLifeTrait trait in nextLifeTraits.passiveTraits) {
-      if (trait != null) {
-        passiveTrait = Resources.Load("Data/TraitData/PassiveTraits/"+trait.traitName) as PassiveTrait;
-        if (passiveTrait != null) { passiveTrait.OnTraitAdded(this); }
+  public void EquipTrait(InventoryEntry itemToEquip, TraitSlot slot) {
+    inventory.EquipTraitToUpcomingLifeTrait(itemToEquip, slot);
+  }
+
+	override public void AssignTraitsForNextLife(TraitSlotToUpcomingTraitDictionary nextLifeTraits) {
+    foreach (UpcomingLifeTrait upcomingTrait in nextLifeTraits.Values) {
+        if (upcomingTrait.trait != null) {
+          { upcomingTrait.trait.OnTraitAdded(this); }
+        }
       }
 		}
-    ActiveTraitInstance activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
-    ActiveTrait activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+nextLifeTraits.activeTraits[0].traitName) as ActiveTrait;
-    if (activeTrait != null) {
-      activeTrait1 = activeTrait;
-      activeTrait1.Init(this, activeTraitData);
-    }
-    activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
-    activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+nextLifeTraits.activeTraits[1].traitName) as ActiveTrait;
-    if (activeTrait != null) {
-      activeTrait2 = activeTrait;
-      activeTrait2.Init(this, activeTraitData);
-    }
-	}
+    // ActiveTraitInstance activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
+    // ActiveTrait activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+nextLifeTraits.activeTraits[0].traitName) as ActiveTrait;
+    // if (activeTrait != null) {
+    //   activeTrait1 = activeTrait;
+    //   activeTrait1.Init(this, activeTraitData);
+    // }
+    // activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
+    // activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+nextLifeTraits.activeTraits[1].traitName) as ActiveTrait;
+    // if (activeTrait != null) {
+    //   activeTrait2 = activeTrait;
+    //   activeTrait2.Init(this, activeTraitData);
+    // }
+	// }
 
 	override public void Die(){
-		GameMaster.Instance.KillPlayer(inventory.GetUpcomingLarva(), inventory.GetUpcomingPupa());
+		GameMaster.Instance.KillPlayer(inventory.GetUpcomingPupa());
 		base.Die();
 	}
 

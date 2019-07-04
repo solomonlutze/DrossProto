@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
-[CustomPropertyDrawer(typeof(EquippedTraitsStringNames))]
+[CustomPropertyDrawer(typeof(TraitsLoadout))]
 public class EquippedTraitsPropertyDrawer : PropertyDrawer
 {
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -40,15 +40,12 @@ public class EquippedTraitsPropertyDrawer : PropertyDrawer
 [CanEditMultipleObjects]
 public class CharacterEditor : Editor
 {
-  SerializedProperty initialWeaponId;
   SerializedProperty initialActiveTrait1;
   SerializedProperty initialActiveTrait2;
 
   SerializedProperty equippedTraitsDictionary;
-  SerializedProperty equippedTraits;
   void OnEnable()
   {
-    initialWeaponId = serializedObject.FindProperty("initialWeaponId");
     equippedTraitsDictionary = serializedObject.FindProperty("equippedTraitsDictionary");
     initialActiveTrait1 = serializedObject.FindProperty("initialActiveTrait1");
     initialActiveTrait2 = serializedObject.FindProperty("initialActiveTrait2");
@@ -57,7 +54,6 @@ public class CharacterEditor : Editor
   {
       this.serializedObject.Update();
       DrawDefaultInspector();
-      DrawWeaponSelect();
       DrawTraitSelect();
       this.serializedObject.ApplyModifiedProperties();
   }
@@ -69,10 +65,6 @@ public class CharacterEditor : Editor
             idx = 0;
 
         serializedProperty.stringValue = (choices[idx] == "[None]") ? null : choices[idx];
-    }
-
-    private void DrawWeaponSelect() {
-        DrawPopup(EditorHelpers.AllWeapons(includeNone: true), initialWeaponId, "Initial weapon ID");
     }
 
     private void DrawTraitSelect() {

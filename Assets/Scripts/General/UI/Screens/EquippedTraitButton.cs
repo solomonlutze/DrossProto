@@ -7,29 +7,35 @@ public class EquippedTraitButton : MonoBehaviour {
 	public Button button;
 	public SuperTextMesh nameLabel;
 	private InventoryScreen inventoryScreen;
-    private int slotNumber;
+  private TraitSlot slot;
 
 	public Color defaultColor;
-	protected UpcomingLifeTraits upcomingLifeTraits;
-	protected TraitType traitType;
-	// Use this for initialization
 	void Start () {
 		if (button != null) {
         	button.onClick.AddListener(HandleClick);
 		}
 		GetComponent<Image>().color = defaultColor;
 	}
-	
-	public virtual void Init(UpcomingLifeTrait trait, InventoryScreen parentScreen, int slot, UpcomingLifeTraits upcomingLife, TraitType type) {
-        slotNumber = slot;
-        nameLabel.text = (trait == null) ? "(Assign " + type + " Trait)" 
-			: trait.traitName + "\n(" + trait.inventoryItem.itemName + ")";
+
+	public virtual void Init(UpcomingLifeTrait upcomingTrait, InventoryScreen parentScreen, TraitSlot ts) {
+    slot = ts;
+    InventoryEntry ie = upcomingTrait.inventoryItem;
+    string buttonText = ts.ToString() + ":\n";
+    if (upcomingTrait != null && upcomingTrait.trait != null) {
+      buttonText += upcomingTrait.trait.traitName + "\n";
+      string itemText = "no item";
+      if (upcomingTrait.inventoryItem !=null && !string.IsNullOrEmpty(upcomingTrait.inventoryItem.itemName)) {
+        itemText = upcomingTrait.inventoryItem.itemName;
+      }
+      buttonText += "(" + itemText + ")\n";
+    } else {
+      buttonText += "(Assign Trait)";
+    }
+    nameLabel.text = buttonText;
 		this.inventoryScreen = parentScreen;
-		this.upcomingLifeTraits = upcomingLife;
-		this.traitType = type;
 	}
 
 	protected virtual void HandleClick() {
-		inventoryScreen.OpenEquipTraitMenu(slotNumber, upcomingLifeTraits, traitType);
+		inventoryScreen.OpenEquipTraitMenu(slot);
 	}
 }

@@ -97,9 +97,7 @@ public class CharacterAttack : ScriptableObject {
     #endif
 }
 [System.Serializable]
-public class EquippedTraitsStringNames {
-
-  [SerializeField]
+public class TraitsLoadout {
   public string head;
   public string thorax;
   public string abdomen;
@@ -131,84 +129,52 @@ public class EquippedTraitsStringNames {
 
 // TODO: Character should probably extend CustomPhysicsController, which should extend WorldObject
 public class Character : WorldObject {
-
-  public TraitSlotToTraitDictionary equippedTraits;
-  public StatToActiveStatModificationsDictionary statModifications;
+  [Header("Stats and Vitals")]
   public CharacterVitalToFloatDictionary vitals;
-  public EquippedTraitsStringNames initialEquippedTraits;
-  public List<TraitEffect> conditionallyActivatedTraitEffects;
-  public List<TraitEffect> activeConditionallyActivatedTraitEffects;
-	public CharacterAttackValueToIntDictionary attackModifiers;
-	public List<CharacterMovementAbility> movementAbilities;
-	public SuperTextMesh stm;
-
-	public string characterName;
-	public string characterClass;
-	public Transform weaponParent;
-	public CharacterData defaultData;
-
-	[HideInInspector]
-  [SerializeField]
-	public string initialWeaponId;
-	public CharacterAttack characterAttack;
-	public Hitbox hitboxPrefab;
-
-	[HideInInspector]
-  [SerializeField]
-	public string initialActiveTrait1;
-	[HideInInspector]
-  [SerializeField]
-	public string initialActiveTrait2;
-
-	public string equippedWeaponId;
-
-	// how fast we move
-	public float acceleration;
-	// how fast we turn
-	public Transform orientation;
-	public Transform crosshair;
-
-	public bool facingRight = true;
-
-	public Color damageFlashColor;
-	public float damageFlashSpeed = 0.05f;
+  public StatToActiveStatModificationsDictionary statModifications;
 	public DamageTypeToFloatDictionary damageTypeResistances;
 
-	// Length of time between environmental damage procs.
-	// can we take damage (including knockback/stun etc) right now?
-	protected bool invulnerable = false;
-	// can we move or attack right now?
-	protected bool stunned = false;
+	[Header("Attack Info")]
+  public CharacterAttack characterAttack;
+	public CharacterAttackValueToIntDictionary attackModifiers;
+	public Hitbox hitboxPrefab;
 
-	// are we presently attacking?
-	public bool attacking = false;
-	public Coroutine attackCoroutine;
-	// are we in an animation/
-	public bool animationPreventsMoving = false;
-	public bool sticking = false;
+  [Header("Trait Info")]
+  public TraitSlotToTraitDictionary equippedTraits;
+  public List<TraitEffect> conditionallyActivatedTraitEffects;
+  public List<TraitEffect> activeConditionallyActivatedTraitEffects;
+	public List<CharacterMovementAbility> activeMovementAbilities;
 
-	// animation object
-	protected Animator animator;
-	// currently "equipped" weapon. no notion of "equipping" yet but there will be eventually.
-	protected Weapon weapon;
-
+  [Header("Child Components")]
+	public Transform orientation;
+	public Transform crosshair;
 	// our physics object
 	public CustomPhysicsController po;
-  public FloorLayer currentFloor;
-	public CharacterData defaultCharacterData;
-	public FloorLayer? justCameFromFloor;
-	public Vector3 previousTilePosition;
-	// movement desired by character
-	protected Vector2 movementInput;
+	// animation object
+	protected Animator animator;
 
+  [Header("Game State Info")]
+	public bool attacking = false;
+	protected bool stunned = false;
+	public bool animationPreventsMoving = false;
+	public bool sticking = false;
+	public Coroutine attackCoroutine;
+  public FloorLayer currentFloor;
+	protected Vector2 movementInput;
 	// point in space we would like to face
 	protected Vector3 orientTowards;
 	protected TileLocation currentTileLocation;
 	protected EnvironmentTileInfo currentTile;
   protected float timeStandingStill = 0;
-
   protected Dictionary<string, GameObject> traitSpawnedGameObjects;
   protected List<string> sourceInvulnerabilities;
+
+	[Header("Default Info")]
+  public CharacterData defaultCharacterData;
+  public TraitsLoadout initialEquippedTraits;
+	public string initialActiveTrait1;
+	public string initialActiveTrait2;
+
 	protected virtual void Awake() {
 		orientation = transform.Find("Orientation");
 		if (orientation == null) {
@@ -220,10 +186,6 @@ public class Character : WorldObject {
 	protected virtual void Start () {
 		movementInput = new Vector2(0,0);
 		animator = GetComponent<Animator>();
-		weapon = GetComponentInChildren<Weapon>();
-		if ((initialWeaponId != null && initialWeaponId != "") || weapon != null) {
-			InitializeWeapon(initialWeaponId);
-		}
 		if (po == null) {
 			Debug.LogError("No physics controller component on Character object: "+gameObject.name);
 		}
@@ -242,7 +204,7 @@ public class Character : WorldObject {
 			CharacterData dataInstance = (CharacterData) ScriptableObject.Instantiate(defaultCharacterData);
       attackModifiers = dataInstance.attackModifiers;
 			damageTypeResistances = dataInstance.damageTypeResistances;
-			movementAbilities.AddRange(dataInstance.movementAbilities);
+			activeMovementAbilities.AddRange(dataInstance.movementAbilities);
 		}
     vitals = new CharacterVitalToFloatDictionary();
 	}
@@ -310,43 +272,6 @@ public class Character : WorldObject {
 	public void ApplyAttackModifier(CharacterAttackValue attackValue, int magnitude) {
 		attackModifiers[attackValue] += magnitude;
 	}
-// called via play input or npc AI
-	protected void OLD__Attack() {
-		if (weapon != null) {
-			if (!attacking) {
-				weapon.BeginAttack();
-			}
-			else {
-				weapon.QueueNextAttack();
-			}
-		}
-	}
-	// ANIMATION HOOKS
-	// These are functions called by animations, and are often passthroughs
-	// to components on child objects.
-	// They are either called from animation events or from animation state behaviors.
-	public void OLD__CreateHitbox(string hitboxId) {
-		weapon.CreateHitbox(hitboxId);
-	}
-
-	// Attack hook called via animation behavior. Exists on idle animation.
-	public void OnIdleStart() {
-		if (weapon != null) {
-			weapon.FinishCombo();
-			po.SetAnimationInputX(0f);
-			po.SetAnimationInputY(0f);
-		}
-	}
-
-	// Attack hook called via animation behavior. Should exist on every attack's FIRST animation.
-	public void OnAttackStart() {
-		weapon.OnEnterAttackAnimation();
-	}
-
-	// Attack hook called via animation behavior. Should exist on every attack's LAST animation.
-	public void OnAttackEnd() {
-		weapon.FinishAttack();
-	}
 
 	public void SetAnimationInput(Vector2 newAnimationInput) {
 		po.SetAnimationInput(newAnimationInput);
@@ -359,17 +284,12 @@ public class Character : WorldObject {
 	void HandleFacingDirection() {
 		if (
 			(attacking || animationPreventsMoving || stunned)
-			&& !movementAbilities.Contains(CharacterMovementAbility.Halteres)
+			&& !activeMovementAbilities.Contains(CharacterMovementAbility.Halteres)
 		) {
 			return;
 		}
 		Quaternion targetDirection = GetTargetDirection();
 		orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, GetStat(CharacterStat.RotationSpeed) * Time.deltaTime);
-		facingRight = true;
-		if (orientation.eulerAngles.z > 90 || orientation.eulerAngles.z < 270) {
-			facingRight = false;
-		}
-		// GetComponent<SpriteRenderer>().flipX = !facingRight;
 	}
 
 	// Rotate character smoothly towards a particular orientation around the Z axis.
@@ -405,7 +325,7 @@ public class Character : WorldObject {
 
 	// determines if input-based movement is allowed
 	protected virtual bool CanMove() {
-		if (!movementAbilities.Contains(CharacterMovementAbility.Halteres)) {
+		if (!activeMovementAbilities.Contains(CharacterMovementAbility.Halteres)) {
 			if (attacking) {
 				return false;
 			}
@@ -441,7 +361,7 @@ public class Character : WorldObject {
 			AddStatMod(mod);
 		}
 		StartCoroutine(ApplyInvulnerability(damageObj));
-		StartCoroutine(ApplyDamageFlash(damageObj));
+		// StartCoroutine(ApplyDamageFlash(damageObj));
 		if (damageObj.attackerTransform != null && damageObj.hitboxTransform != null) {
 			po.ApplyImpulseForce(damageObj.knockback *
 				(damageObj.hitboxTransform.position
@@ -454,7 +374,7 @@ public class Character : WorldObject {
 		Destroy(gameObject);
 	}
 
-	public virtual void AssignTraitsForNextLife(UpcomingLifeTraits nextLifeTraits) {
+	public virtual void AssignTraitsForNextLife(TraitSlotToUpcomingTraitDictionary nextLifeTraits) {
 
 	}
 
@@ -472,17 +392,6 @@ public class Character : WorldObject {
 		if (sourceInvulnerabilities.Contains(src)) {
       sourceInvulnerabilities.Remove(src);
     }
-	}
-
-	IEnumerator ApplyDamageFlash(DamageObject damageObj) {
-		// SpriteRenderer renderer = GetComponent<SpriteRenderer>();
-		// Color baseColor = renderer.color;
-		// for (int i = 0; i < 1 + (damageObj.damage / 3); i++) {
-		// 	renderer.color = damageFlashColor;
-			yield return new WaitForSeconds(damageFlashSpeed/2);
-		// 	renderer.color = baseColor;
-		// 	yield return new WaitForSeconds(damageFlashSpeed/2);
-		// }
 	}
 
 	// Determines if we should be stunned, and stuns us if so.
@@ -507,9 +416,6 @@ public class Character : WorldObject {
 	// Used to keep us from finishing our attack after getting knocked across the screen.
 	// TODO: it should be possible to "tank" some attacks and finish attacking
 	void InterruptAnimation() {
-		if (weapon != null) {
-			weapon.FinishAttack();
-		}
 		if (animator != null) {
 			animator.SetTrigger("transitionToIdle");
 		}
@@ -553,11 +459,11 @@ public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
   }
 
 	public void AddMovementAbility(CharacterMovementAbility movementAbility) {
-		movementAbilities.Add(movementAbility);
+		activeMovementAbilities.Add(movementAbility);
 	}
 
 	public void RemoveMovementAbility(CharacterMovementAbility movementAbility) {
-		movementAbilities.Remove(movementAbility);
+		activeMovementAbilities.Remove(movementAbility);
 	}
 
 
@@ -567,28 +473,12 @@ public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
       Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, 0, GetStat(CharacterStat.MaxHealth));
 	}
 
-
-	public void InitializeWeapon(string weaponId) {
-		InitializeWeapon(weaponId, false);
-	}
-
-	public void InitializeWeapon(string weaponId, bool overrideExistingWeapon) {
-		if (weapon == null || overrideExistingWeapon) {
-			weapon = Instantiate(Resources.Load("Prefabs/Items/Weapons/"+weaponId) as GameObject, weaponParent, false).GetComponent<Weapon>();
-		}
-		equippedWeaponId = weaponId;
-		weapon.animator = animator;
-		weapon.owner = this;
-		weapon.Init();
-	}
-
   public virtual void SetCurrentFloor(FloorLayer newFloorLayer)
     {
-		justCameFromFloor = currentFloor;
-        currentFloor = newFloorLayer;
-		currentTileLocation = CalculateCurrentTileLocation();
-		ChangeLayersRecursively(transform, newFloorLayer.ToString());
-		po.OnLayerChange();
+      currentFloor = newFloorLayer;
+      currentTileLocation = CalculateCurrentTileLocation();
+      ChangeLayersRecursively(transform, newFloorLayer.ToString());
+      po.OnLayerChange();
     }
 
 	public void UseTile() {
@@ -638,14 +528,13 @@ public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
 		TileLocation nowTileLocation = CalculateCurrentTileLocation();
 		if (currentTileLocation != nowTileLocation) {
 			currentTileLocation = nowTileLocation;
-			justCameFromFloor = null;
 		}
 		if (vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] > 0) {
 			vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] -= Time.deltaTime;
 		}
 		if (tile.objectTileType == null && tile.groundTileType == null) {
 			if (
-				(movementAbilities.Contains(CharacterMovementAbility.StickyFeet)
+				(activeMovementAbilities.Contains(CharacterMovementAbility.StickyFeet)
 				&& GridManager.Instance.CanStickToAdjacentTile(transform.position, currentFloor))
 				|| sticking
 			) {

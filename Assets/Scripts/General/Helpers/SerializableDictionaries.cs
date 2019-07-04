@@ -7,6 +7,14 @@ public class SerializableDictionaries : MonoBehaviour {
 
 }
 [System.Serializable]
+public class TraitSlotToUpcomingTraitDictionary : SerializableDictionaryBase<TraitSlot, UpcomingLifeTrait> {
+  public TraitSlotToUpcomingTraitDictionary() {
+    foreach(TraitSlot slot in (TraitSlot[]) Enum.GetValues(typeof(TraitSlot))) {
+      Add(slot, new UpcomingLifeTrait(null, null));
+    }
+  }
+}
+[System.Serializable]
 public class TraitSlotToTraitDictionary : SerializableDictionaryBase<TraitSlot, PassiveTrait> {
 
     public TraitSlotToTraitDictionary() {

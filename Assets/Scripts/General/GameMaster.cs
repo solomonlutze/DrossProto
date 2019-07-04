@@ -15,8 +15,7 @@ public class GameMaster : Singleton<GameMaster> {
 	private Constants.GameState gameStatus;
 
 	// Saved when player dies so their next life can be preserved
-	private UpcomingLifeTraits cachedLarva;
-	private UpcomingLifeTraits cachedPupa;
+	private TraitSlotToUpcomingTraitDictionary cachedPupa;
 	public GameObject[] spawnPoints;
 	private int previousSpawnPoint = 0;
 
@@ -65,7 +64,7 @@ public class GameMaster : Singleton<GameMaster> {
 			playerController.currentFloor = fl;
 		}
 		playerController.SetCurrentFloor(playerController.currentFloor);
-		playerController.Init(initialSpawn, cachedLarva, cachedPupa);
+		playerController.Init(initialSpawn, cachedPupa);
 		SetGameStatus(Constants.GameState.Play);
 	}
 
@@ -85,8 +84,7 @@ public class GameMaster : Singleton<GameMaster> {
 		gameStatus = newStatus;
 	}
 
-	public void KillPlayer(UpcomingLifeTraits larva, UpcomingLifeTraits pupa) {
-		cachedLarva = larva;
+	public void KillPlayer(TraitSlotToUpcomingTraitDictionary pupa) {
 		cachedPupa = pupa;
 		playerController = null;
 		SetGameStatus(Constants.GameState.Dead);

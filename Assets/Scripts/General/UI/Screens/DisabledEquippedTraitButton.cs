@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class DisabledEquippedTraitButton : EquippedTraitButton {
-	public override void Init(UpcomingLifeTrait trait, InventoryScreen parentScreen, int slot, UpcomingLifeTraits upcomingLife, TraitType type) {
-        base.Init(trait, parentScreen, slot, upcomingLife, type);
-		nameLabel.text = (trait == null) ? "No "+type+" trait assigned" 
-			: trait.traitName + "\n(" + trait.inventoryItem.itemName + ")";
+	public override void Init(UpcomingLifeTrait upcomingTrait, InventoryScreen parentScreen, TraitSlot slot) {
+    base.Init(upcomingTrait, parentScreen, slot);
+		nameLabel.text = (upcomingTrait == null || upcomingTrait.trait == null) ? "No trait assigned"
+			: upcomingTrait.trait.traitName + "\n(" +
+        upcomingTrait.inventoryItem == null ?
+          "(no item)"
+          : upcomingTrait.inventoryItem.itemName + ")";
 	}
+
 	protected override void HandleClick() {
 		return;
 	}

@@ -42,10 +42,8 @@ public class TraitEffect {
   }
 
   public void Apply(Character owner) {
-    Debug.Log("contains this (pre-add): " + owner.activeConditionallyActivatedTraitEffects.Contains(this));
     if (activatingCondition != ConditionallyActivatedTraitCondition.None) {
       if (owner.activeConditionallyActivatedTraitEffects.Contains(this)) {
-        Debug.Log("Already applied trait effect. returning!");
         return;
       } else {
         owner.activeConditionallyActivatedTraitEffects.Add(this);
@@ -72,7 +70,6 @@ public class TraitEffect {
 				owner.AddStatMod(stat, magnitude, sourceString);
         break;
       case TraitEffectType.Aura:
-        Debug.Log("addingStatMod - Aura");
         owner.AddAura(this);
         break;
 		}
@@ -101,7 +98,6 @@ public class TraitEffect {
     if (activatingCondition != ConditionallyActivatedTraitCondition.None
       && owner.activeConditionallyActivatedTraitEffects.Contains(this)
     ) {
-      Debug.Log("removing condiitonally active trait effect");
       owner.activeConditionallyActivatedTraitEffects.Remove(this);
     }
 	}
@@ -118,7 +114,6 @@ public abstract class Trait : ScriptableObject {
 		foreach (TraitEffect traitEffect in passiveTraitEffects) {
       if (traitEffect.activatingCondition != ConditionallyActivatedTraitCondition.None) {
         owner.conditionallyActivatedTraitEffects.Add(traitEffect);
-        Debug.Log("added "+traitEffect+ " to conditionally activated trait effects");
         continue;
       }
 			traitEffect.Apply(owner);
@@ -139,16 +134,18 @@ public abstract class Trait : ScriptableObject {
 //  //  other?
 // }
 
+[System.Serializable]
 public class UpcomingLifeTrait {
-  public string traitName;
+  public Trait trait;
   public InventoryEntry inventoryItem;
 
-  public UpcomingLifeTrait(string t, InventoryEntry ie) {
-    traitName = t;
+  public UpcomingLifeTrait(Trait t, InventoryEntry ie) {
+    trait = t;
     inventoryItem = ie;
   }
 }
 
+[System.Serializable]
 public class UpcomingLifeTraits {
 
   public UpcomingLifeTrait[] passiveTraits; // traits that are always active
