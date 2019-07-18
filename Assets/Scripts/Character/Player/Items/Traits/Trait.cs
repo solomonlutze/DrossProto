@@ -12,11 +12,13 @@ public enum TraitEffectType {
   CharacterStat,
   CharacterAttack,
   CharacterMovementAbility,
+
+  CharacterPerceptionAbility,
   Aura,
   SpawnsObject
 }
 
-public enum ConditionallyActivatedTraitCondition { None, NotMoving };
+public enum ConditionallyActivatedTraitCondition { None, NotMoving, Moving };
 [System.Serializable]
 public class TraitEffect {
   public TraitEffectType effectType;
@@ -25,6 +27,7 @@ public class TraitEffect {
   public CharacterStat stat;
 	public CharacterAttackValue attackValue;
 	public CharacterMovementAbility movementAbility;
+	public CharacterPerceptionAbility perceptionAbility;
   public Vector2 animationInput;
   public bool blocksMovement;
 	public GameObject auraPrefab;
@@ -42,10 +45,8 @@ public class TraitEffect {
   }
 
   public void Apply(Character owner) {
-    Debug.Log("contains this (pre-add): " + owner.activeConditionallyActivatedTraitEffects.Contains(this));
     if (activatingCondition != ConditionallyActivatedTraitCondition.None) {
       if (owner.activeConditionallyActivatedTraitEffects.Contains(this)) {
-        Debug.Log("Already applied trait effect. returning!");
         return;
       } else {
         owner.activeConditionallyActivatedTraitEffects.Add(this);
@@ -65,6 +66,23 @@ public class TraitEffect {
 			case TraitEffectType.CharacterMovementAbility:
 				owner.AddMovementAbility(movementAbility);
 				break;
+      case TraitEffectType.CharacterPerceptionAbility:
+        Debug.Log("perception ability");
+				switch (perceptionAbility) {
+          case CharacterPerceptionAbility.SensitiveAntennae:
+            Debug.Log("SensitiveAntennae");
+            GameObject[] scentGameObjects = GameObject.FindGameObjectsWithTag("EnemyScent");
+            foreach(GameObject obj in scentGameObjects) {
+              ParticleSystem ps = obj.GetComponent<ParticleSystem>();
+              if (ps != null) {
+                Debug.Log("setting emission active");
+                ParticleSystem.EmissionModule em = ps.emission;
+                em.enabled = true;
+              }
+            }
+            break;
+        }
+				break;
 			case TraitEffectType.CharacterAttack:
 				owner.ApplyAttackModifier(attackValue, magnitude);
 				break;
@@ -72,7 +90,6 @@ public class TraitEffect {
 				owner.AddStatMod(stat, magnitude, sourceString);
         break;
       case TraitEffectType.Aura:
-        Debug.Log("addingStatMod - Aura");
         owner.AddAura(this);
         break;
 		}
@@ -91,6 +108,23 @@ public class TraitEffect {
 			case TraitEffectType.CharacterMovementAbility:
 				owner.RemoveMovementAbility(movementAbility);
 				break;
+			case TraitEffectType.CharacterPerceptionAbility:
+				Debug.Log("perception ability");
+				switch (perceptionAbility) {
+          case CharacterPerceptionAbility.SensitiveAntennae:
+            Debug.Log("SensitiveAntennae");
+            GameObject[] scentGameObjects = GameObject.FindGameObjectsWithTag("EnemyScent");
+            foreach(GameObject obj in scentGameObjects) {
+              ParticleSystem ps = obj.GetComponent<ParticleSystem>();
+              if (ps != null) {
+                Debug.Log("setting emission inactive");
+                ParticleSystem.EmissionModule em = ps.emission;
+                em.enabled = false;
+              }
+            }
+            break;
+        }
+				break;
       case TraitEffectType.CharacterStat:
 				owner.RemoveStatMod(sourceString);
         break;
@@ -101,7 +135,6 @@ public class TraitEffect {
     if (activatingCondition != ConditionallyActivatedTraitCondition.None
       && owner.activeConditionallyActivatedTraitEffects.Contains(this)
     ) {
-      Debug.Log("removing condiitonally active trait effect");
       owner.activeConditionallyActivatedTraitEffects.Remove(this);
     }
 	}
@@ -118,7 +151,6 @@ public abstract class Trait : ScriptableObject {
 		foreach (TraitEffect traitEffect in passiveTraitEffects) {
       if (traitEffect.activatingCondition != ConditionallyActivatedTraitCondition.None) {
         owner.conditionallyActivatedTraitEffects.Add(traitEffect);
-        Debug.Log("added "+traitEffect+ " to conditionally activated trait effects");
         continue;
       }
 			traitEffect.Apply(owner);
@@ -139,23 +171,51 @@ public abstract class Trait : ScriptableObject {
 //  //  other?
 // }
 
+[System.Serializable]
 public class UpcomingLifeTrait {
-  public string traitName;
+  public Trait trait;
   public InventoryEntry inventoryItem;
+  public LymphType lymphType;
 
-  public UpcomingLifeTrait(string t, InventoryEntry ie) {
-    traitName = t;
+  public UpcomingLifeTrait(Trait t, LymphType lt, InventoryEntry ie) {
+    trait = t;
+    lymphType = lt;
     inventoryItem = ie;
   }
 }
 
-public class UpcomingLifeTraits {
+[System.Serializable]
+public class LymphTypeSkills {
+  [StringInList(typeof(PropertyDrawerHelpers), "AllActiveTraitNames", new object[]{false})]
+  public string primarySkill;
 
-  public UpcomingLifeTrait[] passiveTraits; // traits that are always active
-  public UpcomingLifeTrait[] activeTraits; // traits that require activation
+  [StringInList(typeof(PropertyDrawerHelpers), "AllActiveTraitNames", new object[]{false})]
+  public string secondarySkill;
 
-  public UpcomingLifeTraits(int numPassiveTraits, int numActiveTraits) {
-    activeTraits = new UpcomingLifeTrait[numPassiveTraits];
-    passiveTraits = new UpcomingLifeTrait[numActiveTraits];
+  public ActiveTrait GetPrimarySkill() {
+    return Resources.Load("Data/TraitData/ActiveTraits/"+primarySkill) as ActiveTrait;
   }
+  public ActiveTrait GetSecondarySkill() {
+    return Resources.Load("Data/TraitData/ActiveTraits/"+secondarySkill) as ActiveTrait;
+  }
+  // public TraitSlotToTraitDictionary EquippedTraits() {
+  //   TraitSlotToTraitDictionary d = new TraitSlotToTraitDictionary();
+  //   d[TraitSlot.Head] = Resources.Load("Data/TraitData/PassiveTraits/"+head) as PassiveTrait;
+  //   d[TraitSlot.Thorax] = Resources.Load("Data/TraitData/PassiveTraits/"+thorax) as PassiveTrait;
+  //   d[TraitSlot.Abdomen] = Resources.Load("Data/TraitData/PassiveTraits/"+abdomen) as PassiveTrait;
+  //   d[TraitSlot.Legs] = Resources.Load("Data/TraitData/PassiveTraits/"+legs) as PassiveTrait;
+  //   d[TraitSlot.Wings] = Resources.Load("Data/TraitData/PassiveTraits/"+wings) as PassiveTrait;
+  // return d;
+  // }
 }
+// [System.Serializable]
+// public class UpcomingLifeTraits {
+
+//   public UpcomingLifeTrait[] passiveTraits; // traits that are always active
+//   public UpcomingLifeTrait[] activeTraits; // traits that require activation
+
+//   public UpcomingLifeTraits(int numPassiveTraits, int numActiveTraits) {
+//     activeTraits = new UpcomingLifeTrait[numPassiveTraits];
+//     passiveTraits = new UpcomingLifeTrait[numActiveTraits];
+//   }
+// }

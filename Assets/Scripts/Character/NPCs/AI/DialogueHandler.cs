@@ -147,21 +147,12 @@ public class DialogueHandler : Interactable {
                 return false;
             }
         }
-        foreach(JSONNode equippedRequirement in requirements["hasEquipped"]) {
-            if (!MeetsHasEquippedRequirement(player, equippedRequirement)) {
-                return false;
-            }
-        }
         return true;
     }
 
     bool MeetsIsClassRequirement(PlayerController player, string characterClass) {
-        return player.characterClass == characterClass;
-    }
-
-    // TODO: have multiple equipped items
-    bool MeetsHasEquippedRequirement(PlayerController player, string itemId) {
-        return player.equippedWeaponId == itemId;
+        return false;
+        // return player.characterClass == characterClass;
     }
 
     // TODO: implement this better

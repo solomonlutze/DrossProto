@@ -15,10 +15,11 @@ public class GameMaster : Singleton<GameMaster> {
 	private Constants.GameState gameStatus;
 
 	// Saved when player dies so their next life can be preserved
-	private UpcomingLifeTraits cachedLarva;
-	private UpcomingLifeTraits cachedPupa;
+	private TraitSlotToUpcomingTraitDictionary cachedPupa;
 	public GameObject[] spawnPoints;
 	private int previousSpawnPoint = 0;
+
+  public LymphTypeToLymphTypeSkillsDictionary lymphTypeToSkillsMapping;
 
 	// Use this for initialization
 	void Start () {
@@ -46,7 +47,7 @@ public class GameMaster : Singleton<GameMaster> {
 	// TODO: Buttons instead of keys!!!
 	private void HandleDeadInput() {
 		if (Input.GetButtonDown("Respawn")) {
-			Respawn();
+			Respawn(false);
 		}
 	}
 
@@ -65,7 +66,11 @@ public class GameMaster : Singleton<GameMaster> {
 			playerController.currentFloor = fl;
 		}
 		playerController.SetCurrentFloor(playerController.currentFloor);
-		playerController.Init(initialSpawn, cachedLarva, cachedPupa);
+    if (!initialSpawn) {
+      Debug.Log("respawn - cachedPupa head: "+cachedPupa[TraitSlot.Head]);
+      Debug.Log("respawn - cachedPupa head trait: "+cachedPupa[TraitSlot.Head].trait);
+    }
+		playerController.Init(initialSpawn, cachedPupa);
 		SetGameStatus(Constants.GameState.Play);
 	}
 
@@ -85,8 +90,7 @@ public class GameMaster : Singleton<GameMaster> {
 		gameStatus = newStatus;
 	}
 
-	public void KillPlayer(UpcomingLifeTraits larva, UpcomingLifeTraits pupa) {
-		cachedLarva = larva;
+	public void KillPlayer(TraitSlotToUpcomingTraitDictionary pupa) {
 		cachedPupa = pupa;
 		playerController = null;
 		SetGameStatus(Constants.GameState.Dead);

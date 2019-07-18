@@ -8,19 +8,16 @@ using UnityEngine.UI;
 // which item we're representing
 // which trait on the item - active or passive - we should show
 public class TraitButton : ItemButton {
-
-    private UpcomingLifeTraits lifeTraitsToEquipTo;
-    private TraitType traitType;
+    private TraitSlot traitSlot;
 
 
-    public void Init(InventoryEntry itemEntryInfo, InventoryScreen parentScreen, int? slot, UpcomingLifeTraits lifeTraits, TraitType type) {
-        base.Init(itemEntryInfo, parentScreen, slot);
-        lifeTraitsToEquipTo = lifeTraits;
-		nameLabel.text = itemEntryInfo.itemName;
-        traitType = type;
+    public void Init(InventoryEntry itemEntryInfo, InventoryScreen parentScreen, TraitSlot ts) {
+        base.Init(itemEntryInfo, parentScreen);
+        traitSlot = ts;
+		    nameLabel.text = itemEntryInfo.itemName;
     }
 
-    protected override void HandleClick() {
-		inventoryScreen.EquipTraitItem(item, slotNumber.GetValueOrDefault(), lifeTraitsToEquipTo, traitType);
+  protected override void HandleClick() {
+		inventoryScreen.EquipTraitItem(item, traitSlot);
 	}
 }

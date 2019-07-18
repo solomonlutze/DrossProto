@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // How detection works
@@ -17,12 +16,15 @@ public class CharacterAI : Character {
 	public bool debugStayDocile;
 	public float minDistanceFromPathNode;
 	// the distance PAST the target's DetectableRange that we will continue to pursue once we've noticed them
-	public float DetectableRangeBuffer;
+	public float detectableRangeBuffer;
 	public float attackAngle;
 	private List<Node> path;
 	private Vector3 destination;
 	private BoxCollider2D col;
 
+  [SerializeField]
+  private float timeBetweenRouteCalculations = 0.5f;
+  private float timeSinceLastRouteCalculation = 0.0f;
 	public List<PickupItem> spawnsOnDeath;
 
 	override protected void Awake () {
@@ -33,8 +35,17 @@ public class CharacterAI : Character {
 		path = new List<Node>();
 		destination = Vector3.zero;
 		ChooseObjectOfInterest();
-		StartCoroutine(CalculateRouteTowardsTarget());
 	}
+
+	protected override void Update() {
+		ChooseObjectOfInterest();
+		ChooseAIState();
+		OrientAndInputMovement();
+    CalculateRouteTowardsTarget();
+		base.Update();
+		HandleBehavior();
+	}
+
 	// How should routing work?
 	// If we can get to our target unobstructed, we should just... move towards them.
 	// Otherwise, we should ask the pathfinder to a route for it.
@@ -43,29 +54,29 @@ public class CharacterAI : Character {
 	// 1) that node needs to be the actual starting point for our path
 	// 2) we need to finish moving towards it.
 	// Otherwise we get stuck on corners.
-	IEnumerator CalculateRouteTowardsTarget() {
-		yield return new WaitForSeconds(Random.Range(0, 1));
-		while (true) {
-			if (objectOfInterest != null) {
-				// if (GetPathOpen()) {
-				if (GameMaster.Instance.IsPathClearOfHazards(col, objectOfInterest.GetTileLocation(), this)) {
-					path = null;
-				} else {
-					path = GameMaster.Instance.FindPath(transform.TransformPoint(col.offset), objectOfInterest.GetTileLocation(), this);
-				}
-			}
-			yield return new WaitForSeconds(.5f);
-		}
+	void CalculateRouteTowardsTarget() {
+    if (timeSinceLastRouteCalculation < timeBetweenRouteCalculations) {
+      timeSinceLastRouteCalculation += Time.deltaTime;
+      return;
+    }
+    if (objectOfInterest == null) { return; }
+    float targetDetectableRange = objectOfInterest.detectableRange;
+    Character c = (Character) objectOfInterest;
+    if (c != null ) {
+      targetDetectableRange = c.GetStat(CharacterStat.DetectableRange);
+    }
+    if (
+      (objectOfInterest.transform.position - transform.position).sqrMagnitude <
+      (targetDetectableRange + detectableRangeBuffer) * (targetDetectableRange + detectableRangeBuffer)
+    ) {
+      // if (GetPathOpen()) {
+      if (GameMaster.Instance.IsPathClearOfHazards(col, objectOfInterest.GetTileLocation(), this)) {
+        path = null;
+      } else {
+        path = GameMaster.Instance.FindPath(transform.TransformPoint(col.offset), objectOfInterest.GetTileLocation(), this);
+      }
+    }
 	}
-
-	protected override void Update() {
-		ChooseObjectOfInterest();
-		ChooseAIState();
-		OrientAndInputMovement();
-		base.Update();
-		HandleBehavior();
-	}
-
 	// for movement, we have:
 	// target (transform), the place/thing we ultimately wanna get to;
 	// path (Node[]), the list of intermediate destinations to get to our target
@@ -144,19 +155,34 @@ public class CharacterAI : Character {
 			aiState = AiStates.Docile;
 			return;
 		}
+    // TODO: DRY, jesus
+    float targetDetectableRange;
+    Character c;
 		switch(aiState) {
 			case AiStates.Aggro:
 			case AiStates.PlayerAggro:
-				if (objectOfInterest == null
-					|| (objectOfInterest.transform.position - transform.position).sqrMagnitude >
-					(objectOfInterest.DetectableRange + DetectableRangeBuffer) * (objectOfInterest.DetectableRange + DetectableRangeBuffer)) { // our target is gone
+				if (objectOfInterest == null) {
+          aiState = AiStates.Docile;
+          break;
+        }
+        targetDetectableRange = objectOfInterest.detectableRange;
+        c = (Character) objectOfInterest;
+        if (c != null) {targetDetectableRange = c.GetStat(CharacterStat.DetectableRange); }
+        Debug.Log("targetDetectableRange: "+targetDetectableRange);
+				if (
+          (objectOfInterest.transform.position - transform.position).sqrMagnitude >
+					(targetDetectableRange + detectableRangeBuffer) * (targetDetectableRange + detectableRangeBuffer)) { // our target is gone
 					aiState = AiStates.Docile;
 				}
 				break;
 			case AiStates.Docile:
 				if (objectOfInterest != null) { // we got new target
+          targetDetectableRange = objectOfInterest.detectableRange;
+          c = (Character) objectOfInterest;
+          if (c != null) {targetDetectableRange = c.GetStat(CharacterStat.DetectableRange); }
+          Debug.Log("targetDetectableRange: "+targetDetectableRange);
 					Vector3 distanceFromTarget = objectOfInterest.transform.position - transform.position;
-					if (distanceFromTarget.sqrMagnitude < objectOfInterest.DetectableRange * objectOfInterest.DetectableRange) {
+					if (distanceFromTarget.sqrMagnitude < targetDetectableRange * targetDetectableRange) {
 						aiState = AiStates.PlayerAggro;
 					}
 				}

@@ -53,12 +53,15 @@ public class TraitEffectPropertyDrawer : PropertyDrawer
                 EditorGUILayout.PropertyField(property.FindPropertyRelative("blocksMovement"), new GUIContent("Blocks Movement: "));
                 break;
             case TraitEffectType.CharacterStat:
-                EditorGUILayout.PropertyField(property.FindPropertyRelative("stat"), new GUIContent("Stat: "), GUILayout.ExpandWidth(true));
-                EditorGUILayout.PropertyField(property.FindPropertyRelative("magnitude"), GUIContent.none, GUILayout.Width(100));
-                break;
+              EditorGUILayout.PropertyField(property.FindPropertyRelative("stat"), new GUIContent("Stat: "), GUILayout.ExpandWidth(true));
+              EditorGUILayout.PropertyField(property.FindPropertyRelative("magnitude"), GUIContent.none, GUILayout.Width(100));
+              break;
             case TraitEffectType.CharacterMovementAbility:
-                EditorGUILayout.PropertyField(property.FindPropertyRelative("movementAbility"), new GUIContent("Movement Ability: "), GUILayout.ExpandWidth(true));
-                break;
+              EditorGUILayout.PropertyField(property.FindPropertyRelative("movementAbility"), new GUIContent("Movement Ability: "), GUILayout.ExpandWidth(true));
+              break;
+            case TraitEffectType.CharacterPerceptionAbility:
+              EditorGUILayout.PropertyField(property.FindPropertyRelative("perceptionAbility"), new GUIContent("Perception Ability: "), GUILayout.ExpandWidth(true));
+              break;
             case TraitEffectType.CharacterAttack:
                 EditorGUILayout.PropertyField(property.FindPropertyRelative("attackValue"), new GUIContent("Attack Value: "), GUILayout.ExpandWidth(true));
                 EditorGUILayout.PropertyField(property.FindPropertyRelative("magnitude"), GUIContent.none, GUILayout.Width(100));

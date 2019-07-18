@@ -29,7 +29,7 @@ public static class Constants
 
   public static Dictionary<CharacterStat, float> BaseCharacterStats
     = new Dictionary<CharacterStat, float>() {
-        {CharacterStat.DetectableRange, 20f},
+        {CharacterStat.DetectableRange, 10f},
         {CharacterStat.MaxHealth, 50f},
         {CharacterStat.MoveAcceleration, .5f},
         {CharacterStat.MaxEnvironmentalDamageCooldown, .25f},

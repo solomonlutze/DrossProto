@@ -236,7 +236,7 @@ public class Hitbox : MonoBehaviour {
     }
 
     // Anything we hit, try to damage! This can be applied to destructible environments later too.
-    void OnTriggerEnter2D(Collider2D col) {
+    void OnTriggerStay2D(Collider2D col) {
         Debug.Log("hitbox collided with "+col.gameObject);
         col.SendMessage("TakeDamage", damageObj, SendMessageOptions.DontRequireReceiver);
     }

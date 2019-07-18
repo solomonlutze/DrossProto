@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
-[CustomPropertyDrawer(typeof(EquippedTraitsStringNames))]
+[CustomPropertyDrawer(typeof(TraitsLoadout))]
 public class EquippedTraitsPropertyDrawer : PropertyDrawer
 {
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -40,24 +40,20 @@ public class EquippedTraitsPropertyDrawer : PropertyDrawer
 [CanEditMultipleObjects]
 public class CharacterEditor : Editor
 {
-  SerializedProperty initialWeaponId;
-  SerializedProperty initialActiveTrait1;
-  SerializedProperty initialActiveTrait2;
+  SerializedProperty initialskill1;
+  SerializedProperty initialskill2;
 
   SerializedProperty equippedTraitsDictionary;
-  SerializedProperty equippedTraits;
   void OnEnable()
   {
-    initialWeaponId = serializedObject.FindProperty("initialWeaponId");
     equippedTraitsDictionary = serializedObject.FindProperty("equippedTraitsDictionary");
-    initialActiveTrait1 = serializedObject.FindProperty("initialActiveTrait1");
-    initialActiveTrait2 = serializedObject.FindProperty("initialActiveTrait2");
+    initialskill1 = serializedObject.FindProperty("initialskill1");
+    initialskill2 = serializedObject.FindProperty("initialskill2");
   }
   public override void OnInspectorGUI()
   {
       this.serializedObject.Update();
       DrawDefaultInspector();
-      DrawWeaponSelect();
       DrawTraitSelect();
       this.serializedObject.ApplyModifiedProperties();
   }
@@ -71,13 +67,9 @@ public class CharacterEditor : Editor
         serializedProperty.stringValue = (choices[idx] == "[None]") ? null : choices[idx];
     }
 
-    private void DrawWeaponSelect() {
-        DrawPopup(EditorHelpers.AllWeapons(includeNone: true), initialWeaponId, "Initial weapon ID");
-    }
-
     private void DrawTraitSelect() {
-        DrawPopup(PropertyDrawerHelpers.AllActiveTraitNames(includeNone: true), initialActiveTrait1, "Initial Active Trait 1");
-        DrawPopup(PropertyDrawerHelpers.AllActiveTraitNames(includeNone: true), initialActiveTrait2, "Initial Active Trait 2");
+        DrawPopup(PropertyDrawerHelpers.AllActiveTraitNames(includeNone: true), initialskill1, "Initial Active Trait 1");
+        DrawPopup(PropertyDrawerHelpers.AllActiveTraitNames(includeNone: true), initialskill2, "Initial Active Trait 2");
     }
 
 }
