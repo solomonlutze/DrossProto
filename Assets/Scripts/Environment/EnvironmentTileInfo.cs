@@ -88,20 +88,20 @@ public class EnvironmentTileInfo {
 
     // TODO: this should eventually be based on whether it _will_ respawn player/deal damage
     public bool IsClimbable() {
-        return  objectTileType != null &&
-                objectTileType.isClimbable &&
-                !dealsDamage &&
-                !CanRespawnPlayer();
+      return  objectTileType != null &&
+              objectTileType.isClimbable &&
+              !dealsDamage &&
+              !CanRespawnPlayer();
     }
 
     // TODO: this should eventually be based on whether it _will_ respawn player/deal damage
     public bool CanBeStuckTo() {
-        return !IsEmpty() && !CanRespawnPlayer() && !dealsDamage;
+      return !IsEmpty() && !CanRespawnPlayer() && !dealsDamage;
     }
 
-	public bool IsEmpty() {
-		return (groundTileType == null && objectTileType == null);
-	}
+    public bool IsEmpty() {
+      return (groundTileType == null && objectTileType == null);
+    }
     public void DestroyTile() {
         GridManager.Instance.ReplaceTileAtLocation(tileLocation, null);
     }
@@ -114,16 +114,16 @@ public class EnvironmentTileInfo {
     }
 
     public string GetInteractableText(PlayerController pc) {
-        if (ChangesFloorLayer()) {
-            if (GetTargetFloorLayer() > pc.currentFloor) {
-                return "ascend";
-            } else {
-                return "descend";
-            }
+      if (ChangesFloorLayer()) {
+        if (GetTargetFloorLayer() > pc.currentFloor) {
+          return "ascend";
+        } else {
+          return "descend";
         }
-        else {
-            Debug.LogWarning("Tried to get interactable text for a non-interactable tile");
-            return "";
-        }
+      }
+      else {
+        Debug.LogWarning("Tried to get interactable text for a non-interactable tile");
+        return "";
+      }
     }
 }

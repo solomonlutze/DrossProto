@@ -19,6 +19,8 @@ public class GameMaster : Singleton<GameMaster> {
 	public GameObject[] spawnPoints;
 	private int previousSpawnPoint = 0;
 
+  public LymphTypeToLymphTypeSkillsDictionary lymphTypeToSkillsMapping;
+
 	// Use this for initialization
 	void Start () {
 		pathfinding = GetComponent<PathfindingSystem>();
@@ -45,7 +47,7 @@ public class GameMaster : Singleton<GameMaster> {
 	// TODO: Buttons instead of keys!!!
 	private void HandleDeadInput() {
 		if (Input.GetButtonDown("Respawn")) {
-			Respawn();
+			Respawn(false);
 		}
 	}
 
@@ -64,6 +66,10 @@ public class GameMaster : Singleton<GameMaster> {
 			playerController.currentFloor = fl;
 		}
 		playerController.SetCurrentFloor(playerController.currentFloor);
+    if (!initialSpawn) {
+      Debug.Log("respawn - cachedPupa head: "+cachedPupa[TraitSlot.Head]);
+      Debug.Log("respawn - cachedPupa head trait: "+cachedPupa[TraitSlot.Head].trait);
+    }
 		playerController.Init(initialSpawn, cachedPupa);
 		SetGameStatus(Constants.GameState.Play);
 	}

@@ -40,15 +40,15 @@ public class EquippedTraitsPropertyDrawer : PropertyDrawer
 [CanEditMultipleObjects]
 public class CharacterEditor : Editor
 {
-  SerializedProperty initialActiveTrait1;
-  SerializedProperty initialActiveTrait2;
+  SerializedProperty initialskill1;
+  SerializedProperty initialskill2;
 
   SerializedProperty equippedTraitsDictionary;
   void OnEnable()
   {
     equippedTraitsDictionary = serializedObject.FindProperty("equippedTraitsDictionary");
-    initialActiveTrait1 = serializedObject.FindProperty("initialActiveTrait1");
-    initialActiveTrait2 = serializedObject.FindProperty("initialActiveTrait2");
+    initialskill1 = serializedObject.FindProperty("initialskill1");
+    initialskill2 = serializedObject.FindProperty("initialskill2");
   }
   public override void OnInspectorGUI()
   {
@@ -68,8 +68,8 @@ public class CharacterEditor : Editor
     }
 
     private void DrawTraitSelect() {
-        DrawPopup(PropertyDrawerHelpers.AllActiveTraitNames(includeNone: true), initialActiveTrait1, "Initial Active Trait 1");
-        DrawPopup(PropertyDrawerHelpers.AllActiveTraitNames(includeNone: true), initialActiveTrait2, "Initial Active Trait 2");
+        DrawPopup(PropertyDrawerHelpers.AllActiveTraitNames(includeNone: true), initialskill1, "Initial Active Trait 1");
+        DrawPopup(PropertyDrawerHelpers.AllActiveTraitNames(includeNone: true), initialskill2, "Initial Active Trait 2");
     }
 
 }

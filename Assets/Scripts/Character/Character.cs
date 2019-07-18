@@ -43,6 +43,10 @@ public enum CharacterMovementAbility {
 	WaterStride
 }
 
+public enum CharacterPerceptionAbility {
+  SensitiveAntennae
+}
+
 [System.Serializable]
 public class CharacterStatModification {
   public CharacterStat statToModify;
@@ -87,7 +91,7 @@ public class CharacterAttack : ScriptableObject {
 	#if UNITY_EDITOR
     // The following is a helper that adds a menu item to create an TraitItem Asset
         [MenuItem("Assets/Create/CharacterAttack")]
-        public static void CreatePassiveTrait()
+        public static void CreateCharacterAttack()
         {
             string path = EditorUtility.SaveFilePanelInProject("Save Character Attack", "New Character Attack", "Asset", "Save Character Attack", "Assets/resources/Data/CharacterData/AttackData");
             if (path == "")
@@ -166,14 +170,15 @@ public class Character : WorldObject {
 	protected TileLocation currentTileLocation;
 	protected EnvironmentTileInfo currentTile;
   protected float timeStandingStill = 0;
+  protected float timeMoving = 0;
   protected Dictionary<string, GameObject> traitSpawnedGameObjects;
   protected List<string> sourceInvulnerabilities;
 
 	[Header("Default Info")]
   public CharacterData defaultCharacterData;
   public TraitsLoadout initialEquippedTraits;
-	public string initialActiveTrait1;
-	public string initialActiveTrait2;
+	public string initialskill1;
+	public string initialskill2;
 
 	protected virtual void Awake() {
 		orientation = transform.Find("Orientation");
@@ -312,7 +317,9 @@ public class Character : WorldObject {
 		if (CanMove()) {
       if (movementInput == Vector2.zero) { // should be an approximate equals
         timeStandingStill += Time.deltaTime;
+        timeMoving = 0;
       } else {
+        timeMoving += Time.deltaTime;
         timeStandingStill = 0f;
       }
       po.SetMovementInput(new Vector2(movementInput.x, movementInput.y));
@@ -343,24 +350,31 @@ public class Character : WorldObject {
 
 	// Called from Hitbox's OnTriggerEnter. Calls other functions to determine outcome of getting hit.
 	protected void TakeDamage(DamageObject damageObj) {
+    Debug.Log("TakeDamage");
 		if (
       sourceInvulnerabilities.Contains(damageObj.sourceString)
       && !damageObj.ignoreInvulnerability)
     { return; }
-		float damageAfterResistances = (100 - damageTypeResistances[damageObj.damageType]) * damageObj.damage;
+    Debug.Log("Not invulnerable");
+		float damageAfterResistances = ((100 - damageTypeResistances[damageObj.damageType]) / 100) * damageObj.damage;
 		if (
       damageAfterResistances <= 0
       && damageObj.damage > 0
       && damageObj.characterStatModifications.Count == 0
     ) { return; }
+    Debug.Log("Damage > 0");
 		if (damageObj.attackerTransform == transform) { return; }
 		InterruptAnimation();
 		AdjustHealth(Mathf.Floor(-damageAfterResistances));
+    Debug.Log("Health adjusted");
 		CalculateAndApplyStun(damageObj.stun);
+    Debug.Log("Stun applied");
 		foreach(CharacterStatModification mod in damageObj.characterStatModifications) {
-			AddStatMod(mod);
+      Debug.Log("Applying stat mod "+mod.source);
+			ApplyStatMod(mod);
 		}
 		StartCoroutine(ApplyInvulnerability(damageObj));
+    Debug.Log("Applyed invulnerability");
 		// StartCoroutine(ApplyDamageFlash(damageObj));
 		if (damageObj.attackerTransform != null && damageObj.hitboxTransform != null) {
 			po.ApplyImpulseForce(damageObj.knockback *
@@ -368,6 +382,7 @@ public class Character : WorldObject {
 				- damageObj.attackerTransform.position)
 			);
 		}
+    Debug.Log("Done!");
 	}
 
 	public virtual void Die() {
@@ -433,12 +448,25 @@ public class Character : WorldObject {
     if (modValue >= 0) {
       returnValue *= ((3 + modValue) / 3);
     } else {
-      Debug.Log ("some math: "+ 3f / (3 + Mathf.Abs(modValue)));
       returnValue *= (3f / (3 + Mathf.Abs(modValue)));
-      Debug.Log ("return value: "+ returnValue);
     }
     return returnValue;
   }
+
+
+public void ApplyStatMod(CharacterStatModification mod) {
+  if (mod.duration > 0) {
+    StartCoroutine(ApplyTemporaryStatMod(mod));
+  } else {
+    AddStatMod(mod);
+  }
+}
+
+public IEnumerator ApplyTemporaryStatMod(CharacterStatModification mod) {
+  AddStatMod(mod);
+  yield return new WaitForSeconds(mod.duration);
+  RemoveStatMod(mod.source);
+}
 
 public void AddStatMod(CharacterStatModification mod) {
   AddStatMod(mod.statToModify, mod.magnitude, mod.source);
@@ -569,6 +597,14 @@ public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
       switch (trait.activatingCondition) {
         case ConditionallyActivatedTraitCondition.NotMoving:
           if (timeStandingStill > trait.activatingConditionRequiredDuration) {
+            trait.Apply(this);
+          }
+          else {
+            trait.Expire(this);
+          }
+          break;
+        case ConditionallyActivatedTraitCondition.Moving:
+          if (timeMoving > trait.activatingConditionRequiredDuration) {
             trait.Apply(this);
           }
           else {

@@ -10,12 +10,22 @@ public class SerializableDictionaries : MonoBehaviour {
 public class TraitSlotToUpcomingTraitDictionary : SerializableDictionaryBase<TraitSlot, UpcomingLifeTrait> {
   public TraitSlotToUpcomingTraitDictionary() {
     foreach(TraitSlot slot in (TraitSlot[]) Enum.GetValues(typeof(TraitSlot))) {
-      Add(slot, new UpcomingLifeTrait(null, null));
+      Add(slot, new UpcomingLifeTrait(null, LymphType.None, null));
     }
   }
 }
+
 [System.Serializable]
-public class TraitSlotToTraitDictionary : SerializableDictionaryBase<TraitSlot, PassiveTrait> {
+public class LymphTypeToIntDictionary : SerializableDictionaryBase<LymphType, int> {
+
+    public LymphTypeToIntDictionary() {
+      foreach(LymphType lymphType in (LymphType[]) Enum.GetValues(typeof(LymphType))) {
+        Add(lymphType, 0);
+      }
+    }
+}
+[System.Serializable]
+public class TraitSlotToTraitDictionary : SerializableDictionaryBase<TraitSlot, Trait> {
 
     public TraitSlotToTraitDictionary() {
       foreach(TraitSlot slot in (TraitSlot[]) Enum.GetValues(typeof(TraitSlot))) {
@@ -49,21 +59,31 @@ public class CharacterVitalToFloatDictionary : SerializableDictionaryBase<Charac
 
 [System.Serializable]
 public class CharacterStatToFloatDictionary : SerializableDictionaryBase<CharacterStat, float>{
+    public CharacterStatToFloatDictionary() {
+      foreach(CharacterStat stat in (CharacterStat[]) Enum.GetValues(typeof(CharacterStat))) {
+        Add(stat, Constants.BaseCharacterStats[stat]);
+      }
+    }
  }
 
 [System.Serializable]
 public class LayerToLayerFloorDictionary : SerializableDictionaryBase<FloorLayer, LayerFloor>{ }
+
+[System.Serializable]
+public class LymphTypeToLymphTypeSkillsDictionary : SerializableDictionaryBase<LymphType, LymphTypeSkills> {
+  public LymphTypeToLymphTypeSkillsDictionary() {
+    foreach(LymphType type in (LymphType[]) Enum.GetValues(typeof(LymphType))) {
+      if (type == LymphType.None) { continue; }
+      Add(type, new LymphTypeSkills());
+    }
+  }
+}
 [System.Serializable]
 public class CharacterAttackValueToIntDictionary : SerializableDictionaryBase<CharacterAttackValue, int>{
 
-    // public CharacterAttackValueToIntDictionary() {
-    //     Add(CharacterAttackValue.AttackSpeed, 0);
-    //     Add(CharacterAttackValue.Cooldown, 0);
-    //     Add(CharacterAttackValue.Damage, 0);
-    //     Add(CharacterAttackValue.HitboxSize, 0);
-    //     Add(CharacterAttackValue.Knockback, 0);
-    //     Add(CharacterAttackValue.Range, 0);
-    //     Add(CharacterAttackValue.Stun, 0);
-    //     Add(CharacterAttackValue.Venom, 0);
-    // }
+    public CharacterAttackValueToIntDictionary() {
+      foreach(CharacterAttackValue attackValue in (CharacterAttackValue[]) Enum.GetValues(typeof(CharacterAttackValue))) {
+        Add(attackValue, 0);
+      }
+    }
 }

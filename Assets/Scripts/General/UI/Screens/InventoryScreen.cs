@@ -50,8 +50,9 @@ public class InventoryScreen : MonoBehaviour {
 			CloseEquipTraitMenu();
 
       Inventory inventory = playerController.GetComponent<Inventory>();
-		 	PopulateEquippedConsumablesList(inventory.GetEquippedConsumableInventoryEntries());
-			PopulateEquippedTraitsList(inventory.GetUpcomingPupa());
+      TraitSlotToUpcomingTraitDictionary upcomingPupa = inventory.GetUpcomingPupa();
+      PopulateEquippedConsumablesList(inventory.GetEquippedConsumableInventoryEntries());
+			PopulateEquippedTraitsList(upcomingPupa);
 		}
 	}
 

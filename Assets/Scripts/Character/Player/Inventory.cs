@@ -34,19 +34,19 @@ public class Inventory : MonoBehaviour {
     public string lastUsedItem = null;
     public Character owner;
     public InventoryScreen inventoryScreen;
-
     public TraitSlotToUpcomingTraitDictionary upcomingPupa; // your next life
+    public LymphTypeToIntDictionary lymphTypeCounts;
 
     // TODO: Some of this should get bumped into an Init that's called by PlayerController when we make a new character
     void Awake() {
-        equippedItems = new string[numEquippableConsumables];
-        lastPickedUpItems = new List<PickedUpItem>();
-        inventory = new Dictionary<string, InventoryEntry>();
-        foreach (PickupItem item in initialItems) {
-            if (item != null) {
-                AddToInventory(item);
-            }
-        }
+      equippedItems = new string[numEquippableConsumables];
+      lastPickedUpItems = new List<PickedUpItem>();
+      inventory = new Dictionary<string, InventoryEntry>();
+      foreach (PickupItem item in initialItems) {
+          if (item != null) {
+              AddToInventory(item);
+          }
+      }
     }
 
     void Update() {
@@ -145,37 +145,38 @@ public class Inventory : MonoBehaviour {
         }
     }
 
+    public LymphTypeToIntDictionary GetLymphTypeCounts(TraitSlotToUpcomingTraitDictionary futureTraits) {
+      LymphTypeToIntDictionary lymphTypeCounts = new LymphTypeToIntDictionary();
+      foreach(UpcomingLifeTrait upcomingLifeTrait in futureTraits.Values) {
+        lymphTypeCounts[upcomingLifeTrait.lymphType]++;
+      }
+      return lymphTypeCounts;
+    }
     public void EquipTraitToUpcomingLifeTrait(InventoryEntry itemToEquip, TraitSlot slot) {
-      UnequipTraitItem(itemToEquip.guid);
+      UnequipTraitItemInSlot(slot); // unequip whatever is already there
+      UnequipTraitItemByGuid(itemToEquip.guid); // unequip the item we're equipping now
       TraitItemData itemInfo = Resources.Load("Data/ItemData/Trait/"+itemToEquip.itemId) as TraitItemData;
-      upcomingPupa[slot] = new UpcomingLifeTrait(itemInfo.traits.EquippedTraits()[slot], itemToEquip);
-      Debug.Log("should have equipped trait " + itemInfo.traits.EquippedTraits()[slot] + ", item " + itemToEquip.itemId);
-        // UpcomingLifeTrait[] traitsList;
-        // string traitName;
-        // Debug.Log("itemId: "+itemToEquip.itemId);
-        // Debug.Log("loaded thing: "+Resources.Load("Data/ItemData/Trait/"+itemToEquip.itemId));
-        // TraitItemData itemInfo = Resources.Load("Data/ItemData/Trait/"+itemToEquip.itemId) as TraitItemData;
-        // UnequipTraitItem(itemToEquip.guid);
-        // switch(type) {
-        //     case TraitType.Passive:
-        //         traitsList = traitsToEquipTo.passiveTraits;
-        //         traitName = itemInfo.passiveTrait;
-        //         break;
-        //     case TraitType.Active:
-        //     default:
-        //         traitsList = traitsToEquipTo.activeTraits;
-        //         traitName = itemInfo.activeTrait;
-        //         break;
-        // }
-        // traitsList[slot] = new UpcomingLifeTrait(traitName, itemToEquip);
+      upcomingPupa[slot] = new UpcomingLifeTrait(itemInfo.traits.EquippedTraits()[slot], itemInfo.lymphType, itemToEquip);
+      lymphTypeCounts[itemInfo.lymphType]++;
     }
 
-    // TODO: DRY
-    public void UnequipTraitItem(string traitItemGuid) {
+    public void UnequipTraitItemInSlot(TraitSlot slot) {
+      UpcomingLifeTrait lifeTraitToUnequip = upcomingPupa[slot];
+      upcomingPupa[slot] = new UpcomingLifeTrait(null, LymphType.None, null);
+      if (lifeTraitToUnequip != null && lifeTraitToUnequip.inventoryItem != null) {
+        lymphTypeCounts[lifeTraitToUnequip.lymphType]--;
+      }
+    }
+
+    public void UnequipTraitItemByGuid(string traitItemGuid) {
       List<TraitSlot> keys = new List<TraitSlot> (upcomingPupa.Keys);
       foreach(TraitSlot s in keys) {
-        if (upcomingPupa[s] != null && upcomingPupa[s].inventoryItem.guid == traitItemGuid) {
-          upcomingPupa[s] = new UpcomingLifeTrait(null, null);
+        if (
+          upcomingPupa[s] != null &&
+          upcomingPupa[s].inventoryItem != null &&
+          upcomingPupa[s].inventoryItem.guid == traitItemGuid
+        ) {
+          UnequipTraitItemInSlot(s);
         }
       }
     }
@@ -234,8 +235,8 @@ public class Inventory : MonoBehaviour {
     }
     // called each time you respawn
     public void AdvanceUpcomingLifeTraits(TraitSlotToUpcomingTraitDictionary previousPupa) {
-        owner.AssignTraitsForNextLife(previousPupa == null ? new TraitSlotToUpcomingTraitDictionary() : previousPupa);
-        upcomingPupa = CreateNewUpcomingTraits();
+      owner.AssignTraitsForNextLife(previousPupa == null ? new TraitSlotToUpcomingTraitDictionary() : previousPupa);
+      upcomingPupa = CreateNewUpcomingTraits();
     }
 
     private TraitSlotToUpcomingTraitDictionary CreateNewUpcomingTraits() {

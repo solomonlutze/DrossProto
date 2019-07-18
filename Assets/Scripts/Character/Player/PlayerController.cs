@@ -22,8 +22,8 @@ public class PlayerController : Character {
 	private PassiveTrait passiveTrait1;
 	private PassiveTrait passiveTrait2;
 
-	private ActiveTraitInstance activeTrait1;
-	private ActiveTraitInstance activeTrait2;
+	private ActiveTraitInstance skill1;
+	private ActiveTraitInstance skill2;
 	private TileLocation lastSafeTileLocation;
 
 	public string lastActivatedTrait = null;
@@ -40,6 +40,9 @@ public class PlayerController : Character {
 		interactables = new List<GameObject>();
 		inventory = GetComponent<Inventory>();
 		inventory.owner = this;
+    if (!initialSpawn) {
+      Debug.Log("init - cachedPupa head trait: "+previousPupa[TraitSlot.Head].trait);
+    }
     if (initialSpawn) {
       AssignTraitsForFirstLife();
     } else {
@@ -70,8 +73,8 @@ public class PlayerController : Character {
 	}
 
 	protected void RespawnPlayerAtLatSafeLocation() {
-		activeTrait1.CancelActiveEffects();
-		activeTrait2.CancelActiveEffects();
+		skill1.CancelActiveEffects();
+		skill2.CancelActiveEffects();
 		transform.position =
 			new Vector3(lastSafeTileLocation.position.x + .5f, lastSafeTileLocation.position.y + .5f, 0);
 		if (currentFloor != lastSafeTileLocation.floorLayer) {
@@ -197,41 +200,41 @@ public class PlayerController : Character {
 				else if (Input.GetButtonDown("AdvanceSelectedAction")) {
 					AdvanceSelectedContextualAction();
 				}
-				else if (Input.GetButtonDown("ActiveTrait1")) {
-					if (activeTrait1 != null) {
-						activeTrait1.OnActivateTraitPressed();
+				else if (Input.GetButtonDown("Skill1")) {
+					if (skill1 != null) {
+						skill1.OnActivateTraitPressed();
 					}
 				}
-				else if (Input.GetButtonDown("ActiveTrait2")) {
-					if (activeTrait2 != null) {
-						activeTrait2.OnActivateTraitPressed();
+				else if (Input.GetButtonDown("Skill2")) {
+					if (skill2 != null) {
+						skill2.OnActivateTraitPressed();
 					}
 				}
-				if (Input.GetButton("ActiveTrait1")) {
-					if (activeTrait1 != null) {
-						activeTrait1.WhileActiveTraitPressed();
+				if (Input.GetButton("Skill1")) {
+					if (skill1 != null) {
+						skill1.WhileActiveTraitPressed();
 					}
 				}
-				if (Input.GetButton("ActiveTrait2")) {
-					if (activeTrait2 != null) {
-						activeTrait2.WhileActiveTraitPressed();
+				if (Input.GetButton("Skill2")) {
+					if (skill2 != null) {
+						skill2.WhileActiveTraitPressed();
 					}
 				}
-				if (Input.GetButtonUp("ActiveTrait1")) {
-					if (activeTrait1 != null) {
-						activeTrait1.OnActivateTraitReleased();
+				if (Input.GetButtonUp("Skill1")) {
+					if (skill1 != null) {
+						skill1.OnActivateTraitReleased();
 					}
 				}
-				if (Input.GetButtonUp("ActiveTrait2")) {
-					if (activeTrait2 != null) {
-						activeTrait2.OnActivateTraitReleased();
+				if (Input.GetButtonUp("Skill2")) {
+					if (skill2 != null) {
+						skill2.OnActivateTraitReleased();
 					}
 				}
-                if (Input.GetKeyDown(KeyCode.P))
-                {
-                    SetCurrentFloor(currentFloor == FloorLayer.F1 ? FloorLayer.F2 : FloorLayer.F1);
-                }
-                break;
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            SetCurrentFloor(currentFloor == FloorLayer.F1 ? FloorLayer.F2 : FloorLayer.F1);
+        }
+        break;
 			case (Constants.GameState.Menu):
 				break;
 		}
@@ -268,30 +271,28 @@ public class PlayerController : Character {
 	}
 
   private void AssignTraitsForFirstLife() {
+    Debug.Log("assigning traits for first life~");
     TraitSlotToTraitDictionary et = initialEquippedTraits.EquippedTraits();
     foreach(TraitSlot traitSlot in et.Keys) {
-      PassiveTrait trait = et[traitSlot];
+      Trait trait = et[traitSlot];
       if (et[traitSlot] != null) {
         Debug.Log("added "+trait);
         trait.OnTraitAdded(this);
       }
       equippedTraits[traitSlot] = trait;
     }
-
-	ActiveTraitInstance activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
-			ActiveTrait activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+initialActiveTrait1) as ActiveTrait;
-			if (activeTrait != null && activeTraitData != null) {
-				activeTrait1 = activeTrait;
-				activeTrait1.Init(this, activeTraitData);
-			} else {
-				Debug.LogError("couldn't load ActiveTraitInstance or ActiveTraitData for "+initialActiveTrait1);
-			}
-			activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
-			activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+initialActiveTrait2) as ActiveTrait;
-			if (activeTrait != null && activeTraitData != null) {
-				activeTrait2 = activeTrait;
-				activeTrait2.Init(this, activeTraitData);
-			}
+	  ActiveTraitInstance activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
+    ActiveTrait activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+initialskill1) as ActiveTrait;
+    if (activeTrait != null && activeTraitData != null) {
+      skill1 = activeTrait;
+      skill1.Init(this, activeTraitData);
+    }
+    activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
+    activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+initialskill2) as ActiveTrait;
+    if (activeTrait != null && activeTraitData != null) {
+      skill2 = activeTrait;
+      skill2.Init(this, activeTraitData);
+    }
   }
 
   public void EquipTrait(InventoryEntry itemToEquip, TraitSlot slot) {
@@ -299,28 +300,70 @@ public class PlayerController : Character {
   }
 
 	override public void AssignTraitsForNextLife(TraitSlotToUpcomingTraitDictionary nextLifeTraits) {
-    foreach (UpcomingLifeTrait upcomingTrait in nextLifeTraits.Values) {
-        if (upcomingTrait.trait != null) {
-          { upcomingTrait.trait.OnTraitAdded(this); }
-        }
+    foreach (TraitSlot slot in nextLifeTraits.Keys) {
+      if (nextLifeTraits[slot] != null && nextLifeTraits[slot].trait != null) {
+        equippedTraits[slot] = nextLifeTraits[slot].trait;
+        nextLifeTraits[slot].trait.OnTraitAdded(this);
       }
 		}
+    LymphTypeToIntDictionary lymphTypeCounts = inventory.GetLymphTypeCounts(nextLifeTraits);
+    bool primarySkillInited = false;
+    foreach(LymphType type in lymphTypeCounts.Keys) {
+      if (type == LymphType.None) { continue; }
+      if (lymphTypeCounts[type] >= 2) {
+        if (!primarySkillInited) {
+          if (skill1 == null) {
+            skill1 = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
+          }
+          Debug.Log("attempting to init skill for type "+type);
+          skill1.Init(this, GameMaster.Instance.lymphTypeToSkillsMapping[type].GetPrimarySkill());
+          primarySkillInited = true;
+        } else {
+          if (skill2 == null) {
+            skill2 = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
+          }
+          skill2.Init(this, GameMaster.Instance.lymphTypeToSkillsMapping[type].GetPrimarySkill());
+        }
+      }
+      if (lymphTypeCounts[type] >= 4) {
+        if (skill2 == null) {
+          skill2 = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
+        }
+        skill2.Init(this, GameMaster.Instance.lymphTypeToSkillsMapping[type].GetSecondarySkill());
+      }
+    }
+    // iterate over each item in the dictionary.
+    // if we have >2 of a thing,
+    // ...and no assigned primary skill: its primary Skill becomes our primary skill.
+    // ...and an assigned primary skill: its primary Skill becomes our secondary skill.
+    // if we have >4 of that thing, its secondary Skill  becomes our secondary skill.
+    // assuming lymphTypeCounts is always <=5 this should just work out
+
+  }
     // ActiveTraitInstance activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
     // ActiveTrait activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+nextLifeTraits.activeTraits[0].traitName) as ActiveTrait;
     // if (activeTrait != null) {
-    //   activeTrait1 = activeTrait;
-    //   activeTrait1.Init(this, activeTraitData);
+    //   skill1 = activeTrait;
+    //   skill1.Init(this, activeTraitData);
     // }
     // activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
     // activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+nextLifeTraits.activeTraits[1].traitName) as ActiveTrait;
     // if (activeTrait != null) {
-    //   activeTrait2 = activeTrait;
-    //   activeTrait2.Init(this, activeTraitData);
+    //   skill2 = activeTrait;
+    //   skill2.Init(this, activeTraitData);
     // }
 	// }
 
 	override public void Die(){
+    foreach (TraitSlot slot in equippedTraits.Keys) {
+      if (equippedTraits[slot] != null && equippedTraits[slot]) {
+        Debug.Log("Removing trait in"+slot);
+        equippedTraits[slot].OnTraitRemoved(this);
+      }
+		}
+    Debug.Log("all traits removed; killing player");
 		GameMaster.Instance.KillPlayer(inventory.GetUpcomingPupa());
+    Debug.Log("destroying gameobject");
 		base.Die();
 	}
 

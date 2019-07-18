@@ -52,7 +52,7 @@ public class EnvironmentTile : Tile {
         }
     #endif
 
-    public bool StartUp(Vector3Int location, ITilemap tilemap, GameObject go) {
+    public override bool StartUp(Vector3Int location, ITilemap tilemap, GameObject go) {
         tileType = this.name;
         if (go != null) {
             SetPropertyBlock(location, tilemap, go);
