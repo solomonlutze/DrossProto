@@ -8,20 +8,23 @@ public class EnvironmentTileInfo {
     public TileLocation tileLocation;
     public EnvironmentTile groundTileType;
     public EnvironmentTile objectTileType;
-    public List<TileTag> tileTags;
+    public List<TileTag> groundTileTags;
+    public List<TileTag> objectTileTags;
     public bool isInteractable = false;
     public bool dealsDamage = false;
+    public bool corroded = false;
     public DamageObject environmentalDamage;
     public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile) {
         tileLocation = location;
         groundTileType = groundTile;
         objectTileType = objectTile;
-        tileTags = new List<TileTag>();
+        groundTileTags = new List<TileTag>();
+        objectTileTags = new List<TileTag>();
         dealsDamage = false;
         environmentalDamage = null;
         if (groundTileType != null) {
             isInteractable |= groundTileType.IsInteractable();
-            tileTags.AddRange(groundTileType.tileTags);
+            groundTileTags.AddRange(groundTileType.tileTags);
             if (groundTileType.dealsDamage) {
                 dealsDamage = true;
                 environmentalDamage = groundTileType.environmentalDamage;
@@ -29,7 +32,7 @@ public class EnvironmentTileInfo {
         }
         if (objectTileType != null) {
             isInteractable |= objectTileType.IsInteractable();
-            tileTags.AddRange(objectTileType.tileTags);
+            objectTileTags.AddRange(objectTileType.tileTags);
             if (objectTileType.dealsDamage) {
                 dealsDamage = true;
                 // TODO: Stack floor/object damage? Currently overwrites floor with object damage
@@ -43,15 +46,22 @@ public class EnvironmentTileInfo {
         return (objectTileType && objectTileType.changesFloorLayer)
             || (groundTileType && groundTileType.changesFloorLayer);
     }
-    public FloorLayer GetTargetFloorLayer() {
-        if (objectTileType != null && objectTileType.changesFloorLayer) {
-            return objectTileType.targetFloorLayer;
-        } else if (groundTileType != null && groundTileType.changesFloorLayer) {
-            return groundTileType.targetFloorLayer;
-        } else {
-            Debug.LogError("tried to get target floor layer from tileInfo that does not change floors?");
-            return FloorLayer.B6;
-        }
+    public FloorLayer GetTargetFloorLayer(FloorLayer currentFloor) {
+      int currentFloorAsInt = (int) currentFloor;
+      int targetFloorLayerAsInt = currentFloorAsInt;
+      if (objectTileType != null && objectTileType.changesFloorLayer) {
+        targetFloorLayerAsInt = objectTileType.changesFloorLayerByAmount + currentFloorAsInt;
+      } else if (groundTileType != null && groundTileType.changesFloorLayer) {
+          targetFloorLayerAsInt = groundTileType.changesFloorLayerByAmount + currentFloorAsInt;
+      } else {
+          Debug.LogError("tried to get target floor layer from tileInfo that does not change floors?");
+          return FloorLayer.B6;
+      }
+      if (targetFloorLayerAsInt < 0 || targetFloorLayerAsInt > (int) FloorLayer.F6) {
+        Debug.LogError("tried to change to a floor that doesn't exist?");
+        return FloorLayer.B6;
+      }
+      return (FloorLayer) targetFloorLayerAsInt;
     }
 
     public float GetAccelerationMod() {
@@ -80,10 +90,15 @@ public class EnvironmentTileInfo {
     }
 
     public void TakeDamage(DamageObject damageObj) {
-        if (!objectTileType) { return; }
-        if (damageObj.durabilityDamageLevel > objectTileType.tileDurability) {
-           DestroyTile();
-        }
+      if (!objectTileType) { return; }
+      if (damageObj.corrosive && objectTileType.corrodable) {
+        corroded = true;
+        GridManager.Instance.MarkTileToDestroyOnPlayerRespawn(this, objectTileType.replacedByWhenCorroded);
+      }
+      if (damageObj.durabilityDamageLevel > objectTileType.tileDurability) {
+          DestroyTile();
+      }
+
     }
 
     // TODO: this should eventually be based on whether it _will_ respawn player/deal damage
@@ -115,7 +130,7 @@ public class EnvironmentTileInfo {
 
     public string GetInteractableText(PlayerController pc) {
       if (ChangesFloorLayer()) {
-        if (GetTargetFloorLayer() > pc.currentFloor) {
+        if (GetTargetFloorLayer(pc.currentFloor) > pc.currentFloor) {
           return "ascend";
         } else {
           return "descend";

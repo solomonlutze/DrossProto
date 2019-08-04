@@ -13,6 +13,11 @@ public class PlayerHUD : MonoBehaviour {
 
 	private SuperTextMesh activatedAbilityText;
 
+  public TextMeshProUGUI skill1TitleText;
+  public TextMeshProUGUI skill1ValueText;
+  public TextMeshProUGUI skill2TitleText;
+  public TextMeshProUGUI skill2ValueText;
+
 	private string diedString = "This body has been destroyed.\nPress Return to be reborn.";
 	// Use this for initialization
 	// TODO: these should be public properties we set in the inspector
@@ -40,6 +45,8 @@ public class PlayerHUD : MonoBehaviour {
 			} else {
 				activatedAbilityText.text = " ";
 			}
+      skill1ValueText.text = playerController.skill1 ? playerController.skill1.GetTraitName() : "[None]";
+      skill2ValueText.text = playerController.skill2 ? playerController.skill2.GetTraitName() : "[None]";
 		}
 		else { //  You Died, presumably
 			healthValueText.text = "0";

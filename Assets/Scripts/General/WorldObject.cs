@@ -14,4 +14,18 @@ public class WorldObject : MonoBehaviour {
 			(FloorLayer) Enum.Parse(typeof (FloorLayer), LayerMask.LayerToName(gameObject.layer))
 		);
 	}
+
+	public static void ChangeLayersRecursively(Transform trans, string layerName)
+	{
+		trans.gameObject.layer = LayerMask.NameToLayer(layerName);
+		SpriteRenderer r = trans.gameObject.GetComponent<SpriteRenderer>();
+		if (r != null) {
+			r.sortingLayerName = layerName;
+		}
+		foreach(Transform child in trans)
+		{
+			ChangeLayersRecursively(child, layerName);
+		}
+ 	}
+
 }

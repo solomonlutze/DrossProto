@@ -25,7 +25,8 @@ public class CharacterAI : Character {
   [SerializeField]
   private float timeBetweenRouteCalculations = 0.5f;
   private float timeSinceLastRouteCalculation = 0.0f;
-	public List<PickupItem> spawnsOnDeath;
+	public List<PickupItem> itemDrops;
+  public bool hasDroppedItems = false;
 
 	override protected void Awake () {
 		base.Awake();
@@ -96,7 +97,7 @@ public class CharacterAI : Character {
 		if (tile.ChangesFloorLayer()
 			&& path != null
 			&& path.Count >= 1
-			&& (path[0].floor == tile.GetTargetFloorLayer() || path[1] != null || path[1].floor == tile.GetTargetFloorLayer())
+			&& (path[0].floor == tile.GetTargetFloorLayer(currentFloor) || path[1] != null || path[1].floor == tile.GetTargetFloorLayer(currentFloor))
 		) {
 			UseTile();
 		}
@@ -219,16 +220,19 @@ public class CharacterAI : Character {
 		) {
 			Attack();
 		}
- 		// if (weapon != null
-		//   && objectOfInterest != null
-		//   && Vector3.Distance(objectOfInterest.transform.position, transform.position) < weapon.weaponData.range
-		//   && GetAngleToTarget() < weapon.weaponData.attackAngle) {
-		// 	Attack();
-		// }
 	}
 
+  protected override void TakeDamage(DamageObject damageObj) {
+    if (damageObj.forcesItemDrop) {
+      SpawnDroppedItems();
+    }
+    base.TakeDamage(damageObj);
+  }
+
 	private void SpawnDroppedItems() {
-		foreach(PickupItem item in spawnsOnDeath) {
+    if (hasDroppedItems) { return; }
+    hasDroppedItems = true;
+		foreach(PickupItem item in itemDrops) {
 			GameObject instantiatedItem = Instantiate(item.gameObject, transform.position, transform.rotation);
 			instantiatedItem.layer = gameObject.layer;
 			instantiatedItem.GetComponent<SpriteRenderer>().sortingLayerName = LayerMask.LayerToName(gameObject.layer);
@@ -236,7 +240,9 @@ public class CharacterAI : Character {
 	}
 
 	public override void Die(){
-		SpawnDroppedItems();
+    if (!hasDroppedItems) {
+		  SpawnDroppedItems();
+    }
 		base.Die();
 	}
 }

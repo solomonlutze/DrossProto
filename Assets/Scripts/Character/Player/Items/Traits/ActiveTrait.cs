@@ -33,9 +33,9 @@ public class ActiveTraitEffect {
 	public float delay;
 	public float applicationDuration;
 	public bool cancelOnButtonRelease;
-	public TraitEffect[] traitEffects;
 	public TraitSpawnedObjectData[] objectsToSpawn;
 	public TraitChangedEnvironmentTile[] changedEnvironmentTiles;
+	public TraitEffect[] traitEffects;
 }
 
 
@@ -235,6 +235,10 @@ public class ActiveTraitInstance : MonoBehaviour {
 	private void ApplyCooldown() {
 		abilityReady = true;
 	}
+
+  public string GetTraitName() {
+    return traitData.traitName;
+  }
 }
 // public class ActiveTraitMono : TraitMono {
 

@@ -168,13 +168,12 @@ public class PathfindingSystem : MonoBehaviour {
             Debug.LogError("missing layer information for "+currentNode.floor);
             return false;
         }
+        EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(new TileLocation(new Vector2Int(currentNode.x, currentNode.y), currentNode.floor));
         EnvironmentTile groundTile = (EnvironmentTile) layer.groundTilemap.GetTile (new Vector3Int (currentNode.x, currentNode.y, 0)); // is this in our floor?
         EnvironmentTile objectTile = (EnvironmentTile) layer.objectTilemap.GetTile (new Vector3Int (currentNode.x, currentNode.y, 0)); // is this in our floor?
         FloorLayer? targetLayer = null;
-        if (objectTile != null && objectTile.changesFloorLayer) {
-            targetLayer = objectTile.targetFloorLayer;
-        } else if (groundTile != null && groundTile.changesFloorLayer) {
-            targetLayer = objectTile.targetFloorLayer;
+        if (tileInfo.ChangesFloorLayer()) {
+          targetLayer = tileInfo.GetTargetFloorLayer(currentNode.floor);
         }
         return (targetLayer != null && targetLayer == newFloor);
     }

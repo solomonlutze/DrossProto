@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -156,8 +156,12 @@ public class Character : WorldObject {
 	public CustomPhysicsController po;
 	// animation object
 	protected Animator animator;
+  public SpriteRenderer mainRenderer;
 
   [Header("Game State Info")]
+  public Color damageFlashColor = Color.red;
+  public Color attackColor = Color.grey;
+  public float damageFlashSpeed = 1.0f;
 	public bool attacking = false;
 	protected bool stunned = false;
 	public bool animationPreventsMoving = false;
@@ -180,6 +184,8 @@ public class Character : WorldObject {
 	public string initialskill1;
 	public string initialskill2;
 
+  private Coroutine damageFlashCoroutine;
+
 	protected virtual void Awake() {
 		orientation = transform.Find("Orientation");
 		if (orientation == null) {
@@ -194,7 +200,7 @@ public class Character : WorldObject {
 		if (po == null) {
 			Debug.LogError("No physics controller component on Character object: "+gameObject.name);
 		}
-        ChangeLayersRecursively(transform, currentFloor.ToString());
+        WorldObject.ChangeLayersRecursively(transform, currentFloor.ToString());
 	}
 
 	protected virtual void Init() {
@@ -349,7 +355,7 @@ public class Character : WorldObject {
 	// DAMAGE FUNCTIONS
 
 	// Called from Hitbox's OnTriggerEnter. Calls other functions to determine outcome of getting hit.
-	protected void TakeDamage(DamageObject damageObj) {
+	protected virtual void TakeDamage(DamageObject damageObj) {
     Debug.Log("TakeDamage");
 		if (
       sourceInvulnerabilities.Contains(damageObj.sourceString)
@@ -375,7 +381,10 @@ public class Character : WorldObject {
 		}
 		StartCoroutine(ApplyInvulnerability(damageObj));
     Debug.Log("Applyed invulnerability");
-		// StartCoroutine(ApplyDamageFlash(damageObj));
+    if (damageFlashCoroutine != null) {
+      StopCoroutine(damageFlashCoroutine);
+    }
+		StartCoroutine(ApplyDamageFlash(damageObj));
 		if (damageObj.attackerTransform != null && damageObj.hitboxTransform != null) {
 			po.ApplyImpulseForce(damageObj.knockback *
 				(damageObj.hitboxTransform.position
@@ -385,6 +394,17 @@ public class Character : WorldObject {
     Debug.Log("Done!");
 	}
 
+  private IEnumerator ApplyDamageFlash(DamageObject damageObj) {
+    // Todo: might wanna change this!
+    Color baseColor = Color.white;
+    mainRenderer.color = damageFlashColor;
+    yield return new WaitForSeconds(damageFlashSpeed / 3);
+    mainRenderer.color = baseColor;
+    yield return new WaitForSeconds(damageFlashSpeed / 3);
+    mainRenderer.color = damageFlashColor;
+    yield return new WaitForSeconds(damageFlashSpeed / 3);
+    mainRenderer.color = baseColor;
+  }
 	public virtual void Die() {
 		Destroy(gameObject);
 	}
@@ -491,6 +511,7 @@ public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
 	}
 
 	public void RemoveMovementAbility(CharacterMovementAbility movementAbility) {
+    Debug.Log("removing movement ability?");
 		activeMovementAbilities.Remove(movementAbility);
 	}
 
@@ -512,22 +533,10 @@ public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
 	public void UseTile() {
 		EnvironmentTileInfo et = GridManager.Instance.GetTileAtLocation(currentTileLocation);
 		if (et.ChangesFloorLayer()) {
-			SetCurrentFloor(et.GetTargetFloorLayer());
+			SetCurrentFloor(et.GetTargetFloorLayer(currentFloor));
 		}
 	}
 
-	private static void ChangeLayersRecursively(Transform trans, string name)
-	{
-		trans.gameObject.layer = LayerMask.NameToLayer(name);
-		SpriteRenderer r = trans.gameObject.GetComponent<SpriteRenderer>();
-		if (r != null) {
-			r.sortingLayerName = name;
-		}
-		foreach(Transform child in trans)
-		{
-			ChangeLayersRecursively(child, name);
-		}
- 	}
 
 	//TODO: this could potentially cause offset issues
 	public TileLocation CalculateCurrentTileLocation() {
@@ -561,9 +570,10 @@ public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
 			vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] -= Time.deltaTime;
 		}
 		if (tile.objectTileType == null && tile.groundTileType == null) {
+      bool canstick = GridManager.Instance.CanStickToAdjacentTile(transform.position, currentFloor);
 			if (
 				(activeMovementAbilities.Contains(CharacterMovementAbility.StickyFeet)
-				&& GridManager.Instance.CanStickToAdjacentTile(transform.position, currentFloor))
+				&& canstick)
 				|| sticking
 			) {
 				// do nothing. no fall plz.

@@ -1,0 +1,42 @@
+
+title: Lint_DEMO
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+<<if not visited("Lint_DEMO")>>
+Hey hi it's a demo!
+
+Name's Lint. Happy to meetcha, and welcome to the Delta! Er. A neatly-sequestered and micro-portioned corner of the Delta.
+
+<<else>>
+
+Hey hi welcome back!
+
+<<endif>>
+[[how do I play?|Lint_DEMO.HowToPlay]]
+[[ok bye|Lint_DEMO.Leave]]
+===
+title: Lint_DEMO.HowToPlay
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Grab some of the lymph inside and try assigning them to your pupa - your next life. Press "I" to see your inventory. When you want to try out your pupa, press "=" to die!
+
+The same lymph will have different effects in different slots, so try them out! You can read the provided readme for a breakdown of what the different traits do.
+
+Otherwise, just mess around - if you find another NPC you've basically got it all figured out.
+
+If not, just keep track of stuff you can't figure out how to do or things that aren't surfaced well.
+===
+title: Lint_DEMO.Leave
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+
+===
