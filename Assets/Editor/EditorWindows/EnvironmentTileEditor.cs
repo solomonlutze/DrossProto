@@ -14,7 +14,9 @@ using UnityEditor;
      environmentTile.changesFloorLayer = GUILayout.Toggle(environmentTile.changesFloorLayer, "Changes Floor Layer");
 
      if(environmentTile.changesFloorLayer) {
-       environmentTile.targetFloorLayer = (FloorLayer) EditorGUILayout.EnumPopup(environmentTile.targetFloorLayer);
+       int floorLayerVal = EditorGUILayout.Popup("Changes floor layer by amount", environmentTile.changesFloorLayerByAmount + 6, new string[] {"-6", "-5", "-4", "-3", "-2", "-1", "0", "1", "2", "3", "4", "5", "6"});
+       environmentTile.changesFloorLayerByAmount = floorLayerVal - 6; // shrug?????
+       Debug.Log("changes floor layer by amount: "+environmentTile.changesFloorLayerByAmount);
      }
    }
  }

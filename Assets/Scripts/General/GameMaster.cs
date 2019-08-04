@@ -19,6 +19,7 @@ public class GameMaster : Singleton<GameMaster> {
 	public GameObject[] spawnPoints;
 	private int previousSpawnPoint = 0;
 
+  public LymphTypeToSpriteDictionary lymphTypeToSpriteMapping;
   public LymphTypeToLymphTypeSkillsDictionary lymphTypeToSkillsMapping;
 
 	// Use this for initialization
@@ -52,6 +53,7 @@ public class GameMaster : Singleton<GameMaster> {
 	}
 
 	private void Respawn(bool initialSpawn = false) {
+    GridManager.Instance.DestroyTilesOnPlayerRespawn();
 		GameObject player = GameObject.FindGameObjectWithTag("Player");
 		if (player != null) {
 			playerController = player.GetComponent<PlayerController>();
@@ -66,15 +68,18 @@ public class GameMaster : Singleton<GameMaster> {
 			playerController.currentFloor = fl;
 		}
 		playerController.SetCurrentFloor(playerController.currentFloor);
-    if (!initialSpawn) {
-      Debug.Log("respawn - cachedPupa head: "+cachedPupa[TraitSlot.Head]);
-      Debug.Log("respawn - cachedPupa head trait: "+cachedPupa[TraitSlot.Head].trait);
-    }
 		playerController.Init(initialSpawn, cachedPupa);
+    DoActivateOnPlayerRespawn();
 		SetGameStatus(Constants.GameState.Play);
 	}
 
-	private GameObject ChooseSpawnPoint() {
+  private void DoActivateOnPlayerRespawn() {
+    GameObject[] objectsToActivate = GameObject.FindGameObjectsWithTag("ActivateOnPlayerRespawn");
+    foreach(GameObject obj in objectsToActivate) {
+      obj.SendMessage("Activate", SendMessageOptions.RequireReceiver);
+    }
+  }
+  private GameObject ChooseSpawnPoint() {
 		if (spawnPoints.Length > 0) {
 			previousSpawnPoint = (int) Mathf.Repeat(previousSpawnPoint+1, spawnPoints.Length);
 			return spawnPoints[previousSpawnPoint];

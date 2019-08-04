@@ -94,7 +94,7 @@ public class InventoryScreen : MonoBehaviour {
 		if (playerController != null) {
 			switch (itemToEquip.type) {
 				case InventoryItemType.Consumable:
-            		int slotValue = slot.GetValueOrDefault();
+            int slotValue = slot.GetValueOrDefault();
 					playerController.EquipConsumableToSlot(itemToEquip.itemId, slotValue);
 					CloseEquipConsumableMenu();
 					break;

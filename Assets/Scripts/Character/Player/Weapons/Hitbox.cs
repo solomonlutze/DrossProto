@@ -7,7 +7,8 @@ public enum DamageType {
     Physical,
     Heat,
     Fungal,
-    Cold
+    Cold,
+    Acid
 
 }
 
@@ -34,6 +35,11 @@ public class DamageObject {
     public float invulnerabilityWindow;
     // whether this damage object should respect invulnerability from OTHER targets
     public bool ignoreInvulnerability;
+    // whether this damage object should corrode certain tiles
+    public bool corrosive = false;
+
+    // whether this damage object should force hit enemies to drop their items
+    public bool forcesItemDrop = false;
 
     public TileDurability durabilityDamageLevel = TileDurability.Delicate;
 
@@ -50,14 +56,16 @@ public class DamageObject {
     }
     // public DamageObject() {}
     public DamageObject(){}
-    public DamageObject(float d, float k, float s, float i, DamageType dt, TileDurability durabilityDamage, Transform hitboxT, Transform attackerT) {
+    public DamageObject(float d, float k, float s, float i, DamageType dt, bool c, bool f, TileDurability durabilityDamage, Transform hitboxT, Transform attackerT) {
         damage = d;
         knockback = k;
         stun = s;
         invulnerabilityWindow = i;
         durabilityDamageLevel = durabilityDamage;
         hitboxTransform = hitboxT;
-        damageType = DamageType.Physical;
+        damageType = dt;
+        corrosive = c;
+        forcesItemDrop = f;
         attackerTransform = attackerT;
         characterStatModifications = new List<CharacterStatModification>();
     }
@@ -101,17 +109,27 @@ public class Hitbox : MonoBehaviour {
 	}
     // Characteristics of hitbox initialized by weapon.
     public void Init(Transform initializingTransform, Character owner, HitboxInfo info, DamageObject damageObject=null, CharacterAttackValueToIntDictionary attackModifiers=null) {
+
+		    gameObject.layer = owner.gameObject.layer;
+		    GetComponent<SpriteRenderer>().sortingLayerName = LayerMask.LayerToName(owner.gameObject.layer);
+        Debug.Log("gameObject.layer:" + gameObject.layer);
+        Debug.Log("owner.gameObject.layer:" + owner.gameObject.layer);
+        Debug.Log("sortingLayerName:" + GetComponent<SpriteRenderer>().sortingLayerName);
+
         duration = info.duration;
         // WARNING: duration of 0 means a hitbox needs to be cleaned up manually
         if (duration > 0) {
 		    StartCoroutine(CleanUpSelf());
         }
+        // TODO: clean this up, wny tf is it like this
         damageObj = new DamageObject(
             info.damageMultipliers.damage,
             info.damageMultipliers.knockback,
             info.damageMultipliers.stun,
             info.damageMultipliers.invulnerabilityWindow,
-            DamageType.Physical,
+            info.damageMultipliers.damageType,
+            info.damageMultipliers.corrosive,
+            info.damageMultipliers.forcesItemDrop,
             info.damageMultipliers.durabilityDamageLevel,
             transform,
             owner ? owner.transform : initializingTransform

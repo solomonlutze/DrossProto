@@ -1,9 +1,9 @@
 
 title: Lint
-tags:
+tags: 
 colorID: 0
 position: 0,0
-parent:
+parent: 
 ---
 <<if not visited("Lint")>>
 Hey hi welcome ba- oh, you're new. Hey!
@@ -26,10 +26,10 @@ Hey hi welcome back!
 <<endif>>
 ===
 title: Lint.HowToPlay
-tags:
+tags: 
 colorID: 0
 position: 0,0
-parent:
+parent: 
 ---
 Go collect lymph by killing bugs. You can use lymph to give abilities to your pupa, which becomes your next life when you die. So, you're always building your next life.
 -> got it, thanks
@@ -38,10 +38,10 @@ Go collect lymph by killing bugs. You can use lymph to give abilities to your pu
 	Ok well try it out and if it sucks tell Sol about it ok this is just a demo level
 ===
 title: Lint.WhereToGo
-tags:
+tags: 
 colorID: 0
 position: 0,0
-parent:
+parent: 
 ---
 <<if not visited("Lint.WhereToGo")>>
 Look: normally I'd have a piece for you about being your own free person and all, but this is just a demo level.
@@ -49,33 +49,4 @@ You complete it if you get to the shrine east of here. East is to the right.
 <<else>>
 East. Right. Straight out the door. You'll probably have to get some new abilities to get there, though.
 <<endif>>
-===
-title: Start_MoreExamples
-tags:
-colorID: 0
-position: 0,0
-parent:
----
-This node is called Start_MoreExamples.
-The second way to do choices in Yarn is with 'shortcut options' like this:
-
-->This is option 1
-	You selected option 1.
-->This is option 2
-	You selected option 2.
-	<<set $didOption2 to true>>
-
-Based on choices, you can set variables, and then check those variables later.
-<<if $didOption2 is true>>
-By checking $didOption2, I remember you chose option 2!
-<<else>>
-I can't detect a variable $didOption2, so that means you chose option 1
-<<endif>>
-
-Do you want to go back to Start now?
--> Yes, send me back to Start.
-	[[Start]]
--> No thanks, I want to stop.
-
-Ok here's the end, good luck!
 ===

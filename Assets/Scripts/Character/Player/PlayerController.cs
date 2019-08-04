@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,8 +22,8 @@ public class PlayerController : Character {
 	private PassiveTrait passiveTrait1;
 	private PassiveTrait passiveTrait2;
 
-	private ActiveTraitInstance skill1;
-	private ActiveTraitInstance skill2;
+	public ActiveTraitInstance skill1;
+	public ActiveTraitInstance skill2;
 	private TileLocation lastSafeTileLocation;
 
 	public string lastActivatedTrait = null;
@@ -103,8 +103,9 @@ public class PlayerController : Character {
 		}
 		else {
 			Debug.Log("collided with "+tile);
-			if (tile.tileTags.Contains(TileTag.Ground) && activeMovementAbilities.Contains(CharacterMovementAbility.Burrow)) {
+			if (tile.objectTileTags.Contains(TileTag.Ground) && activeMovementAbilities.Contains(CharacterMovementAbility.Burrow)) {
 				tile.DestroyTile();
+        tile.DestroyTile();
 			}
 		}
 	}
@@ -129,6 +130,7 @@ public class PlayerController : Character {
 		if (interactables.Count > 0) {
 			foreach (GameObject interactableObject in interactables) {
 				Interactable interactable = interactableObject.GetComponent<Interactable>();
+        if (!interactable.isInteractable) { continue; }
 				AddContextualAction(
 					interactable.interactableText,
 					() => interactableObject.SendMessage("PlayerActivate", this, SendMessageOptions.DontRequireReceiver)

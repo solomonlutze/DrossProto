@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -20,7 +20,6 @@ public class TileLocation {
 	}
 	public static bool operator == (TileLocation t1, TileLocation t2)
 	{
-
 		if (ReferenceEquals(t1, t2)) { return true; }
 		if (ReferenceEquals(t1, null))
         {
@@ -74,9 +73,10 @@ public class GridManager : Singleton<GridManager> {
 	public LayerToLayerFloorDictionary layerFloors;
 	public Dictionary<FloorLayer, Dictionary<Vector2Int, EnvironmentTileInfo>> worldGrid;
 
-
+  private List<EnvironmentTileInfo> tilesToDestroyOnPlayerRespawn;
 	public void Awake() {
 		worldGrid = new Dictionary<FloorLayer, Dictionary<Vector2Int, EnvironmentTileInfo>>();
+    tilesToDestroyOnPlayerRespawn = new List<EnvironmentTileInfo>();
 		Dictionary<Vector2, EnvironmentTileInfo> floor = new Dictionary<Vector2, EnvironmentTileInfo>();
 		Tilemap groundTilemap;
 		Tilemap objectTilemap;
@@ -118,7 +118,7 @@ public class GridManager : Singleton<GridManager> {
 		}
 	}
 
-	public void ConstructAndSetEnvironmentTileInfo(TileLocation loc, Tilemap groundTilemap, Tilemap objectTilemap) {
+	public EnvironmentTileInfo ConstructAndSetEnvironmentTileInfo(TileLocation loc, Tilemap groundTilemap, Tilemap objectTilemap) {
 		Vector3Int v3pos = new Vector3Int(loc.position.x, loc.position.y, 0);
 		EnvironmentTileInfo info = new EnvironmentTileInfo();
 		EnvironmentTile objectTile = objectTilemap.GetTile(v3pos) as EnvironmentTile;
@@ -130,6 +130,7 @@ public class GridManager : Singleton<GridManager> {
 			objectTile
 		);
 		worldGrid[loc.floorLayer][loc.position] = info;
+    return info;
 	}
 
 	public EnvironmentTileInfo GetTileAtLocation(TileLocation loc) {
@@ -205,7 +206,6 @@ public class GridManager : Singleton<GridManager> {
 					// must be able to stick to the same tile above this one as well, obvs
 					EnvironmentTileInfo tileAboveClimbableTile = GetAdjacentTile(loc, floor + 1, d);
 					if (tileAboveClimbableTile.CanBeStuckTo()) {
-						Debug.Log("tileAbove can be stuck to");
 						return true;
 					}
 				}
@@ -263,7 +263,6 @@ public class GridManager : Singleton<GridManager> {
 		LayerFloor layerFloor = layerFloors[loc.floorLayer];
 		if (layerFloor == null || layerFloor.groundTilemap == null || layerFloor.objectTilemap == null)
         {
-            Debug.LogWarning("missing layerFloor info for "+loc.floorLayer.ToString());
             return;
         }
 		Tilemap levelTilemap = layerFloor.objectTilemap;
@@ -271,15 +270,26 @@ public class GridManager : Singleton<GridManager> {
 	}
 
 
-	public void ReplaceTileAtLocation(TileLocation location, EnvironmentTile replacementTile) {
+	public EnvironmentTileInfo ReplaceTileAtLocation(TileLocation location, EnvironmentTile replacementTile) {
 		LayerFloor layerFloor = layerFloors[location.floorLayer];
 		if (layerFloor == null || layerFloor.groundTilemap == null || layerFloor.objectTilemap == null)
         {
             Debug.LogWarning("missing layerFloor info for "+location.floorLayer.ToString());
-            return;
+            return null;
         }
 		Tilemap levelTilemap = replacementTile != null && replacementTile.floorTilemapType == FloorTilemapType.Ground ? layerFloor.groundTilemap : layerFloor.objectTilemap;
 		levelTilemap.SetTile(new Vector3Int(location.position.x, location.position.y, 0), replacementTile);
-		ConstructAndSetEnvironmentTileInfo(location, layerFloor.groundTilemap, layerFloor.objectTilemap);
+		return ConstructAndSetEnvironmentTileInfo(location, layerFloor.groundTilemap, layerFloor.objectTilemap);
 	}
+
+  public void MarkTileToDestroyOnPlayerRespawn(EnvironmentTileInfo tile, EnvironmentTile replacementTile) {
+    EnvironmentTileInfo newTileInfo = ReplaceTileAtLocation(tile.tileLocation, replacementTile);
+    tilesToDestroyOnPlayerRespawn.Add(newTileInfo);
+  }
+  public void DestroyTilesOnPlayerRespawn() {
+    foreach (EnvironmentTileInfo tile in tilesToDestroyOnPlayerRespawn) {
+      DestroyObjectTileAtLocation(tile.tileLocation);
+    }
+    tilesToDestroyOnPlayerRespawn.Clear();
+  }
 }

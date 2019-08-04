@@ -1,8 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-
 // to equip a trait we need to know:
 // which UpcomingLifeTraits we're equipping to
 // which item we're representing
@@ -12,9 +7,10 @@ public class TraitButton : ItemButton {
 
 
     public void Init(InventoryEntry itemEntryInfo, InventoryScreen parentScreen, TraitSlot ts) {
-        base.Init(itemEntryInfo, parentScreen);
-        traitSlot = ts;
-		    nameLabel.text = itemEntryInfo.itemName;
+      base.Init(itemEntryInfo, parentScreen);
+      traitSlot = ts;
+      nameLabel.text = itemEntryInfo.itemName;
+      if (itemEntryInfo.equipped) { nameLabel.text += "\n (Equipped)"; }
     }
 
   protected override void HandleClick() {

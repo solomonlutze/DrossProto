@@ -158,12 +158,14 @@ public class Inventory : MonoBehaviour {
       TraitItemData itemInfo = Resources.Load("Data/ItemData/Trait/"+itemToEquip.itemId) as TraitItemData;
       upcomingPupa[slot] = new UpcomingLifeTrait(itemInfo.traits.EquippedTraits()[slot], itemInfo.lymphType, itemToEquip);
       lymphTypeCounts[itemInfo.lymphType]++;
+      itemToEquip.equipped = true;
     }
 
     public void UnequipTraitItemInSlot(TraitSlot slot) {
       UpcomingLifeTrait lifeTraitToUnequip = upcomingPupa[slot];
       upcomingPupa[slot] = new UpcomingLifeTrait(null, LymphType.None, null);
       if (lifeTraitToUnequip != null && lifeTraitToUnequip.inventoryItem != null) {
+        lifeTraitToUnequip.inventoryItem.equipped = false;
         lymphTypeCounts[lifeTraitToUnequip.lymphType]--;
       }
     }

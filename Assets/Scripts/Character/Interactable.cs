@@ -10,4 +10,5 @@ public class Interactable : MonoBehaviour {
     public virtual void OnRemove() {
 
     }
+    public bool isInteractable = true;
 }

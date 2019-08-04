@@ -18,16 +18,18 @@ public class EnvironmentTile : Tile {
     public bool dealsDamage = false;
     public List<TileTag> tileTags;
     public DamageObject environmentalDamage;
+    public bool corrodable;
     public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage;
 
     [HideInInspector]
     public bool changesFloorLayer;
     // Which floor layer the tile sends the character to
     [HideInInspector]
-    public FloorLayer targetFloorLayer;
+    public int changesFloorLayerByAmount;
     public TileDurability tileDurability = TileDurability.Indestructable;
     public FloorTilemapType floorTilemapType = FloorTilemapType.Ground;
     public EnvironmentTile replacedByWhenDestroyed;
+    public EnvironmentTile replacedByWhenCorroded;
     //TODO: should we just have statMods?
     public float accelerationMod;
     public Sprite[] maskingSprites;

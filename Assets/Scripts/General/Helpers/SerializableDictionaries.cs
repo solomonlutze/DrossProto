@@ -78,6 +78,17 @@ public class LymphTypeToLymphTypeSkillsDictionary : SerializableDictionaryBase<L
     }
   }
 }
+
+[System.Serializable]
+public class LymphTypeToSpriteDictionary : SerializableDictionaryBase<LymphType, Sprite> {
+  public LymphTypeToSpriteDictionary() {
+    foreach(LymphType type in (LymphType[]) Enum.GetValues(typeof(LymphType))) {
+      if (type == LymphType.None) { continue; }
+      Add(type, null);
+    }
+  }
+}
+
 [System.Serializable]
 public class CharacterAttackValueToIntDictionary : SerializableDictionaryBase<CharacterAttackValue, int>{
 
