@@ -54,6 +54,7 @@ public class CharacterVitalToFloatDictionary : SerializableDictionaryBase<Charac
     public CharacterVitalToFloatDictionary() {
       Add(CharacterVital.CurrentHealth, Constants.BaseCharacterStats[CharacterStat.MaxHealth]);
       Add(CharacterVital.CurrentEnvironmentalDamageCooldown, Constants.BaseCharacterStats[CharacterStat.MaxEnvironmentalDamageCooldown]);
+      Add(CharacterVital.CurrentDashCooldown, 0f);
     }
   }
 

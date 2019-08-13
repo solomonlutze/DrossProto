@@ -2,9 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class EquippedTraitButton : MonoBehaviour {
 	public Button button;
+  public SuperTextMesh slotNameLabel;
 	public SuperTextMesh nameLabel;
 	private InventoryScreen inventoryScreen;
   private TraitSlot slot;
@@ -12,7 +14,7 @@ public class EquippedTraitButton : MonoBehaviour {
 	public Color defaultColor;
 	void Start () {
 		if (button != null) {
-        	button.onClick.AddListener(HandleClick);
+      button.onClick.AddListener(HandleClick);
 		}
 		GetComponent<Image>().color = defaultColor;
 	}
@@ -20,7 +22,8 @@ public class EquippedTraitButton : MonoBehaviour {
 	public virtual void Init(UpcomingLifeTrait upcomingTrait, InventoryScreen parentScreen, TraitSlot ts) {
     slot = ts;
     InventoryEntry ie = upcomingTrait.inventoryItem;
-    string buttonText = ts.ToString() + ":\n";
+    slotNameLabel.text = ts.ToString();
+    string buttonText = "";
     if (upcomingTrait != null && upcomingTrait.trait != null) {
       buttonText += upcomingTrait.trait.traitName + "\n";
       string itemText = "no item";

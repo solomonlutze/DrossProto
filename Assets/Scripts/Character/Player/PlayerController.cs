@@ -189,9 +189,12 @@ public class PlayerController : Character {
 	void HandleActionInput() {
 		switch (GameMaster.Instance.GetGameStatus()) {
 			case (Constants.GameState.Play):
-				if (Input.GetKeyDown("space")) {
-						Attack();
-					}
+				if (Input.GetButtonDown("Attack")) {
+          Attack();
+        }
+        else if (Input.GetButtonDown("Dash")) {
+          Dash();
+        }
 				else if (Input.GetButtonDown("Activate")) {
 					if (availableContextualActions.Count > 0) {
 						GetSelectedContextualAction().actionToCall();

@@ -34,5 +34,7 @@ public static class Constants
         {CharacterStat.MoveAcceleration, .5f},
         {CharacterStat.MaxEnvironmentalDamageCooldown, .25f},
         {CharacterStat.RotationSpeed, 2f},
+        {CharacterStat.MaxDashCooldown, 1f},
+        {CharacterStat.DashRange, 2f},
     };
 }
