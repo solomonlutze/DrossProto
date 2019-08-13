@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class ItemButton : MonoBehaviour {
 
 	public Button button;
-	public SuperTextMesh nameLabel;
+	public TextMeshProUGUI nameLabel;
 	protected InventoryEntry item;
 	protected InventoryScreen inventoryScreen;
 	protected int? slotNumber;
@@ -15,7 +16,7 @@ public class ItemButton : MonoBehaviour {
 	public Color defaultColor;
 	public Color equippedColor;
 	void Start () {
-        button.onClick.AddListener(HandleClick);
+    button.onClick.AddListener(HandleClick);
 		GetComponent<Image>().color = defaultColor;
 	}
 

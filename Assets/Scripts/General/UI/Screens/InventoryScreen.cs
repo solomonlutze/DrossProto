@@ -46,12 +46,12 @@ public class InventoryScreen : MonoBehaviour {
 	public void Enable() {
 		PlayerController playerController = GameMaster.Instance.GetPlayerController();
 		if (playerController != null) {
-			CloseEquipConsumableMenu();
+			// CloseEquipConsumableMenu();
 			CloseEquipTraitMenu();
 
       Inventory inventory = playerController.GetComponent<Inventory>();
       TraitSlotToUpcomingTraitDictionary upcomingPupa = inventory.GetUpcomingPupa();
-      PopulateEquippedConsumablesList(inventory.GetEquippedConsumableInventoryEntries());
+      // PopulateEquippedConsumablesList(inventory.GetEquippedConsumableInventoryEntries());
 			PopulateEquippedTraitsList(upcomingPupa);
 		}
 	}
@@ -70,16 +70,23 @@ public class InventoryScreen : MonoBehaviour {
 	}
 	public void PopulateEquippedTraitsList(TraitSlotToUpcomingTraitDictionary equippedPupaTraits) {
 
-		foreach(Transform child in equippedTraitListPupaContent) {
-			Destroy(child.gameObject);
-		}
-		foreach (TraitSlot s in equippedPupaTraits.Keys) {
-			UpcomingLifeTrait trait = equippedPupaTraits[s];
-			EquippedTraitButton button = Instantiate(equippedTraitButtonPrefab).GetComponent<EquippedTraitButton>();
-			button.Init(trait, this, s);
-			button.gameObject.transform.SetParent(equippedTraitListPupaContent);
-			button.gameObject.transform.localScale = Vector3.one;
-		}
+		// foreach(Transform child in equippedTraitListPupaContent) {
+		// 	Destroy(child.gameObject);
+		// }
+    for(int i = 0; i < equippedTraitListPupa.childCount; i++) {
+      Transform equippedTraitDisplay = equippedTraitListPupa.GetChild(i);
+      Debug.Log(equippedTraitDisplay.gameObject);
+      EquippedTraitButton b = equippedTraitDisplay.GetComponent<EquippedTraitButton>();
+      Debug.Log(b);
+      b.Init(equippedPupaTraits[(TraitSlot) i], this, (TraitSlot) i);
+    }
+		// foreach (TraitSlot s in equippedPupaTraits.Keys) {
+		// 	UpcomingLifeTrait trait = equippedPupaTraits[s];
+		// 	EquippedTraitButton button = Instantiate(equippedTraitButtonPrefab, equippedTraitListPupaContent).GetComponent<EquippedTraitButton>();
+		// 	button.Init(trait, this, s);
+			// button.gameObject.transform.SetParent(equippedTraitListPupaContent);
+			// button.gameObject.transform.localScale = Vector3.one;
+    // LayoutRebuilder.ForceRebuildLayoutImmediate(GetComponent<RectTransform>());
 		// for (int i = 0; i < equippedPupaTraits.activeTraits.Length; i++) {
 		// 	UpcomingLifeTrait trait = equippedPupaTraits.activeTraits[i];
 		// 	EquippedTraitButton button = Instantiate(equippedTraitButtonPrefab).GetComponent<EquippedTraitButton>();

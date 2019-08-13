@@ -11,7 +11,8 @@ public class AnimationInfoObject {
 
 public enum CharacterVital {
   CurrentHealth,
-  CurrentEnvironmentalDamageCooldown
+  CurrentEnvironmentalDamageCooldown,
+  CurrentDashCooldown
 }
 public enum CharacterStat {
 	MaxHealth,
@@ -19,6 +20,8 @@ public enum CharacterStat {
 	MaxEnvironmentalDamageCooldown,
 	MoveAcceleration,
 	RotationSpeed,
+  MaxDashCooldown,
+  DashRange
 }
 
 public enum CharacterAttackValue {
@@ -225,6 +228,7 @@ public class Character : WorldObject {
 		HandleHealth();
 		HandleFacingDirection();
 		HandleTile();
+    HandleCooldowns();
     HandleConditionallyActivatedTraits();
 	}
 
@@ -329,13 +333,17 @@ public class Character : WorldObject {
         timeStandingStill = 0f;
       }
       po.SetMovementInput(new Vector2(movementInput.x, movementInput.y));
-
 		}
 		else {
 			po.SetMovementInput(Vector2.zero);
 		}
 	}
 
+  protected void Dash() {
+    if (vitals[CharacterVital.CurrentDashCooldown] > 0) { return; }
+    po.ApplyImpulseForce(orientation.rotation * new Vector3(.5f, 0, 0));
+    vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
+  }
 	// determines if input-based movement is allowed
 	protected virtual bool CanMove() {
 		if (!activeMovementAbilities.Contains(CharacterMovementAbility.Halteres)) {
@@ -566,9 +574,6 @@ public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
 		if (currentTileLocation != nowTileLocation) {
 			currentTileLocation = nowTileLocation;
 		}
-		if (vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] > 0) {
-			vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] -= Time.deltaTime;
-		}
 		if (tile.objectTileType == null && tile.groundTileType == null) {
       bool canstick = GridManager.Instance.CanStickToAdjacentTile(transform.position, currentFloor);
 			if (
@@ -622,6 +627,15 @@ public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
           }
           break;
       }
+    }
+  }
+
+  protected void HandleCooldowns() {
+		if (vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] > 0) {
+			vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] -= Time.deltaTime;
+		}
+    if (vitals[CharacterVital.CurrentDashCooldown] > 0) {
+			vitals[CharacterVital.CurrentDashCooldown] -= Time.deltaTime;
     }
   }
 
