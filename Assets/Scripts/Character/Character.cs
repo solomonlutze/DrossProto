@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEditor;
+using TMPro;
 // TODO: Character can probably extend CustomPhysicsController, which simplifies movement code a bit.
 public class AnimationInfoObject {
 	public Vector2 animationInput;
@@ -160,11 +161,16 @@ public class Character : WorldObject {
 	// animation object
 	protected Animator animator;
   public SpriteRenderer mainRenderer;
+  public TextMeshProUGUI healthText;
+  public TextMeshProUGUI staminaText;
 
   [Header("Game State Info")]
   public Color damageFlashColor = Color.red;
   public Color attackColor = Color.grey;
   public float damageFlashSpeed = 1.0f;
+  public float maxStamina = 100f;
+  public float stamina = 0f;
+  public float staminaRecoveredPerSecond = 10;
 	public bool attacking = false;
 	protected bool stunned = false;
 	public bool animationPreventsMoving = false;
@@ -200,6 +206,7 @@ public class Character : WorldObject {
 	protected virtual void Start () {
 		movementInput = new Vector2(0,0);
 		animator = GetComponent<Animator>();
+    stamina = maxStamina;
 		if (po == null) {
 			Debug.LogError("No physics controller component on Character object: "+gameObject.name);
 		}
@@ -270,7 +277,7 @@ public class Character : WorldObject {
 		if (attackModifiers == null || !attackModifiers.ContainsKey(value)) {
 			return 0;
 		}
-		return attackModifiers[value] * Constants.CharacterAttackAdjustmentIncrements[value];
+		return .3f + attackModifiers[value] * Constants.CharacterAttackAdjustmentIncrements[value];
 	}
 
 	// TODO: Refactor attack info so that it all lives on a single object (...maybe)
@@ -526,8 +533,14 @@ public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
 
 //TODO: SHOULD PROBS BE DEPRECATED
 	public void AdjustHealth(float adjustment) {
+    stamina += adjustment;
+    float modAdj = Mathf.Min(adjustment * ((100 - stamina) / 100), -1);
+    Debug.Log("stamina: "+stamina);
+    Debug.Log("adjustment: "+adjustment);
+    Debug.Log("modAdj: "+modAdj);
 		vitals[CharacterVital.CurrentHealth] =
-      Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, 0, GetStat(CharacterStat.MaxHealth));
+      Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + modAdj, 0, GetStat(CharacterStat.MaxHealth));
+    Debug.Log("Health after adjust: " +  vitals[CharacterVital.CurrentHealth]);
 	}
 
   public virtual void SetCurrentFloor(FloorLayer newFloorLayer)
@@ -557,10 +570,15 @@ public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
 		);
 	}
 	protected virtual void HandleHealth() {
+    stamina += staminaRecoveredPerSecond * Time.deltaTime;
+    stamina = Mathf.Min(stamina, maxStamina);
+    if (healthText != null) { healthText.text = "Health: "+Mathf.Floor(vitals[CharacterVital.CurrentHealth]); }
+    if (staminaText != null) { staminaText.text = "Stamina: "+Mathf.Floor(stamina); }
 		if (vitals[CharacterVital.CurrentHealth] <= 0) {
 			Die();
 		}
 	}
+
 	protected virtual void HandleTile() {
 		EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(CalculateCurrentTileLocation());
 		if (tile == null) {
