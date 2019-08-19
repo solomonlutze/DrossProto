@@ -112,10 +112,6 @@ public class Hitbox : MonoBehaviour {
 
 		    gameObject.layer = owner.gameObject.layer;
 		    GetComponent<SpriteRenderer>().sortingLayerName = LayerMask.LayerToName(owner.gameObject.layer);
-        Debug.Log("gameObject.layer:" + gameObject.layer);
-        Debug.Log("owner.gameObject.layer:" + owner.gameObject.layer);
-        Debug.Log("sortingLayerName:" + GetComponent<SpriteRenderer>().sortingLayerName);
-
         duration = info.duration;
         // WARNING: duration of 0 means a hitbox needs to be cleaned up manually
         if (duration > 0) {

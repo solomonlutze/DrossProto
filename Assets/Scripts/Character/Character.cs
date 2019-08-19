@@ -185,7 +185,7 @@ public class Character : WorldObject {
   protected float timeStandingStill = 0;
   protected float timeMoving = 0;
   protected Dictionary<string, GameObject> traitSpawnedGameObjects;
-  protected List<string> sourceInvulnerabilities;
+  public List<string> sourceInvulnerabilities;
 
 	[Header("Default Info")]
   public CharacterData defaultCharacterData;
@@ -370,35 +370,29 @@ public class Character : WorldObject {
 	// DAMAGE FUNCTIONS
 
 	// Called from Hitbox's OnTriggerEnter. Calls other functions to determine outcome of getting hit.
-	protected virtual void TakeDamage(DamageObject damageObj) {
-    Debug.Log("TakeDamage");
-		if (
-      sourceInvulnerabilities.Contains(damageObj.sourceString)
-      && !damageObj.ignoreInvulnerability)
-    { return; }
-    Debug.Log("Not invulnerable");
+	public virtual void CalculateAndApplyDamage(DamageObject damageObj, float damageReduction = 0) {
+    Debug.Log("damage reduction (character): "+damageReduction);
+    Debug.Log("initial damage: "+damageObj.damage);
 		float damageAfterResistances = ((100 - damageTypeResistances[damageObj.damageType]) / 100) * damageObj.damage;
+    Debug.Log("damageAfterResistances: "+damageAfterResistances);
+    float damageAfterGuard = damageAfterResistances * (1 - damageReduction);
+    Debug.Log("damageAfterGuard: "+damageAfterGuard);
 		if (
-      damageAfterResistances <= 0
+      damageAfterGuard <= 0
       && damageObj.damage > 0
       && damageObj.characterStatModifications.Count == 0
-    ) { return; }
-    Debug.Log("Damage > 0");
-		if (damageObj.attackerTransform == transform) { return; }
+    ) { return; };
 		InterruptAnimation();
-		AdjustHealth(Mathf.Floor(-damageAfterResistances));
-    Debug.Log("Health adjusted");
+    AdjustStamina(-damageAfterResistances);
+		AdjustHealth(Mathf.Floor(-damageAfterGuard));
 		CalculateAndApplyStun(damageObj.stun);
-    Debug.Log("Stun applied");
 		foreach(CharacterStatModification mod in damageObj.characterStatModifications) {
-      Debug.Log("Applying stat mod "+mod.source);
 			ApplyStatMod(mod);
 		}
 		StartCoroutine(ApplyInvulnerability(damageObj));
-    Debug.Log("Applyed invulnerability");
-    if (damageFlashCoroutine != null) {
-      StopCoroutine(damageFlashCoroutine);
-    }
+    // if (damageFlashCoroutine != null) {
+    //   StopCoroutine(damageFlashCoroutine);
+    // }
 		StartCoroutine(ApplyDamageFlash(damageObj));
 		if (damageObj.attackerTransform != null && damageObj.hitboxTransform != null) {
 			po.ApplyImpulseForce(damageObj.knockback *
@@ -531,18 +525,18 @@ public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
 	}
 
 
-//TODO: SHOULD PROBS BE DEPRECATED
+// TODO: SHOULD PROBS BE DEPRECATED
+// TODO: FIGURE OUT WHY THIS SHOULD BE DEPRECATED
 	public void AdjustHealth(float adjustment) {
-    stamina += adjustment;
-    float modAdj = Mathf.Min(adjustment * ((100 - stamina) / 100), -1);
-    Debug.Log("stamina: "+stamina);
-    Debug.Log("adjustment: "+adjustment);
-    Debug.Log("modAdj: "+modAdj);
 		vitals[CharacterVital.CurrentHealth] =
-      Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + modAdj, 0, GetStat(CharacterStat.MaxHealth));
+      Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, 0, GetStat(CharacterStat.MaxHealth));
     Debug.Log("Health after adjust: " +  vitals[CharacterVital.CurrentHealth]);
 	}
 
+	public void AdjustStamina(float adjustment) {
+    stamina = Mathf.Clamp(stamina + adjustment, 0, maxStamina);
+    Debug.Log("Stamina after adjust: " + stamina);
+	}
   public virtual void SetCurrentFloor(FloorLayer newFloorLayer)
     {
       currentFloor = newFloorLayer;
@@ -611,7 +605,7 @@ public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
 			return;
 		}
 		if (tile.dealsDamage && tile.environmentalDamage != null && vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] <= 0) {
-			TakeDamage(tile.environmentalDamage);
+			CalculateAndApplyDamage(tile.environmentalDamage);
 			vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
 		}
 	}

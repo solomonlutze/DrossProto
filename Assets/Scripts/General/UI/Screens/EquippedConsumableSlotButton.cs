@@ -15,7 +15,7 @@ public class EquippedConsumableSlotButton : MonoBehaviour {
         button.onClick.AddListener(HandleClick);
 		GetComponent<Image>().color = defaultColor;
 	}
-	
+
 	public void Init(InventoryEntry equippedItemInfo, InventoryScreen parentScreen, int slot) {
         slotNumber = slot;
         nameLabel.text = equippedItemInfo == null ? "(Equip Consumable)" : equippedItemInfo.itemName;

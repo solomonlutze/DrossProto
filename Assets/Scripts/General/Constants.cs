@@ -31,10 +31,17 @@ public static class Constants
     = new Dictionary<CharacterStat, float>() {
         {CharacterStat.DetectableRange, 10f},
         {CharacterStat.MaxHealth, 50f},
-        {CharacterStat.MoveAcceleration, .5f},
+        {CharacterStat.MoveAcceleration, .9f},
         {CharacterStat.MaxEnvironmentalDamageCooldown, .25f},
-        {CharacterStat.RotationSpeed, 2f},
+        {CharacterStat.RotationSpeed, 1f},
         {CharacterStat.MaxDashCooldown, 1f},
-        {CharacterStat.DashRange, 2f},
+        {CharacterStat.DashRange, 4f},
     };
+
+  public static GuardBreakpointInfo[] DefaultGuardBreakpointInfo = new GuardBreakpointInfo[] {
+    new GuardBreakpointInfo(75, Color.green, 95f),
+    new GuardBreakpointInfo(50, Color.yellow, 50f),
+    new GuardBreakpointInfo(25, Color.red, 25f),
+    new GuardBreakpointInfo(10, Color.clear, 0f),
+  };
 }

@@ -20,7 +20,7 @@ public class CharacterAI : Character {
 	public float attackAngle;
 	private List<Node> path;
 	private Vector3 destination;
-	private BoxCollider2D col;
+	private CircleCollider2D col;
 
   [SerializeField]
   private float timeBetweenRouteCalculations = 0.5f;
@@ -32,7 +32,7 @@ public class CharacterAI : Character {
 		base.Awake();
 		base.Init();
 		aiState = AiStates.Docile;
-		col = GetComponent<BoxCollider2D>();
+		col = GetComponent<CircleCollider2D>();
 		path = new List<Node>();
 		destination = Vector3.zero;
 		ChooseObjectOfInterest();
@@ -211,7 +211,7 @@ public class CharacterAI : Character {
 	bool WithinRangeOfTarget() {
 		return objectOfInterest != null
 			&& Vector3.Distance(objectOfInterest.transform.position, transform.position)
-		  		< characterAttack.range + Character.GetAttackValueModifier(attackModifiers, CharacterAttackValue.Range);
+		  		< .5f + characterAttack.range + Character.GetAttackValueModifier(attackModifiers, CharacterAttackValue.Range);
 	}
 	void HandleAggroBehavior() {
 		if (characterAttack != null
@@ -222,11 +222,11 @@ public class CharacterAI : Character {
 		}
 	}
 
-  protected override void TakeDamage(DamageObject damageObj) {
+  public override void CalculateAndApplyDamage(DamageObject damageObj, float damageReduction) {
     if (damageObj.forcesItemDrop) {
       SpawnDroppedItems();
     }
-    base.TakeDamage(damageObj);
+    base.CalculateAndApplyDamage(damageObj, damageReduction);
   }
 
 	private void SpawnDroppedItems() {
