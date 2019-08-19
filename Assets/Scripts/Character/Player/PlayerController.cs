@@ -111,6 +111,11 @@ public class PlayerController : Character {
 	}
 
 	private void ClimbAdjacentTile() {
+    transform.position = new Vector3 (
+      currentTileLocation.position.x + .5f,
+      currentTileLocation.position.y + .5f,
+      0f
+    );
 		SetCurrentFloor(currentFloor + 1);
 	}
 

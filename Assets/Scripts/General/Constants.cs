@@ -33,8 +33,8 @@ public static class Constants
         {CharacterStat.MaxHealth, 50f},
         {CharacterStat.MoveAcceleration, .5f},
         {CharacterStat.MaxEnvironmentalDamageCooldown, .25f},
-        {CharacterStat.RotationSpeed, 2f},
+        {CharacterStat.RotationSpeed, 2.5f},
         {CharacterStat.MaxDashCooldown, 1f},
-        {CharacterStat.DashRange, 2f},
+        {CharacterStat.DashRange, .8f},
     };
 }

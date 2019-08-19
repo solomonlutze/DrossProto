@@ -12,6 +12,7 @@ public class CharacterAI : Character {
 	// current target
 	private WorldObject objectOfInterest;
 	public AiStates aiState;
+  public float minDistanceFromObjectOfInterest = 2f;
 
 	public bool debugStayDocile;
 	public float minDistanceFromPathNode;
@@ -109,11 +110,16 @@ public class CharacterAI : Character {
 	}
 
 	void InputAggroMovement() {
-		if (path == null) {
+    Debug.Log("distancemag? "+(objectOfInterest.transform.position - transform.position).magnitude);
+    Debug.Log("minDistancefromObjectOfInterest? "+minDistanceFromObjectOfInterest);
+		if (
+      path == null
+      && (objectOfInterest.transform.position - transform.position).magnitude > minDistanceFromObjectOfInterest
+    ) {
 			// Debug.DrawLine(objectOfInterest.position, transform.position, Color.green, .25f, true);
-			movementInput = (objectOfInterest.transform.position - transform.position).normalized;
+      movementInput = (objectOfInterest.transform.position - transform.position).normalized;
 		}
-		else if (path.Count > 0) {
+		else if (path != null && path.Count > 0) {
 			Vector3 nextNodeLocation = new Vector3(path[0].x+.5f, path[0].y+.5f, 0);
 			Vector3 colliderCenterWorldSpace = transform.TransformPoint(col.offset);
 			movementInput = (nextNodeLocation - colliderCenterWorldSpace).normalized;

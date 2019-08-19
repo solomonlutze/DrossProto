@@ -341,7 +341,7 @@ public class Character : WorldObject {
 
   protected void Dash() {
     if (vitals[CharacterVital.CurrentDashCooldown] > 0) { return; }
-    po.ApplyImpulseForce(orientation.rotation * new Vector3(.5f, 0, 0));
+    po.ApplyImpulseForce(orientation.rotation * new Vector3(GetStat(CharacterStat.DashRange), 0, 0));
     vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
   }
 	// determines if input-based movement is allowed
