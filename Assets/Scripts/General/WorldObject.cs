@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class WorldObject : MonoBehaviour {
 	public float detectableRange = Constants.DEFAULT_DETECTION_RANGE; // default range at which this object can be sensed by AI (possibly also player?)
+	private int prevLayer;
 	public TileLocation GetTileLocation() {
 		return new TileLocation(
 			new Vector2Int(
@@ -28,7 +29,10 @@ public class WorldObject : MonoBehaviour {
 		}
  	}
   private void OnValidate() {
-    ChangeLayersRecursively(transform, LayerMask.LayerToName(gameObject.layer));
+	if (gameObject.layer != prevLayer) {
+		prevLayer = gameObject.layer;
+		ChangeLayersRecursively(transform, LayerMask.LayerToName(gameObject.layer));
+	}
   }
 
 }
