@@ -30,11 +30,11 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
     private void OnValidate() {
       SpriteRenderer sr = GetComponent<SpriteRenderer>();
       if (objectToSpawn) {
+        gameObject.name = objectToSpawn.name + "_Spawner";
         SpriteRenderer newSr = objectToSpawn.GetComponentInChildren<SpriteRenderer>();
         if (sr && newSr) {
           sr.sprite = objectToSpawn.GetComponentInChildren<SpriteRenderer>().sprite;
         }
-
       }
       WorldObject.ChangeLayersRecursively(transform, LayerMask.LayerToName(gameObject.layer));
     }

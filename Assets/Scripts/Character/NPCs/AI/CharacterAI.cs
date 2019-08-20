@@ -21,7 +21,7 @@ public class CharacterAI : Character {
 	public float attackAngle;
 	private List<Node> path;
 	private Vector3 destination;
-	private BoxCollider2D col;
+	private CircleCollider2D col;
 
   [SerializeField]
   private float timeBetweenRouteCalculations = 0.5f;
@@ -33,7 +33,7 @@ public class CharacterAI : Character {
 		base.Awake();
 		base.Init();
 		aiState = AiStates.Docile;
-		col = GetComponent<BoxCollider2D>();
+		col = GetComponent<CircleCollider2D>();
 		path = new List<Node>();
 		destination = Vector3.zero;
 		ChooseObjectOfInterest();

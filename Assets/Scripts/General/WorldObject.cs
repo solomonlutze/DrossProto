@@ -27,5 +27,8 @@ public class WorldObject : MonoBehaviour {
 			ChangeLayersRecursively(child, layerName);
 		}
  	}
+  private void OnValidate() {
+    ChangeLayersRecursively(transform, LayerMask.LayerToName(gameObject.layer));
+  }
 
 }
