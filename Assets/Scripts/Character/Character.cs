@@ -166,6 +166,7 @@ public class Character : WorldObject {
   public Color attackColor = Color.grey;
   public float damageFlashSpeed = 1.0f;
 	public bool attacking = false;
+	protected bool attackCooldown = false;
 	protected bool stunned = false;
 	public bool animationPreventsMoving = false;
 	public bool sticking = false;
@@ -252,7 +253,7 @@ public class Character : WorldObject {
 	// called via play input or npc AI
 	protected void Attack() {
 		if (characterAttack != null) {
-			if (!attacking) {
+			if (!attackCooldown) {
 				attackCoroutine = StartCoroutine(DoAttack());
 			}
 		}
@@ -262,8 +263,9 @@ public class Character : WorldObject {
 		attacking = true;
 		yield return new WaitForSeconds(characterAttack.attackSpeed);
 		CreateHitbox();
-		yield return new WaitForSeconds(characterAttack.cooldown);
 		attacking = false;
+		yield return new WaitForSeconds(characterAttack.cooldown);
+    attackCooldown = false;
 		attackCoroutine = null;
 	}
 	public static float GetAttackValueModifier(CharacterAttackValueToIntDictionary attackModifiers, CharacterAttackValue value) {
@@ -482,25 +484,25 @@ public class Character : WorldObject {
   }
 
 
-public void ApplyStatMod(CharacterStatModification mod) {
-  if (mod.duration > 0) {
-    StartCoroutine(ApplyTemporaryStatMod(mod));
-  } else {
-    AddStatMod(mod);
+  public void ApplyStatMod(CharacterStatModification mod) {
+    if (mod.duration > 0) {
+      StartCoroutine(ApplyTemporaryStatMod(mod));
+    } else {
+      AddStatMod(mod);
+    }
   }
-}
 
-public IEnumerator ApplyTemporaryStatMod(CharacterStatModification mod) {
-  AddStatMod(mod);
-  yield return new WaitForSeconds(mod.duration);
-  RemoveStatMod(mod.source);
-}
+  public IEnumerator ApplyTemporaryStatMod(CharacterStatModification mod) {
+    AddStatMod(mod);
+    yield return new WaitForSeconds(mod.duration);
+    RemoveStatMod(mod.source);
+  }
 
-public void AddStatMod(CharacterStatModification mod) {
-  AddStatMod(mod.statToModify, mod.magnitude, mod.source);
-}
+  public void AddStatMod(CharacterStatModification mod) {
+    AddStatMod(mod.statToModify, mod.magnitude, mod.source);
+  }
 
-public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
+  public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
     Debug.Log("addStatMod " + statToMod + source + magnitude);
     statModifications[statToMod][source] = magnitude;
   }

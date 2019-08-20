@@ -12,7 +12,7 @@ public class CharacterAI : Character {
 	// current target
 	private WorldObject objectOfInterest;
 	public AiStates aiState;
-  public float minDistanceFromObjectOfInterest = 2f;
+  public float minDistanceFromObjectOfInterest = 1f;
 
 	public bool debugStayDocile;
 	public float minDistanceFromPathNode;
