@@ -10,6 +10,10 @@ public class TileLocation {
 	public Vector2Int position;
 	public FloorLayer floorLayer;
 
+	public TileLocation(int x, int y, FloorLayer fl) {
+		position = new Vector2Int(x, y);
+		floorLayer = fl;
+	}
 	public TileLocation(Vector2Int pos, FloorLayer fl) {
 		position = pos;
 		floorLayer = fl;
@@ -63,6 +67,13 @@ public class TileLocation {
 	public override string ToString() {
         return floorLayer.ToString() + ", " + position.ToString();
     }
+	public int x {
+		get { return position.x; }
+	}
+	
+	public int y {
+		get { return position.y; }
+	}
 }
 //TODO: this should be a singleton
 public class GridManager : Singleton<GridManager> {
@@ -133,7 +144,18 @@ public class GridManager : Singleton<GridManager> {
     return info;
 	}
 
+	public EnvironmentTileInfo GetTileAtLocation(int x, int y, FloorLayer f) {
+		return GetTileAtLocation(new TileLocation(x, y, f));
+	}
 	public EnvironmentTileInfo GetTileAtLocation(TileLocation loc) {
+		if (!worldGrid.ContainsKey(loc.floorLayer)) {
+			Debug.LogError("WARNING: Tried to find invalid floorlayer "+loc.floorLayer);
+			return null;
+		}
+		if (!worldGrid[loc.floorLayer].ContainsKey(loc.position)) {
+			Debug.LogError("WARNING: Tried to find invalid tile "+loc.position+" on floorlayer "+loc.floorLayer);
+			return null;
+		}
 		return worldGrid[loc.floorLayer][loc.position];
 	}
 

@@ -98,7 +98,7 @@ public class CharacterAI : Character {
 		if (tile.ChangesFloorLayer()
 			&& path != null
 			&& path.Count >= 1
-			&& (path[0].floor == tile.GetTargetFloorLayer(currentFloor) || path[1] != null || path[1].floor == tile.GetTargetFloorLayer(currentFloor))
+			&& (path[0].loc.floorLayer == tile.GetTargetFloorLayer(currentFloor) || path[1] != null || path[1].loc.floorLayer == tile.GetTargetFloorLayer(currentFloor))
 		) {
 			UseTile();
 		}
@@ -110,8 +110,6 @@ public class CharacterAI : Character {
 	}
 
 	void InputAggroMovement() {
-    Debug.Log("distancemag? "+(objectOfInterest.transform.position - transform.position).magnitude);
-    Debug.Log("minDistancefromObjectOfInterest? "+minDistanceFromObjectOfInterest);
 		if (
       path == null
       && (objectOfInterest.transform.position - transform.position).magnitude > minDistanceFromObjectOfInterest
@@ -120,7 +118,7 @@ public class CharacterAI : Character {
       movementInput = (objectOfInterest.transform.position - transform.position).normalized;
 		}
 		else if (path != null && path.Count > 0) {
-			Vector3 nextNodeLocation = new Vector3(path[0].x+.5f, path[0].y+.5f, 0);
+			Vector3 nextNodeLocation = new Vector3(path[0].loc.position.x+.5f, path[0].loc.position.y+.5f, 0);
 			Vector3 colliderCenterWorldSpace = transform.TransformPoint(col.offset);
 			movementInput = (nextNodeLocation - colliderCenterWorldSpace).normalized;
 			Debug.DrawLine(nextNodeLocation, colliderCenterWorldSpace, Color.red, .25f, true);
@@ -175,7 +173,6 @@ public class CharacterAI : Character {
         targetDetectableRange = objectOfInterest.detectableRange;
         c = (Character) objectOfInterest;
         if (c != null) {targetDetectableRange = c.GetStat(CharacterStat.DetectableRange); }
-        Debug.Log("targetDetectableRange: "+targetDetectableRange);
 				if (
           (objectOfInterest.transform.position - transform.position).sqrMagnitude >
 					(targetDetectableRange + detectableRangeBuffer) * (targetDetectableRange + detectableRangeBuffer)) { // our target is gone
@@ -187,7 +184,6 @@ public class CharacterAI : Character {
           targetDetectableRange = objectOfInterest.detectableRange;
           c = (Character) objectOfInterest;
           if (c != null) {targetDetectableRange = c.GetStat(CharacterStat.DetectableRange); }
-          Debug.Log("targetDetectableRange: "+targetDetectableRange);
 					Vector3 distanceFromTarget = objectOfInterest.transform.position - transform.position;
 					if (distanceFromTarget.sqrMagnitude < targetDetectableRange * targetDetectableRange) {
 						aiState = AiStates.PlayerAggro;
