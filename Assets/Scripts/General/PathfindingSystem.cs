@@ -38,7 +38,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem> {
             if (timeSpentThisFrame.ElapsedMilliseconds > 15) {
                 yield return null;
                 timeSpentThisFrame.Restart();
-            } 
+            }
             if (openNodes.Count > 80 || closedNodes.Count > 80) {
                 ai.SetPathToTarget(null);
                 yield break;
@@ -96,34 +96,49 @@ public class PathfindingSystem : Singleton<PathfindingSystem> {
     }
 
     public bool IsPathClearOfHazards(Collider2D col, TileLocation target, CharacterAI ai) {
-		if (target.floorLayer != ai.currentFloor) {
-            return false;
+      if (target.floorLayer != ai.currentFloor) {
+              return false;
+          }
+          Vector3[] colliderCorners = new Vector3[]{
+        new Vector3 (col.bounds.extents.x, col.bounds.extents.y, 0),
+        new Vector3 (-col.bounds.extents.x, col.bounds.extents.y, 0),
+        new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),
+        new Vector3 (-col.bounds.extents.x, -col.bounds.extents.y, 0),
+      };
+      HashSet<EnvironmentTileInfo> tilesAlongPath = new HashSet<EnvironmentTileInfo>();
+      foreach (Vector3 pt in colliderCorners) {
+        tilesAlongPath.UnionWith(GetAllTilesBetweenPoints(ai.transform.TransformPoint(pt), target));
+      }
+      bool debugFoundAnObject = false;
+      foreach(EnvironmentTileInfo eti in tilesAlongPath) {
+        if (eti.objectTileType != null) { debugFoundAnObject = true;}
+        if (!CanPassOverTile(eti, ai)) {
+          return false;
         }
-        Vector3[] colliderCorners = new Vector3[]{
-			new Vector3 (col.bounds.extents.x, col.bounds.extents.y, 0),
-			new Vector3 (-col.bounds.extents.x, col.bounds.extents.y, 0),
-			new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),
-			new Vector3 (-col.bounds.extents.x, -col.bounds.extents.y, 0),
-		};
-        HashSet<EnvironmentTileInfo> tilesAlongPath = new HashSet<EnvironmentTileInfo>();
-        foreach (Vector3 pt in colliderCorners) {
-            tilesAlongPath.UnionWith(GetAllTilesBetweenPoints(ai.transform.TransformPoint(pt), target));
-        }
+      }
+      if (debugFoundAnObject) {
+        UnityEngine.Debug.LogError("what the hell??");
         foreach(EnvironmentTileInfo eti in tilesAlongPath) {
-            if (eti == null || eti.dealsDamage) {
-                return false;
-            }
-            if (!CanPassOverTile(eti, ai)) {
-                return false;
-            }
+          if (eti.objectTileType != null) {
+            UnityEngine.Debug.Log("found object tile type "+eti.objectTileType+" at "+eti.tileLocation);
+          }
         }
-        return true;
+      }
+      foreach(Vector3 pt in colliderCorners) {
+        Vector3 p1 = new Vector3(target.x, target.y, 0);
+        // UnityEngine.Debug.Log("p1: "+p1);
+        UnityEngine.Debug.DrawLine(new Vector3(target.x, target.y, 0), ai.transform.TransformPoint(pt), Color.green, .25f, true);
+      }
+      // UnityEngine.Debug.Break();
+      return true;
     }
 
     private bool CanPassOverTile(EnvironmentTileInfo tile, CharacterAI ai) {
         return
-            tile != null 
-            && ((tile.GetColliderType() == Tile.ColliderType.None && !tile.dealsDamage) && !tile.CanRespawnPlayer())
+            tile != null
+            && tile.GetColliderType() == Tile.ColliderType.None
+            && !tile.dealsDamage
+            && !tile.CanRespawnPlayer()
         ;
     }
 
@@ -154,6 +169,8 @@ public class PathfindingSystem : Singleton<PathfindingSystem> {
 
         int currentX = Mathf.RoundToInt(origin.x);
         int currentY = Mathf.RoundToInt(origin.y);
+        UnityEngine.Debug.Log("origin at "+currentX+","+currentY);
+        GridManager.Instance.GetTileAtLocation(currentX, currentY, target.floorLayer).DebugHighlightSquare();
         for (int i=0;i<=longest;i++) {
             Vector3Int pos = new Vector3Int (currentX, currentY, 0);
             res.Add((EnvironmentTileInfo) GridManager.Instance.GetTileAtLocation(currentX, currentY, target.floorLayer));
@@ -202,7 +219,6 @@ public class PathfindingSystem : Singleton<PathfindingSystem> {
         if (!CanPassOverTile(eti, ai)) {
             return;
         }
-        UnityEngine.Debug.Log("adding node at pos " + x + ","+y+","+floor);
         nodeList.Add(InitNewNode(x, y, floor, originNode, targetLocation));
     }
 

@@ -141,4 +141,11 @@ public class EnvironmentTileInfo {
         return "";
       }
     }
+
+    public void DebugHighlightSquare() {
+      GameObject spriteObj = GameObject.Instantiate(GridManager.Instance.DebugSprite, new Vector3(tileLocation.x, tileLocation.y, 0), Quaternion.identity);
+      spriteObj.GetComponent<SpriteRenderer>().color = new Color(0, 1, 0, .5f);
+      GameObject.Destroy(spriteObj, .05f);
+    }
+
 }

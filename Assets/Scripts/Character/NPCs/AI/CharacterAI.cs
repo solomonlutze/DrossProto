@@ -91,7 +91,7 @@ public class CharacterAI : Character {
 	// if our path is EMPTY we should assume it's unobstructed, and try to get to our target.
 	// TODO: handle the case where no path is valid (we should probably lose interest)
 
-	
+
 	void OrientAndInputMovement() {
 		orientTowards = Vector3.zero;
 		if (objectOfInterest != null) {
@@ -122,8 +122,7 @@ public class CharacterAI : Character {
       && (objectOfInterest.transform.position - transform.position).magnitude > minDistanceFromObjectOfInterest
 			&& isPathClearOfHazards
     ) {
-			// Debug.DrawLine(objectOfInterest.position, transform.position, Color.green, .25f, true);
-      movementInput = (objectOfInterest.transform.position - transform.position).normalized;
+			movementInput = (objectOfInterest.transform.position - transform.position).normalized;
 		}
 		else if (path != null && path.Count > 0) {
 			Vector3 nextNodeLocation = new Vector3(path[0].loc.position.x+.5f, path[0].loc.position.y+.5f, 0);

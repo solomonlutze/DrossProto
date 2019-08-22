@@ -70,7 +70,7 @@ public class TileLocation {
 	public int x {
 		get { return position.x; }
 	}
-	
+
 	public int y {
 		get { return position.y; }
 	}
@@ -84,6 +84,7 @@ public class GridManager : Singleton<GridManager> {
 	public LayerToLayerFloorDictionary layerFloors;
 	public Dictionary<FloorLayer, Dictionary<Vector2Int, EnvironmentTileInfo>> worldGrid;
 
+  public GameObject DebugSprite;
   private List<EnvironmentTileInfo> tilesToDestroyOnPlayerRespawn;
 	public void Awake() {
 		worldGrid = new Dictionary<FloorLayer, Dictionary<Vector2Int, EnvironmentTileInfo>>();

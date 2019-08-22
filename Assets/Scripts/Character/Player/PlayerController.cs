@@ -102,7 +102,6 @@ public class PlayerController : Character {
 			return;
 		}
 		else {
-			Debug.Log("collided with "+tile);
 			if (tile.objectTileTags.Contains(TileTag.Ground) && activeMovementAbilities.Contains(CharacterMovementAbility.Burrow)) {
 				tile.DestroyTile();
         tile.DestroyTile();
@@ -325,7 +324,6 @@ public class PlayerController : Character {
           if (skill1 == null) {
             skill1 = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
           }
-          Debug.Log("attempting to init skill for type "+type);
           skill1.Init(this, GameMaster.Instance.lymphTypeToSkillsMapping[type].GetPrimarySkill());
           primarySkillInited = true;
         } else {
