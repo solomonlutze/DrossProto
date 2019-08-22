@@ -105,14 +105,6 @@ public class GameMaster : Singleton<GameMaster> {
 		return gameStatus;
 	}
 
-	public List<Node> FindPath(Vector3 originPosition, TileLocation targetLocation, CharacterAI ai) {
-		return pathfinding.CalculatePathToTarget(originPosition, targetLocation, ai);
-	}
-
-    public bool IsPathClearOfHazards(Collider2D col, TileLocation target, CharacterAI ai) {
-		return pathfinding.IsPathClearOfHazards(col, target, ai);
-	}
-
 	public void StartDialogue(string startNode) {
 		if (dialogueRunner.isDialogueRunning) { return; }
 		dialogueRunner.StartDialogue(startNode);

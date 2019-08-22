@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using Priority_Queue;
@@ -18,11 +19,12 @@ public class Node {
 // (which it wouldn't if the queue contained the nodes themselves)
 // if we find that our open list already has a node ID, we compare the node's
 // g value (distance from start) with our own, and replace its parent/g if ours is better
-public class PathfindingSystem : MonoBehaviour {
+public class PathfindingSystem : Singleton<PathfindingSystem> {
 
     public GridManager gridManager;
 
-    public List<Node> CalculatePathToTarget(Vector3 startPosition, TileLocation targetLocation, CharacterAI ai) {
+    public IEnumerator CalculatePathToTarget(Vector3 startPosition, TileLocation targetLocation, CharacterAI ai) {
+        Stopwatch timeSpentThisFrame = new Stopwatch();
         SimplePriorityQueue<TileLocation> closedNodes = new SimplePriorityQueue<TileLocation>();
         SimplePriorityQueue<TileLocation> openNodes = new SimplePriorityQueue<TileLocation>();
         Dictionary<TileLocation, Node> nodeLocationsToNodes = new Dictionary<TileLocation, Node>();
@@ -31,13 +33,16 @@ public class PathfindingSystem : MonoBehaviour {
         Node startNode = InitNewNode(Mathf.FloorToInt(startPosition.x), Mathf.FloorToInt(startPosition.y), ai.currentFloor, null, targetLocation);
         openNodes.Enqueue(startNode.loc, startNode.f);
         nodeLocationsToNodes[startNode.loc] = startNode;
+        timeSpentThisFrame.Start();
         while (openNodes.Count > 0) {
-            if (closedNodes.Count > 30 || openNodes.Count > 30) {
-                Debug.LogWarning("Too hard to get to target; giving up");
-                return null;
+            if (timeSpentThisFrame.ElapsedMilliseconds > 15) {
+                yield return null;
+                timeSpentThisFrame.Restart();
+            } 
+            if (openNodes.Count > 80 || closedNodes.Count > 80) {
+                ai.SetPathToTarget(null);
+                yield break;
             }
-            Debug.Log("closed nodes length: "+closedNodes.Count);
-            Debug.Log("open nodes length: "+openNodes.Count);
             Node nextNode = nodeLocationsToNodes[openNodes.Dequeue()];
             closedNodes.Enqueue(nextNode.loc, nextNode.f);
             if (closedNodes.Contains(targetLocation)) {
@@ -64,7 +69,7 @@ public class PathfindingSystem : MonoBehaviour {
                 }
             }
         }
-        return finalPath;
+        ai.SetPathToTarget(finalPath);
         // Each node has a score F, equal to G+H
         // G is cost to get to this node from original node
         // H is ESTIMATED cost from current node to final node
@@ -169,7 +174,7 @@ public class PathfindingSystem : MonoBehaviour {
         LayerFloor layer = gridManager.layerFloors[currentNode.loc.floorLayer];
         if (layer == null || layer.groundTilemap == null || layer.objectTilemap == null) {
             // this should not happen
-            Debug.LogError("missing layer information for "+currentNode.loc.floorLayer);
+            UnityEngine.Debug.LogError("missing layer information for "+currentNode.loc.floorLayer);
             return false;
         }
         EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(currentNode.loc);
@@ -197,7 +202,7 @@ public class PathfindingSystem : MonoBehaviour {
         if (!CanPassOverTile(eti, ai)) {
             return;
         }
-        Debug.Log("adding node at pos " + x + ","+y+","+floor);
+        UnityEngine.Debug.Log("adding node at pos " + x + ","+y+","+floor);
         nodeList.Add(InitNewNode(x, y, floor, originNode, targetLocation));
     }
 

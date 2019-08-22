@@ -75,7 +75,7 @@ public class TileLocation {
 		get { return position.y; }
 	}
 }
-//TODO: this should be a singleton
+
 public class GridManager : Singleton<GridManager> {
 
 	public Grid levelGrid;
