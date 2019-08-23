@@ -74,6 +74,15 @@ public class TileLocation {
 	public int y {
 		get { return position.y; }
 	}
+
+  public Vector2 center {
+    get {
+      return new Vector2 (
+        position.x + .5f,
+        position.y + .5f
+      );
+    }
+  }
 }
 
 public class GridManager : Singleton<GridManager> {
@@ -145,7 +154,7 @@ public class GridManager : Singleton<GridManager> {
     return info;
 	}
 
-	public EnvironmentTileInfo GetTileAtLocation(int x, int y, FloorLayer f) {
+  public EnvironmentTileInfo GetTileAtLocation(int x, int y, FloorLayer f) {
 		return GetTileAtLocation(new TileLocation(x, y, f));
 	}
 	public EnvironmentTileInfo GetTileAtLocation(TileLocation loc) {

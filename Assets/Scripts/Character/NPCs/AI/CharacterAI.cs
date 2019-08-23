@@ -23,6 +23,10 @@ public class CharacterAI : Character {
 	private Vector3 destination;
 	private CircleCollider2D col;
 
+  public float minTimeBetweenPathCalculations = .5f;
+  // NOTE: For slow-moving enemies this could possibly cause them to get stuck
+  [SerializeField]
+  private float timeSinceLastPathCalculation = 0f;
   [SerializeField]
   private bool isCalculatingPath = false;
 	private bool isPathClearOfHazards = false;
@@ -71,8 +75,14 @@ public class CharacterAI : Character {
       if (isPathClearOfHazards) {
         path = null;
       } else if (!isCalculatingPath) {
-				isCalculatingPath = true;
-        StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(col.offset), objectOfInterest.GetTileLocation(), this));
+        if (timeSinceLastPathCalculation > minTimeBetweenPathCalculations) {
+				  isCalculatingPath = true;
+          timeSinceLastPathCalculation = 0;
+          StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(col.offset), objectOfInterest.GetTileLocation(), this));
+        }
+        else {
+          timeSinceLastPathCalculation += Time.deltaTime;
+        }
       }
     }
 	}
@@ -125,13 +135,15 @@ public class CharacterAI : Character {
 			movementInput = (objectOfInterest.transform.position - transform.position).normalized;
 		}
 		else if (path != null && path.Count > 0) {
-			Vector3 nextNodeLocation = new Vector3(path[0].loc.position.x+.5f, path[0].loc.position.y+.5f, 0);
+			Vector3 nextNodeLocation = new Vector3(path[0].loc.position.x, path[0].loc.position.y, 0);
 			Vector3 colliderCenterWorldSpace = transform.TransformPoint(col.offset);
 			movementInput = (nextNodeLocation - colliderCenterWorldSpace).normalized;
 			Debug.DrawLine(nextNodeLocation, colliderCenterWorldSpace, Color.red, .25f, true);
 			if (Vector3.Distance(nextNodeLocation, colliderCenterWorldSpace) < minDistanceFromPathNode) {
 				path.RemoveAt(0);
+        Debug.Log("removed path node...?");
 			}
+      Debug.Log("path length: "+path.Count);
 		} else {
 			movementInput = Vector2.zero;
 		}

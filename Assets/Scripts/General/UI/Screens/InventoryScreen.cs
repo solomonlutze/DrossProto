@@ -35,7 +35,7 @@ public class InventoryScreen : MonoBehaviour {
 	public Transform traitListContent;
 
 	void Awake () {
-		consumableList.gameObject.SetActive(false);
+		// consumableList.gameObject.SetActive(false);
 		traitList.gameObject.SetActive(false);
 	}
 

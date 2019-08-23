@@ -111,6 +111,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem> {
       }
       bool debugFoundAnObject = false;
       foreach(EnvironmentTileInfo eti in tilesAlongPath) {
+        eti.DebugHighlightSquare();
         if (eti.objectTileType != null) { debugFoundAnObject = true;}
         if (!CanPassOverTile(eti, ai)) {
           return false;
@@ -123,11 +124,6 @@ public class PathfindingSystem : Singleton<PathfindingSystem> {
             UnityEngine.Debug.Log("found object tile type "+eti.objectTileType+" at "+eti.tileLocation);
           }
         }
-      }
-      foreach(Vector3 pt in colliderCorners) {
-        Vector3 p1 = new Vector3(target.x, target.y, 0);
-        // UnityEngine.Debug.Log("p1: "+p1);
-        UnityEngine.Debug.DrawLine(new Vector3(target.x, target.y, 0), ai.transform.TransformPoint(pt), Color.green, .25f, true);
       }
       // UnityEngine.Debug.Break();
       return true;
@@ -150,8 +146,8 @@ public class PathfindingSystem : Singleton<PathfindingSystem> {
     //TODO: in order to prevent enemies from deciding to step on hazards at low slopes, might need to conditionally floor or ceil instead of RoundToInt
     // This function assumes both points are on the same floor layer. You've been warned!!
     public HashSet<EnvironmentTileInfo> GetAllTilesBetweenPoints(Vector3 origin, TileLocation target) {
-        int w = Mathf.RoundToInt(target.position.x) - Mathf.RoundToInt(origin.x);
-        int h = Mathf.RoundToInt(target.position.y) - Mathf.RoundToInt(origin.y);
+        int w = Mathf.RoundToInt(target.center.x) - Mathf.RoundToInt(origin.x);
+        int h = Mathf.RoundToInt(target.center.y) - Mathf.RoundToInt(origin.y);
         int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
         if (w<0) dx1 = -1 ; else if (w>0) dx1 = 1;
         if (h<0) dy1 = -1 ; else if (h>0) dy1 = 1;
@@ -169,8 +165,8 @@ public class PathfindingSystem : Singleton<PathfindingSystem> {
 
         int currentX = Mathf.RoundToInt(origin.x);
         int currentY = Mathf.RoundToInt(origin.y);
-        UnityEngine.Debug.Log("origin at "+currentX+","+currentY);
-        GridManager.Instance.GetTileAtLocation(currentX, currentY, target.floorLayer).DebugHighlightSquare();
+        res.Add(GridManager.Instance.GetTileAtLocation(Mathf.FloorToInt(origin.x), Mathf.FloorToInt(origin.y), target.floorLayer));
+        UnityEngine.Debug.DrawLine(origin, new Vector3(target.position.x, target.position.y, 0), Color.green, .1f);
         for (int i=0;i<=longest;i++) {
             Vector3Int pos = new Vector3Int (currentX, currentY, 0);
             res.Add((EnvironmentTileInfo) GridManager.Instance.GetTileAtLocation(currentX, currentY, target.floorLayer));
