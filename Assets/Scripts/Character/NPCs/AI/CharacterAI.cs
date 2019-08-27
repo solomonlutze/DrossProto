@@ -67,7 +67,8 @@ public class CharacterAI : Character {
       (objectOfInterest.transform.position - transform.position).sqrMagnitude <
       (targetDetectableRange + detectableRangeBuffer) * (targetDetectableRange + detectableRangeBuffer)
     ) {
-			isPathClearOfHazards = PathfindingSystem.Instance.IsPathClearOfHazards(col, objectOfInterest.GetTileLocation(), this);
+			isPathClearOfHazards = false;
+			// isPathClearOfHazards = PathfindingSystem.Instance.IsPathClearOfHazards(col, objectOfInterest.GetTileLocation(), this);
       if (isPathClearOfHazards) {
         path = null;
       } else if (!isCalculatingPath) {
