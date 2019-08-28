@@ -13,6 +13,7 @@ public class EquippedTraitsPropertyDrawer : PropertyDrawer
         // prefab override logic works on the entire property.
         EditorGUI.BeginProperty(position, label, property);
         EditorGUILayout.PrefixLabel(label);
+        string[] allPassiveTraitNames = PropertyDrawerHelpers.AllPassiveTraitNames(includeNone: true);
         SerializedProperty[] slotProperties = {
           property.FindPropertyRelative("head"),
           property.FindPropertyRelative("thorax"),
@@ -26,7 +27,7 @@ public class EquippedTraitsPropertyDrawer : PropertyDrawer
           // Draw fields - passs GUIContent.none to each so they are drawn without labels
           string[] choices = PropertyDrawerHelpers.AllPassiveTraitNames(includeNone: true);
           int slotValIndex = Mathf.Max(Array.IndexOf(choices, slot.stringValue), 0);
-          int idx = EditorGUILayout.Popup(slot.displayName, slotValIndex, PropertyDrawerHelpers.AllPassiveTraitNames(includeNone: true));
+          int idx = EditorGUILayout.Popup(slot.displayName, slotValIndex,allPassiveTraitNames);
           if (idx < 0) { idx = 0; }
           slot.stringValue = (choices[idx] == "[None]") ? null : choices[idx];
         }
@@ -68,8 +69,9 @@ public class CharacterEditor : Editor
     }
 
     private void DrawTraitSelect() {
-        DrawPopup(PropertyDrawerHelpers.AllActiveTraitNames(includeNone: true), initialskill1, "Initial Active Trait 1");
-        DrawPopup(PropertyDrawerHelpers.AllActiveTraitNames(includeNone: true), initialskill2, "Initial Active Trait 2");
+        string[] allActiveTraitNames = PropertyDrawerHelpers.AllActiveTraitNames(includeNone: true);
+        DrawPopup(allActiveTraitNames, initialskill1, "Initial Active Trait 1");
+        DrawPopup(allActiveTraitNames, initialskill2, "Initial Active Trait 2");
     }
 
 }

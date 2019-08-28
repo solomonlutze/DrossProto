@@ -166,6 +166,7 @@ public class Character : WorldObject {
   public Color attackColor = Color.grey;
   public float damageFlashSpeed = 1.0f;
 	public bool attacking = false;
+	protected bool attackCooldown = false;
 	protected bool stunned = false;
 	public bool animationPreventsMoving = false;
 	public bool sticking = false;
@@ -252,7 +253,7 @@ public class Character : WorldObject {
 	// called via play input or npc AI
 	protected void Attack() {
 		if (characterAttack != null) {
-			if (!attacking) {
+			if (!attackCooldown) {
 				attackCoroutine = StartCoroutine(DoAttack());
 			}
 		}
@@ -262,8 +263,9 @@ public class Character : WorldObject {
 		attacking = true;
 		yield return new WaitForSeconds(characterAttack.attackSpeed);
 		CreateHitbox();
-		yield return new WaitForSeconds(characterAttack.cooldown);
 		attacking = false;
+		yield return new WaitForSeconds(characterAttack.cooldown);
+    attackCooldown = false;
 		attackCoroutine = null;
 	}
 	public static float GetAttackValueModifier(CharacterAttackValueToIntDictionary attackModifiers, CharacterAttackValue value) {
@@ -364,42 +366,34 @@ public class Character : WorldObject {
 
 	// Called from Hitbox's OnTriggerEnter. Calls other functions to determine outcome of getting hit.
 	protected virtual void TakeDamage(DamageObject damageObj) {
-    Debug.Log("TakeDamage");
 		if (
       sourceInvulnerabilities.Contains(damageObj.sourceString)
       && !damageObj.ignoreInvulnerability)
     { return; }
-    Debug.Log("Not invulnerable");
 		float damageAfterResistances = ((100 - damageTypeResistances[damageObj.damageType]) / 100) * damageObj.damage;
 		if (
       damageAfterResistances <= 0
       && damageObj.damage > 0
       && damageObj.characterStatModifications.Count == 0
     ) { return; }
-    Debug.Log("Damage > 0");
 		if (damageObj.attackerTransform == transform) { return; }
 		InterruptAnimation();
 		AdjustHealth(Mathf.Floor(-damageAfterResistances));
-    Debug.Log("Health adjusted");
 		CalculateAndApplyStun(damageObj.stun);
-    Debug.Log("Stun applied");
 		foreach(CharacterStatModification mod in damageObj.characterStatModifications) {
-      Debug.Log("Applying stat mod "+mod.source);
 			ApplyStatMod(mod);
 		}
 		StartCoroutine(ApplyInvulnerability(damageObj));
-    Debug.Log("Applyed invulnerability");
-    if (damageFlashCoroutine != null) {
-      StopCoroutine(damageFlashCoroutine);
-    }
-		StartCoroutine(ApplyDamageFlash(damageObj));
+    // if (damageFlashCoroutine != null) {
+    //   StopCoroutine(damageFlashCoroutine);
+    // }
+		// StartCoroutine(ApplyDamageFlash(damageObj));
 		if (damageObj.attackerTransform != null && damageObj.hitboxTransform != null) {
 			po.ApplyImpulseForce(damageObj.knockback *
 				(damageObj.hitboxTransform.position
 				- damageObj.attackerTransform.position)
 			);
 		}
-    Debug.Log("Done!");
 	}
 
   private IEnumerator ApplyDamageFlash(DamageObject damageObj) {
@@ -482,26 +476,25 @@ public class Character : WorldObject {
   }
 
 
-public void ApplyStatMod(CharacterStatModification mod) {
-  if (mod.duration > 0) {
-    StartCoroutine(ApplyTemporaryStatMod(mod));
-  } else {
-    AddStatMod(mod);
+  public void ApplyStatMod(CharacterStatModification mod) {
+    if (mod.duration > 0) {
+      StartCoroutine(ApplyTemporaryStatMod(mod));
+    } else {
+      AddStatMod(mod);
+    }
   }
-}
 
-public IEnumerator ApplyTemporaryStatMod(CharacterStatModification mod) {
-  AddStatMod(mod);
-  yield return new WaitForSeconds(mod.duration);
-  RemoveStatMod(mod.source);
-}
+  public IEnumerator ApplyTemporaryStatMod(CharacterStatModification mod) {
+    AddStatMod(mod);
+    yield return new WaitForSeconds(mod.duration);
+    RemoveStatMod(mod.source);
+  }
 
-public void AddStatMod(CharacterStatModification mod) {
-  AddStatMod(mod.statToModify, mod.magnitude, mod.source);
-}
+  public void AddStatMod(CharacterStatModification mod) {
+    AddStatMod(mod.statToModify, mod.magnitude, mod.source);
+  }
 
-public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
-    Debug.Log("addStatMod " + statToMod + source + magnitude);
+  public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
     statModifications[statToMod][source] = magnitude;
   }
 
@@ -519,7 +512,6 @@ public void AddStatMod(CharacterStat statToMod, int magnitude, string source) {
 	}
 
 	public void RemoveMovementAbility(CharacterMovementAbility movementAbility) {
-    Debug.Log("removing movement ability?");
 		activeMovementAbilities.Remove(movementAbility);
 	}
 

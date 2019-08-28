@@ -1,6 +1,6 @@
 {
-  "ProjectFilePath": "/Users/slutze/Dropbox/Dev/Idle Action/Dross2D/Assembly-CSharp-Editor.csproj",
-  "TargetFramework": "v3.5",
+  "ProjectFilePath": "c:\\dev\\DrossProto\\Assembly-CSharp-Editor.csproj",
+  "TargetFramework": "v4.7.1",
   "TagHelpers": [],
   "Configuration": {
     "ConfigurationName": "UnsupportedRazor",

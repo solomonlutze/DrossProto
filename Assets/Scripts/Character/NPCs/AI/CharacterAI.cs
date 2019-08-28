@@ -12,7 +12,7 @@ public class CharacterAI : Character {
 	// current target
 	private WorldObject objectOfInterest;
 	public AiStates aiState;
-  public float minDistanceFromObjectOfInterest = 2f;
+  public float minDistanceFromObjectOfInterest = 1f;
 
 	public bool debugStayDocile;
 	public float minDistanceFromPathNode;
@@ -21,11 +21,11 @@ public class CharacterAI : Character {
 	public float attackAngle;
 	private List<Node> path;
 	private Vector3 destination;
-	private BoxCollider2D col;
+	private CircleCollider2D col;
 
   [SerializeField]
-  private float timeBetweenRouteCalculations = 0.5f;
-  private float timeSinceLastRouteCalculation = 0.0f;
+  private bool isCalculatingPath = false;
+	public bool isPathClearOfHazards = false;
 	public List<PickupItem> itemDrops;
   public bool hasDroppedItems = false;
 
@@ -33,7 +33,7 @@ public class CharacterAI : Character {
 		base.Awake();
 		base.Init();
 		aiState = AiStates.Docile;
-		col = GetComponent<BoxCollider2D>();
+		col = GetComponent<CircleCollider2D>();
 		path = new List<Node>();
 		destination = Vector3.zero;
 		ChooseObjectOfInterest();
@@ -57,10 +57,6 @@ public class CharacterAI : Character {
 	// 2) we need to finish moving towards it.
 	// Otherwise we get stuck on corners.
 	void CalculateRouteTowardsTarget() {
-    if (timeSinceLastRouteCalculation < timeBetweenRouteCalculations) {
-      timeSinceLastRouteCalculation += Time.deltaTime;
-      return;
-    }
     if (objectOfInterest == null) { return; }
     float targetDetectableRange = objectOfInterest.detectableRange;
     Character c = (Character) objectOfInterest;
@@ -71,19 +67,36 @@ public class CharacterAI : Character {
       (objectOfInterest.transform.position - transform.position).sqrMagnitude <
       (targetDetectableRange + detectableRangeBuffer) * (targetDetectableRange + detectableRangeBuffer)
     ) {
-      // if (GetPathOpen()) {
-      if (GameMaster.Instance.IsPathClearOfHazards(col, objectOfInterest.GetTileLocation(), this)) {
+			// isPathClearOfHazards = false;
+			isPathClearOfHazards = PathfindingSystem.Instance.IsPathClearOfHazards(
+        col,
+        objectOfInterest.transform.position,
+        objectOfInterest.GetTileLocation().floorLayer,
+        this
+      );
+      if (isPathClearOfHazards) {
         path = null;
-      } else {
-        path = GameMaster.Instance.FindPath(transform.TransformPoint(col.offset), objectOfInterest.GetTileLocation(), this);
+      } else if (!isCalculatingPath) {
+				isCalculatingPath = true;
+        StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(col.offset), objectOfInterest.GetTileLocation(), this));
       }
     }
 	}
+
+	// Called by pathfinding system once a path is found.
+	// This is the place to make changes if pathfinding behavior gets bad!!
+	public void SetPathToTarget(List<Node> newPath) {
+		isCalculatingPath = false;
+		path = newPath;
+	}
+
+
 	// for movement, we have:
 	// target (transform), the place/thing we ultimately wanna get to;
 	// path (Node[]), the list of intermediate destinations to get to our target
 	// if our path is EMPTY we should assume it's unobstructed, and try to get to our target.
 	// TODO: handle the case where no path is valid (we should probably lose interest)
+
 
 	void OrientAndInputMovement() {
 		orientTowards = Vector3.zero;
@@ -98,7 +111,7 @@ public class CharacterAI : Character {
 		if (tile.ChangesFloorLayer()
 			&& path != null
 			&& path.Count >= 1
-			&& (path[0].floor == tile.GetTargetFloorLayer(currentFloor) || path[1] != null || path[1].floor == tile.GetTargetFloorLayer(currentFloor))
+			&& (path[0].loc.floorLayer == tile.GetTargetFloorLayer(currentFloor) || path[1] != null || path[1].loc.floorLayer == tile.GetTargetFloorLayer(currentFloor))
 		) {
 			UseTile();
 		}
@@ -110,17 +123,16 @@ public class CharacterAI : Character {
 	}
 
 	void InputAggroMovement() {
-    Debug.Log("distancemag? "+(objectOfInterest.transform.position - transform.position).magnitude);
-    Debug.Log("minDistancefromObjectOfInterest? "+minDistanceFromObjectOfInterest);
 		if (
       path == null
       && (objectOfInterest.transform.position - transform.position).magnitude > minDistanceFromObjectOfInterest
+			&& isPathClearOfHazards
     ) {
 			// Debug.DrawLine(objectOfInterest.position, transform.position, Color.green, .25f, true);
       movementInput = (objectOfInterest.transform.position - transform.position).normalized;
 		}
 		else if (path != null && path.Count > 0) {
-			Vector3 nextNodeLocation = new Vector3(path[0].x+.5f, path[0].y+.5f, 0);
+			Vector3 nextNodeLocation = new Vector3(path[0].loc.position.x+.5f, path[0].loc.position.y+.5f, 0);
 			Vector3 colliderCenterWorldSpace = transform.TransformPoint(col.offset);
 			movementInput = (nextNodeLocation - colliderCenterWorldSpace).normalized;
 			Debug.DrawLine(nextNodeLocation, colliderCenterWorldSpace, Color.red, .25f, true);
@@ -175,7 +187,6 @@ public class CharacterAI : Character {
         targetDetectableRange = objectOfInterest.detectableRange;
         c = (Character) objectOfInterest;
         if (c != null) {targetDetectableRange = c.GetStat(CharacterStat.DetectableRange); }
-        Debug.Log("targetDetectableRange: "+targetDetectableRange);
 				if (
           (objectOfInterest.transform.position - transform.position).sqrMagnitude >
 					(targetDetectableRange + detectableRangeBuffer) * (targetDetectableRange + detectableRangeBuffer)) { // our target is gone
@@ -187,7 +198,6 @@ public class CharacterAI : Character {
           targetDetectableRange = objectOfInterest.detectableRange;
           c = (Character) objectOfInterest;
           if (c != null) {targetDetectableRange = c.GetStat(CharacterStat.DetectableRange); }
-          Debug.Log("targetDetectableRange: "+targetDetectableRange);
 					Vector3 distanceFromTarget = objectOfInterest.transform.position - transform.position;
 					if (distanceFromTarget.sqrMagnitude < targetDetectableRange * targetDetectableRange) {
 						aiState = AiStates.PlayerAggro;

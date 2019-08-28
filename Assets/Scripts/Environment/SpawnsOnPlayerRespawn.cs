@@ -8,6 +8,7 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
     public GameObject objectToSpawn;
     public bool spawnOnlyOnce;
     private GameObject spawnedObj;
+    private GameObject prevObjectToSpawn;
 
     void Start() {
       SpriteRenderer sr = GetComponent<SpriteRenderer>();
@@ -29,12 +30,13 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
 
     private void OnValidate() {
       SpriteRenderer sr = GetComponent<SpriteRenderer>();
-      if (objectToSpawn) {
+      if (objectToSpawn && objectToSpawn != prevObjectToSpawn) {
+        prevObjectToSpawn = objectToSpawn;
+        gameObject.name = objectToSpawn.name + "_Spawner";
         SpriteRenderer newSr = objectToSpawn.GetComponentInChildren<SpriteRenderer>();
         if (sr && newSr) {
           sr.sprite = objectToSpawn.GetComponentInChildren<SpriteRenderer>().sprite;
         }
-
       }
       WorldObject.ChangeLayersRecursively(transform, LayerMask.LayerToName(gameObject.layer));
     }
