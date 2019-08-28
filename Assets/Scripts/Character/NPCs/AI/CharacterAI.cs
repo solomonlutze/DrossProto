@@ -25,7 +25,7 @@ public class CharacterAI : Character {
 
   [SerializeField]
   private bool isCalculatingPath = false;
-	private bool isPathClearOfHazards = false;
+	public bool isPathClearOfHazards = false;
 	public List<PickupItem> itemDrops;
   public bool hasDroppedItems = false;
 
@@ -67,8 +67,13 @@ public class CharacterAI : Character {
       (objectOfInterest.transform.position - transform.position).sqrMagnitude <
       (targetDetectableRange + detectableRangeBuffer) * (targetDetectableRange + detectableRangeBuffer)
     ) {
-			isPathClearOfHazards = false;
-			// isPathClearOfHazards = PathfindingSystem.Instance.IsPathClearOfHazards(col, objectOfInterest.GetTileLocation(), this);
+			// isPathClearOfHazards = false;
+			isPathClearOfHazards = PathfindingSystem.Instance.IsPathClearOfHazards(
+        col,
+        objectOfInterest.transform.position,
+        objectOfInterest.GetTileLocation().floorLayer,
+        this
+      );
       if (isPathClearOfHazards) {
         path = null;
       } else if (!isCalculatingPath) {
@@ -92,7 +97,7 @@ public class CharacterAI : Character {
 	// if our path is EMPTY we should assume it's unobstructed, and try to get to our target.
 	// TODO: handle the case where no path is valid (we should probably lose interest)
 
-	
+
 	void OrientAndInputMovement() {
 		orientTowards = Vector3.zero;
 		if (objectOfInterest != null) {

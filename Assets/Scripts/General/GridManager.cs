@@ -70,7 +70,7 @@ public class TileLocation {
 	public int x {
 		get { return position.x; }
 	}
-	
+
 	public int y {
 		get { return position.y; }
 	}
@@ -147,6 +147,11 @@ public class GridManager : Singleton<GridManager> {
 	public EnvironmentTileInfo GetTileAtLocation(int x, int y, FloorLayer f) {
 		return GetTileAtLocation(new TileLocation(x, y, f));
 	}
+
+	public EnvironmentTileInfo GetTileAtLocation(Vector3 v, FloorLayer f) {
+		return GetTileAtLocation(new TileLocation(v, f));
+	}
+
 	public EnvironmentTileInfo GetTileAtLocation(TileLocation loc) {
 		if (!worldGrid.ContainsKey(loc.floorLayer)) {
 			Debug.LogError("WARNING: Tried to find invalid floorlayer "+loc.floorLayer);

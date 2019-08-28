@@ -38,7 +38,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem> {
             if (timeSpentThisFrame.ElapsedMilliseconds > 15) {
                 yield return null;
                 timeSpentThisFrame.Restart();
-            } 
+            }
             if (openNodes.Count > 80 || closedNodes.Count > 80) {
                 ai.SetPathToTarget(null);
                 yield break;
@@ -95,34 +95,38 @@ public class PathfindingSystem : Singleton<PathfindingSystem> {
         return nodes;
     }
 
-    public bool IsPathClearOfHazards(Collider2D col, TileLocation target, CharacterAI ai) {
-		if (target.floorLayer != ai.currentFloor) {
-            return false;
-        }
-        Vector3[] colliderCorners = new Vector3[]{
-			new Vector3 (col.bounds.extents.x, col.bounds.extents.y, 0),
-			new Vector3 (-col.bounds.extents.x, col.bounds.extents.y, 0),
-			new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),
-			new Vector3 (-col.bounds.extents.x, -col.bounds.extents.y, 0),
+    public bool IsPathClearOfHazards(CircleCollider2D col, Vector3 targetPosition, FloorLayer targetFloor, CharacterAI ai) {
+		if (targetFloor != ai.currentFloor) {
+      return false;
+    }
+    Vector3[] colliderCorners = new Vector3[]{
+			new Vector3 (col.radius, 0, 0),
+			new Vector3 (-col.radius, 0, 0),
+			new Vector3 (0, col.radius, 0),
+			new Vector3 (0, -col.radius, 0),
+			// new Vector3 (col.bounds.extents.x, col.bounds.extents.y, 0),
+			// new Vector3 (-col.bounds.extents.x, col.bounds.extents.y, 0),
+			// new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),
+			// new Vector3 (-col.bounds.extents.x, -col.bounds.extents.y, 0),
 		};
         HashSet<EnvironmentTileInfo> tilesAlongPath = new HashSet<EnvironmentTileInfo>();
         foreach (Vector3 pt in colliderCorners) {
-            tilesAlongPath.UnionWith(GetAllTilesBetweenPoints(ai.transform.TransformPoint(pt), target));
+          tilesAlongPath.UnionWith(GetAllTilesBetweenPoints(ai.transform.TransformPoint(pt), targetPosition, targetFloor));
         }
         foreach(EnvironmentTileInfo eti in tilesAlongPath) {
-            if (eti == null || eti.dealsDamage) {
-                return false;
-            }
-            if (!CanPassOverTile(eti, ai)) {
-                return false;
-            }
+          if (eti == null || eti.dealsDamage) {
+            return false;
+          }
+          if (!CanPassOverTile(eti, ai)) {
+            return false;
+          }
         }
         return true;
     }
 
     private bool CanPassOverTile(EnvironmentTileInfo tile, CharacterAI ai) {
         return
-            tile != null 
+            tile != null
             && ((tile.GetColliderType() == Tile.ColliderType.None && !tile.dealsDamage) && !tile.CanRespawnPlayer())
         ;
     }
@@ -134,9 +138,9 @@ public class PathfindingSystem : Singleton<PathfindingSystem> {
     // remorselessly borrowed from https://stackoverflow.com/questions/11678693/all-cases-covered-bresenhams-line-algorithm
     //TODO: in order to prevent enemies from deciding to step on hazards at low slopes, might need to conditionally floor or ceil instead of RoundToInt
     // This function assumes both points are on the same floor layer. You've been warned!!
-    public HashSet<EnvironmentTileInfo> GetAllTilesBetweenPoints(Vector3 origin, TileLocation target) {
-        int w = Mathf.RoundToInt(target.position.x) - Mathf.RoundToInt(origin.x);
-        int h = Mathf.RoundToInt(target.position.y) - Mathf.RoundToInt(origin.y);
+    public HashSet<EnvironmentTileInfo> GetAllTilesBetweenPoints(Vector3 origin, Vector3 target, FloorLayer floor) {
+        int w = Mathf.FloorToInt(target.x) - Mathf.FloorToInt(origin.x);
+        int h = Mathf.FloorToInt(target.y) - Mathf.FloorToInt(origin.y);
         int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
         if (w<0) dx1 = -1 ; else if (w>0) dx1 = 1;
         if (h<0) dy1 = -1 ; else if (h>0) dy1 = 1;
@@ -151,12 +155,13 @@ public class PathfindingSystem : Singleton<PathfindingSystem> {
         }
         int numerator = longest >> 1 ;
         HashSet<EnvironmentTileInfo> res = new HashSet<EnvironmentTileInfo>();
-
+        UnityEngine.Debug.DrawLine(origin, new Vector3(target.x, target.y, 0), Color.green);
+        res.Add(GridManager.Instance.GetTileAtLocation(origin, floor));
         int currentX = Mathf.RoundToInt(origin.x);
         int currentY = Mathf.RoundToInt(origin.y);
         for (int i=0;i<=longest;i++) {
             Vector3Int pos = new Vector3Int (currentX, currentY, 0);
-            res.Add((EnvironmentTileInfo) GridManager.Instance.GetTileAtLocation(currentX, currentY, target.floorLayer));
+            res.Add(GridManager.Instance.GetTileAtLocation(currentX, currentY, floor));
             numerator += shortest;
             if (!(numerator<longest)) {
                 numerator -= longest;
@@ -202,7 +207,6 @@ public class PathfindingSystem : Singleton<PathfindingSystem> {
         if (!CanPassOverTile(eti, ai)) {
             return;
         }
-        UnityEngine.Debug.Log("adding node at pos " + x + ","+y+","+floor);
         nodeList.Add(InitNewNode(x, y, floor, originNode, targetLocation));
     }
 
