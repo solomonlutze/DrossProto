@@ -144,6 +144,8 @@ public abstract class Trait : ScriptableObject {
   TraitName tn; // do we use this?
   public string traitName;
 	public TraitEffect[] passiveTraitEffects;
+  [TextArea]
+  public string traitDescription;
 
   abstract public TraitType traitType { get; set; }
 		// Called when the trait is applied to the player (usually on spawn)

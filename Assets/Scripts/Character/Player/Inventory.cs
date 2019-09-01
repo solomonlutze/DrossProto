@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -19,6 +18,8 @@ public class InventoryEntry {
     public InventoryItemType type;
     public int quantity;
     public string guid;
+    public string itemDescription;
+    public TraitsLoadout traits;
 }
 // Controls what a character is holding.
 // Enemies proooobably won't have an inventory, they'll just have item lists.
@@ -82,12 +83,21 @@ public class Inventory : MonoBehaviour {
             entry.quantity = item.quantity;
             entry.type = itemInfo.type;
             entry.itemName = itemInfo.itemName;
+            entry.itemDescription = itemInfo.itemDescription;
             switch (item.itemType) {
                 case InventoryItemType.Consumable:
                 case InventoryItemType.Currency:
                     inventory[item.itemId] = entry;
                     break;
                 case InventoryItemType.Trait:
+                  entry.guid = System.Guid.NewGuid().ToString("N");
+                  inventory[entry.guid] = entry;
+                  TraitItemData traitItemInfo = (TraitItemData) itemInfo;
+                  if (traitItemInfo == null) {
+                    Debug.LogError("Trait Item can't be coerced to TraitItemData: "+itemInfo.itemName);
+                  }
+                  entry.traits = traitItemInfo.traits;
+                  break;
                 case InventoryItemType.Weapon:
                 default:
                     entry.guid = System.Guid.NewGuid().ToString("N");
