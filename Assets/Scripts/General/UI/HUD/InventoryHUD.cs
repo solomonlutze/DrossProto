@@ -22,7 +22,7 @@ public class InventoryHUD : MonoBehaviour {
 		usingItemText = transform.Find("UsingItemText").GetComponent<SuperTextMesh>();
 
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
 		PlayerController playerController = GameMaster.Instance.GetPlayerController();
@@ -33,17 +33,17 @@ public class InventoryHUD : MonoBehaviour {
 				InventoryEntry dross = inventory.GetInventoryEntry("Dross");
 				drossFieldText.text = "Dross: ";
 				drossValueText.text = dross != null ? dross.quantity+"" : "0";
-				itemCollectedText1.text = inventory.lastPickedUpItems.Count > 0 ? 
+				itemCollectedText1.text = inventory.lastPickedUpItems.Count > 0 ?
 					FormatPickedUpItemText(inventory.lastPickedUpItems[0]) : " ";
-				itemCollectedText2.text = inventory.lastPickedUpItems.Count > 1 ? 
+				itemCollectedText2.text = inventory.lastPickedUpItems.Count > 1 ?
 					FormatPickedUpItemText(inventory.lastPickedUpItems[1]) : " ";
-				itemCollectedText3.text = inventory.lastPickedUpItems.Count > 2 ? 
+				itemCollectedText3.text = inventory.lastPickedUpItems.Count > 2 ?
 					FormatPickedUpItemText(inventory.lastPickedUpItems[2]) : " ";
 				usingItemText.text = FormatLastUsedItemText(inventory.lastUsedItem);
 			}
 		}
 	}
-	
+
 	string FormatLastUsedItemText(string itemName) {
 		return itemName != null && itemName.Length > 0 ? string.Format("Used {0}!", itemName) : " ";
 	}

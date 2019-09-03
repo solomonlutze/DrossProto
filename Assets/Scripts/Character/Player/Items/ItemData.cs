@@ -13,4 +13,7 @@ public abstract class ItemData : ScriptableObject {
     abstract public InventoryItemType type { get; set; }
     public string itemName;
     public Character owner;
+
+    [TextArea]
+    public string itemDescription;
 }

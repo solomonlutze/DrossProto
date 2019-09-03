@@ -10,12 +10,14 @@ using UnityEditor;
 public enum LymphType { None, TrueBug, Moth, Beetle, Wasp }
 
 [Serializable]
-public class TraitItemData : ItemData {
+public class TraitItemData : ItemData
+{
 
-	public override InventoryItemType type {
-		get { return InventoryItemType.Trait; }
-		set { }
-	}
+  public override InventoryItemType type
+  {
+    get { return InventoryItemType.Trait; }
+    set { }
+  }
 
   [SerializeField]
   public TraitsLoadout traits;
@@ -23,15 +25,15 @@ public class TraitItemData : ItemData {
   [SerializeField]
   public LymphType lymphType;
 
-	#if UNITY_EDITOR
-    // The following is a helper that adds a menu item to create an TraitItem Asset
-        [MenuItem("Assets/Create/Item/TraitItem")]
-        public static void CreateTraitItem()
-        {
-          string path = EditorUtility.SaveFilePanelInProject("Save Trait Item", "New Trait Item", "Asset", "Save Trait Item", "Assets/resources/Data/ItemData/Trait");
-          if (path == "")
-            return;
-          AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<TraitItemData>(), path);
-        }
-    #endif
+#if UNITY_EDITOR
+  // The following is a helper that adds a menu item to create an TraitItem Asset
+  [MenuItem("Assets/Create/Item/TraitItem")]
+  public static void CreateTraitItem()
+  {
+    string path = EditorUtility.SaveFilePanelInProject("Save Trait Item", "New Trait Item", "Asset", "Save Trait Item", "Assets/resources/Data/ItemData/Trait");
+    if (path == "")
+      return;
+    AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<TraitItemData>(), path);
+  }
+#endif
 }

@@ -23,9 +23,9 @@ public class EquippedTraitsPropertyDrawer : PropertyDrawer
         };
         var labelwidth = EditorGUIUtility.labelWidth;
         EditorGUIUtility.labelWidth = 70;
+        string[] choices = PropertyDrawerHelpers.AllPassiveTraitNames(includeNone: true);
         foreach(SerializedProperty slot in slotProperties) {
           // Draw fields - passs GUIContent.none to each so they are drawn without labels
-          string[] choices = PropertyDrawerHelpers.AllPassiveTraitNames(includeNone: true);
           int slotValIndex = Mathf.Max(Array.IndexOf(choices, slot.stringValue), 0);
           int idx = EditorGUILayout.Popup(slot.displayName, slotValIndex,allPassiveTraitNames);
           if (idx < 0) { idx = 0; }
