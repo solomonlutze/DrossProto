@@ -192,7 +192,7 @@ public class InventoryScreen : MonoBehaviour
     foreach (InventoryEntry item in items)
     {
       TraitButton button = Instantiate(traitButtonPrefab).GetComponent<TraitButton>();
-      button.Init(item, this, slot);
+      button.Init((TraitItemInventoryEntry)item, this, slot);
       button.gameObject.transform.SetParent(contentParent);
       button.gameObject.transform.localScale = Vector3.one;
     }

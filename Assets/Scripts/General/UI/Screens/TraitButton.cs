@@ -6,16 +6,18 @@ using UnityEngine.EventSystems;
 public class TraitButton : ItemButton
 {
   private TraitSlot traitSlot;
-  public InventoryEntry itemEntry;
+  public TraitItemInventoryEntry itemEntry;
+  public LymphLogo lymphLogo;
 
 
-  public void Init(InventoryEntry itemEntryInfo, InventoryScreen parentScreen, TraitSlot ts)
+  public void Init(TraitItemInventoryEntry itemEntryInfo, InventoryScreen parentScreen, TraitSlot ts)
   {
     base.Init(itemEntryInfo, parentScreen);
     traitSlot = ts;
     itemEntry = itemEntryInfo;
     nameLabel.text = itemEntry.itemName;
     if (itemEntryInfo.equipped) { nameLabel.text += "\n (Equipped)"; }
+    if (lymphLogo != null) { lymphLogo.Init(itemEntryInfo.lymphType); }
   }
 
   protected override void HandleClick()
