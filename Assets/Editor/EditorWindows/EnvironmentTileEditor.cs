@@ -4,19 +4,23 @@ using UnityEngine;
 using UnityEditor;
 
 [CustomEditor(typeof(EnvironmentTile))]
- public class EnvironmentTileEditor : Editor
- {
-   override public void OnInspectorGUI()
-   {
-     DrawDefaultInspector();
-     var environmentTile = target as EnvironmentTile;
+public class EnvironmentTileEditor : Editor
+{
+  override public void OnInspectorGUI()
+  {
+    DrawDefaultInspector();
+    EnvironmentTile environmentTile = target as EnvironmentTile;
+    environmentTile.changesFloorLayer = GUILayout.Toggle(environmentTile.changesFloorLayer, "Changes Floor Layer");
+    if (environmentTile.changesFloorLayer)
+    {
+      int oldChanges = environmentTile.changesFloorLayerByAmount;
+      environmentTile.changesFloorLayerByAmount = EditorGUILayout.Popup(
+        "Changes floor layer by amount",
+        environmentTile.changesFloorLayerByAmount + 6,
+        new string[] { "-6", "-5", "-4", "-3", "-2", "-1", "0", "1", "2", "3", "4", "5", "6" }
+      ) - 6;
+    }
 
-     environmentTile.changesFloorLayer = GUILayout.Toggle(environmentTile.changesFloorLayer, "Changes Floor Layer");
-
-     if(environmentTile.changesFloorLayer) {
-       int floorLayerVal = EditorGUILayout.Popup("Changes floor layer by amount", environmentTile.changesFloorLayerByAmount + 6, new string[] {"-6", "-5", "-4", "-3", "-2", "-1", "0", "1", "2", "3", "4", "5", "6"});
-       environmentTile.changesFloorLayerByAmount = floorLayerVal - 6; // shrug?????
-       Debug.Log("changes floor layer by amount: "+environmentTile.changesFloorLayerByAmount);
-     }
-   }
- }
+    EditorUtility.SetDirty(environmentTile);
+  }
+}
