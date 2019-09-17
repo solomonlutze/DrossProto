@@ -146,6 +146,7 @@ public abstract class Trait : ScriptableObject {
 	public TraitEffect[] passiveTraitEffects;
   [TextArea]
   public string traitDescription;
+  public TraitChangedEnvironmentTile[] environmentTilesToChange;
 
   abstract public TraitType traitType { get; set; }
 		// Called when the trait is applied to the player (usually on spawn)
@@ -165,7 +166,37 @@ public abstract class Trait : ScriptableObject {
 			traitEffect.Expire(owner);
 		}
 	}
-}
+
+  // public void AddAllContextualActions(PlayerController owner)
+  // {
+  //   EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(owner.GetTileLocation());
+  //   for (int i = 0; i < environmentTilesToChange.Length; i++)
+  //   {
+  //     for (int j = 0; j < environmentTilesToChange[i].validTileTagsToSpawnOn.Count; j++)
+  //     {
+  //       if (tile.groundTileTags.Contains(environmentTilesToChange[i].validTileTagsToSpawnOn[j]))
+  //       {
+  //         owner.AddContextualAction('')
+  //       }
+  //     }
+  //   }
+
+  // }
+
+  //   public void ChangeEnvironmentTiles(Character owner)
+  //   {
+  //     for (int i = 0; i < environmentTilesToChange.Length; i++)
+  //     {
+  //       ChangeEnvironmentTile(owner, environmentTilesToChange[i]);
+  //     }
+  //   }
+
+  //   private void ChangeEnvironmentTile(Character owner, TraitChangedEnvironmentTile changedEnvironmentTile)
+  //   {
+  //     if (changedEnvironmentTile == null) { return; }
+  //     GridManager.Instance.ReplaceAdjacentTile(owner.GetTileLocation(), changedEnvironmentTile.tileToSpawn, changedEnvironmentTile.spawnDirection);
+  //   }
+  // }
 
 // public abstract class TraitMono : MonoBehaviour {
 //  TraitName traitName;
