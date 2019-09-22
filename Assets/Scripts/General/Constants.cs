@@ -16,7 +16,8 @@ public static class Constants
         {CharacterAttackValue.Knockback, .5f},
         {CharacterAttackValue.Range, .5f},
         {CharacterAttackValue.Stun, .3f},
-        {CharacterAttackValue.Venom, -12f}
+        {CharacterAttackValue.DurabilityDamage, 1},
+        {CharacterAttackValue.AcidDamage, 4f}
     };
   public static Dictionary<CharacterStat, float> CharacterStatAdjustmentIncrements
     = new Dictionary<CharacterStat, float>() {

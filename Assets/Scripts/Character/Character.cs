@@ -36,7 +36,9 @@ public enum CharacterAttackValue
   Stun,
   AttackSpeed,
   Cooldown,
-  Venom
+  DurabilityDamage,
+  Venom,
+  AcidDamage,
 }
 
 // Special modes of character movement.
@@ -93,27 +95,18 @@ public class ActiveStatModification
 }
 
 [System.Serializable]
-public class CharacterAttack : ScriptableObject
+public class CharacterAttackModifiers
 {
-  public Hitbox hitboxObject;
-  public HitboxInfo hitboxInfo;
-  public float attackSpeed;
-  public float range;
-  public float hitboxSize;
-  public float cooldown;
+  public CharacterAttackValueToIntDictionary attackValueModifiers;
+  public bool forcesLymphDrop;
 
-#if UNITY_EDITOR
-  // The following is a helper that adds a menu item to create an TraitItem Asset
-  [MenuItem("Assets/Create/CharacterAttack")]
-  public static void CreateCharacterAttack()
+  public CharacterAttackModifiers()
   {
-    string path = EditorUtility.SaveFilePanelInProject("Save Character Attack", "New Character Attack", "Asset", "Save Character Attack", "Assets/resources/Data/CharacterData/AttackData");
-    if (path == "")
-      return;
-    AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<CharacterAttack>(), path);
+    attackValueModifiers = new CharacterAttackValueToIntDictionary();
   }
-#endif
+
 }
+
 [System.Serializable]
 public class TraitsLoadout
 {
@@ -161,8 +154,12 @@ public class Character : WorldObject
 
   [Header("Attack Info")]
   public CharacterAttack characterAttack;
-  public CharacterAttackValueToIntDictionary attackModifiers;
+  public CharacterAttackModifiers attackModifiers;
   public Hitbox hitboxPrefab;
+  private bool dashAttackEnabled = true;
+  public CharacterAttack dashCharacterAttack;
+  public CharacterAttackModifiers dashAttackModifiers;
+  public Hitbox dashAttackHitboxPrefab;
 
   [Header("Trait Info")]
   public TraitSlotToTraitDictionary equippedTraits;
@@ -205,8 +202,6 @@ public class Character : WorldObject
   [Header("Default Info")]
   public CharacterData defaultCharacterData;
   public TraitsLoadout initialEquippedTraits;
-  public string initialskill1;
-  public string initialskill2;
 
   private Coroutine damageFlashCoroutine;
 
@@ -220,7 +215,6 @@ public class Character : WorldObject
     }
   }
 
-  // TODO: this long list of GetComponents is messy; can it be cleaned up?
   protected virtual void Start()
   {
     movementInput = new Vector2(0, 0);
@@ -246,6 +240,7 @@ public class Character : WorldObject
     {
       CharacterData dataInstance = (CharacterData)ScriptableObject.Instantiate(defaultCharacterData);
       attackModifiers = dataInstance.attackModifiers;
+      dashAttackModifiers = dataInstance.dashAttackModifiers;
       damageTypeResistances = dataInstance.damageTypeResistances;
       activeMovementAbilities.AddRange(dataInstance.movementAbilities);
     }
@@ -296,7 +291,7 @@ public class Character : WorldObject
   {
     attacking = true;
     yield return new WaitForSeconds(characterAttack.attackSpeed);
-    CreateHitbox();
+    CreateAttackHitbox();
     attacking = false;
     yield return new WaitForSeconds(characterAttack.cooldown);
     attackCooldown = false;
@@ -312,21 +307,44 @@ public class Character : WorldObject
   }
 
   // TODO: Refactor attack info so that it all lives on a single object (...maybe)
-  public void CreateHitbox()
+  public void CreateAttackHitbox()
   {
-    HitboxInfo hbi = characterAttack.hitboxInfo;
+    CreateHitbox(characterAttack, attackModifiers);
+  }
+
+  public void CreateDashAttackHitbox()
+  {
+    CreateHitbox(dashCharacterAttack, dashAttackModifiers);
+  }
+
+  public void CreateHitbox(CharacterAttack atk, CharacterAttackModifiers mods)
+  {
+    HitboxInfo hbi = atk.hitboxInfo;
     if (hbi == null) { Debug.LogError("no attack object defined for " + gameObject.name); }
-    Vector3 pos = orientation.TransformPoint(Vector3.right * (characterAttack.range + Character.GetAttackValueModifier(attackModifiers, CharacterAttackValue.Range)));
+    Vector3 pos = orientation.TransformPoint(Vector3.right * (atk.range + Character.GetAttackValueModifier(mods.attackValueModifiers, CharacterAttackValue.Range)));
     Hitbox hb = GameObject.Instantiate(hitboxPrefab, pos, orientation.rotation) as Hitbox;
     hb.gameObject.layer = LayerMask.NameToLayer(currentFloor.ToString());
     hb.gameObject.GetComponent<SpriteRenderer>().sortingLayerName = currentFloor.ToString();
-    hb.Init(orientation, this, hbi, characterAttack.hitboxInfo.damageMultipliers, attackModifiers);
+    hb.Init(orientation, this, hbi, atk.hitboxInfo.damageInfo, mods);
   }
 
-  public void ApplyAttackModifier(CharacterAttackValue attackValue, int magnitude)
+  public void ApplyAttackModifier(CharacterAttackModifiers mods, bool forDashAttack)
   {
-    attackModifiers[attackValue] += magnitude;
+    dashAttackEnabled |= forDashAttack;
+    CharacterAttackModifiers modsToAdjust = forDashAttack ? dashAttackModifiers : attackModifiers;
+    modsToAdjust.forcesLymphDrop |= mods.forcesLymphDrop;
+    foreach (CharacterAttackValue val in mods.attackValueModifiers.Keys)
+    {
+      int existingVal = modsToAdjust.attackValueModifiers.ContainsKey(val) ? modsToAdjust.attackValueModifiers[val] : 0;
+      modsToAdjust.attackValueModifiers[val] = existingVal + mods.attackValueModifiers[val];
+    }
   }
+  // public void ApplyDashAttackModifier(CharacterAttackValue attackValue, int magnitude)
+  // {
+  //   dashAttackEnabled = true;
+  //   Debug.Log("applying dash attack modifier: " + attackValue + "," + magnitude);
+  //   dashAttackModifiers[attackValue] += magnitude;
+  // }
 
   public void SetAnimationInput(Vector2 newAnimationInput)
   {
@@ -394,8 +412,17 @@ public class Character : WorldObject
   protected void Dash()
   {
     if (vitals[CharacterVital.CurrentDashCooldown] > 0) { return; }
+    DoDashAttack();
     po.ApplyImpulseForce(orientation.rotation * new Vector3(GetStat(CharacterStat.DashRange), 0, 0));
     vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
+  }
+
+  protected void DoDashAttack()
+  {
+    if (dashAttackEnabled)
+    {
+      CreateDashAttackHitbox();
+    }
   }
   // determines if input-based movement is allowed
   protected virtual bool CanMove()
@@ -421,7 +448,7 @@ public class Character : WorldObject
   // DAMAGE FUNCTIONS
 
   // Called from Hitbox's OnTriggerEnter. Calls other functions to determine outcome of getting hit.
-  protected virtual void TakeDamage(DamageObject damageObj)
+  protected virtual void TakeDamage(DamageInfo damageObj)
   {
     if (
       sourceInvulnerabilities.Contains(damageObj.sourceString)
@@ -455,7 +482,7 @@ public class Character : WorldObject
     }
   }
 
-  private IEnumerator ApplyDamageFlash(DamageObject damageObj)
+  private IEnumerator ApplyDamageFlash(DamageInfo damageObj)
   {
     // Todo: might wanna change this!
     Color baseColor = Color.white;
@@ -478,7 +505,7 @@ public class Character : WorldObject
   }
 
   // Make us invulnerable, then un-make-us invulnerable. Damage is ignorned while invulnerable.
-  void CalculateAndApplyInvulnerability(DamageObject dObj)
+  void CalculateAndApplyInvulnerability(DamageInfo dObj)
   {
     if (dObj.invulnerabilityWindow > 0)
     {
@@ -486,7 +513,7 @@ public class Character : WorldObject
     }
   }
 
-  IEnumerator ApplyInvulnerability(DamageObject dObj)
+  IEnumerator ApplyInvulnerability(DamageInfo dObj)
   {
     string src = dObj.sourceString;
     sourceInvulnerabilities.Add(src);
