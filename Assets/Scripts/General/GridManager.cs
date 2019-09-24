@@ -255,9 +255,14 @@ public class GridManager : Singleton<GridManager>
     }
     return false;
   }
-  public bool CanClimbAdjacentTile(Vector3 loc, FloorLayer floor)
+  public bool CanBurrowOnCurrentTile(TileLocation tileLoc)
   {
-    if (GetAdjacentTile(loc, floor, TilemapDirection.Above).IsEmpty())
+    return GetTileAtLocation(tileLoc).groundTileTags.Contains(TileTag.Ground);
+  }
+
+  public bool CanClimbAdjacentTile(TileLocation tileLoc)
+  {
+    if (GetAdjacentTile(tileLoc.position3D, tileLoc.floorLayer, TilemapDirection.Above).IsEmpty())
     {
       foreach (TilemapDirection d in new TilemapDirection[] {
         TilemapDirection.Up,
@@ -266,13 +271,13 @@ public class GridManager : Singleton<GridManager>
         TilemapDirection.Left,
       })
       {
-        EnvironmentTileInfo et = GetAdjacentTile(loc, floor, d);
+        EnvironmentTileInfo et = GetAdjacentTile(tileLoc.position3D, tileLoc.floorLayer, d);
         if (
           et.IsClimbable()
         )
         {
           // must be able to stick to the same tile above this one as well, obvs
-          EnvironmentTileInfo tileAboveClimbableTile = GetAdjacentTile(loc, floor + 1, d);
+          EnvironmentTileInfo tileAboveClimbableTile = GetAdjacentTile(tileLoc.position3D, tileLoc.floorLayer + 1, d);
           if (tileAboveClimbableTile.CanBeStuckTo())
           {
             return true;

@@ -155,7 +155,7 @@ public class AiStateController : Character
 
   }
 
-  protected override void TakeDamage(DamageObject damageObj)
+  protected override void TakeDamage(DamageInfo damageObj)
   {
     if (damageObj.forcesItemDrop)
     {

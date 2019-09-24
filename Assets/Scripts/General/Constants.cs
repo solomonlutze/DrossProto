@@ -16,13 +16,16 @@ public static class Constants
         {CharacterAttackValue.Knockback, .5f},
         {CharacterAttackValue.Range, .5f},
         {CharacterAttackValue.Stun, .3f},
-        {CharacterAttackValue.Venom, -12f}
+        {CharacterAttackValue.DurabilityDamage, 1},
+        {CharacterAttackValue.AcidDamage, 4f}
     };
   public static Dictionary<CharacterStat, float> CharacterStatAdjustmentIncrements
     = new Dictionary<CharacterStat, float>() {
         {CharacterStat.DetectableRange, .5f},
         {CharacterStat.MaxHealth, .02f},
         {CharacterStat.MoveAcceleration, .05f},
+        {CharacterStat.DashAcceleration, .1f},
+        {CharacterStat.DashDuration, .3f},
         {CharacterStat.MaxEnvironmentalDamageCooldown, 10f},
         {CharacterStat.RotationSpeed, .02f},
     };
@@ -32,6 +35,8 @@ public static class Constants
         {CharacterStat.DetectableRange, 10f},
         {CharacterStat.MaxHealth, 50f},
         {CharacterStat.MoveAcceleration, .5f},
+        {CharacterStat.DashAcceleration, 1.2f},
+        {CharacterStat.DashDuration, .25f},
         {CharacterStat.MaxEnvironmentalDamageCooldown, .25f},
         {CharacterStat.RotationSpeed, 2.5f},
         {CharacterStat.MaxDashCooldown, 1f},
