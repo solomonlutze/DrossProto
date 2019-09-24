@@ -59,7 +59,7 @@ public class CustomPhysicsController : MonoBehaviour
     owningCharacter = GetComponent<Character>();
     if (owningCharacter != null)
     {
-      moveAcceleration = owningCharacter.GetStat(CharacterStat.MoveAcceleration);
+      // moveAcceleration = owningCharacter.GetStat(CharacterStat.MoveAcceleration);
       orientation = owningCharacter.orientation;
     }
   }
@@ -68,7 +68,14 @@ public class CustomPhysicsController : MonoBehaviour
   {
     if (owningCharacter != null)
     {
-      moveAcceleration = owningCharacter.GetStat(CharacterStat.MoveAcceleration);
+      if (owningCharacter.dashing)
+      {
+        moveAcceleration = owningCharacter.GetStat(CharacterStat.DashAcceleration);
+      }
+      else
+      {
+        moveAcceleration = owningCharacter.GetStat(CharacterStat.MoveAcceleration);
+      }
     }
   }
   public void OnLayerChange()

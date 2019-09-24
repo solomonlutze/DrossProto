@@ -22,6 +22,8 @@ public enum CharacterStat
   DetectableRange,
   MaxEnvironmentalDamageCooldown,
   MoveAcceleration,
+  DashAcceleration,
+  DashDuration,
   RotationSpeed,
   MaxDashCooldown,
   DashRange
@@ -183,6 +185,7 @@ public class Character : WorldObject
   public Color attackColor = Color.grey;
   public float damageFlashSpeed = 1.0f;
   public bool attacking = false;
+  public bool dashing = false;
   protected bool attackCooldown = false;
   protected bool stunned = false;
   public bool animationPreventsMoving = false;
@@ -409,12 +412,26 @@ public class Character : WorldObject
     }
   }
 
+  // Traits activated on dash are handled in HandleConditionallyActivatedTraits()
   protected void Dash()
   {
     if (vitals[CharacterVital.CurrentDashCooldown] > 0) { return; }
     DoDashAttack();
-    po.ApplyImpulseForce(orientation.rotation * new Vector3(GetStat(CharacterStat.DashRange), 0, 0));
+    StartCoroutine(ApplyDashInput());
     vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
+  }
+
+  protected IEnumerator ApplyDashInput()
+  {
+    float t = 0;
+    dashing = true;
+    while (t < GetStat(CharacterStat.DashDuration))
+    {
+      po.SetMovementInput(orientation.rotation * new Vector3(1, 0, 0));
+      t += Time.deltaTime;
+      yield return null;
+    }
+    dashing = false;
   }
 
   protected void DoDashAttack()
@@ -567,7 +584,7 @@ public class Character : WorldObject
     {
       modValue += modMagnitude;
     }
-    modValue = Mathf.Clamp(-10, modValue, 10);
+    modValue = Mathf.Clamp(-12, modValue, 12);
     if (modValue >= 0)
     {
       returnValue *= ((3 + modValue) / 3);
@@ -739,6 +756,16 @@ public class Character : WorldObject
     {
       switch (trait.activatingCondition)
       {
+        case ConditionallyActivatedTraitCondition.Dashing:
+          if (dashing)
+          {
+            trait.Apply(this);
+          }
+          else
+          {
+            trait.Expire(this);
+          }
+          break;
         case ConditionallyActivatedTraitCondition.NotMoving:
           if (timeStandingStill > trait.activatingConditionRequiredDuration)
           {

@@ -19,7 +19,7 @@ public enum TraitEffectType
   CharacterAttackModifiers
 }
 
-public enum ConditionallyActivatedTraitCondition { None, NotMoving, Moving };
+public enum ConditionallyActivatedTraitCondition { None, NotMoving, Moving, Dashing };
 
 [System.Serializable]
 public class TraitEffect
