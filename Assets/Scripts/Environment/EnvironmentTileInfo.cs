@@ -14,7 +14,7 @@ public class EnvironmentTileInfo
   public bool isInteractable = false;
   public bool dealsDamage = false;
   public bool corroded = false;
-  public DamageInfo environmentalDamage;
+  public DamageData environmentalDamage;
   public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile)
   {
     tileLocation = location;
@@ -108,15 +108,15 @@ public class EnvironmentTileInfo
     return false;
   }
 
-  public void TakeDamage(DamageInfo damageObj)
+  public void TakeDamage(Damage damage)
   {
     if (!objectTileType) { return; }
-    if (damageObj.corrosive && objectTileType.corrodable)
+    if (damage.IsCorrosive() && objectTileType.corrodable)
     {
       corroded = true;
       GridManager.Instance.MarkTileToDestroyOnPlayerRespawn(this, objectTileType.replacedByWhenCorroded);
     }
-    if (damageObj.durabilityDamageLevel >= objectTileType.tileDurability)
+    if (damage.GetDurabilityDamageLevel() >= objectTileType.tileDurability)
     {
       DestroyTile();
     }

@@ -36,7 +36,7 @@ public class WeaponData : ItemData
   public float attackQueueWindow = .25f;
 
   // Base damage info, modified by individual hitboxes.
-  public DamageInfo baseDamage;
+  public DamageData baseDamage;
 
   public Transform spawnTransform;
   // Set properties of the base damage object this weapon uses.

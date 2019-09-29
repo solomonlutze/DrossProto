@@ -155,13 +155,13 @@ public class AiStateController : Character
 
   }
 
-  protected override void TakeDamage(DamageInfo damageObj)
+  protected override void TakeDamage(Damage damage)
   {
-    if (damageObj.forcesItemDrop)
+    if (damage.ForcesItemDrop())
     {
       SpawnDroppedItems();
     }
-    base.TakeDamage(damageObj);
+    base.TakeDamage(damage);
   }
 
   private void SpawnDroppedItems()

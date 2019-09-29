@@ -3,12 +3,10 @@ using UnityEditor;
 
 [System.Serializable]
 public class CharacterAttack : ScriptableObject
-{
-  public Hitbox hitboxObject;
-  public HitboxInfo hitboxInfo;
+{ 
+  public HitboxData hitboxData;
   public float attackSpeed;
   public float range;
-  public float hitboxSize;
   public float cooldown;
 
 #if UNITY_EDITOR

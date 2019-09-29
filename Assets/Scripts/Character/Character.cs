@@ -322,13 +322,13 @@ public class Character : WorldObject
 
   public void CreateHitbox(CharacterAttack atk, CharacterAttackModifiers mods)
   {
-    HitboxInfo hbi = atk.hitboxInfo;
+    HitboxData hbi = atk.hitboxData;
     if (hbi == null) { Debug.LogError("no attack object defined for " + gameObject.name); }
     Vector3 pos = orientation.TransformPoint(Vector3.right * (atk.range + Character.GetAttackValueModifier(mods.attackValueModifiers, CharacterAttackValue.Range)));
     Hitbox hb = GameObject.Instantiate(hitboxPrefab, pos, orientation.rotation) as Hitbox;
     hb.gameObject.layer = LayerMask.NameToLayer(currentFloor.ToString());
     hb.gameObject.GetComponent<SpriteRenderer>().sortingLayerName = currentFloor.ToString();
-    hb.Init(orientation, this, hbi, atk.hitboxInfo.damageInfo, mods);
+    hb.Init(orientation, this, hbi, mods);
   }
 
   public void ApplyAttackModifier(CharacterAttackModifiers mods, bool forDashAttack)
@@ -465,41 +465,43 @@ public class Character : WorldObject
   // DAMAGE FUNCTIONS
 
   // Called from Hitbox's OnTriggerEnter. Calls other functions to determine outcome of getting hit.
-  protected virtual void TakeDamage(DamageInfo damageObj)
+  protected float GetDamageAfterResistance(float damage, DamageType damageType)
+  {
+    return ((100 - damageTypeResistances[damageType]) / 100) * damage;
+  }
+  protected virtual void TakeDamage(Damage damage)
   {
     if (
-      sourceInvulnerabilities.Contains(damageObj.sourceString)
-      && !damageObj.ignoreInvulnerability)
+      sourceInvulnerabilities.Contains(damage.sourceString)
+      && !damage.IgnoresInvulnerability())
     { return; }
-    float damageAfterResistances = ((100 - damageTypeResistances[damageObj.damageType]) / 100) * damageObj.damage;
+    if (damage.owningCharacter == this) { return; }
+    float damageAfterResistances = GetDamageAfterResistance(damage.GetDamage(), damage.GetDamageType());
     if (
       damageAfterResistances <= 0
-      && damageObj.damage > 0
-      && damageObj.characterStatModifications.Count == 0
+      && damage.GetDamage() > 0
+    // && hb.characterStatModifications.Count == 0
     ) { return; }
-    if (damageObj.attackerTransform == transform) { return; }
     InterruptAnimation();
     AdjustHealth(Mathf.Floor(-damageAfterResistances));
-    CalculateAndApplyStun(damageObj.stun);
-    foreach (CharacterStatModification mod in damageObj.characterStatModifications)
-    {
-      ApplyStatMod(mod);
-    }
-    StartCoroutine(ApplyInvulnerability(damageObj));
+    CalculateAndApplyStun(damage.GetStun());
+    // foreach (CharacterStatModification mod in damageObj.characterStatModifications)
+    // {
+    //   ApplyStatMod(mod);
+    // }
+    StartCoroutine(ApplyInvulnerability(damage));
     // if (damageFlashCoroutine != null) {
     //   StopCoroutine(damageFlashCoroutine);
     // }
     // StartCoroutine(ApplyDamageFlash(damageObj));
-    if (damageObj.attackerTransform != null && damageObj.hitboxTransform != null)
+    Vector3 knockback = damage.CalculateAndReturnKnockback();
+    if (knockback != Vector3.zero)
     {
-      po.ApplyImpulseForce(damageObj.knockback *
-        (damageObj.hitboxTransform.position
-        - damageObj.attackerTransform.position)
-      );
+      po.ApplyImpulseForce(knockback);
     }
   }
 
-  private IEnumerator ApplyDamageFlash(DamageInfo damageObj)
+  private IEnumerator ApplyDamageFlash(DamageData damageObj)
   {
     // Todo: might wanna change this!
     Color baseColor = Color.white;
@@ -522,19 +524,19 @@ public class Character : WorldObject
   }
 
   // Make us invulnerable, then un-make-us invulnerable. Damage is ignorned while invulnerable.
-  void CalculateAndApplyInvulnerability(DamageInfo dObj)
+  void CalculateAndApplyInvulnerability(Damage damage)
   {
-    if (dObj.invulnerabilityWindow > 0)
+    if (damage.GetInvulnerabilityWindow() > 0)
     {
-      StartCoroutine(ApplyInvulnerability(dObj));
+      StartCoroutine(ApplyInvulnerability(damage));
     }
   }
 
-  IEnumerator ApplyInvulnerability(DamageInfo dObj)
+  IEnumerator ApplyInvulnerability(Damage damage)
   {
-    string src = dObj.sourceString;
+    string src = damage.sourceString;
     sourceInvulnerabilities.Add(src);
-    yield return new WaitForSeconds(dObj.invulnerabilityWindow);
+    yield return new WaitForSeconds(damage.GetInvulnerabilityWindow());
     if (sourceInvulnerabilities.Contains(src))
     {
       sourceInvulnerabilities.Remove(src);
@@ -733,11 +735,22 @@ public class Character : WorldObject
     }
     if (tile.dealsDamage && tile.environmentalDamage != null && vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] <= 0)
     {
-      TakeDamage(tile.environmentalDamage);
+      TakeEnvironmentalDamage(tile.environmentalDamage);
       vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
     }
   }
 
+  public void TakeEnvironmentalDamage(DamageData damage)
+  {
+
+    float damageAfterResistances = GetDamageAfterResistance(damage.damageAmount, damage.damageType);
+    if (
+      damageAfterResistances <= 0
+      && damage.damageAmount > 0
+    // && hb.characterStatModifications.Count == 0
+    ) { return; }
+    AdjustHealth(Mathf.Floor(-damageAfterResistances));
+  }
   public virtual void HandleTileCollision(EnvironmentTileInfo tile)
   {
     if (tile.GetColliderType() == Tile.ColliderType.None)

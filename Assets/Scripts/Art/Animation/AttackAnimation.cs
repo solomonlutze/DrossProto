@@ -8,11 +8,11 @@ using SimpleJSON;
 [Serializable]
 public class AnimationPhaseInfo
 {
-    public Vector2 animationInput;
-    // how long, in seconds, the animation phase lasts
-    public float phaseDuration;
-    public float cancelWindow;
-    public float rotationSpeed;
+  public Vector2 animationInput;
+  // how long, in seconds, the animation phase lasts
+  public float phaseDuration;
+  public float cancelWindow;
+  public float rotationSpeed;
 }
 
 // Reads from AttackAnimationData scriptableobjects.
@@ -22,28 +22,31 @@ public class AnimationPhaseInfo
 [Serializable]
 public class AttackAnimation
 {
-    [StringInList(typeof(PropertyDrawerHelpers), "AllAttackAnimationNames", new object[]{false})] public string attackAnimation;
+  [StringInList(typeof(PropertyDrawerHelpers), "AllAttackAnimationNames", new object[] { false })] public string attackAnimation;
 
-    public AnimationPhaseInfo windup;
-    public AnimationPhaseInfo attack;
-    public AnimationPhaseInfo recovery;
-    public List<HitboxInfo> hitboxes;
+  public AnimationPhaseInfo windup;
+  public AnimationPhaseInfo attack;
+  public AnimationPhaseInfo recovery;
+  public List<HitboxData> hitboxes;
 
-    public void ResetDefaults() {
-        hitboxes.Clear();
-        ReadFromScriptableObject();
+  public void ResetDefaults()
+  {
+    hitboxes.Clear();
+    ReadFromScriptableObject();
+  }
+
+  private void ReadFromScriptableObject()
+  {
+    var datavar = Resources.Load("Data/AnimationData/Attack/" + attackAnimation);
+    AttackAnimationData data = Resources.Load("Data/AnimationData/Attack/" + attackAnimation) as AttackAnimationData;
+    this.windup = data.windup;
+    this.attack = data.attack;
+    this.recovery = data.recovery;
+    foreach (HitboxData hb in data.hitboxes)
+    {
+      hitboxes.Add(hb);
     }
-
-    private void ReadFromScriptableObject() {
-        var datavar = Resources.Load("Data/AnimationData/Attack/"+attackAnimation);
-        AttackAnimationData data = Resources.Load("Data/AnimationData/Attack/"+attackAnimation) as AttackAnimationData;
-        this.windup = data.windup;
-        this.attack = data.attack;
-        this.recovery = data.recovery;
-        foreach(HitboxInfo hb in data.hitboxes) {
-            hitboxes.Add(hb);
-        }
-    }
+  }
 
 }
 // public class Ingredient
