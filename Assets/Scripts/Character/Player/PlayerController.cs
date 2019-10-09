@@ -276,6 +276,10 @@ public class PlayerController : Character
         {
           AdvanceSelectedContextualAction();
         }
+        else if (Input.GetButtonDown("Molt"))
+        {
+          Molt();
+        }
         // else if (Input.GetButtonDown("Skill1"))
         // {
         //   if (skill1 != null)

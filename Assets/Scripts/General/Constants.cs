@@ -29,17 +29,4 @@ public static class Constants
         {CharacterStat.MaxEnvironmentalDamageCooldown, 10f},
         {CharacterStat.RotationSpeed, .02f},
     };
-
-  public static Dictionary<CharacterStat, float> BaseCharacterStats
-    = new Dictionary<CharacterStat, float>() {
-        {CharacterStat.DetectableRange, 10f},
-        {CharacterStat.MaxHealth, 50f},
-        {CharacterStat.MoveAcceleration, .5f},
-        {CharacterStat.DashAcceleration, 1.2f},
-        {CharacterStat.DashDuration, .25f},
-        {CharacterStat.MaxEnvironmentalDamageCooldown, .25f},
-        {CharacterStat.RotationSpeed, 2.5f},
-        {CharacterStat.MaxDashCooldown, 1f},
-        {CharacterStat.DashRange, .8f},
-    };
 }
