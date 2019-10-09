@@ -208,6 +208,11 @@ public class Character : WorldObject
 
   private Coroutine damageFlashCoroutine;
 
+  public Color damagedColor;
+
+  [Header("Prefabs")]
+  public MoltCasting moltCasingPrefab;
+
   protected virtual void Awake()
   {
     orientation = transform.Find("Orientation");
@@ -248,6 +253,10 @@ public class Character : WorldObject
       activeMovementAbilities.AddRange(dataInstance.movementAbilities);
     }
     vitals = new CharacterVitalToFloatDictionary();
+    statModifications = new StatToActiveStatModificationsDictionary();
+    vitals[CharacterVital.CurrentHealth] = GetStat(CharacterStat.MaxHealth);
+    vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
+    vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
   }
 
   // non-physics biz
@@ -412,6 +421,19 @@ public class Character : WorldObject
     }
   }
 
+  protected void Molt()
+  {
+    Instantiate(moltCasingPrefab, orientation.transform.position, orientation.transform.rotation);
+    moltCasingPrefab.Init(mainRenderer.color, this);
+    ApplyStatMod(new CharacterStatModification(
+      CharacterStat.MaxHealth,
+      -1,
+      0,
+      0,
+      Guid.NewGuid().ToString("N").Substring(0, 15)
+    ));
+    AdjustHealth(5);
+  }
   // Traits activated on dash are handled in HandleConditionallyActivatedTraits()
   protected void Dash()
   {
@@ -579,6 +601,8 @@ public class Character : WorldObject
 
   public float GetStat(CharacterStat statToGet)
   {
+    Debug.Log("Stat to get: " + statToGet);
+    Debug.Log("StatModifications: " + statToGet);
     StringToIntDictionary statMods = statModifications[statToGet];
     int modValue = 0;
     float returnValue = defaultCharacterData.defaultStats[statToGet];
@@ -693,6 +717,11 @@ public class Character : WorldObject
     {
       Die();
     }
+    mainRenderer.color = Color.Lerp(
+      damagedColor,
+      Color.white,
+      vitals[CharacterVital.CurrentHealth] / GetStat(CharacterStat.MaxHealth)
+    );
   }
   protected virtual void HandleTile()
   {
