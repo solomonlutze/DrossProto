@@ -753,6 +753,7 @@ public class Character : WorldObject
       }
       else
       {
+        Debug.Log("Fall?");
         transform.position = new Vector3(
           nowTileLocation.position.x + .5f,
           nowTileLocation.position.y + .5f,

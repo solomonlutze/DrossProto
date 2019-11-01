@@ -28,6 +28,7 @@ public class PlayerController : Character
   // public ActiveTraitInstance skill1;
   // public ActiveTraitInstance skill2;
   private TileLocation lastSafeTileLocation;
+  public SpawnPoint spawnPoint;
 
   public string lastActivatedTrait = null;
   public List<ContextualAction> availableContextualActions;

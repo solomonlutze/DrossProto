@@ -12,6 +12,7 @@ public class LayerFloor : MonoBehaviour
   {
     if (!Application.IsPlaying(gameObject))
     {
+      if (gameObject.name == "LayerFloor") { return; }
       gameObject.layer = LayerMask.NameToLayer(gameObject.name);
       if (groundTilemap == null && transform.Find(gameObject.name + "_Ground") != null)
       {
