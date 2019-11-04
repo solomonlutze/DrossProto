@@ -288,7 +288,7 @@ public class Character : WorldObject
   // if an attack is NOT queued, the combo is reset, and attacking is reset to false (Weapon.FinishCombo)
 
   // called via play input or npc AI
-  protected void Attack()
+  public void Attack()
   {
     if (characterAttack != null)
     {
@@ -601,8 +601,6 @@ public class Character : WorldObject
 
   public float GetStat(CharacterStat statToGet)
   {
-    Debug.Log("Stat to get: " + statToGet);
-    Debug.Log("StatModifications: " + statToGet);
     StringToIntDictionary statMods = statModifications[statToGet];
     int modValue = 0;
     float returnValue = defaultCharacterData.defaultStats[statToGet];

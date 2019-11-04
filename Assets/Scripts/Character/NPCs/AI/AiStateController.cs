@@ -12,6 +12,7 @@ public class AiStateController : Character
   [Header("AI Attributes")]
   public float detectionRange = 5f;
   public float attackRange = .5f;
+  public float attackAngleInDegrees = 15f;
   [HideInInspector] public float minDistanceFromPathNode;
 
   [HideInInspector] public Vector2 spawnLocation;
