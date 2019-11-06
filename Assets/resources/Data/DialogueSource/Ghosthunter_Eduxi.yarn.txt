@@ -1,12 +1,27 @@
 
+title: Eduxi.Mushrooms
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+The ones here are straightforward enough. They'll just kill you.
+
+Deeper in the forest, though, there's older ones. Stranger ones. Cursed spores that linger in the soul.
+
+There's more at stake than death when you deal with ghosts. If you go in there, you're not just risking your life.
+
+Stay on your guard.
+===
 title: Eduxi.Camp
 tags: 
 colorID: 0
 position: 0,0
 parent: 
 ---
-This is as close as we can safely get to the Forest north of here.The Forest is north of here, mostly because it's full of mushrooms that will kill you very quickly.
+This is as close as we can safely get to the Forest north of here, mostly because it's full of mushrooms that will kill you very quickly.
 
+<<set $eduxi_camp_explained to true>>
 In fact, if you look below us you can see some of them. Watch your step.
 ===
 title: Eduxi.LeaveAnnoyed
@@ -65,7 +80,11 @@ Name's Eduxi. I'm the captain of the Ghosthunter camp, which is the thing you're
 
 Pilgrim.
 [[What's a Ghosthunter?|Eduxi.Explain]]
+<<if $eduxi_camp_explained>>
+[[What's this about mushrooms?|Eduxi.Mushrooms]]
+<<else>>
 [[Tell me about the camp?|Eduxi.Camp]]
+<<endif>>
 [[Captain.|Eduxi.Leave]]
 [[Eduxi.|Eduxi.LeaveAnnoyed]]
 
