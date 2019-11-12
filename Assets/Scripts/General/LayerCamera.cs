@@ -6,8 +6,10 @@ public class LayerCamera : MonoBehaviour
 {
     public FloorLayer floorLayer;
     public Camera ownCamera;
-    public float dampTime = 0.15f;
-    private Vector3 velocity = Vector3.zero;
+    public float scrollDampTime = 0.15f;
+    private Vector3 scrollVelocity = Vector3.zero;
+    public float zoomDampTime = 0.5f;
+    private float zoomVelocity;
     public Transform target;
 
     public float cameraSizeOffsetPerLayer = 1.0f;
@@ -33,6 +35,7 @@ public class LayerCamera : MonoBehaviour
             mask |= layerValue << i;
         }
         ownCamera.cullingMask = mask;
+        ownCamera.depth = (int)floorLayer;
     }
 
     void Update()
@@ -40,31 +43,42 @@ public class LayerCamera : MonoBehaviour
         PlayerController player = GameMaster.Instance.GetPlayerController();
         if (player != null)
         {
-            EnableBasedOnPlayerFloor(player);
-            HandleSmoothFollowAndParallax(player);
+            floorOffsetFromPlayer = (int)(floorLayer - player.currentFloor); // positive means we are above player; negative means we are below
+            HandleScrollAndEnabling(player);
+            HandleSmoothFollow(player);
+            HandleParallax();
         }
     }
 
-    void EnableBasedOnPlayerFloor(PlayerController player)
+    void HandleScrollAndEnabling(PlayerController player)
     {
-        FloorLayer playerFloorLayer = player.currentFloor;
-        floorOffsetFromPlayer = (int)(floorLayer - playerFloorLayer);
-        if (playerFloorLayer < floorLayer)
+        if (floorOffsetFromPlayer > 0)
         {
-            ownCamera.enabled = false;
+            // ownCamera.enabled = false;
         }
         else
         {
             ownCamera.enabled = true;
         }
     }
-    void HandleSmoothFollowAndParallax(PlayerController player)
+    void HandleSmoothFollow(PlayerController player)
     {
         target = GameMaster.Instance.GetPlayerController().transform;
         Vector3 point = ownCamera.WorldToViewportPoint(target.position);
         Vector3 delta = target.position - ownCamera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, point.z));
         Vector3 destination = transform.position + delta;
-        transform.position = Vector3.SmoothDamp(transform.position, destination, ref velocity, dampTime);
-        ownCamera.orthographicSize = defaultCameraSize - (floorOffsetFromPlayer * cameraSizeOffsetPerLayer);
+        transform.position = Vector3.SmoothDamp(transform.position, destination, ref scrollVelocity, scrollDampTime);
+    }
+    void HandleParallax()
+    {
+        float targetSize = defaultCameraSize - (floorOffsetFromPlayer * cameraSizeOffsetPerLayer);
+        if (floorOffsetFromPlayer > 0) { targetSize = 0.1f; }
+        // if (floorOffsetFromPlayer < 0)
+        // {
+        float actualDampTime = floorOffsetFromPlayer > 0 ? zoomDampTime / floorOffsetFromPlayer : zoomDampTime;
+        ownCamera.orthographicSize = Mathf.SmoothDamp(ownCamera.orthographicSize, targetSize, ref zoomVelocity, actualDampTime); // ;defaultCameraSize - (floorOffsetFromPlayer * cameraSizeOffsetPerLayer);
+        // }
+
+
     }
 }
