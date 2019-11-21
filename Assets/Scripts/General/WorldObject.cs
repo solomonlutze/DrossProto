@@ -42,6 +42,9 @@ public class WorldObject : MonoBehaviour
         }
     }
 
+  public static FloorLayer GetFloorLayerOfGameObject(GameObject go) {
+    return GetFloorLayerFromGameObjectLayer(go.layer);
+  }
     public static FloorLayer GetFloorLayerFromGameObjectLayer(int gameObjectLayer)
     {
         int firstFloorLayerIndex = LayerMask.NameToLayer("B6");

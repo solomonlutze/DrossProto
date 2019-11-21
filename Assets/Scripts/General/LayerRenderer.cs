@@ -3,21 +3,33 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+
+[ExecuteInEditMode]
 public class LayerRenderer : MonoBehaviour
 {
     public float fadeDampTime = 0.05f;
 
+    private FloorLayer lastTargetedFloorLayer;
     void Update()
-    {
+    {   
+      if (Application.IsPlaying(gameObject)) {
         PlayerController player = GameMaster.Instance.GetPlayerController();
         {
-            HandleOpacity(player);
+            HandleOpacity(player.currentFloor);
         }
+      } else {
+        GameObject tilemapToPaint = UnityEditor.Tilemaps.GridPaintingState.scenePaintTarget;
+        if (tilemapToPaint && WorldObject.GetFloorLayerOfGameObject(tilemapToPaint) != lastTargetedFloorLayer) {
+          lastTargetedFloorLayer = WorldObject.GetFloorLayerOfGameObject(tilemapToPaint);
+        }
+        HandleOpacity(lastTargetedFloorLayer);
+        Debug.Log("LayerRenderer targeting: "+UnityEditor.Tilemaps.GridPaintingState.scenePaintTarget);
+      }
     }
 
-    void HandleOpacity(PlayerController player)
+    void HandleOpacity(FloorLayer currentFloor)
     {
-        ChangeOpacityRecursively(transform, player.currentFloor, fadeDampTime);
+        ChangeOpacityRecursively(transform, currentFloor, fadeDampTime);
     }
 
 
