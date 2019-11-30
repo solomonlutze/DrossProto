@@ -31,6 +31,8 @@ public class EnvironmentTile : Tile
   public int changesFloorLayerByAmount;
   public TileDurability tileDurability = TileDurability.Indestructable;
   public FloorTilemapType floorTilemapType = FloorTilemapType.Ground;
+
+  public EnvironmentTile autoPlaceTileOnPaint_Above;
   public EnvironmentTile replacedByWhenDestroyed;
   public EnvironmentTile replacedByWhenCorroded;
   //TODO: should we just have statMods?
@@ -107,6 +109,7 @@ public class EnvironmentTile : Tile
   }
   public override void RefreshTile(Vector3Int location, ITilemap tilemap)
   {
+    // Debug.Log("tile " + this.name + " on tilemap " + tilemap);
     for (int yd = -1; yd <= 1; yd++)
       for (int xd = -1; xd <= 1; xd++)
       {

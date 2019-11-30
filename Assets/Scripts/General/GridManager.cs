@@ -94,6 +94,7 @@ public class TileLocation
   }
 }
 
+[ExecuteAlways]
 public class GridManager : Singleton<GridManager>
 {
 
@@ -107,48 +108,53 @@ public class GridManager : Singleton<GridManager>
   public GameObject highlightTilePrefab;
   public void Awake()
   {
-    worldGrid = new Dictionary<FloorLayer, Dictionary<Vector2Int, EnvironmentTileInfo>>();
-    tilesToDestroyOnPlayerRespawn = new List<EnvironmentTileInfo>();
-    Dictionary<Vector2, EnvironmentTileInfo> floor = new Dictionary<Vector2, EnvironmentTileInfo>();
-    Tilemap groundTilemap;
-    Tilemap objectTilemap;
-    foreach (LayerFloor layerFloor in levelGrid.GetComponentsInChildren<LayerFloor>())
+    if (!Application.isPlaying)
     {
-      FloorLayer fl = (FloorLayer)Enum.Parse(typeof(FloorLayer), layerFloor.gameObject.name);
-      layerFloors[fl] = layerFloor;
-    }
-
-    int minXAcrossAllFloors = 5000;
-    int maxXAcrossAllFloors = -5000;
-    int minYAcrossAllFloors = 5000;
-    int maxYAcrossAllFloors = -5000;
-    foreach (LayerFloor lf in layerFloors.Values)
-    {
-      groundTilemap = lf.groundTilemap;
-      minXAcrossAllFloors = Mathf.Min(minXAcrossAllFloors, groundTilemap.cellBounds.xMin);
-      maxXAcrossAllFloors = Mathf.Max(maxXAcrossAllFloors, groundTilemap.cellBounds.xMax);
-      minYAcrossAllFloors = Mathf.Min(minYAcrossAllFloors, groundTilemap.cellBounds.yMin);
-      maxYAcrossAllFloors = Mathf.Max(maxYAcrossAllFloors, groundTilemap.cellBounds.yMax);
-    }
-    foreach (FloorLayer layer in Enum.GetValues(typeof(FloorLayer)))
-    {
-      floor.Clear();
-      worldGrid[layer] = new Dictionary<Vector2Int, EnvironmentTileInfo>();
-      if (!layerFloors.ContainsKey(layer))
+      foreach (LayerFloor layerFloor in levelGrid.GetComponentsInChildren<LayerFloor>())
       {
-        continue;
+        FloorLayer fl = (FloorLayer)Enum.Parse(typeof(FloorLayer), layerFloor.gameObject.name);
+        layerFloors[fl] = layerFloor;
       }
-      LayerFloor layerFloor = layerFloors[layer];
-      groundTilemap = layerFloor.groundTilemap;
-      objectTilemap = layerFloor.objectTilemap;
-      for (int x = minXAcrossAllFloors; x < maxXAcrossAllFloors; x++)
+    }
+    else
+    {
+      worldGrid = new Dictionary<FloorLayer, Dictionary<Vector2Int, EnvironmentTileInfo>>();
+      tilesToDestroyOnPlayerRespawn = new List<EnvironmentTileInfo>();
+      Dictionary<Vector2, EnvironmentTileInfo> floor = new Dictionary<Vector2, EnvironmentTileInfo>();
+      Tilemap groundTilemap;
+      Tilemap objectTilemap;
+      int minXAcrossAllFloors = 5000;
+      int maxXAcrossAllFloors = -5000;
+      int minYAcrossAllFloors = 5000;
+      int maxYAcrossAllFloors = -5000;
+      foreach (LayerFloor lf in layerFloors.Values)
       {
-        for (int y = minYAcrossAllFloors; y < maxYAcrossAllFloors; y++)
+        groundTilemap = lf.groundTilemap;
+        minXAcrossAllFloors = Mathf.Min(minXAcrossAllFloors, groundTilemap.cellBounds.xMin);
+        maxXAcrossAllFloors = Mathf.Max(maxXAcrossAllFloors, groundTilemap.cellBounds.xMax);
+        minYAcrossAllFloors = Mathf.Min(minYAcrossAllFloors, groundTilemap.cellBounds.yMin);
+        maxYAcrossAllFloors = Mathf.Max(maxYAcrossAllFloors, groundTilemap.cellBounds.yMax);
+      }
+      foreach (FloorLayer layer in Enum.GetValues(typeof(FloorLayer)))
+      {
+        floor.Clear();
+        worldGrid[layer] = new Dictionary<Vector2Int, EnvironmentTileInfo>();
+        if (!layerFloors.ContainsKey(layer))
         {
-          //get both object and ground tile, build an environmentTileInfo out of them, and put it into our worldGrid
-          TileLocation loc = new TileLocation(new Vector2Int(x, y), layer);
-          ConstructAndSetEnvironmentTileInfo(loc, groundTilemap, objectTilemap);
+          continue;
+        }
+        LayerFloor layerFloor = layerFloors[layer];
+        groundTilemap = layerFloor.groundTilemap;
+        objectTilemap = layerFloor.objectTilemap;
+        for (int x = minXAcrossAllFloors; x < maxXAcrossAllFloors; x++)
+        {
+          for (int y = minYAcrossAllFloors; y < maxYAcrossAllFloors; y++)
+          {
+            //get both object and ground tile, build an environmentTileInfo out of them, and put it into our worldGrid
+            TileLocation loc = new TileLocation(new Vector2Int(x, y), layer);
+            ConstructAndSetEnvironmentTileInfo(loc, groundTilemap, objectTilemap);
 
+          }
         }
       }
     }
@@ -195,6 +201,25 @@ public class GridManager : Singleton<GridManager>
     return worldGrid[loc.floorLayer][loc.position];
   }
 
+  public LayerFloor GetFloorLayerAbove(FloorLayer floorLayer)
+  {
+    FloorLayer fl = (FloorLayer)floorLayer + 1;
+    if (layerFloors.ContainsKey(fl))
+    {
+      return layerFloors[fl];
+    }
+    return null;
+  }
+
+  public LayerFloor GetFloorLayerBelow(FloorLayer floorLayer)
+  {
+    FloorLayer fl = (FloorLayer)floorLayer - 1;
+    if (layerFloors.ContainsKey(fl))
+    {
+      return layerFloors[fl];
+    }
+    return null;
+  }
   // public EnvironmentTile GetTileAtLocation(Vector2 loc, FloorLayer floor, FloorTilemapType? floorTilemapType=null) {
   // 	Debug.Log("inside GetTileAtLocation?");
   // 	if (!layerFloors.ContainsKey(floor) || layerFloors[floor].groundTilemap == null || layerFloors[floor].objectTilemap == null)
