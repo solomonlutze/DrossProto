@@ -52,26 +52,26 @@ public class Inventory : MonoBehaviour
     equippedItems = new string[numEquippableConsumables];
     lastPickedUpItems = new List<PickedUpItem>();
     inventory = new Dictionary<string, InventoryEntry>();
-    foreach (PickupItem item in initialItems)
-    {
-      if (item != null)
-      {
-        AddToInventory(item);
-      }
-    }
+    // foreach (PickupItem item in initialItems)
+    // {
+    //   if (item != null)
+    //   {
+    //     AddToInventory(item);
+    //   }
+    // }
   }
 
-  void Update()
-  {
-    if (Input.GetButtonDown("UseItem"))
-    {
-      UseActiveItem();
-    }
-    else if (Input.GetButtonDown("ActiveItemNext"))
-    {
-      AdvanceActiveEquippedItem();
-    }
-  }
+  // void Update()
+  // {
+  //   if (Input.GetButtonDown("UseItem"))
+  //   {
+  //     UseActiveItem();
+  //   }
+  //   else if (Input.GetButtonDown("ActiveItemNext"))
+  //   {
+  //     AdvanceActiveEquippedItem();
+  //   }
+  // }
 
   // on stacking:
   // consumables and currencies go in stacks

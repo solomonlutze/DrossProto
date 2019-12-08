@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -9,6 +10,7 @@ public class LayerRenderer : MonoBehaviour
   private FloorLayer lastTargetedFloorLayer;
   void Update()
   {
+    Debug.Log("update?");
     if (Application.IsPlaying(gameObject))
     {
       PlayerController player = GameMaster.Instance.GetPlayerController();
@@ -18,10 +20,13 @@ public class LayerRenderer : MonoBehaviour
     }
     else
     {
-      GameObject tilemapToPaint = UnityEditor.Tilemaps.GridPaintingState.scenePaintTarget;
-      if (tilemapToPaint && WorldObject.GetFloorLayerOfGameObject(tilemapToPaint) != lastTargetedFloorLayer)
+      // GameObject tilemapToPaint = UnityEditor.Tilemaps.GridPaintingState.scenePaintTarget;
+      GameObject selectedObject = Selection.objects.Length > 0 ? (GameObject)Selection.objects[0] : null;
+      // Debug.Log("SelectedObject: " + selectedObject + ", layer: " + WorldObject.GetFloorLayerOfGameObject(selectedObject));
+      if (selectedObject && WorldObject.GetFloorLayerOfGameObject(selectedObject) != lastTargetedFloorLayer)
+      // if (tilemapToPaint && WorldObject.GetFloorLayerOfGameObject(tilemapToPaint) != lastTargetedFloorLayer)
       {
-        lastTargetedFloorLayer = WorldObject.GetFloorLayerOfGameObject(tilemapToPaint);
+        lastTargetedFloorLayer = WorldObject.GetFloorLayerOfGameObject(selectedObject);
       }
       HandleOpacity(lastTargetedFloorLayer);
     }

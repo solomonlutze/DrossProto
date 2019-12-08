@@ -63,6 +63,7 @@ public class GameMaster : Singleton<GameMaster>
 
   private void Respawn(bool initialSpawn = false)
   {
+    Debug.Log("GridManager Instance: " + GridManager.Instance.name);
     GridManager.Instance.DestroyTilesOnPlayerRespawn();
     GameObject player = GameObject.FindGameObjectWithTag("Player");
     if (player != null)
