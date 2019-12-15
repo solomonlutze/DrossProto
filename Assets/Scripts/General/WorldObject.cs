@@ -6,6 +6,15 @@ using UnityEngine;
 public class WorldObject : MonoBehaviour
 {
   public float detectableRange = Constants.DEFAULT_DETECTION_RANGE; // default range at which this object can be sensed by AI (possibly also player?)
+
+  public Collider2D col
+  {
+    get
+    {
+      return GetComponentInChildren<Collider2D>();
+    }
+  }
+
   private int prevLayer;
   public TileLocation GetTileLocation()
   {

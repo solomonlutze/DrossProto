@@ -104,6 +104,8 @@ public class GridManager : Singleton<GridManager>
   public Dictionary<FloorLayer, Dictionary<Vector2Int, EnvironmentTileInfo>> worldGrid;
 
   private List<EnvironmentTileInfo> tilesToDestroyOnPlayerRespawn;
+
+  private List<EnvironmentTileInfo> tilesToRestoreOnPlayerRespawn;
   public GameObject highlightTilePrefab;
   public void Awake()
   {
@@ -381,6 +383,13 @@ public class GridManager : Singleton<GridManager>
     EnvironmentTileInfo newTileInfo = ReplaceTileAtLocation(tile.tileLocation, replacementTile);
     tilesToDestroyOnPlayerRespawn.Add(newTileInfo);
   }
+
+  public void MarkTileToRestoreOnPlayerRespawn(EnvironmentTileInfo tile, EnvironmentTile replacementTile)
+  {
+    EnvironmentTileInfo oldTileInfo = tile;
+    tilesToRestoreOnPlayerRespawn.Add(oldTileInfo);
+  }
+
   public void DestroyTilesOnPlayerRespawn()
   {
     foreach (EnvironmentTileInfo tile in tilesToDestroyOnPlayerRespawn)
@@ -388,6 +397,14 @@ public class GridManager : Singleton<GridManager>
       DestroyObjectTileAtLocation(tile.tileLocation);
     }
     tilesToDestroyOnPlayerRespawn.Clear();
+  }
+
+  public void RestoreTilesOnPlayerRespawn()
+  {
+    foreach (EnvironmentTileInfo tileInfo in tilesToRestoreOnPlayerRespawn)
+    {
+      ReplaceTileAtLocation(tileInfo.tileLocation, tileInfo.objectTileType);
+    }
   }
 
   public void DEBUGHighlightTile(TileLocation tilePos)

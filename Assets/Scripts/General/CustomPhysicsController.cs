@@ -256,4 +256,13 @@ public class CustomPhysicsController : MonoBehaviour
     velocity += new Vector2(impulse.x, impulse.y);
   }
 
+  public static float GetMinimumDistanceBetweenObjects(GameObject a, GameObject b)
+  {
+    if (a.GetComponentInChildren<Collider2D>() == null || b.GetComponentInChildren<Collider2D>() == null)
+    {
+      // Debug.LogWarning("tried to find min distance between " + a.name + " and " + b.name + ", but both do not have colliders");
+      return 0;
+    }
+    return a.GetComponentInChildren<Collider2D>().Distance(b.GetComponentInChildren<Collider2D>()).distance;
+  }
 }

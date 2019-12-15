@@ -11,9 +11,18 @@ public class AiStateController : Character
 
   [Header("AI Attributes")]
   public float detectionRange = 5f;
-  public float attackRange = .5f;
-  public float attackAngleInDegrees = 15f;
+  public float attackRange
+  {
+    get
+    {
+      Debug.Log("attack range: " + (characterAttack.range + GetAttackValueModifier(attackModifiers.attackValueModifiers, CharacterAttackValue.Range)));
+      return characterAttack.range + GetAttackValueModifier(attackModifiers.attackValueModifiers, CharacterAttackValue.Range);
+    }
+  }
+  public float attackAngleInDegrees = 45f;
   [HideInInspector] public float minDistanceFromPathNode;
+
+  public float minDistanceFromTarget;
 
   [HideInInspector] public Vector2 spawnLocation;
 
@@ -33,6 +42,7 @@ public class AiStateController : Character
 
   private bool alreadyDroppedItems;
   public PickupItem[] itemDrops;
+
   protected override void Awake()
   {
     base.Awake();

@@ -145,10 +145,10 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     {
       tilesAlongPath.UnionWith(GetAllTilesBetweenPoints(ai.transform.TransformPoint(pt), targetPosition, targetFloor));
     }
-    foreach (EnvironmentTileInfo eti in tilesAlongPath)
-    {
-      GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
-    }
+    // foreach (EnvironmentTileInfo eti in tilesAlongPath)
+    // {
+    // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
+    // }
     foreach (EnvironmentTileInfo eti in tilesAlongPath)
     {
       if (eti == null || eti.dealsDamage)

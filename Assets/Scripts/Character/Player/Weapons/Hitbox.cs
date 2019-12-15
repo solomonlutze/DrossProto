@@ -24,7 +24,7 @@ public class Hitbox : MonoBehaviour
   {
   }
   // Characteristics of hitbox initialized by weapon.
-  public void Init(Transform initializingTransform, Character owner, HitboxData info, CharacterAttackModifiers mods)
+  public void Init(Transform initializingTransform, Character owner, HitboxData info, CharacterAttackModifiers mods, float attackRange)
   {
     duration = info.duration;
     damage = new Damage(info.damageInfo, mods);
@@ -36,11 +36,12 @@ public class Hitbox : MonoBehaviour
     attackModifiers = mods;
     owningTransform = initializingTransform;
 
+    Debug.Log("attackRange: " + attackRange);
     switch (info.hitboxShape)
     {
       case HitboxShape.Box:
         transform.localScale = new Vector2(
-            info.size.x + Character.GetAttackValueModifier(attackModifiers.attackValueModifiers, CharacterAttackValue.HitboxSize),
+            attackRange,
             info.size.y + Character.GetAttackValueModifier(attackModifiers.attackValueModifiers, CharacterAttackValue.HitboxSize)
         );
         break;

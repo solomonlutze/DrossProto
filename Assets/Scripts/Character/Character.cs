@@ -292,7 +292,8 @@ public class Character : WorldObject
   {
     if (characterAttack != null)
     {
-      if (!attackCooldown)
+      if (attackCoroutine == null)
+      // if (!attackCooldown)
       {
         attackCoroutine = StartCoroutine(DoAttack());
       }
@@ -329,15 +330,19 @@ public class Character : WorldObject
     CreateHitbox(dashCharacterAttack, dashAttackModifiers);
   }
 
+  public float GetAttackRange(CharacterAttack attack, CharacterAttackModifiers mods)
+  {
+    return attack.range + Character.GetAttackValueModifier(mods.attackValueModifiers, CharacterAttackValue.Range);
+  }
   public void CreateHitbox(CharacterAttack atk, CharacterAttackModifiers mods)
   {
     HitboxData hbi = atk.hitboxData;
     if (hbi == null) { Debug.LogError("no attack object defined for " + gameObject.name); }
-    Vector3 pos = orientation.TransformPoint(Vector3.right * (atk.range + Character.GetAttackValueModifier(mods.attackValueModifiers, CharacterAttackValue.Range)));
+    Vector3 pos = orientation.TransformPoint(Vector3.right * GetAttackRange(atk, mods) / 2);
     Hitbox hb = GameObject.Instantiate(hitboxPrefab, pos, orientation.rotation) as Hitbox;
     hb.gameObject.layer = LayerMask.NameToLayer(currentFloor.ToString());
     hb.gameObject.GetComponent<SpriteRenderer>().sortingLayerName = currentFloor.ToString();
-    hb.Init(orientation, this, hbi, mods);
+    hb.Init(orientation, this, hbi, mods, GetAttackRange(atk, mods));
   }
 
   public void ApplyAttackModifier(CharacterAttackModifiers mods, bool forDashAttack)
