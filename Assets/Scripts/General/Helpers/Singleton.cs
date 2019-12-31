@@ -21,7 +21,6 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
   {
     get
     {
-      Debug.Log("searching for instance?");
       if (m_ShuttingDown)
       {
         Debug.LogWarning("[Singleton] Instance '" + typeof(T) +

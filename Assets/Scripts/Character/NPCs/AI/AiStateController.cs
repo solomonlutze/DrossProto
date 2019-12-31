@@ -15,7 +15,6 @@ public class AiStateController : Character
   {
     get
     {
-      Debug.Log("attack range: " + (characterAttack.range + GetAttackValueModifier(attackModifiers.attackValueModifiers, CharacterAttackValue.Range)));
       return characterAttack.range + GetAttackValueModifier(attackModifiers.attackValueModifiers, CharacterAttackValue.Range);
     }
   }

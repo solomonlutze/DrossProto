@@ -9,7 +9,7 @@ public class WithinAttackRangeAiDecision : AiDecision
       && Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetAttackRange(controller.characterAttack, controller.attackModifiers)
       && controller.GetAngleToTarget() < controller.attackAngleInDegrees)
     {
-      Debug.Log(controller.name + " Within attacking range");
+      // Debug.Log(controller.name + " Within attacking range");
       controller.Attack();
       return true;
     }

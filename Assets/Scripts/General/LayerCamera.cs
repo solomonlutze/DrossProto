@@ -85,7 +85,8 @@ public class LayerCamera : MonoBehaviour
   }
   void HandleSmoothFollow(PlayerController player)
   {
-    target = GameMaster.Instance.GetPlayerController().transform;
+    target = GameMaster.Instance.GetPlayerController().cameraFollowTarget;
+    // target = GameMaster.Instance.GetPlayerController().transform;
     Vector3 point = ownCamera.WorldToViewportPoint(target.position);
     Vector3 delta = target.position - ownCamera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, point.z));
     Vector3 destination = transform.position + delta;

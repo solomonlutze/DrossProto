@@ -35,7 +35,7 @@ public class MoveAiAction : AiAction
       if ((distanceFromTarget + .3f) > controller.minDistanceFromTarget)
       {
         // (targetWorldLocation.transform.position - controller.transform.position).magnitude;
-        Debug.Log("minimum distance is " + controller.minDistanceFromTarget + " and distance from target is " + distanceFromTarget);
+        // Debug.Log("minimum distance is " + controller.minDistanceFromTarget + " and distance from target is " + distanceFromTarget);
         movementInput = (targetWorldLocation.transform.position - controller.transform.position).normalized;
       }
     }

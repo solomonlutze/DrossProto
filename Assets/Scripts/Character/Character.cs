@@ -418,7 +418,14 @@ public class Character : WorldObject
         timeMoving += Time.deltaTime;
         timeStandingStill = 0f;
       }
-      po.SetMovementInput(new Vector2(movementInput.x, movementInput.y));
+      if (dashing)
+      {
+        po.SetMovementInput(orientation.rotation * new Vector3(1, 0, 0));
+      }
+      else
+      {
+        po.SetMovementInput(new Vector2(movementInput.x, movementInput.y));
+      }
     }
     else
     {
@@ -444,17 +451,16 @@ public class Character : WorldObject
   {
     if (vitals[CharacterVital.CurrentDashCooldown] > 0) { return; }
     DoDashAttack();
-    StartCoroutine(ApplyDashInput());
+    StartCoroutine(DoDash());
     vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
   }
 
-  protected IEnumerator ApplyDashInput()
+  protected IEnumerator DoDash()
   {
     float t = 0;
     dashing = true;
     while (t < GetStat(CharacterStat.DashDuration))
     {
-      po.SetMovementInput(orientation.rotation * new Vector3(1, 0, 0));
       t += Time.deltaTime;
       yield return null;
     }

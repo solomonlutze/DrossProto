@@ -24,9 +24,7 @@ public class PlayerController : Character
 
   private PassiveTrait passiveTrait1;
   private PassiveTrait passiveTrait2;
-
-  // public ActiveTraitInstance skill1;
-  // public ActiveTraitInstance skill2;
+  public Transform cameraFollowTarget;
   private TileLocation lastSafeTileLocation;
   public SpawnPoint spawnPoint;
 
@@ -51,7 +49,7 @@ public class PlayerController : Character
     inventory.owner = this;
     if (!initialSpawn)
     {
-      Debug.Log("init - cachedPupa head trait: " + previousPupa[TraitSlot.Head].trait);
+      // Debug.Log("init - cachedPupa head trait: " + previousPupa[TraitSlot.Head].trait);
     }
     if (initialSpawn)
     {
@@ -128,7 +126,7 @@ public class PlayerController : Character
     }
     else
     {
-      Debug.Log("collided with " + tile);
+      // Debug.Log("collided with " + tile);
       if (tile.objectTileTags.Contains(TileTag.Ground) && activeMovementAbilities.Contains(CharacterMovementAbility.Burrow))
       {
         tile.DestroyTile();
@@ -205,12 +203,12 @@ public class PlayerController : Character
     {
       selectedContextualActionIdx = 0;
     }
-    Debug.Log("contextualActions: ");
+    // Debug.Log("contextualActions: ");
     foreach (ContextualAction c in availableContextualActions)
     {
-      Debug.Log(c.actionName);
+      // Debug.Log(c.actionName);
     }
-    Debug.Log("selectedContextualActionIdx = " + selectedContextualActionIdx);
+    // Debug.Log("selectedContextualActionIdx = " + selectedContextualActionIdx);
 
   }
   public ContextualAction GetSelectedContextualAction()
@@ -355,7 +353,7 @@ public class PlayerController : Character
 
   public override void SetCurrentFloor(FloorLayer newFloorLayer)
   {
-    Debug.Log("should be changing to floor " + newFloorLayer);
+    // Debug.Log("should be changing to floor " + newFloorLayer);
     // GridManager.Instance.OnLayerChange(newFloorLayer);
     base.SetCurrentFloor(newFloorLayer);
   }
@@ -476,13 +474,13 @@ public class PlayerController : Character
     {
       if (equippedTraits[slot] != null && equippedTraits[slot])
       {
-        Debug.Log("Removing trait in" + slot);
+        // Debug.Log("Removing trait in" + slot);
         equippedTraits[slot].OnTraitRemoved(this);
       }
     }
-    Debug.Log("all traits removed; killing player");
+    // Debug.Log("all traits removed; killing player");
     GameMaster.Instance.KillPlayer(inventory.GetUpcomingPupa());
-    Debug.Log("destroying gameobject");
+    // Debug.Log("destroying gameobject");
     base.Die();
   }
 
