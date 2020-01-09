@@ -240,7 +240,7 @@ public class ActiveTraitInstance : MonoBehaviour
     {
       tso.Init(owner);
     }
-    Hitbox hb = obj.GetComponent<Hitbox>();
+    Hitbox_OLD hb = obj.GetComponent<Hitbox_OLD>();
     if (hb != null && TraitSpawnedObjectData.hitboxData != null)
     {
       // hb.Init(spawnTransform, owner, TraitSpawnedObjectData.hitboxData);

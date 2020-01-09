@@ -3,11 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using UnityEditor;
 // TODO: Character can probably extend CustomPhysicsController, which simplifies movement code a bit.
 public class AnimationInfoObject
 {
   public Vector2 animationInput;
+}
+
+public enum CharacterType
+{
+  Player,
+  Enemy
 }
 
 public enum CharacterVital
@@ -16,6 +21,7 @@ public enum CharacterVital
   CurrentEnvironmentalDamageCooldown,
   CurrentDashCooldown
 }
+
 public enum CharacterStat
 {
   MaxHealth,
@@ -150,18 +156,20 @@ public class TraitsLoadout
 public class Character : WorldObject
 {
   [Header("Stats and Vitals")]
+  public CharacterType characterType;
   public CharacterVitalToFloatDictionary vitals;
   public StatToActiveStatModificationsDictionary statModifications;
   public DamageTypeToFloatDictionary damageTypeResistances;
 
   [Header("Attack Info")]
   public CharacterAttack characterAttack;
+  public Weapon weaponInstance;
   public CharacterAttackModifiers attackModifiers;
-  public Hitbox hitboxPrefab;
+  public Hitbox_OLD hitboxPrefab;
   private bool dashAttackEnabled = true;
   public CharacterAttack dashCharacterAttack;
   public CharacterAttackModifiers dashAttackModifiers;
-  public Hitbox dashAttackHitboxPrefab;
+  public Hitbox_OLD dashAttackHitboxPrefab;
 
   [Header("Trait Info")]
   public TraitSlotToTraitDictionary equippedTraits;
@@ -171,6 +179,8 @@ public class Character : WorldObject
 
   [Header("Child Components")]
   public Transform orientation;
+
+  public Transform weaponPivot;
   public Transform crosshair;
   // our physics object
   public CustomPhysicsController po;
@@ -220,7 +230,13 @@ public class Character : WorldObject
     if (orientation == null)
     {
       Debug.LogError("No object named 'Orientation' on Character object: " + gameObject.name);
+      return;
     }
+    // weaponPivot = orientation.Find("WeaponPivot");
+    // if (weaponPivot == null)
+    // {
+    //   Debug.LogError("No object named 'WeaponPivot' on Character object: " + gameObject.name);
+    // }
   }
 
   protected virtual void Start()
@@ -239,6 +255,7 @@ public class Character : WorldObject
     sourceInvulnerabilities = new List<string>();
     conditionallyActivatedTraitEffects = new List<TraitEffect>();
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
+    characterAttack.Init(this);
     InitializeFromCharacterData();
   }
 
@@ -303,13 +320,23 @@ public class Character : WorldObject
   public IEnumerator DoAttack()
   {
     attacking = true;
-    yield return new WaitForSeconds(characterAttack.attackSpeed);
+    yield return StartCoroutine(characterAttack.PerformAttackCycle(this));
+    attacking = false;
+    attackCooldown = false;
+    attackCoroutine = null;
+  }
+
+  public IEnumerator DoAttack_OLD()
+  {
+    attacking = true;
+    yield return new WaitForSeconds(characterAttack.attackDuration);
     CreateAttackHitbox();
     attacking = false;
     yield return new WaitForSeconds(characterAttack.cooldown);
     attackCooldown = false;
     attackCoroutine = null;
   }
+
   public static float GetAttackValueModifier(CharacterAttackValueToIntDictionary attackModifiers, CharacterAttackValue value)
   {
     if (attackModifiers == null || !attackModifiers.ContainsKey(value))
@@ -332,17 +359,18 @@ public class Character : WorldObject
 
   public float GetAttackRange(CharacterAttack attack, CharacterAttackModifiers mods)
   {
-    return attack.range + Character.GetAttackValueModifier(mods.attackValueModifiers, CharacterAttackValue.Range);
+    return weaponInstance.range;
+    // return attack.range + Character.GetAttackValueModifier(mods.attackValueModifiers, CharacterAttackValue.Range);
   }
   public void CreateHitbox(CharacterAttack atk, CharacterAttackModifiers mods)
   {
-    HitboxData hbi = atk.hitboxData;
-    if (hbi == null) { Debug.LogError("no attack object defined for " + gameObject.name); }
-    Vector3 pos = orientation.TransformPoint(Vector3.right * GetAttackRange(atk, mods) / 2);
-    Hitbox hb = GameObject.Instantiate(hitboxPrefab, pos, orientation.rotation) as Hitbox;
-    hb.gameObject.layer = LayerMask.NameToLayer(currentFloor.ToString());
-    hb.gameObject.GetComponent<SpriteRenderer>().sortingLayerName = currentFloor.ToString();
-    hb.Init(orientation, this, hbi, mods, GetAttackRange(atk, mods));
+    // HitboxData hbi = atk.hitboxData;
+    // if (hbi == null) { Debug.LogError("no attack object defined for " + gameObject.name); }
+    // Vector3 pos = orientation.TransformPoint(Vector3.right * GetAttackRange(atk, mods) / 2);
+    // Hitbox_OLD hb = GameObject.Instantiate(hitboxPrefab, pos, orientation.rotation) as Hitbox_OLD;
+    // hb.gameObject.layer = LayerMask.NameToLayer(currentFloor.ToString());
+    // hb.gameObject.GetComponent<SpriteRenderer>().sortingLayerName = currentFloor.ToString();
+    // hb.Init(orientation, this, hbi, mods, GetAttackRange(atk, mods));
   }
 
   public void ApplyAttackModifier(CharacterAttackModifiers mods, bool forDashAttack)
@@ -391,7 +419,12 @@ public class Character : WorldObject
   // potential culprit.
   Quaternion GetTargetDirection()
   {
-    Vector3 target = orientTowards - transform.position;
+    return GetDirectionAngle(orientTowards);
+  }
+
+  Quaternion GetDirectionAngle(Vector3 targetPoint)
+  {
+    Vector3 target = targetPoint - transform.position;
     float angle = Mathf.Atan2(target.y, target.x) * Mathf.Rad2Deg;
     return Quaternion.AngleAxis(angle, Vector3.forward);
   }
@@ -401,6 +434,11 @@ public class Character : WorldObject
   public float GetAngleToTarget()
   {
     return Quaternion.Angle(GetTargetDirection(), orientation.rotation);
+  }
+
+  public float GetAngleToDirection(Vector3 targetPoint)
+  {
+    return Quaternion.Angle(GetDirectionAngle(targetPoint), orientation.rotation);
   }
 
   // add input to our velocity, if necessary/possible.
@@ -502,7 +540,38 @@ public class Character : WorldObject
   {
     return ((100 - damageTypeResistances[damageType]) / 100) * damage;
   }
-  protected virtual void TakeDamage(Damage damage)
+
+  protected virtual void TakeDamage(Hitbox damageSource)
+  {
+    if (damageSource.IsOwnedBy(this)) { return; }
+    if (damageSource.IsSameOwnerType(this)) { return; }
+    if (
+      sourceInvulnerabilities.Contains(damageSource.sourceString)
+      && !damageSource.IgnoresInvulnerability())
+    { return; }
+    Debug.Log("damage amount: " + damageSource.GetDamageAmount());
+    float damageAfterResistances = GetDamageAfterResistance(
+      damageSource.GetDamageAmount(),
+      damageSource.GetDamageType()
+    );
+
+    Debug.Log("damageAfterResistances: " + damageAfterResistances);
+    if (
+      damageAfterResistances <= 0
+      && damageSource.GetDamageAmount() > 0
+    ) { Debug.Log("returning early; no damage dealt"); return; }
+    InterruptAnimation();
+    AdjustHealth(Mathf.Floor(-damageAfterResistances));
+    CalculateAndApplyStun(damageSource.GetStun());
+    StartCoroutine(ApplyInvulnerability(damageSource));
+    Vector3 knockback = damageSource.GetKnockback();
+    if (knockback != Vector3.zero)
+    {
+      po.ApplyImpulseForce(knockback);
+    }
+  }
+
+  protected virtual void TakeDamage_OLD(Damage_OLD damage)
   {
     if (
       sourceInvulnerabilities.Contains(damage.sourceString)
@@ -534,7 +603,7 @@ public class Character : WorldObject
     }
   }
 
-  private IEnumerator ApplyDamageFlash(DamageData damageObj)
+  private IEnumerator ApplyDamageFlash(DamageData_OLD damageObj)
   {
     // Todo: might wanna change this!
     Color baseColor = Color.white;
@@ -557,7 +626,7 @@ public class Character : WorldObject
   }
 
   // Make us invulnerable, then un-make-us invulnerable. Damage is ignorned while invulnerable.
-  void CalculateAndApplyInvulnerability(Damage damage)
+  void CalculateAndApplyInvulnerability(Damage_OLD damage)
   {
     if (damage.GetInvulnerabilityWindow() > 0)
     {
@@ -565,7 +634,17 @@ public class Character : WorldObject
     }
   }
 
-  IEnumerator ApplyInvulnerability(Damage damage)
+  IEnumerator ApplyInvulnerability(Hitbox damageSource)
+  {
+    string src = damageSource.sourceString;
+    sourceInvulnerabilities.Add(src);
+    yield return new WaitForSeconds(damageSource.GetInvulnerabilityWindow());
+    if (sourceInvulnerabilities.Contains(src))
+    {
+      sourceInvulnerabilities.Remove(src);
+    }
+  }
+  IEnumerator ApplyInvulnerability(Damage_OLD damage)
   {
     string src = damage.sourceString;
     sourceInvulnerabilities.Add(src);
@@ -779,7 +858,7 @@ public class Character : WorldObject
     }
   }
 
-  public void TakeEnvironmentalDamage(DamageData damage)
+  public void TakeEnvironmentalDamage(DamageData_OLD damage)
   {
 
     float damageAfterResistances = GetDamageAfterResistance(damage.damageAmount, damage.damageType);

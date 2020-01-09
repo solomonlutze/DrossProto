@@ -29,6 +29,8 @@ public class AiStateController : Character
   * Travel variables
    */
   // [HideInInspector]
+  public WorldObject overrideDestination;
+  // [HideInInspector]
   public WorldObject objectOfInterest;
   // [HideInInspector]
   public WorldObject wanderDestination;
@@ -36,6 +38,7 @@ public class AiStateController : Character
   public List<Node> pathToTarget;
   bool isCalculatingPath;
 
+  private WorldObject overrideDestinationObject;
   private WorldObject wanderDestinationObject;
   public WorldObject wanderDestinationPrefab;
 
@@ -120,6 +123,7 @@ public class AiStateController : Character
   {
     wanderDestination = null;
   }
+
   public void SetWanderDestination(Vector3 pos, FloorLayer fl)
   {
     if (wanderDestinationObject == null)
@@ -130,6 +134,22 @@ public class AiStateController : Character
     wanderDestination.transform.position = pos;
     WorldObject.ChangeLayersRecursively(wanderDestination.transform, fl);
   }
+
+  public void UnsetOverrideDestination()
+  {
+    overrideDestination = null;
+  }
+  public void SetOverrideDestination(Vector3 pos, FloorLayer fl)
+  {
+    if (overrideDestinationObject == null)
+    {
+      overrideDestinationObject = GameObject.Instantiate(wanderDestinationPrefab);
+    }
+    overrideDestination = overrideDestinationObject;
+    overrideDestination.transform.position = pos;
+    WorldObject.ChangeLayersRecursively(overrideDestination.transform, fl);
+  }
+
   public void SetPathToTarget(List<Node> newPath)
   {
     pathToTarget = newPath;
@@ -165,13 +185,13 @@ public class AiStateController : Character
 
   }
 
-  protected override void TakeDamage(Damage damage)
+  protected override void TakeDamage_OLD(Damage_OLD damage)
   {
     if (damage.ForcesItemDrop())
     {
       SpawnDroppedItems();
     }
-    base.TakeDamage(damage);
+    base.TakeDamage_OLD(damage);
   }
 
   private void SpawnDroppedItems()

@@ -19,7 +19,7 @@ public class EnvironmentTile : Tile
   // Annoying workaround for non-nullable environmentalDamage. Mark True to have tile deal damage.
   public bool dealsDamage = false;
   public List<TileTag> tileTags;
-  public DamageData environmentalDamage;
+  public DamageData_OLD environmentalDamage;
   public bool corrodable;
   public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage;
 

@@ -260,8 +260,8 @@ public class CustomPhysicsController : MonoBehaviour
   {
     if (a.GetComponentInChildren<Collider2D>() == null || b.GetComponentInChildren<Collider2D>() == null)
     {
-      // Debug.LogWarning("tried to find min distance between " + a.name + " and " + b.name + ", but both do not have colliders");
-      return 0;
+      // one of these doesn't have a collider; they are allowed to overlap, so a min distance of 0 is allowed
+      return Vector3.Distance(a.transform.position, b.transform.position);
     }
     return a.GetComponentInChildren<Collider2D>().Distance(b.GetComponentInChildren<Collider2D>()).distance;
   }

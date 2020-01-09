@@ -6,7 +6,7 @@ using UnityEditor;
 #endif
 
 [System.Serializable]
-public class DamageData : ScriptableObject
+public class DamageData_OLD : ScriptableObject
 {
 
   public DamageType damageType;
@@ -38,7 +38,7 @@ public class DamageData : ScriptableObject
     string path = EditorUtility.SaveFilePanelInProject("Save Damage Info", "New Damage Data", "Asset", "Save Damage Data", "Assets/resources/Data/CharacterData/AttackData/Damage");
     if (path == "")
       return;
-    AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<DamageData>(), path);
+    AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<DamageData_OLD>(), path);
   }
 #endif
 

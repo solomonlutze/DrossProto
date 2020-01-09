@@ -12,7 +12,12 @@ public class MoveAiAction : AiAction
   {
     Vector2 movementInput = Vector2.zero;
     WorldObject targetWorldLocation;
-    if (controller.objectOfInterest != null)
+    if (controller.overrideDestination != null)
+    {
+      Debug.Log("should be following overrideDestination");
+      targetWorldLocation = controller.overrideDestination;
+    }
+    else if (controller.objectOfInterest != null)
     {
       targetWorldLocation = controller.objectOfInterest;
     }
@@ -32,15 +37,18 @@ public class MoveAiAction : AiAction
     if (controller.lineToTargetIsClear)
     {
       float distanceFromTarget = CustomPhysicsController.GetMinimumDistanceBetweenObjects(targetWorldLocation.gameObject, controller.gameObject);
+
       if ((distanceFromTarget + .3f) > controller.minDistanceFromTarget)
       {
-        // (targetWorldLocation.transform.position - controller.transform.position).magnitude;
-        // Debug.Log("minimum distance is " + controller.minDistanceFromTarget + " and distance from target is " + distanceFromTarget);
         movementInput = (targetWorldLocation.transform.position - controller.transform.position).normalized;
       }
     }
     else
     {
+      if (controller.overrideDestination)
+      {
+        Debug.Log("calculating path instead??");
+      }
       controller.StartCalculatingPath(targetWorldLocation.GetTileLocation());
       if (controller.pathToTarget != null && controller.pathToTarget.Count > 0)
       {

@@ -14,7 +14,7 @@ public class EnvironmentTileInfo
   public bool isInteractable = false;
   public bool dealsDamage = false;
   public bool corroded = false;
-  public DamageData environmentalDamage;
+  public DamageData_OLD environmentalDamage;
   public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile)
   {
     tileLocation = location;
@@ -108,7 +108,7 @@ public class EnvironmentTileInfo
     return false;
   }
 
-  public void TakeDamage(Damage damage)
+  public void TakeDamage(Damage_OLD damage)
   {
     if (!objectTileType) { return; }
     if (damage.IsCorrosive() && objectTileType.corrodable)

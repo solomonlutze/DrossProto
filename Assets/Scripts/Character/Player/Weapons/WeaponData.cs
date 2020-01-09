@@ -17,8 +17,8 @@ public class WeaponData : ItemData
     get { return InventoryItemType.Weapon; }
     set { }
   }
-  public Weapon weaponPrefab;
-  public Hitbox hitboxPrefab;
+  public Weapon_OLD weaponPrefab;
+  public Hitbox_OLD hitboxPrefab;
   public Animator animator;
 
   // Weapon's approximate attack range. used for AI. TODO: better system for AI than this
@@ -36,7 +36,7 @@ public class WeaponData : ItemData
   public float attackQueueWindow = .25f;
 
   // Base damage info, modified by individual hitboxes.
-  public DamageData baseDamage;
+  public DamageData_OLD baseDamage;
 
   public Transform spawnTransform;
   // Set properties of the base damage object this weapon uses.

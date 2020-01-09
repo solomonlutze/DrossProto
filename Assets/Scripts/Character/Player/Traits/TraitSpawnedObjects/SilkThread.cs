@@ -6,7 +6,7 @@ public class SilkThread : TraitSpawnedObject
 {
   // Start is called before the first frame update
   public float strandLength = 5.0f;
-  public Hitbox hitboxPrefab;
+  public Hitbox_OLD hitboxPrefab;
   public HitboxData hitboxData;
 
   ContactFilter2D contactFilter;
@@ -67,7 +67,7 @@ public class SilkThread : TraitSpawnedObject
 
   void GenerateHitbox()
   {
-    Hitbox hb = Instantiate(hitboxPrefab, transform.position, transform.rotation) as Hitbox;
+    Hitbox_OLD hb = Instantiate(hitboxPrefab, transform.position, transform.rotation) as Hitbox_OLD;
     hb.gameObject.layer = gameObject.layer;
     hb.gameObject.GetComponent<SpriteRenderer>().sortingLayerName = gameObject.layer.ToString();
     if (hitboxData == null) { Debug.LogError("no attack info defined for " + gameObject.name); }
