@@ -28,7 +28,7 @@ public class HitboxData : ScriptableObject
 
   // Used only for box shape.
   public Vector2 size;
-  public DamageData damageInfo;
+  public DamageData_OLD damageInfo;
 
 #if UNITY_EDITOR
   // The following is a helper that adds a menu item to create an HitboxData
