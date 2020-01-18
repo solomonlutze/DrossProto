@@ -2,69 +2,57 @@
 using System;
 using UnityEngine;
 
-public class Hitbox : MonoBehaviour
+public class Hitbox : DamageSource
 {
-  public CharacterAttack attack;
-  public Character character;
-  private string _sourceString = "";
-  public string sourceString
-  {
-    get
+    public CharacterAttack attack;
+    public Character character;
+
+    public void Init(CharacterAttack atk, Character ch)
     {
-      if (_sourceString == "")
-      {
-        _sourceString = Guid.NewGuid().ToString("N").Substring(0, 15);
-      }
-      return _sourceString;
+        attack = atk;
+        character = ch;
     }
-  }
 
-  public void Init(CharacterAttack atk, Character ch)
-  {
-    attack = atk;
-    character = ch;
-  }
+    public override bool IsOwnedBy(Character c)
+    {
+        return c == character;
+    }
 
-  private void OnTriggerEnter2D(Collider2D other)
-  {
-    other.gameObject.SendMessage("TakeDamage", this, SendMessageOptions.DontRequireReceiver);
-  }
+    public override bool IsSameOwnerType(Character c)
+    {
+        return character && character.characterType == c.characterType;
+    }
+    public override int GetDamageAmount()
+    {
+        return attack.GetDamageAmount(character);
+    }
 
-  public bool IsOwnedBy(Character c)
-  {
-    return c == character;
-  }
+    public override DamageType GetDamageType()
+    {
+        return attack.GetDamageType(character);
+    }
 
-  public bool IsSameOwnerType(Character c)
-  {
-    return character && character.characterType == c.characterType;
-  }
-  public int GetDamageAmount()
-  {
-    return attack.GetDamageAmount(character);
-  }
+    public override float GetStun()
+    {
+        return attack.GetStun(character);
+    }
+    public override bool IgnoresInvulnerability()
+    {
+        return attack.IgnoresInvulnerability();
+    }
 
-  public DamageType GetDamageType()
-  {
-    return attack.GetDamageType(character);
-  }
+    public override float GetInvulnerabilityWindow(Character c)
+    {
+        return attack.GetInvulnerabilityWindow(character);
+    }
 
-  public float GetStun()
-  {
-    return attack.GetStun(character);
-  }
-  public bool IgnoresInvulnerability()
-  {
-    return attack.IgnoresInvulnerability();
-  }
+    public override Vector3 GetKnockback()
+    {
+        return attack.GetKnockback(character, this);
+    }
 
-  public float GetInvulnerabilityWindow()
-  {
-    return attack.GetInvulnerabilityWindow(character);
-  }
-
-  public Vector3 GetKnockback()
-  {
-    return attack.GetKnockback(character, this);
-  }
+    public override bool ForcesItemDrop()
+    {
+        return attack.ForcesItemDrop();
+    }
 }

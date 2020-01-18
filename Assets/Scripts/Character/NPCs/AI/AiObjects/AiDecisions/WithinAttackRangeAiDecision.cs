@@ -2,18 +2,17 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "PluggableAi/Decisions/WithinAttackRange")]
 public class WithinAttackRangeAiDecision : AiDecision
 {
-  public override bool Decide(AiStateController controller)
-  {
-    if (
-      controller.objectOfInterest != null
-      // && Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetAttackRange(controller.characterAttack, controller.attackModifiers)
-      && Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetAttackRange(controller.characterAttack, controller.attackModifiers)
-      && controller.GetAngleToTarget() < controller.attackAngleInDegrees)
+    public override bool Decide(AiStateController controller)
     {
-      controller.Attack();
-      return true;
+        if (
+          controller.objectOfInterest != null
+          && Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetMaxPreferredAttackRange()
+          && controller.GetAngleToTarget() < controller.attackAngleInDegrees)
+        {
+            controller.Attack();
+            return true;
+        }
+        return false;
     }
-    return false;
-  }
 
 }
