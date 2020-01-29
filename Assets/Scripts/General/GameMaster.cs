@@ -8,136 +8,136 @@ using Yarn.Unity;
 public class GameMaster : Singleton<GameMaster>
 {
 
-  public CanvasHandler canvasHandler;
-  public GameObject playerPrefab;
-  public DialogueRunner dialogueRunner;
-  private PlayerController playerController;
-  private PathfindingSystem pathfinding;
-  private Constants.GameState gameStatus;
+    public CanvasHandler canvasHandler;
+    public GameObject playerPrefab;
+    public DialogueRunner dialogueRunner;
+    private PlayerController playerController;
+    private PathfindingSystem pathfinding;
+    private Constants.GameState gameStatus;
 
-  // Saved when player dies so their next life can be preserved
-  private TraitSlotToUpcomingTraitDictionary cachedPupa;
-  public GameObject[] spawnPoints;
-  public GameObject nextSpawnPoint;
-  private int previousSpawnPoint = 0;
+    // Saved when player dies so their next life can be preserved
+    private TraitSlotToTraitDictionary cachedPupa;
+    public GameObject[] spawnPoints;
+    public GameObject nextSpawnPoint;
+    private int previousSpawnPoint = 0;
 
-  public LymphTypeToSpriteDictionary lymphTypeToSpriteMapping;
-  public LymphTypeToLymphTypeSkillsDictionary lymphTypeToSkillsMapping;
+    public LymphTypeToSpriteDictionary lymphTypeToSpriteMapping;
+    public LymphTypeToLymphTypeSkillsDictionary lymphTypeToSkillsMapping;
 
-  // Use this for initialization
-  void Start()
-  {
-    pathfinding = GetComponent<PathfindingSystem>();
-    Respawn(true);
-  }
-
-  // Update is called once per frame
-  void Update()
-  {
-    HandleInput();
-  }
-
-  private void HandleInput()
-  {
-    switch (gameStatus)
+    // Use this for initialization
+    void Start()
     {
-      case Constants.GameState.Dead:
-        HandleDeadInput();
-        break;
-      default:
-        if (Input.GetKeyDown("=") && playerController != null)
+        pathfinding = GetComponent<PathfindingSystem>();
+        Respawn(true);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        HandleInput();
+    }
+
+    private void HandleInput()
+    {
+        switch (gameStatus)
         {
-          playerController.Die();
+            case Constants.GameState.Dead:
+                HandleDeadInput();
+                break;
+            default:
+                if (Input.GetKeyDown("=") && playerController != null)
+                {
+                    playerController.Die();
+                }
+                break;
         }
-        break;
     }
-  }
-  // TODO: Buttons instead of keys!!!
-  private void HandleDeadInput()
-  {
-    if (Input.GetButtonDown("Respawn"))
+
+    private void HandleDeadInput()
     {
-      Respawn(false);
+        if (Input.GetButtonDown("Respawn"))
+        {
+            Respawn(false);
+        }
     }
-  }
 
-  private void Respawn(bool initialSpawn = false)
-  {
-    Debug.Log("GridManager Instance: " + GridManager.Instance.name);
-    GridManager.Instance.DestroyTilesOnPlayerRespawn();
-    GameObject player = GameObject.FindGameObjectWithTag("Player");
-    if (player != null)
+    private void Respawn(bool initialSpawn = false)
     {
-      playerController = player.GetComponent<PlayerController>();
-      playerController.currentFloor = (FloorLayer)Enum.Parse(typeof(FloorLayer), LayerMask.LayerToName(player.layer));
+        Debug.Log("GridManager Instance: " + GridManager.Instance.name);
+        GridManager.Instance.DestroyTilesOnPlayerRespawn();
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            playerController = player.GetComponent<PlayerController>();
+            playerController.currentFloor = (FloorLayer)Enum.Parse(typeof(FloorLayer), LayerMask.LayerToName(player.layer));
+        }
+        else
+        {
+            GameObject spawnPoint = ChooseSpawnPoint();
+            FloorLayer fl = FloorLayer.F1;
+            if (spawnPoint != null)
+            {
+                fl = spawnPoint.GetComponent<SpawnPoint>().GetTileLocation().floorLayer;
+            }
+            playerController = Instantiate(playerPrefab, spawnPoint.transform.position, Quaternion.identity).GetComponent<PlayerController>();
+            playerController.currentFloor = fl;
+        }
+        playerController.SetCurrentFloor(playerController.currentFloor);
+        playerController.Init(initialSpawn, cachedPupa);
+        DoActivateOnPlayerRespawn();
+        SetGameStatus(Constants.GameState.Play);
     }
-    else
+
+    private void DoActivateOnPlayerRespawn()
     {
-      GameObject spawnPoint = ChooseSpawnPoint();
-      FloorLayer fl = FloorLayer.F1;
-      if (spawnPoint != null)
-      {
-        fl = spawnPoint.GetComponent<SpawnPoint>().GetTileLocation().floorLayer;
-      }
-      playerController = Instantiate(playerPrefab, spawnPoint.transform.position, Quaternion.identity).GetComponent<PlayerController>();
-      playerController.currentFloor = fl;
+        GameObject[] objectsToActivate = GameObject.FindGameObjectsWithTag("ActivateOnPlayerRespawn");
+        foreach (GameObject obj in objectsToActivate)
+        {
+            obj.SendMessage("Activate", SendMessageOptions.RequireReceiver);
+        }
     }
-    playerController.SetCurrentFloor(playerController.currentFloor);
-    playerController.Init(initialSpawn, cachedPupa);
-    DoActivateOnPlayerRespawn();
-    SetGameStatus(Constants.GameState.Play);
-  }
-
-  private void DoActivateOnPlayerRespawn()
-  {
-    GameObject[] objectsToActivate = GameObject.FindGameObjectsWithTag("ActivateOnPlayerRespawn");
-    foreach (GameObject obj in objectsToActivate)
+    private GameObject ChooseSpawnPoint()
     {
-      obj.SendMessage("Activate", SendMessageOptions.RequireReceiver);
+        return nextSpawnPoint ?? null;
+        // if (spawnPoints.Length > 0) {
+        // 	previousSpawnPoint = (int) Mathf.Repeat(previousSpawnPoint+1, spawnPoints.Length);
+        // 	return spawnPoints[previousSpawnPoint];
+        // }
+        // return null;
     }
-  }
-  private GameObject ChooseSpawnPoint()
-  {
-    return nextSpawnPoint ?? null;
-    // if (spawnPoints.Length > 0) {
-    // 	previousSpawnPoint = (int) Mathf.Repeat(previousSpawnPoint+1, spawnPoints.Length);
-    // 	return spawnPoints[previousSpawnPoint];
-    // }
-    // return null;
-  }
 
-  public PlayerController GetPlayerController()
-  {
-    return playerController;
-  }
+    public PlayerController GetPlayerController()
+    {
+        return playerController;
+    }
 
-  public void SetGameStatus(Constants.GameState newStatus)
-  {
-    gameStatus = newStatus;
-  }
+    public void SetGameStatus(Constants.GameState newStatus)
+    {
+        gameStatus = newStatus;
+    }
 
-  public void KillPlayer(TraitSlotToUpcomingTraitDictionary pupa)
-  {
-    cachedPupa = pupa;
-    playerController = null;
-    SetGameStatus(Constants.GameState.Dead);
-  }
+    public void KillPlayer(TraitSlotToTraitDictionary pupa)
+    {
+        cachedPupa = pupa;
+        playerController = null;
+        SetGameStatus(Constants.GameState.Dead);
+    }
 
-  public Constants.GameState GetGameStatus()
-  {
-    return gameStatus;
-  }
+    public Constants.GameState GetGameStatus()
+    {
+        return gameStatus;
+    }
 
-  public void StartDialogue(string startNode)
-  {
-    if (dialogueRunner.isDialogueRunning) { return; }
-    dialogueRunner.StartDialogue(startNode);
-  }
+    public void StartDialogue(string startNode)
+    {
+        if (dialogueRunner.isDialogueRunning) { return; }
+        dialogueRunner.StartDialogue(startNode);
+    }
 
 
-  public void StopDialogue()
-  {
-    if (!dialogueRunner.isDialogueRunning) { return; }
-    StartCoroutine(dialogueRunner.Interrupt());
-  }
+    public void StopDialogue()
+    {
+        if (!dialogueRunner.isDialogueRunning) { return; }
+        StartCoroutine(dialogueRunner.Interrupt());
+    }
 }

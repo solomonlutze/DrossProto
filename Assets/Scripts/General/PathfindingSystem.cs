@@ -131,10 +131,10 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
             return false;
         }
         Vector3[] colliderCorners = new Vector3[]{
-      new Vector3 (ai.col.radius, 0, 0),
-      new Vector3 (-ai.col.radius, 0, 0),
-      new Vector3 (0, ai.col.radius, 0),
-      new Vector3 (0, -ai.col.radius, 0),
+      new Vector3 (ai.circleCollider.radius, 0, 0),
+      new Vector3 (-ai.circleCollider.radius, 0, 0),
+      new Vector3 (0, ai.circleCollider.radius, 0),
+      new Vector3 (0, -ai.circleCollider.radius, 0),
 			// new Vector3 (col.bounds.extents.x, col.bounds.extents.y, 0),
 			// new Vector3 (-col.bounds.extents.x, col.bounds.extents.y, 0),
 			// new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),

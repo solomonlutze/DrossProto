@@ -5,48 +5,48 @@ using UnityEngine.EventSystems;
 // which trait on the item - active or passive - we should show
 public class TraitButton : ItemButton
 {
-  private TraitSlot traitSlot;
-  public TraitItemInventoryEntry itemEntry;
-  public LymphLogo lymphLogo;
+    private TraitSlot traitSlot;
+    public TraitItemInventoryEntry itemEntry;
+    public LymphLogo lymphLogo;
 
 
-  public void Init(TraitItemInventoryEntry itemEntryInfo, InventoryScreen parentScreen, TraitSlot ts)
-  {
-    base.Init(itemEntryInfo, parentScreen);
-    traitSlot = ts;
-    itemEntry = itemEntryInfo;
-    nameLabel.text = itemEntry.itemName;
-    if (itemEntryInfo.equipped) { nameLabel.text += "\n (Equipped)"; }
-    if (lymphLogo != null) { lymphLogo.Init(itemEntryInfo.lymphType); }
-  }
+    public void Init(TraitItemInventoryEntry itemEntryInfo, InventoryScreen parentScreen, TraitSlot ts)
+    {
+        base.Init(itemEntryInfo, parentScreen);
+        traitSlot = ts;
+        itemEntry = itemEntryInfo;
+        nameLabel.text = itemEntry.itemName;
+        if (itemEntryInfo.equipped) { nameLabel.text += "\n (Equipped)"; }
+        if (lymphLogo != null) { lymphLogo.Init(itemEntryInfo.lymphType); }
+    }
 
-  protected override void HandleClick()
-  {
-    inventoryScreen.EquipTraitItem(item, traitSlot);
-  }
+    protected override void HandleClick()
+    {
+        inventoryScreen.EquipTraitItem(item, traitSlot);
+    }
 
-  public override void OnPointerEnter(PointerEventData data)
-  {
-    TraitSlotToTraitDictionary itemTraits = itemEntry.traits.EquippedTraits();
-    Trait trait = itemTraits.ContainsKey(traitSlot)
-      ? itemTraits[traitSlot]
-      : null;
-    string traitName = trait ? trait.traitName : "[None]";
-    string traitDescription = trait ? trait.traitDescription : "";
-    inventoryScreen.SetItemDescriptionText(
-      itemEntry.itemName
-      + "\n\n"
-      + traitSlot + ": " + traitName
-      + "\n\n"
-      + traitDescription
-      + "\n\n" + itemEntry.itemDescription
-    );
-    UnityEngine.Debug.Log("Pointer enter!!");
-  }
+    public override void OnPointerEnter(PointerEventData data)
+    {
+        TraitSlotToTraitDictionary itemTraits = itemEntry.traits.EquippedTraits();
+        Trait trait = itemTraits.ContainsKey(traitSlot)
+          ? itemTraits[traitSlot]
+          : null;
+        string traitName = trait ? trait.traitName : "[None]";
+        string traitDescription = trait ? trait.traitDescription : "";
+        inventoryScreen.SetItemDescriptionText(
+          itemEntry.itemName
+          + "\n\n"
+          + traitSlot + ": " + traitName
+          + "\n\n"
+          + traitDescription
+          + "\n\n" + itemEntry.itemDescription
+        );
+        UnityEngine.Debug.Log("Pointer enter!!");
+    }
 
-  public override void OnPointerExit(PointerEventData data)
-  {
-    inventoryScreen.SetItemDescriptionText("");
-    UnityEngine.Debug.Log("Pointer exit!!");
-  }
+    public override void OnPointerExit(PointerEventData data)
+    {
+        inventoryScreen.SetItemDescriptionText("");
+        UnityEngine.Debug.Log("Pointer exit!!");
+    }
 }

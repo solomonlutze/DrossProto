@@ -95,22 +95,39 @@ public class EnvironmentTileInfo
         return groundTileType != null && groundTileType.shouldRespawnPlayer;
     }
 
-    public bool CharacterCanCrossTile(List<CharacterMovementAbility> characterMovementAbilities)
+    public bool CharacterCanCrossTile(Character character)
     {
         if (!CanRespawnPlayer())
         {
             return true;
         }
-        foreach (CharacterMovementAbility characterAbility in characterMovementAbilities)
+        foreach (CharacterAttribute attribute in groundTileType.attributesWhichBypassRespawn.Keys)
         {
-            if (groundTileType != null &&
-                groundTileType.movementAbilitiesWhichBypassRespawn.Contains(characterAbility))
+            if (character.GetAttribute(attribute) > 0
+                && character.GetAttribute(attribute) >= groundTileType.attributesWhichBypassRespawn[attribute]
+            )
             {
                 return true;
             }
         }
         return false;
     }
+    // public bool CharacterCanCrossTile_OLD(List<CharacterMovementAbility> characterMovementAbilities)
+    // {
+    //     if (!CanRespawnPlayer())
+    //     {
+    //         return true;
+    //     }
+    //     foreach ( characterAbility in characterMovementAbilities)
+    //     {
+    //         if (groundTileType != null &&
+    //             groundTileType.movementAbilitiesWhichBypassRespawn.Contains(characterAbility))
+    //         {
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
 
     public void TakeDamage(Damage_OLD damage)
     {

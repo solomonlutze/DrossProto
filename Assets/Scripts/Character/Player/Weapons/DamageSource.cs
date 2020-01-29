@@ -5,7 +5,7 @@ using UnityEngine;
 public class DamageSource : MonoBehaviour
 {
     protected string _sourceString = "";
-    public string sourceString
+    public virtual string sourceString
     {
         get
         {

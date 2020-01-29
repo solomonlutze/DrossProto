@@ -7,6 +7,13 @@ public class EnvironmentalDamage : DamageSource
     public EnvironmentTile tileType;
     public Character character;
 
+    public override string sourceString
+    {
+        get
+        {
+            return tileType.name;
+        }
+    }
     public void Init(EnvironmentTile t)
     {
         tileType = t;
@@ -37,4 +44,8 @@ public class EnvironmentalDamage : DamageSource
         return tileType.environmentalDamageInfo.invulnerabilityWindow;
     }
 
+    public int GetResistanceRequiredForImmunity()
+    {
+        return tileType.environmentalDamageInfo.resistanceRequiredForImmunity;
+    }
 }

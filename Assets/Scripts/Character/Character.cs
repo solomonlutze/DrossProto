@@ -14,27 +14,42 @@ public enum CharacterType
     Player,
     Enemy
 }
-
+// non-derivable values like health, current number of molts, etc
 public enum CharacterVital
 {
     CurrentHealth,
     CurrentEnvironmentalDamageCooldown,
-    CurrentDashCooldown
+    CurrentDashCooldown,
+    CurrentMoltCount
 }
 
+// values driving physical character behavior
+// base values live in character data, actual values are always derived from
+// base values with some modifications via attribute.
 public enum CharacterStat
 {
     MaxHealth,
+    MaxHealthLostPerMolt,
     DetectableRange,
-    MaxEnvironmentalDamageCooldown,
     MoveAcceleration,
     DashAcceleration,
     DashDuration,
     RotationSpeed,
-    MaxDashCooldown,
-    DashRange
 }
 
+public enum CharacterAttribute
+{
+    Attack_Power,
+    Attack_Agility,
+    Attack_Range,
+    Burrow,
+    Camouflage,
+    Resist_Hazard,
+    Resist_Fungal,
+    Resist_Heat,
+    Resist_Acid,
+    WaterResistance,
+}
 public enum CharacterAttackValue
 {
     Damage,
@@ -67,9 +82,9 @@ public enum CharacterPerceptionAbility
 }
 
 [System.Serializable]
-public class CharacterStatModification
+public class CharacterAttributeModification
 {
-    public CharacterStat statToModify;
+    public CharacterAttribute statToModify;
 
     public int magnitude;
 
@@ -79,7 +94,7 @@ public class CharacterStatModification
 
     public string source;
 
-    public CharacterStatModification(CharacterStat s, int m, float dur, float del, string src)
+    public CharacterAttributeModification(CharacterAttribute s, int m, float dur, float del, string src)
     {
         statToModify = s;
         magnitude = m;
@@ -118,6 +133,25 @@ public class CharacterAttackModifiers
 [System.Serializable]
 public class TraitsLoadout
 {
+    public Trait head;
+    public Trait thorax;
+    public Trait abdomen;
+    public Trait legs;
+    public Trait wings;
+
+    public bool AllTraitsEmpty()
+    {
+        return head == null
+            && thorax == null
+            && abdomen == null
+            && legs == null
+            && wings == null;
+    }
+}
+
+[System.Serializable]
+public class TraitsLoadout_OLD
+{
     public string head;
     public string thorax;
     public string abdomen;
@@ -127,11 +161,11 @@ public class TraitsLoadout
     public TraitSlotToTraitDictionary EquippedTraits()
     {
         TraitSlotToTraitDictionary d = new TraitSlotToTraitDictionary();
-        d[TraitSlot.Head] = Resources.Load("Data/TraitData/PassiveTraits/" + head) as PassiveTrait;
-        d[TraitSlot.Thorax] = Resources.Load("Data/TraitData/PassiveTraits/" + thorax) as PassiveTrait;
-        d[TraitSlot.Abdomen] = Resources.Load("Data/TraitData/PassiveTraits/" + abdomen) as PassiveTrait;
-        d[TraitSlot.Legs] = Resources.Load("Data/TraitData/PassiveTraits/" + legs) as PassiveTrait;
-        d[TraitSlot.Wings] = Resources.Load("Data/TraitData/PassiveTraits/" + wings) as PassiveTrait;
+        // d[TraitSlot.Head] = Resources.Load("Data/TraitData/PassiveTraits/" + head) as PassiveTrait;
+        // d[TraitSlot.Thorax] = Resources.Load("Data/TraitData/PassiveTraits/" + thorax) as PassiveTrait;
+        // d[TraitSlot.Abdomen] = Resources.Load("Data/TraitData/PassiveTraits/" + abdomen) as PassiveTrait;
+        // d[TraitSlot.Legs] = Resources.Load("Data/TraitData/PassiveTraits/" + legs) as PassiveTrait;
+        // d[TraitSlot.Wings] = Resources.Load("Data/TraitData/PassiveTraits/" + wings) as PassiveTrait;
         return d;
     }
 
@@ -171,8 +205,9 @@ public class Character : WorldObject
     public CharacterAttackModifiers dashAttackModifiers;
     public Hitbox_OLD dashAttackHitboxPrefab;
 
-    [Header("Trait Info")]
-    public TraitSlotToTraitDictionary equippedTraits;
+    [Header("Trait Info", order = 1)]
+    public TraitSlotToTraitDictionary traits;
+    public CharacterAttributeToIntDictionary attributes;
     public List<TraitEffect> conditionallyActivatedTraitEffects;
     public List<TraitEffect> activeConditionallyActivatedTraitEffects;
     public List<CharacterMovementAbility> activeMovementAbilities;
@@ -188,7 +223,7 @@ public class Character : WorldObject
     protected Animator animator;
     public SpriteRenderer mainRenderer;
 
-    public CircleCollider2D col;
+    public CircleCollider2D circleCollider;
 
     [Header("Game State Info")]
     public Color damageFlashColor = Color.red;
@@ -214,7 +249,6 @@ public class Character : WorldObject
 
     [Header("Default Info")]
     public CharacterData defaultCharacterData;
-    public TraitsLoadout initialEquippedTraits;
 
     private Coroutine damageFlashCoroutine;
 
@@ -226,7 +260,7 @@ public class Character : WorldObject
     protected virtual void Awake()
     {
         orientation = transform.Find("Orientation");
-        col = GetComponent<CircleCollider2D>();
+        circleCollider = GetComponent<CircleCollider2D>();
         if (orientation == null)
         {
             Debug.LogError("No object named 'Orientation' on Character object: " + gameObject.name);
@@ -256,6 +290,7 @@ public class Character : WorldObject
         conditionallyActivatedTraitEffects = new List<TraitEffect>();
         traitSpawnedGameObjects = new Dictionary<string, GameObject>();
         characterAttack.Init(this);
+        InitializeAttributes();
         InitializeFromCharacterData();
     }
 
@@ -270,12 +305,23 @@ public class Character : WorldObject
             activeMovementAbilities.AddRange(dataInstance.movementAbilities);
         }
         vitals = new CharacterVitalToFloatDictionary();
-        statModifications = new StatToActiveStatModificationsDictionary();
-        vitals[CharacterVital.CurrentHealth] = GetStat(CharacterStat.MaxHealth);
-        vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
-        vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
+        // statModifications = new StatToActiveStatModificationsDictionary();
+        vitals[CharacterVital.CurrentHealth] = GetMaxHealth();
+        // vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
+        // vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
     }
 
+    protected virtual void InitializeAttributes()
+    {
+        foreach (Trait trait in traits.Values)
+        {
+            if (trait == null) { continue; }
+            foreach (CharacterAttribute attribute in trait.attributeModifiers.Keys)
+            {
+                attributes[attribute] += trait.attributeModifiers[attribute];
+            }
+        }
+    }
     // non-physics biz
     protected virtual void Update()
     {
@@ -426,7 +472,7 @@ public class Character : WorldObject
             return;
         }
         Quaternion targetDirection = GetTargetDirection();
-        orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, GetStat(CharacterStat.RotationSpeed) * Time.deltaTime);
+        orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
     }
 
     // Rotate character smoothly towards a particular orientation around the Z axis.
@@ -490,35 +536,30 @@ public class Character : WorldObject
     {
         Instantiate(moltCasingPrefab, orientation.transform.position, orientation.transform.rotation);
         moltCasingPrefab.Init(mainRenderer.color, this);
-        ApplyStatMod(new CharacterStatModification(
-          CharacterStat.MaxHealth,
-          -1,
-          0,
-          0,
-          Guid.NewGuid().ToString("N").Substring(0, 15)
-        ));
-        AdjustHealth(5);
+        AdjustCurrentMoltCount(1);
+        AdjustCurrentHealth(5);
     }
     // Traits activated on dash are handled in HandleConditionallyActivatedTraits()
-    protected void Dash()
-    {
-        if (vitals[CharacterVital.CurrentDashCooldown] > 0) { return; }
-        DoDashAttack();
-        StartCoroutine(DoDash());
-        vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
-    }
+    // todo: fly not dash??
+    // protected void Dash()
+    // {
+    // if (vitals[CharacterVital.CurrentDashCooldown] > 0) { return; }
+    // DoDashAttack();
+    // StartCoroutine(DoDash());
+    // vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
+    // }
 
-    protected IEnumerator DoDash()
-    {
-        float t = 0;
-        dashing = true;
-        while (t < GetStat(CharacterStat.DashDuration))
-        {
-            t += Time.deltaTime;
-            yield return null;
-        }
-        dashing = false;
-    }
+    // protected IEnumerator DoDash()
+    // {
+    //     float t = 0;
+    //     dashing = true;
+    //     while (t < GetStat(CharacterStat.DashDuration))
+    //     {
+    //         t += Time.deltaTime;
+    //         yield return null;
+    //     }
+    //     dashing = false;
+    // }
 
     protected void DoDashAttack()
     {
@@ -551,12 +592,35 @@ public class Character : WorldObject
     // DAMAGE FUNCTIONS
 
     // Called from Hitbox's OnTriggerEnter. Calls other functions to determine outcome of getting hit.
-    protected float GetDamageAfterResistance(float damage, DamageType damageType)
+    protected virtual void TakeDamage(DamageSource damageSource)
     {
-        return ((100 - damageTypeResistances[damageType]) / 100) * damage;
+        if (damageSource is Hitbox)
+        {
+            TakeHitboxDamage(damageSource as Hitbox);
+        }
+        else if (damageSource is EnvironmentalDamage)
+        { // unlikely to be needed but w/e
+            TakeEnvironmentalDamage(damageSource as EnvironmentalDamage);
+        }
     }
 
-    protected virtual void TakeDamage(DamageSource damageSource)
+
+    protected virtual void TakeEnvironmentalDamage(EnvironmentalDamage damageSource)
+    {
+        if (GetDamageTypeResistanceLevel(damageSource.GetDamageType()) >= damageSource.GetResistanceRequiredForImmunity())
+        {
+            return;
+        }
+        if (
+          sourceInvulnerabilities.Contains(damageSource.sourceString)
+          && !damageSource.IgnoresInvulnerability())
+        { return; }
+        Debug.Log("damagesource: " + damageSource.sourceString);
+        AdjustCurrentHealth(Mathf.Floor(-damageSource.GetDamageAmount()));
+        StartCoroutine(ApplyInvulnerability(damageSource));
+    }
+
+    protected virtual void TakeHitboxDamage(Hitbox damageSource)
     {
         if (damageSource.IsOwnedBy(this)) { return; }
         if (damageSource.IsSameOwnerType(this)) { return; }
@@ -565,8 +629,7 @@ public class Character : WorldObject
           && !damageSource.IgnoresInvulnerability())
         { return; }
         float damageAfterResistances = GetDamageAfterResistance(
-          damageSource.GetDamageAmount(),
-          damageSource.GetDamageType()
+          damageSource
         );
 
         if (
@@ -574,7 +637,7 @@ public class Character : WorldObject
           && damageSource.GetDamageAmount() > 0
         ) { return; }
         InterruptAnimation();
-        AdjustHealth(Mathf.Floor(-damageAfterResistances));
+        AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances));
         CalculateAndApplyStun(damageSource.GetStun());
         StartCoroutine(ApplyInvulnerability(damageSource));
         Vector3 knockback = damageSource.GetKnockback();
@@ -582,6 +645,32 @@ public class Character : WorldObject
         {
             po.ApplyImpulseForce(knockback);
         }
+    }
+
+
+    protected int GetDamageTypeResistanceLevel(DamageType type)
+    {
+        bool exists = Enum.TryParse("Resist_" + type.ToString(), out CharacterAttribute resistAttribute);
+        if (!exists)
+        {
+            Debug.LogError("Could not find attribute Resist_" + type.ToString());
+            return 0;
+        }
+        return GetAttribute(resistAttribute);
+    }
+
+    protected float GetDamageTypeResistancePercent(DamageType type)
+    {
+        return 34 * GetDamageTypeResistanceLevel(type); // TODO: get rid of magic number!! base it on # of resistance levels?
+    }
+
+    protected float GetDamageAfterResistance(DamageSource damageSource)
+    {
+        if (damageSource)
+        {
+            return ((100 - GetDamageTypeResistancePercent(damageSource.GetDamageType())) / 100) * damageSource.GetDamageAmount();
+        }
+        return 0;
     }
 
     // protected virtual void TakeDamage_OLD(Damage_OLD damage)
@@ -633,11 +722,6 @@ public class Character : WorldObject
         Destroy(gameObject);
     }
 
-    public virtual void AssignTraitsForNextLife(TraitSlotToUpcomingTraitDictionary nextLifeTraits)
-    {
-
-    }
-
     // Make us invulnerable, then un-make-us invulnerable. Damage is ignorned while invulnerable.
     // void CalculateAndApplyInvulnerability(Damage_OLD damage)
     // {
@@ -650,7 +734,7 @@ public class Character : WorldObject
     IEnumerator ApplyInvulnerability(DamageSource damageSource)
     {
         float invulnerabilityDuration = damageSource.GetInvulnerabilityWindow(this);
-        if (invulnerabilityDuration > 0) { yield break; }
+        if (invulnerabilityDuration <= 0) { yield break; }
         string src = damageSource.sourceString;
         sourceInvulnerabilities.Add(src);
         yield return new WaitForSeconds(invulnerabilityDuration);
@@ -704,6 +788,41 @@ public class Character : WorldObject
     }
     // END DAMAGE FUNCTIONS
 
+
+    public virtual void AssignTraitsForNextLife(TraitSlotToUpcomingTraitDictionary nextLifeTraits)
+    {
+
+    }
+
+    // ATTRIBUTE/VITALS ACCESSORS
+    public int GetAttribute(CharacterAttribute attributeToGet)
+    {
+        bool exists = attributes.TryGetValue(attributeToGet, out int val);
+        if (!exists)
+        {
+            Debug.LogError("Tried to access non-existant attribute " + attributeToGet);
+        }
+        return val;
+    }
+
+    // STAT GETTERS
+    public float GetMaxHealth()
+    {
+        return
+            defaultCharacterData.defaultStats[CharacterStat.MaxHealth]
+            - (GetMaxHealthLostPerMolt() * GetCharacterVital(CharacterVital.CurrentMoltCount));
+    }
+
+    public float GetRotationSpeed()
+    {
+        return defaultCharacterData.defaultStats[CharacterStat.RotationSpeed];
+    }
+
+    public float GetMaxHealthLostPerMolt()
+    {
+        return defaultCharacterData.defaultStats[CharacterStat.MaxHealthLostPerMolt];
+    }
+
     public float GetStat(CharacterStat statToGet)
     {
         StringToIntDictionary statMods = statModifications[statToGet];
@@ -726,46 +845,46 @@ public class Character : WorldObject
     }
 
 
-    public void ApplyStatMod(CharacterStatModification mod)
-    {
-        if (mod.duration > 0)
-        {
-            StartCoroutine(ApplyTemporaryStatMod(mod));
-        }
-        else
-        {
-            AddStatMod(mod);
-        }
-    }
+    // public void ApplyStatMod(CharacterStatModification mod)
+    // {
+    //     if (mod.duration > 0)
+    //     {
+    //         StartCoroutine(ApplyTemporaryStatMod(mod));
+    //     }
+    //     else
+    //     {
+    //         AddStatMod(mod);
+    //     }
+    // }
 
-    public IEnumerator ApplyTemporaryStatMod(CharacterStatModification mod)
-    {
-        AddStatMod(mod);
-        yield return new WaitForSeconds(mod.duration);
-        RemoveStatMod(mod.source);
-    }
+    // public IEnumerator ApplyTemporaryStatMod(CharacterStatModification mod)
+    // {
+    //     AddStatMod(mod);
+    //     yield return new WaitForSeconds(mod.duration);
+    //     RemoveStatMod(mod.source);
+    // }
 
-    public void AddStatMod(CharacterStatModification mod)
-    {
-        AddStatMod(mod.statToModify, mod.magnitude, mod.source);
-    }
+    // public void AddStatMod(CharacterStatModification mod)
+    // {
+    //     AddStatMod(mod.statToModify, mod.magnitude, mod.source);
+    // }
 
-    public void AddStatMod(CharacterStat statToMod, int magnitude, string source)
-    {
-        statModifications[statToMod][source] = magnitude;
-    }
+    // public void AddStatMod(CharacterStat statToMod, int magnitude, string source)
+    // {
+    //     statModifications[statToMod][source] = magnitude;
+    // }
 
-    public void RemoveStatMod(string source)
-    {
-        foreach (CharacterStat stat in (CharacterStat[])Enum.GetValues(typeof(CharacterStat)))
-        {
-            StringToIntDictionary statMods = statModifications[stat];
-            if (statMods.ContainsKey(source))
-            {
-                statMods.Remove(source);
-            }
-        }
-    }
+    // public void RemoveStatMod(string source)
+    // {
+    //     foreach (CharacterStat stat in (CharacterStat[])Enum.GetValues(typeof(CharacterStat)))
+    //     {
+    //         StringToIntDictionary statMods = statModifications[stat];
+    //         if (statMods.ContainsKey(source))
+    //         {
+    //             statMods.Remove(source);
+    //         }
+    //     }
+    // }
 
     public void AddMovementAbility(CharacterMovementAbility movementAbility)
     {
@@ -778,13 +897,21 @@ public class Character : WorldObject
     }
 
 
-    //TODO: SHOULD PROBS BE DEPRECATED
-    public void AdjustHealth(float adjustment)
+    //VITALS GETTERS/SETTERS
+    public void AdjustCurrentHealth(float adjustment)
     {
         vitals[CharacterVital.CurrentHealth] =
-          Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, 0, GetStat(CharacterStat.MaxHealth));
+          Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, 0, GetMaxHealth());
     }
 
+    public void AdjustCurrentMoltCount(float adjustment)
+    {
+        vitals[CharacterVital.CurrentMoltCount] += adjustment;
+    }
+    public float GetCharacterVital(CharacterVital vital)
+    {
+        return vitals[vital];
+    }
     public virtual void SetCurrentFloor(FloorLayer newFloorLayer)
     {
         currentFloor = newFloorLayer;
@@ -856,7 +983,7 @@ public class Character : WorldObject
             }
             else
             {
-                Debug.Log("Fall?");
+                Debug.Log("Falling: " + gameObject.name);
                 transform.position = new Vector3(
                   nowTileLocation.position.x + .5f,
                   nowTileLocation.position.y + .5f,
@@ -866,27 +993,15 @@ public class Character : WorldObject
             }
             return;
         }
-        if (tile.dealsDamage && vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] <= 0)
+        if (tile.dealsDamage/* && vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] <= 0*/)
         {
-            foreach (DamageSource envDamage in tile.environmentalDamageSources)
+            foreach (EnvironmentalDamage envDamage in tile.environmentalDamageSources)
             {
-                TakeDamage(envDamage);
+                TakeEnvironmentalDamage(envDamage);
             }
-            vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
         }
     }
 
-    // public void TakeEnvironmentalDamage(DamageData_OLD damage)
-    // {
-
-    //     float damageAfterResistances = GetDamageAfterResistance(damage.damageAmount, damage.damageType);
-    //     if (
-    //       damageAfterResistances <= 0
-    //       && damage.damageAmount > 0
-    //     // && hb.characterStatModifications.Count == 0
-    //     ) { return; }
-    //     AdjustHealth(Mathf.Floor(-damageAfterResistances));
-    // }
     public virtual void HandleTileCollision(EnvironmentTileInfo tile)
     {
         if (tile.GetColliderType() == Tile.ColliderType.None)
@@ -941,14 +1056,14 @@ public class Character : WorldObject
 
     protected void HandleCooldowns()
     {
-        if (vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] > 0)
-        {
-            vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] -= Time.deltaTime;
-        }
-        if (vitals[CharacterVital.CurrentDashCooldown] > 0)
-        {
-            vitals[CharacterVital.CurrentDashCooldown] -= Time.deltaTime;
-        }
+        // if (vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] > 0)
+        // {
+        //     vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] -= Time.deltaTime;
+        // }
+        // if (vitals[CharacterVital.CurrentDashCooldown] > 0)
+        // {
+        //     vitals[CharacterVital.CurrentDashCooldown] -= Time.deltaTime;
+        // }
     }
 
     public virtual void AddAura(TraitEffect effect)
