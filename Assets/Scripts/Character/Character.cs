@@ -48,6 +48,7 @@ public enum CharacterAttribute
     Resist_Fungal,
     Resist_Heat,
     Resist_Acid,
+    Resist_Physical,
     WaterResistance,
 }
 public enum CharacterAttackValue
@@ -236,7 +237,6 @@ public class Character : WorldObject
     public bool animationPreventsMoving = false;
     public bool sticking = false;
     public Coroutine attackCoroutine;
-    public FloorLayer currentFloor;
     protected Vector2 movementInput;
     // point in space we would like to face
     public Vector3 orientTowards;
@@ -333,7 +333,7 @@ public class Character : WorldObject
     }
 
     // physics biz
-    void FixedUpdate()
+    protected virtual void FixedUpdate()
     {
         CalculateMovement();
     }
@@ -532,6 +532,16 @@ public class Character : WorldObject
         }
     }
 
+    // Should mainly be used for ascending/descending.
+    // Ideally, should only be used to avoid collision.
+    protected void CenterCharacterOnCurrentTile()
+    {
+        transform.position = new Vector3(
+          currentTileLocation.position.x + .5f,
+          currentTileLocation.position.y + .5f,
+          0f
+        );
+    }
     protected void Molt()
     {
         Instantiate(moltCasingPrefab, orientation.transform.position, orientation.transform.rotation);
@@ -648,7 +658,7 @@ public class Character : WorldObject
     }
 
 
-    protected int GetDamageTypeResistanceLevel(DamageType type)
+    public int GetDamageTypeResistanceLevel(DamageType type)
     {
         bool exists = Enum.TryParse("Resist_" + type.ToString(), out CharacterAttribute resistAttribute);
         if (!exists)
@@ -916,6 +926,7 @@ public class Character : WorldObject
     {
         currentFloor = newFloorLayer;
         currentTileLocation = CalculateCurrentTileLocation();
+        CenterCharacterOnCurrentTile();
         ChangeLayersRecursively(transform, newFloorLayer.ToString());
         po.OnLayerChange();
     }

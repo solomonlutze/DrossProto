@@ -35,7 +35,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         Dictionary<TileLocation, Node> nodeLocationsToNodes = new Dictionary<TileLocation, Node>();
         List<Node> adjacentNodes;
         List<Node> finalPath = new List<Node>();
-        Node startNode = InitNewNode(Mathf.FloorToInt(startPosition.x), Mathf.FloorToInt(startPosition.y), ai.currentFloor, null, targetLocation);
+        Node startNode = InitNewNode(Mathf.FloorToInt(startPosition.x), Mathf.FloorToInt(startPosition.y), 0, ai.currentFloor, null, targetLocation);
         openNodes.Enqueue(startNode.loc, startNode.f);
         nodeLocationsToNodes[startNode.loc] = startNode;
         timeSpentThisFrame.Start();
@@ -163,6 +163,28 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         return true;
     }
 
+    // USUALLY returns either 1 (can cross) or -1 (can't cross).
+    // MAY return a higher value if the tile deals damage; edit this function to adjust how hard that's weighed
+    private int GetNodeTravelCost(EnvironmentTileInfo tileInfo, AiStateController ai)
+    {
+        if (!tileInfo.CharacterCanOccupyTile(ai) || !tileInfo.CharacterCanCrossTile(ai))
+        {
+            return -1;
+        }
+        int cost = 1;
+        if (tileInfo.dealsDamage)
+        {
+            foreach (EnvironmentalDamage envDamage in tileInfo.environmentalDamageSources)
+            {
+
+                if (ai.GetDamageTypeResistanceLevel(envDamage.GetDamageType()) < envDamage.GetResistanceRequiredForImmunity())
+                {
+                    cost += 10; // ARBITRARY, should probably be driven by AI's recklessness/difficulty
+                }
+            }
+        }
+        return cost;
+    }
     private bool CanPassOverTile(EnvironmentTileInfo tile, AiStateController ai)
     {
         return
@@ -176,7 +198,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         // return !tile.dealsDamage || ai.damageTypeResistances[tile.environmentalDamage.damageType] == 100;
         return !tile.dealsDamage;
     }
-    // remorselessly borrowed from
+
     //TODO: in order to prevent enemies from deciding to step on hazards at low slopes, might need to conditionally floor or ceil instead of RoundToInt
     // This function assumes both points are on the same floor layer. You've been warned!!
     public HashSet<EnvironmentTileInfo> GetAllTilesBetweenPoints(Vector3 origin, Vector3 target, FloorLayer floor)
@@ -299,6 +321,16 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
             return false;
         }
         EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(currentNode.loc);
+        if (tileInfo.IsEmpty())
+        {
+            UnityEngine.Debug.Log("comparing floors " + (currentNode.loc.floorLayer) + ", " + newFloor);
+
+        }
+        if (tileInfo.IsEmpty() && currentNode.loc.floorLayer - 1 == newFloor)
+        {
+            UnityEngine.Debug.Log("Can fall, let's goooo");
+            return true;
+        }
         if (tileInfo == null) { return false; }
         FloorLayer? targetLayer = null;
         if (tileInfo.ChangesFloorLayer())
@@ -323,15 +355,23 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         }
         Vector2Int tilePos = new Vector2Int(x, y);
         EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(new TileLocation(tilePos, floor));
-        if (eti == null) { return; }
-        if (!CanPassOverTile(eti, ai))
+        if (eti == null || eti.IsEmpty())
+        {
+            UnityEngine.Debug.Log("should be checking node below this one?");
+            MaybeAddNode(nodeList, x, y, floor - 1, InitNewNode(x, y, 0, floor, originNode, targetLocation), targetLocation, ai);
+            return;
+        }
+        if (eti.groundTileType == null) { return; }
+        int costToTravelOverNode = GetNodeTravelCost(eti, ai);
+        if (costToTravelOverNode < 0)
         {
             return;
         }
-        nodeList.Add(InitNewNode(x, y, floor, originNode, targetLocation));
+        // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
+        nodeList.Add(InitNewNode(x, y, costToTravelOverNode, floor, originNode, targetLocation));
     }
 
-    Node InitNewNode(int x, int y, FloorLayer floor, Node parent, TileLocation targetLocation)
+    Node InitNewNode(int x, int y, int g, FloorLayer floor, Node parent, TileLocation targetLocation)
     {
         Node newNode = new Node();
         newNode.loc = new TileLocation(new Vector2Int(x, y), floor);
@@ -341,7 +381,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         if (parent != null)
         {
             newNode.parent = parent;
-            newNode.g = parent.g + 1;
+            newNode.g = parent.g + g;
             newNode.h = Mathf.Abs(Mathf.RoundToInt(targetLocation.position.x) - x)
               + Mathf.Abs(Mathf.RoundToInt(targetLocation.position.y) - y)
               + Mathf.Abs(targetLocation.floorLayer - floor);

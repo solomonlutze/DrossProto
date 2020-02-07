@@ -45,10 +45,11 @@ public class EnvironmentTile : Tile
     // map of attributes which can bypass : the value required to bypass
     // characters can cross tile with ANY of these attributes in the right amount; they do not need all of them
     public CharacterAttributeToIntDictionary attributesWhichBypassRespawn;
-    public bool isClimbable = false;
     // map of attributes which can bypass : the value required to bypass
     // characters can climb with ANY of these attributes in the right amount; they do not need all of them
     public CharacterAttributeToIntDictionary attributesWhichAllowClimbing;
+    public CharacterAttributeToIntDictionary attributesWhichAllowBurrowing;
+    public CharacterAttributeToIntDictionary attributesWhichAllowPassingThrough;
     private string tileType;
     private Renderer _renderer;
     public ShaderData shaderData;

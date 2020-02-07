@@ -56,12 +56,16 @@ public class AiStateController : Character
     protected override void Update()
     {
         base.Update();
-        if (!aiActive) { return; }
         timeSpentInState += Time.deltaTime;
         movementInput = Vector2.zero;
-        currentState.UpdateState(this);
     }
 
+    protected override void FixedUpdate()
+    {
+        base.FixedUpdate();
+        if (!aiActive) { return; }
+        currentState.UpdateState(this);
+    }
 
     /*
     *STATE LOGIC

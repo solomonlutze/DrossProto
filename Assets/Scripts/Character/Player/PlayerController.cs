@@ -132,9 +132,9 @@ public class PlayerController : Character
         else
         {
             // Debug.Log("collided with " + tile);
-            if (tile.objectTileTags.Contains(TileTag.Ground) && activeMovementAbilities.Contains(CharacterMovementAbility.Burrow))
+            if (tile.CharacterCanBurrowThroughObjectTile(this))
             {
-                tile.DestroyTile();
+                tile.DestroyObjectTile();
             }
         }
     }
@@ -144,13 +144,17 @@ public class PlayerController : Character
         GridManager.Instance.ReplaceTileAtLocation(GetTileLocation(), burrowHoleTile);
     }
 
+    private void AscendOneFloor()
+    {
+        SetCurrentFloor(currentFloor + 1);
+    }
+
+    private void DescendOneFloor()
+    {
+        SetCurrentFloor(currentFloor - 1);
+    }
     private void ClimbAdjacentTile()
     {
-        transform.position = new Vector3(
-          currentTileLocation.position.x + .5f,
-          currentTileLocation.position.y + .5f,
-          0f
-        );
         SetCurrentFloor(currentFloor + 1);
     }
 
@@ -183,10 +187,18 @@ public class PlayerController : Character
         {
             AddContextualAction("climb", ClimbAdjacentTile);
         }
-        if (activeMovementAbilities.Contains(CharacterMovementAbility.Burrow) && GridManager.Instance.CanBurrowOnCurrentTile(GetTileLocation()))
+        if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
         {
-            AddContextualAction("burrow", SpawnBurrowHoleTile);
+            AddContextualAction("ascend", AscendOneFloor);
         }
+        if (GridManager.Instance.CanDescendThroughCurrentTile(GetTileLocation(), this))
+        {
+            AddContextualAction("descend", DescendOneFloor);
+        }
+        // if (GridManager.Instance.CanBurrowOnCurrentTile(GetTileLocation(), this))
+        // {
+        //     AddContextualAction("burrow", SpawnBurrowHoleTile);
+        // }
         if (selectedContextualActionIdx > 0 && selectedContextualActionIdx >= availableContextualActions.Count)
         {
             selectedContextualActionIdx = 0;
