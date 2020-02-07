@@ -20,7 +20,7 @@ public class EnvironmentTile : Tile
     public bool dealsDamage = false;
     public List<TileTag> tileTags;
     public DamageData_OLD environmentalDamage_OLD;
-    public DamageInfo environmentalDamageInfo;
+    public EnvironmentalDamageInfo environmentalDamageInfo;
     public bool corrodable;
     public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage;
 
@@ -42,8 +42,14 @@ public class EnvironmentTile : Tile
 
     // Eventually this'll be a more complex thing, probably
     public bool shouldRespawnPlayer = false;
-    public List<CharacterMovementAbility> movementAbilitiesWhichBypassRespawn;
-    public bool isClimbable = false;
+    // map of attributes which can bypass : the value required to bypass
+    // characters can cross tile with ANY of these attributes in the right amount; they do not need all of them
+    public CharacterAttributeToIntDictionary attributesWhichBypassRespawn;
+    // map of attributes which can bypass : the value required to bypass
+    // characters can climb with ANY of these attributes in the right amount; they do not need all of them
+    public CharacterAttributeToIntDictionary attributesWhichAllowClimbing;
+    public CharacterAttributeToIntDictionary attributesWhichAllowBurrowing;
+    public CharacterAttributeToIntDictionary attributesWhichAllowPassingThrough;
     private string tileType;
     private Renderer _renderer;
     public ShaderData shaderData;

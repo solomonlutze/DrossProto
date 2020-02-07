@@ -56,12 +56,16 @@ public class AiStateController : Character
     protected override void Update()
     {
         base.Update();
-        if (!aiActive) { return; }
         timeSpentInState += Time.deltaTime;
         movementInput = Vector2.zero;
-        currentState.UpdateState(this);
     }
 
+    protected override void FixedUpdate()
+    {
+        base.FixedUpdate();
+        if (!aiActive) { return; }
+        currentState.UpdateState(this);
+    }
 
     /*
     *STATE LOGIC
@@ -110,7 +114,7 @@ public class AiStateController : Character
     public IEnumerator ValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl)
     {
         TileLocation targetLocation = new TileLocation(pos, fl);
-        yield return StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(col.offset), targetLocation, this));
+        yield return StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this));
         if (pathToTarget != null)
         {
             SetWanderDestination(targetLocation.tileCenter, fl);
@@ -173,7 +177,7 @@ public class AiStateController : Character
     public void StartCalculatingPath(TileLocation targetLocation, WorldObject potentialObjectOfInterest = null)
     {
         if (isCalculatingPath) { return; }
-        StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(col.offset), targetLocation, this, potentialObjectOfInterest));
+        StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, potentialObjectOfInterest));
     }
 
     //We can reach our target if:
