@@ -44,7 +44,7 @@ public enum CharacterAttribute
     Attack_Range,
     Burrow,
     Camouflage,
-    Resist_Hazard,
+    HazardResistance,
     Resist_Fungal,
     Resist_Heat,
     Resist_Acid,

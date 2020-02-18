@@ -21,6 +21,7 @@ public class PlayerController : Character
 
     private List<GameObject> interactables;
     private Inventory inventory;
+    public AttributesView TEMP_attributesView;
 
     private PassiveTrait passiveTrait1;
     private PassiveTrait passiveTrait2;
@@ -52,6 +53,7 @@ public class PlayerController : Character
             pupa = new TraitSlotToTraitDictionary(previousPupa);
         }
         base.Init();
+        TEMP_attributesView.Init(attributes);
         availableContextualActions = new List<ContextualAction>();
         interactables = new List<GameObject>();
         inventory = GetComponent<Inventory>();

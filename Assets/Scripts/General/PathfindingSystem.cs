@@ -321,14 +321,8 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
             return false;
         }
         EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(currentNode.loc);
-        if (tileInfo.IsEmpty())
-        {
-            UnityEngine.Debug.Log("comparing floors " + (currentNode.loc.floorLayer) + ", " + newFloor);
-
-        }
         if (tileInfo.IsEmpty() && currentNode.loc.floorLayer - 1 == newFloor)
         {
-            UnityEngine.Debug.Log("Can fall, let's goooo");
             return true;
         }
         if (tileInfo == null) { return false; }
