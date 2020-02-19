@@ -54,6 +54,20 @@ public class TraitSlotToTraitDictionary : SerializableDictionaryBase<TraitSlot, 
 [System.Serializable]
 public class DamageTypeToFloatDictionary : SerializableDictionaryBase<DamageType, float> { }
 
+
+[System.Serializable]
+public class CharacterAttributeToGameObjectDictionary : SerializableDictionaryBase<CharacterAttribute, GameObject>
+{
+    public CharacterAttributeToGameObjectDictionary()
+    {
+        {
+            foreach (CharacterAttribute attribute in (CharacterAttribute[])Enum.GetValues(typeof(CharacterAttribute)))
+            {
+                Add(attribute, null);
+            }
+        }
+    }
+}
 [System.Serializable]
 public class CharacterAttributeToIntDictionary : SerializableDictionaryBase<CharacterAttribute, int>
 {
