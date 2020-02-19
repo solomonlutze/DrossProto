@@ -351,7 +351,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(new TileLocation(tilePos, floor));
         if (eti == null || eti.IsEmpty())
         {
-            UnityEngine.Debug.Log("should be checking node below this one?");
+            // UnityEngine.Debug.Log("should be checking node below this one?");
             MaybeAddNode(nodeList, x, y, floor - 1, InitNewNode(x, y, 0, floor, originNode, targetLocation), targetLocation, ai);
             return;
         }

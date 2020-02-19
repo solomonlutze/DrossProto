@@ -19,7 +19,8 @@ public class CanvasHandler : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        canvasList.Add(inventoryScreen.gameObject);
+        // canvasList.Add(inventoryScreen.gameObject);
+        canvasList.Add(attributesView.gameObject);
         SetAllCanvasesInactive();
     }
 
@@ -32,14 +33,16 @@ public class CanvasHandler : MonoBehaviour
         }
         else if (Input.GetKeyDown(KeyCode.I))
         {
-            if (inventoryScreen.gameObject.activeSelf)
+            if (attributesView.gameObject.activeSelf)
             {
+                Debug.Log("I pressed; hiding stuff?");
                 SetAllCanvasesInactive();
                 GameMaster.Instance.SetGameStatus(Constants.GameState.Play);
             }
             else
             {
-                DisplayInventory();
+                Debug.Log("I pressed; displaying?");
+                DisplayAttributes();
             }
         }
 
@@ -63,12 +66,18 @@ public class CanvasHandler : MonoBehaviour
 
     // Dialogue canvas functions
 
-    public void DisplayInventory()
+    public void DisplayAttributes()
     {
         SetAllCanvasesInactive();
         // BulletinBoardCanvas.GetComponent<BulletinBoardCanvas>().SetBulletinBoardText();
-        inventoryScreen.Enable();
-        inventoryScreen.gameObject.SetActive(true);
-        GameMaster.Instance.SetGameStatus(Constants.GameState.Menu);
+        Debug.Log("DisplayATtributes??");
+        PlayerController player = GameMaster.Instance.GetPlayerController();
+        if (player != null)
+        {
+            attributesView.gameObject.SetActive(true);
+            attributesView.Init(player.attributes);
+            attributesView.gameObject.SetActive(true);
+            GameMaster.Instance.SetGameStatus(Constants.GameState.Menu);
+        }
     }
 }
