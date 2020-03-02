@@ -10,10 +10,12 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
     private GameObject spawnedObj;
     private GameObject prevObjectToSpawn;
 
+    public SpriteRenderer spawnerSpritePrefab;
+
     void Start()
     {
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        if (sr)
+        List<SpriteRenderer> srs = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>());
+        foreach (SpriteRenderer sr in srs)
         {
             sr.sprite = null;
         }
@@ -40,15 +42,24 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
 
     private void OnValidate()
     {
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
         if (objectToSpawn && objectToSpawn != prevObjectToSpawn)
         {
             prevObjectToSpawn = objectToSpawn;
             gameObject.name = objectToSpawn.name + "_Spawner";
-            SpriteRenderer newSr = objectToSpawn.GetComponentInChildren<SpriteRenderer>();
-            if (sr && newSr)
+            SpriteRenderer[] newSrs = objectToSpawn.GetComponentsInChildren<SpriteRenderer>();
+            if (newSrs.Length > 0)
             {
-                sr.sprite = objectToSpawn.GetComponentInChildren<SpriteRenderer>().sprite;
+                List<SpriteRenderer> srs = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>());
+
+                while (srs.Count < newSrs.Length)
+                {
+                    srs.Add(Instantiate(spawnerSpritePrefab, transform));
+                }
+                for (int i = 0; i < newSrs.Length; i++)
+                {
+
+                    srs[i].sprite = newSrs[i].sprite;
+                }
             }
         }
         WorldObject.ChangeLayersRecursively(transform, LayerMask.LayerToName(gameObject.layer));

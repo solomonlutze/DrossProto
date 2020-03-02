@@ -212,13 +212,27 @@ public class AiStateController : Character
 
     private void SpawnDroppedItems()
     {
+        Debug.Log("spawn dropped items!");
         if (alreadyDroppedItems) { return; }
         alreadyDroppedItems = true;
         foreach (PickupItem item in itemDrops)
         {
+            Debug.Log("Dropping items!");
+            TraitPickupItem traitItem = (TraitPickupItem)item;
+            if (traitItem != null)
+            {
+                foreach (TraitSlot slot in traits.Keys)
+                {
+                    if (traitItem.traits.ContainsKey(slot))
+                    { // it definitely should
+                        traitItem.traits[slot] = traits[slot];
+                    }
+                }
+            }
+            Debug.Log("spawning " + item);
             GameObject instantiatedItem = Instantiate(item.gameObject, transform.position, transform.rotation);
-            instantiatedItem.layer = gameObject.layer;
-            instantiatedItem.GetComponent<SpriteRenderer>().sortingLayerName = LayerMask.LayerToName(gameObject.layer);
+            WorldObject.ChangeLayersRecursively(instantiatedItem.transform, GetFloorLayer());
+            // instantiatedItem.GetComponent<SpriteRenderer>().sortingLayerName = LayerMask.LayerToName(gameObject.layer);
         }
     }
 

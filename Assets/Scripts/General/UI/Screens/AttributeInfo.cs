@@ -16,6 +16,7 @@ public class AttributeInfo : MonoBehaviour
     public GameObject attributeValuePipPrefab;
     public SuperTextMesh attributeNameText;
     public SuperTextMesh attributeDescriptionText;
+    public SuperTextMesh pupaAttributeDescriptionText;
     public Transform pipsContainer;
     void Start()
     {

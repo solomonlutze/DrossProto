@@ -178,6 +178,10 @@ public class Trait : ScriptableObject
     public GameObject owningBugPrefab;
     public LymphType lymphType;
 
+    public Sprite visual1;
+
+    public Sprite visual2;
+
 #if UNITY_EDITOR
     // The following is a helper that adds a menu item to create an Trait Asset
     [MenuItem("Assets/Create/Trait/Trait")]
