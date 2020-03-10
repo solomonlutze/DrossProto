@@ -50,6 +50,7 @@ public enum CharacterAttribute
     Resist_Acid,
     Resist_Physical,
     WaterResistance,
+    Flight
 }
 public enum CharacterAttackValue
 {
@@ -222,9 +223,10 @@ public class Character : WorldObject
     public CustomPhysicsController po;
     // animation object
     protected Animator animator;
-    public SpriteRenderer mainRenderer;
+    public SpriteRenderer[] renderers;
 
     public CircleCollider2D circleCollider;
+    public CharacterVisuals characterVisuals;
 
     [Header("Game State Info")]
     public Color damageFlashColor = Color.red;
@@ -290,7 +292,7 @@ public class Character : WorldObject
         conditionallyActivatedTraitEffects = new List<TraitEffect>();
         traitSpawnedGameObjects = new Dictionary<string, GameObject>();
         characterAttack.Init(this);
-        InitializeAttributes();
+        attributes = CalculateAttributes(traits);
         InitializeFromCharacterData();
     }
 
@@ -321,6 +323,22 @@ public class Character : WorldObject
                 attributes[attribute] += trait.attributeModifiers[attribute];
             }
         }
+    }
+
+    public static CharacterAttributeToIntDictionary CalculateAttributes(TraitSlotToTraitDictionary traits)
+    {
+
+        CharacterAttributeToIntDictionary ret = new CharacterAttributeToIntDictionary(true);
+        foreach (Trait trait in traits.Values)
+        {
+            if (trait == null) { continue; }
+            foreach (CharacterAttribute attribute in trait.attributeModifiers.Keys)
+            {
+                ret[attribute] += trait.attributeModifiers[attribute];
+            }
+        }
+        return ret;
+
     }
     // non-physics biz
     protected virtual void Update()
@@ -545,7 +563,7 @@ public class Character : WorldObject
     protected void Molt()
     {
         Instantiate(moltCasingPrefab, orientation.transform.position, orientation.transform.rotation);
-        moltCasingPrefab.Init(mainRenderer.color, this);
+        // moltCasingPrefab.Init(mainRenderer.color, this);
         AdjustCurrentMoltCount(1);
         AdjustCurrentHealth(5);
     }
@@ -719,13 +737,14 @@ public class Character : WorldObject
     {
         // Todo: might wanna change this!
         Color baseColor = Color.white;
-        mainRenderer.color = damageFlashColor;
-        yield return new WaitForSeconds(damageFlashSpeed / 3);
-        mainRenderer.color = baseColor;
-        yield return new WaitForSeconds(damageFlashSpeed / 3);
-        mainRenderer.color = damageFlashColor;
-        yield return new WaitForSeconds(damageFlashSpeed / 3);
-        mainRenderer.color = baseColor;
+        yield return null;
+        // mainRenderer.color = damageFlashColor;
+        // yield return new WaitForSeconds(damageFlashSpeed / 3);
+        // mainRenderer.color = baseColor;
+        // yield return new WaitForSeconds(damageFlashSpeed / 3);
+        // mainRenderer.color = damageFlashColor;
+        // yield return new WaitForSeconds(damageFlashSpeed / 3);
+        // mainRenderer.color = baseColor;
     }
     public virtual void Die()
     {
@@ -958,11 +977,15 @@ public class Character : WorldObject
         {
             Die();
         }
-        mainRenderer.color = Color.Lerp(
-          damagedColor,
-          Color.white,
-          vitals[CharacterVital.CurrentHealth] / GetStat(CharacterStat.MaxHealth)
-        );
+        foreach (SpriteRenderer renderer in renderers)
+        {
+
+            renderer.color = Color.Lerp(
+              damagedColor,
+              Color.white,
+              vitals[CharacterVital.CurrentHealth] / GetStat(CharacterStat.MaxHealth)
+            );
+        }
     }
     protected virtual void HandleTile()
     {

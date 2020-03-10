@@ -35,14 +35,12 @@ public class CanvasHandler : MonoBehaviour
         {
             if (attributesView.gameObject.activeSelf)
             {
-                Debug.Log("I pressed; hiding stuff?");
                 SetAllCanvasesInactive();
                 GameMaster.Instance.SetGameStatus(Constants.GameState.Play);
             }
             else
             {
-                Debug.Log("I pressed; displaying?");
-                DisplayAttributes();
+                DisplayAttributesView();
             }
         }
 
@@ -66,18 +64,37 @@ public class CanvasHandler : MonoBehaviour
 
     // Dialogue canvas functions
 
-    public void DisplayAttributes()
+    public void DisplayAttributesView()
     {
-        SetAllCanvasesInactive();
         // BulletinBoardCanvas.GetComponent<BulletinBoardCanvas>().SetBulletinBoardText();
-        Debug.Log("DisplayATtributes??");
         PlayerController player = GameMaster.Instance.GetPlayerController();
         if (player != null)
         {
+            DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.pupa, null);
+        }
+    }
+
+    public void DisplayAttributesView(
+        CharacterAttributeToIntDictionary currentAttributes,
+        CharacterAttributeToIntDictionary nextAttributes,
+        TraitSlotToTraitDictionary pupaTraits,
+        TraitPickupItem traitPickupItem)
+    {
+        SetAllCanvasesInactive();
+        {
             attributesView.gameObject.SetActive(true);
-            attributesView.Init(player.attributes);
+            attributesView.Init(currentAttributes, nextAttributes, pupaTraits, traitPickupItem);
             attributesView.gameObject.SetActive(true);
             GameMaster.Instance.SetGameStatus(Constants.GameState.Menu);
+        }
+    }
+
+    public void DisplayAttributesViewForTraitItem(TraitPickupItem traitItem)
+    {
+        PlayerController player = GameMaster.Instance.GetPlayerController();
+        if (player != null)
+        {
+            DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.pupa, traitItem);
         }
     }
 }

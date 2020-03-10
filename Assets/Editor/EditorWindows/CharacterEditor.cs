@@ -48,7 +48,7 @@ public class CharacterEditor : Editor
     SerializedProperty equippedTraitsDictionary;
     void OnEnable()
     {
-        equippedTraitsDictionary = serializedObject.FindProperty("equippedTraitsDictionary");
+        // equippedTraitsDictionary = serializedObject.FindProperty("equippedTraitsDictionary");
         // initialskill1 = serializedObject.FindProperty("initialskill1");
         // initialskill2 = serializedObject.FindProperty("initialskill2");
     }

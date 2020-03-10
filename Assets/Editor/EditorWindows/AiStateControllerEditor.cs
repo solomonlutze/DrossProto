@@ -28,6 +28,12 @@ public class AiStateControllerEditor : CharacterEditor
                     character.traits[slot] = Trait.CreateTraitForBug(character, slot);
                 }
             }
+
+        }
+
+        if (GUILayout.Button("Refresh character visuals"))
+        {
+            character.characterVisuals.SetCharacterVisuals(character.traits);
         }
         // environmentTile.changesFloorLayer = GUILayout.Toggle(environmentTile.changesFloorLayer, "Changes Floor Layer");
         // if (environmentTile.changesFloorLayer)

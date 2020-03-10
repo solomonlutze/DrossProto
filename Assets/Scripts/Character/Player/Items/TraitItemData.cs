@@ -7,7 +7,7 @@ using UnityEditor;
 // Don't extend TraitItem! Attach this script to a Trait Item prefab to indicate its properties. Create a new TraitItem prefab for each Trait Item that is collectable.
 // TraitItem should be attached to
 
-public enum LymphType { None, TrueBug, Moth, Beetle, Wasp }
+public enum LymphType { None, TrueBug, Moth, Beetle, Wasp, Butterfly }
 
 [Serializable]
 public class TraitItemData : ItemData

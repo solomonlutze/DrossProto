@@ -169,7 +169,6 @@ public class TraitEffect
 
 public class Trait : ScriptableObject
 {
-
     public string traitName;
 
     [TextArea]
@@ -177,6 +176,10 @@ public class Trait : ScriptableObject
     public CharacterAttributeToIntDictionary attributeModifiers;
     public GameObject owningBugPrefab;
     public LymphType lymphType;
+
+    public Sprite visual1;
+
+    public Sprite visual2;
 
 #if UNITY_EDITOR
     // The following is a helper that adds a menu item to create an Trait Asset

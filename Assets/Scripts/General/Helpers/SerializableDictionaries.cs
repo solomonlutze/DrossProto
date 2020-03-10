@@ -31,6 +31,33 @@ public class LymphTypeToIntDictionary : SerializableDictionaryBase<LymphType, in
         }
     }
 }
+
+// [System.Serializable]
+// public class TraitSlotToGameObjectDictionary : SerializableDictionaryBase<TraitSlot, GameObject>
+// {
+
+//     public TraitSlotToGameObjectDictionary()
+//     {
+//         foreach (TraitSlot slot in (TraitSlot[])Enum.GetValues(typeof(TraitSlot)))
+//         {
+//             Add(slot, null);
+//         }
+//     }
+// }
+
+[System.Serializable]
+public class TraitSlotToCharacterCharacterBodyPartVisualDictionary : SerializableDictionaryBase<TraitSlot, CharacterBodyPartVisual>
+{
+
+    public TraitSlotToCharacterCharacterBodyPartVisualDictionary()
+    {
+        foreach (TraitSlot slot in (TraitSlot[])Enum.GetValues(typeof(TraitSlot)))
+        {
+            Add(slot, null);
+        }
+    }
+}
+
 [System.Serializable]
 public class TraitSlotToTraitDictionary : SerializableDictionaryBase<TraitSlot, Trait>
 {

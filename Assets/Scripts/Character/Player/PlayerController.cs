@@ -51,6 +51,7 @@ public class PlayerController : Character
             traits = previousPupa;
             pupa = new TraitSlotToTraitDictionary(previousPupa);
         }
+        characterVisuals.SetCharacterVisuals(traits);
         base.Init();
         availableContextualActions = new List<ContextualAction>();
         interactables = new List<GameObject>();
@@ -173,9 +174,12 @@ public class PlayerController : Character
         }
         if (interactables.Count > 0)
         {
+
+            interactables.RemoveAll(interactableObject => interactableObject == null);
             foreach (GameObject interactableObject in interactables)
             {
                 Interactable interactable = interactableObject.GetComponent<Interactable>();
+                Debug.Log("interactableObject: " + interactableObject);
                 if (!interactable.isInteractable) { continue; }
                 AddContextualAction(
                   interactable.interactableText,
@@ -413,9 +417,9 @@ public class PlayerController : Character
         // }
     }
 
-    public void EquipTrait(InventoryEntry itemToEquip, TraitSlot slot)
+    public void EquipTrait(Trait itemTrait, TraitSlot slot)
     {
-        inventory.EquipTraitToUpcomingLifeTrait(itemToEquip, slot);
+        pupa[slot] = itemTrait;
     }
 
     override public void AssignTraitsForNextLife(TraitSlotToUpcomingTraitDictionary nextLifeTraits)
