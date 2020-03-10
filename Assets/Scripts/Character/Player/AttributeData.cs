@@ -16,6 +16,7 @@ public class AttributeData : ScriptableObject
 {
     public CharacterAttribute attribute;
     public string displayName;
+    public string displayNameWithGroup;
     public AttributeTier[] attributeTiers;
     // Hide this attribute in the AttributesView screen if its value is zero
     public bool hideIfZero = false;

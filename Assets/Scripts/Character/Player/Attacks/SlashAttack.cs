@@ -32,7 +32,6 @@ public class SlashAttack : CharacterAttack
         owner.weaponPivot.transform.localEulerAngles = new Vector3(0, 0, startingRot);
         owner.weaponInstance.gameObject.SetActive(true);
         float t = 0;
-        Debug.Log("SlashAttack - startingRot: " + startingRot);
         while (t < attackDuration)
         {
             float easedT = Utils.EaseOut(t / attackDuration, 3);

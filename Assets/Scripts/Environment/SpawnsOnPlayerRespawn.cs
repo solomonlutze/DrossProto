@@ -39,9 +39,16 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
         }
     }
 
-
+#if UNITY_EDITOR
     private void OnValidate()
     {
+        UnityEditor.EditorApplication.delayCall += _OnValidate;
+    }
+
+    private void _OnValidate()
+    {
+
+        if (this == null || this.gameObject == null) { return; }
         if (objectToSpawn && objectToSpawn != prevObjectToSpawn)
         {
             prevObjectToSpawn = objectToSpawn;
@@ -64,4 +71,5 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
         }
         WorldObject.ChangeLayersRecursively(transform, LayerMask.LayerToName(gameObject.layer));
     }
+#endif
 }

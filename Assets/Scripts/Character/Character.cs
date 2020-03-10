@@ -292,7 +292,7 @@ public class Character : WorldObject
         conditionallyActivatedTraitEffects = new List<TraitEffect>();
         traitSpawnedGameObjects = new Dictionary<string, GameObject>();
         characterAttack.Init(this);
-        InitializeAttributes();
+        attributes = CalculateAttributes(traits);
         InitializeFromCharacterData();
     }
 
@@ -325,7 +325,7 @@ public class Character : WorldObject
         }
     }
 
-    protected virtual CharacterAttributeToIntDictionary CalculateAttributes(TraitSlotToTraitDictionary traits)
+    public static CharacterAttributeToIntDictionary CalculateAttributes(TraitSlotToTraitDictionary traits)
     {
 
         CharacterAttributeToIntDictionary ret = new CharacterAttributeToIntDictionary(true);

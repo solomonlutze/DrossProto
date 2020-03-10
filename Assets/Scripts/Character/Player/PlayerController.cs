@@ -420,7 +420,6 @@ public class PlayerController : Character
     public void EquipTrait(Trait itemTrait, TraitSlot slot)
     {
         pupa[slot] = itemTrait;
-        // inventory.EquipTraitToUpcomingLifeTrait(itemToEquip, slot);
     }
 
     override public void AssignTraitsForNextLife(TraitSlotToUpcomingTraitDictionary nextLifeTraits)

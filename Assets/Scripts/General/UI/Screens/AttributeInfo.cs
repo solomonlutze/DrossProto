@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 // Should have a reference to AttributeValuePip prefab
@@ -18,9 +19,17 @@ public class AttributeInfo : MonoBehaviour
     public SuperTextMesh attributeDescriptionText;
     public SuperTextMesh pupaAttributeDescriptionText;
     public Transform pipsContainer;
+    public int defaultFontSize;
+    public Color32 defaultFontColor;
+
+    private AttributeData attributeData;
+    private int actualPupaAttributeValue;
+
+    public Image arrowImage;
     void Start()
     {
-
+        defaultFontSize = pupaAttributeDescriptionText.quality;
+        defaultFontColor = pupaAttributeDescriptionText.color;
     }
 
     void Update()
@@ -34,15 +43,56 @@ public class AttributeInfo : MonoBehaviour
         }
     }
 
-    public void Init(AttributeData data, int value)
+    public void Init(AttributeData data, int value, int nextValue)
     {
-        attributeNameText.text = data.displayName;
-        attributeDescriptionText.text = data.attributeTiers[value].attributeTierDescription;
-
-        // InitPips(value);
+        attributeData = data;
+        attributeNameText.text = attributeData.displayName;
+        attributeDescriptionText.text = attributeData.attributeTiers[value].attributeTierDescription;
+        pupaAttributeDescriptionText.text = attributeData.attributeTiers[nextValue].attributeTierDescription;
+        actualPupaAttributeValue = nextValue; // save to modify when looking at items
+        arrowImage.gameObject.SetActive(false);
         DisableAllPips();
     }
 
+    public void HighlightDelta(int proposedChange)
+    {
+        int desiredFontSize = defaultFontSize;
+        Color32 desiredFontColor = defaultFontColor;
+        if (proposedChange > 0)
+        {
+            Debug.Log("changing font color to positive");
+            desiredFontColor = Color.red;
+            desiredFontSize = defaultFontSize + 2;
+            arrowImage.gameObject.SetActive(true);
+            arrowImage.color = Color.red;
+            arrowImage.transform.localScale = new Vector3(1, 1, 1);
+        }
+        else if (proposedChange < 0)
+        {
+            Debug.Log("changing font color to negative");
+            desiredFontColor = Color.blue;
+            desiredFontSize = defaultFontSize - 1;
+            arrowImage.gameObject.SetActive(true);
+            arrowImage.color = Color.blue;
+            arrowImage.SetAllDirty();
+            arrowImage.transform.localScale = new Vector3(1, -1, 1);
+        }
+        else
+        {
+            arrowImage.gameObject.SetActive(false);
+        }
+        pupaAttributeDescriptionText.color = desiredFontColor;
+        pupaAttributeDescriptionText.quality = desiredFontSize;
+        pupaAttributeDescriptionText.text = attributeData.attributeTiers[actualPupaAttributeValue + proposedChange].attributeTierDescription;
+    }
+
+    public void UnhighlightDelta()
+    {
+        pupaAttributeDescriptionText.color = defaultFontColor;
+        pupaAttributeDescriptionText.quality = defaultFontSize;
+        pupaAttributeDescriptionText.text = attributeData.attributeTiers[actualPupaAttributeValue].attributeTierDescription;
+        arrowImage.gameObject.SetActive(false);
+    }
     public void InitPips(int numberOfPips)
     {
         while (pipsContainer.childCount < numberOfPips)

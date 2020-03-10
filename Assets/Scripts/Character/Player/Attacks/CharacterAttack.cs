@@ -21,7 +21,6 @@ public class CharacterAttack : ScriptableObject
     public virtual void Init(Character owner)
     {
         owner.weaponInstance = Instantiate(weaponPrefab, owner.weaponPivot.position + GetInitialPosition(), owner.weaponPivot.rotation, owner.weaponPivot);
-        Debug.Log("weapon instance: " + owner.weaponInstance);
         owner.weaponInstance.Init(this);
         owner.weaponInstance.gameObject.SetActive(false);
     }
@@ -58,10 +57,8 @@ public class CharacterAttack : ScriptableObject
 
     public virtual void InitializeHitboxes(Character owner)
     {
-        Debug.Log("initializing hitboxes!");
         foreach (Hitbox hb in owner.weaponInstance.hitboxes)
         {
-            Debug.Log("initializing hitbox: " + hb);
             hb.Init(this, owner);
         }
     }

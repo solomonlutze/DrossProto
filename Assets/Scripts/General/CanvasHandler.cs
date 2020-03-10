@@ -70,20 +70,20 @@ public class CanvasHandler : MonoBehaviour
         PlayerController player = GameMaster.Instance.GetPlayerController();
         if (player != null)
         {
-            DisplayAttributesView(player.attributes, null, null, null);
+            DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.pupa, null);
         }
     }
 
     public void DisplayAttributesView(
         CharacterAttributeToIntDictionary currentAttributes,
         CharacterAttributeToIntDictionary nextAttributes,
-        TraitSlotToTraitDictionary currentTraits,
+        TraitSlotToTraitDictionary pupaTraits,
         TraitPickupItem traitPickupItem)
     {
         SetAllCanvasesInactive();
         {
             attributesView.gameObject.SetActive(true);
-            attributesView.Init(currentAttributes, currentTraits, traitPickupItem);
+            attributesView.Init(currentAttributes, nextAttributes, pupaTraits, traitPickupItem);
             attributesView.gameObject.SetActive(true);
             GameMaster.Instance.SetGameStatus(Constants.GameState.Menu);
         }
@@ -94,7 +94,7 @@ public class CanvasHandler : MonoBehaviour
         PlayerController player = GameMaster.Instance.GetPlayerController();
         if (player != null)
         {
-            DisplayAttributesView(player.attributes, null, player.traits, traitItem);
+            DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.pupa, traitItem);
         }
     }
 }

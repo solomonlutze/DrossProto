@@ -66,13 +66,22 @@ public class WorldObject : MonoBehaviour
     {
         return LayerMask.NameToLayer(floorLayer.ToString());
     }
+
+#if UNITY_EDITOR
     private void OnValidate()
     {
+        UnityEditor.EditorApplication.delayCall += _OnValidate;
+    }
+
+    private void _OnValidate()
+    {
+        if (this == null || this.gameObject == null) { return; }
         if (gameObject.layer != prevLayer)
         {
             prevLayer = gameObject.layer;
             ChangeLayersRecursively(transform, LayerMask.LayerToName(gameObject.layer));
         }
     }
+#endif
 
 }
