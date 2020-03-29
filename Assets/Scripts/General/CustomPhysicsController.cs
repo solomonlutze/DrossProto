@@ -68,7 +68,7 @@ public class CustomPhysicsController : MonoBehaviour
   {
     if (owningCharacter != null)
     {
-      if (owningCharacter.dashing)
+      if (owningCharacter.flying)
       {
         moveAcceleration = owningCharacter.GetStat(CharacterStat.DashAcceleration);
       }

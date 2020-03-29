@@ -23,6 +23,8 @@ public class GameMaster : Singleton<GameMaster>
 
     public LymphTypeToSpriteDictionary lymphTypeToSpriteMapping;
     public LymphTypeToLymphTypeSkillsDictionary lymphTypeToSkillsMapping;
+    public Camera mainCamera;
+    public Camera camera2D; // god save me
 
     // Use this for initialization
     void Start()

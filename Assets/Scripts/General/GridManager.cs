@@ -438,4 +438,15 @@ public class GridManager : Singleton<GridManager>
         yield return null;
         Destroy(th);
     }
+    public static float GetZOffsetForFloor(int floorLayer)
+    {
+        return (LayerMask.NameToLayer("B6") + Constants.numberOfFloorLayers) - floorLayer;
+        // floor layers 9-20 (bottom to top)
+        // we want them from 0-12, top to bottom
+        // 20 = 0, 19 = 1, 18 = 2, 17 = 3
+        // fl - (firstFloorLayerIndex + number of floors)?
+        // int firstFloorLayerIndex = LayerMask.NameToLayer("B6"); // like... 15
+        // return firstFloorLayerIndex - floorLayer;
+        // int numberOfFloorLayers = Constants.numberOfFloorLayers; // 12?
+    }
 }
