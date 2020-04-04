@@ -13,8 +13,7 @@ public class CharacterData : ScriptableObject
   public CharacterAttackModifiers attackModifiers;
   public CharacterAttackModifiers dashAttackModifiers;
   public List<CharacterMovementAbility> movementAbilities;
-  [HideInInspector]
-  public CharacterAttributeToIAttributeDataInterfaceDictionary attributeDatas;
+  public CharacterAttributeToScriptableObjectDictionary attributeDatas;
 
   public void Awake()
   {
@@ -25,7 +24,7 @@ public class CharacterData : ScriptableObject
     if (attributeDatas == null)
     {
       Debug.Log("creating new dictionary?");
-      attributeDatas = new CharacterAttributeToIAttributeDataInterfaceDictionary();
+      attributeDatas = new CharacterAttributeToScriptableObjectDictionary();
       Debug.Log("attribute datas? " + attributeDatas);
     }
     if (damageTypeResistances == null)
@@ -49,54 +48,58 @@ public class CharacterData : ScriptableObject
   public void RefreshAttributeDatas()
   {
     UnityEngine.Object[] dataObjects = Resources.LoadAll("Data/TraitData/Attributes");
-    attributeDatas = new CharacterAttributeToIAttributeDataInterfaceDictionary();
+    UnityEngine.ScriptableObject[] cast = dataObjects as ScriptableObject[];
+    Debug.Log("dataObjects: " + dataObjects);
+    Debug.Log("cast: " + cast);
+    attributeDatas = new CharacterAttributeToScriptableObjectDictionary();
     IAttributeDataInterface ad;
-    foreach (Object obj in dataObjects)
+    foreach (ScriptableObject obj in dataObjects)
     {
       ad = obj as FlightAttributeData;
       if (ad != null)
       {
         Debug.Log("adding " + ad + "as flightAttributeData");
-        AddIAttributeDataInterfaceToAttributeDatas(ad);
+        AddScriptableObjectToAttributeDatas(ad.attribute, obj);
         continue;
       }
       ad = obj as AttributeData;
       if (ad != null)
       {
         Debug.Log("adding " + ad + "as attributeData");
-        AddIAttributeDataInterfaceToAttributeDatas(ad);
+        AddScriptableObjectToAttributeDatas(ad.attribute, obj);
         continue;
       }
     }
     // attributeDatas.AddRange(dataObjects as AttributeData[]); //Resources.LoadAll("Data/TraitData/Attributes") as AttributeData[]);  
   }
 
-  void AddIAttributeDataInterfaceToAttributeDatas(IAttributeDataInterface ad)
+  void AddScriptableObjectToAttributeDatas(CharacterAttribute attr, ScriptableObject ad)
   {
-    if (!attributeDatas.ContainsKey(ad.attribute))
+    if (!attributeDatas.ContainsKey(attr))
     {
-      Debug.Log("adding attribute: " + ad.attribute);
-      attributeDatas.Add(ad.attribute, ad);
+      Debug.Log("adding attribute: " + attr + " to " + ad);
+      attributeDatas.Add(attr, ad);
     }
     else
     {
-      Debug.Log("updating attribute: " + ad.attribute);
-      attributeDatas[ad.attribute] = ad;
+      Debug.Log("updating attribute: " + attr + " to " + ad);
+      attributeDatas[attr] = ad;
     }
   }
 
-
-  public IAttributeDataInterface GetAttributeData(CharacterAttribute attribute)
+  public IAttributeDataInterface GetAttributeDataInterface(CharacterAttribute attribute)
   {
+    return attributeDatas[attribute] as IAttributeDataInterface;
+  }
 
-    return attributeDatas[attribute];
+  public AttributeData GetAttributeData(CharacterAttribute attribute)
+  {
+    return (AttributeData)GetAttributeDataInterface(attribute);
   }
 
   public FlightAttributeData GetFlightAttributeData()
   {
-    Debug.Log("attribute data for flight: " + GetAttributeData(CharacterAttribute.Flight));
-    Debug.Log("flight attribute data for flight: " + (FlightAttributeData)GetAttributeData(CharacterAttribute.Flight));
-    return (FlightAttributeData)GetAttributeData(CharacterAttribute.Flight);
+    return (FlightAttributeData)GetAttributeDataInterface(CharacterAttribute.Flight);
   }
 
 #if UNITY_EDITOR

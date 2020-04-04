@@ -35,7 +35,7 @@ public class WorldObject : MonoBehaviour
 
   public static void ChangeLayersRecursively(Transform t, FloorLayer layerName, float zOffset = 0)
   {
-    if (t.position.z != GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(layerName)))
+    if (t.position.z != GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(layerName)) + zOffset)
     {
       Debug.Log("setting z position for " + t.gameObject.name + " to " + GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(layerName)));
       t.position = new Vector3(t.position.x, t.position.y, GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(layerName)) + zOffset);

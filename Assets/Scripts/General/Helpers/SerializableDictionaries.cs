@@ -95,6 +95,21 @@ public class CharacterAttributeToGameObjectDictionary : SerializableDictionaryBa
     }
   }
 }
+
+
+[System.Serializable]
+public class CharacterAttributeToScriptableObjectDictionary : SerializableDictionaryBase<CharacterAttribute, ScriptableObject>
+{
+  public CharacterAttributeToScriptableObjectDictionary()
+  {
+    {
+      foreach (CharacterAttribute attribute in (CharacterAttribute[])Enum.GetValues(typeof(CharacterAttribute)))
+      {
+        Add(attribute, null);
+      }
+    }
+  }
+}
 [System.Serializable]
 public class CharacterAttributeToIntDictionary : SerializableDictionaryBase<CharacterAttribute, int>
 {

@@ -32,7 +32,7 @@ public enum CharacterStat
   MaxHealthLostPerMolt,
   DetectableRange,
   MoveAcceleration,
-  DashAcceleration,
+  FlightAcceleration,
   FlightStamina,
   FlightStaminaRecoverySpeed,
   RotationSpeed
@@ -593,13 +593,21 @@ public class Character : WorldObject
   protected void BeginFly()
   {
     flying = true;
-    ChangeLayersRecursively(transform, currentFloor, .5f);
+    if (GetAttribute(CharacterAttribute.Flight) < 3)
+    { // TODO: don't hardcode this!!
+      activeMovementAbilities.Add(CharacterMovementAbility.Hover);
+    }
+    ChangeLayersRecursively(transform, currentFloor, -.5f);
   }
 
   protected void EndFly()
   {
 
     flying = false;
+    if (GetAttribute(CharacterAttribute.Flight) < 3)
+    { // TODO: don't hardcode this!!
+      activeMovementAbilities.Remove(CharacterMovementAbility.Hover);
+    }
     ChangeLayersRecursively(transform, currentFloor, .0f);
   }
   protected void DoDashAttack()
@@ -867,8 +875,6 @@ public class Character : WorldObject
 
   public float GetMaxFlightDuration()
   {
-    Debug.Log("defaultCharacterData " + defaultCharacterData);
-
     return defaultCharacterData
       .GetFlightAttributeData()
       .GetAttributeTier(this)
@@ -1027,16 +1033,16 @@ public class Character : WorldObject
     {
       currentTileLocation = nowTileLocation;
     }
-    if (tile.objectTileType == null && tile.groundTileType == null)
+    if (tile.objectTileType == null && tile.groundTileType == null) // Falling logic
     {
       bool canstick = GridManager.Instance.CanStickToAdjacentTile(transform.position, currentFloor);
       if (
-        (activeMovementAbilities.Contains(CharacterMovementAbility.StickyFeet)
-        && canstick)
+        (activeMovementAbilities.Contains(CharacterMovementAbility.StickyFeet) && canstick)
+        || activeMovementAbilities.Contains(CharacterMovementAbility.Hover)
         || sticking
       )
       {
-        // do nothing. no fall plz.
+        //Character is flying or sticking to something; do not fall
       }
       else
       {
