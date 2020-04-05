@@ -1,11 +1,9 @@
-
-using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class EnvironmentalDamage : IDamageSource
 {
   public EnvironmentTile tileType;
-  public Character character;
 
   public string sourceString
   {
@@ -30,6 +28,20 @@ public class EnvironmentalDamage : IDamageSource
     return false;
   }
 
+  // No partial damage from environmental hazards; resistances can ignore altogether
+  public float CalculateDamageAfterResistances(Character c)
+  {
+    if (
+      c.GetDamageTypeResistanceLevel(damageType) >= GetResistanceRequiredForImmunity() // high enough resistance to ignore altogether
+      )
+    {
+      return 0;
+    }
+    else
+    {
+      return damageAmount;
+    }
+  }
   public int damageAmount
   {
     get
@@ -43,6 +55,14 @@ public class EnvironmentalDamage : IDamageSource
     get
     {
       return tileType.environmentalDamageInfo.damageType;
+    }
+  }
+
+  public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage
+  {
+    get
+    {
+      return tileType.movementAbilitiesWhichBypassDamage;
     }
   }
 
@@ -77,7 +97,6 @@ public class EnvironmentalDamage : IDamageSource
   {
     return tileType.environmentalDamageInfo.resistanceRequiredForImmunity;
   }
-
   public bool forcesItemDrop
   {
     get

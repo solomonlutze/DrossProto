@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -639,7 +640,6 @@ public class Character : WorldObject
   }
 
   // DAMAGE FUNCTIONS
-
   protected virtual void TakeDamage(IDamageSource damageSource)
   {
     if (damageSource.IsOwnedBy(this)) { return; }
@@ -648,14 +648,15 @@ public class Character : WorldObject
       sourceInvulnerabilities.Contains(damageSource.sourceString)
       && !damageSource.ignoresInvulnerability)
     { return; }
-    float damageAfterResistances = GetDamageAfterResistance(
-      damageSource
-    );
-
+    float damageAfterResistances = damageSource.CalculateDamageAfterResistances(this);
     if (
       damageAfterResistances <= 0
       && damageSource.damageAmount > 0
     ) { return; }
+    if (damageSource.movementAbilitiesWhichBypassDamage.Intersect(activeMovementAbilities).Any())
+    {
+      return;
+    }
     InterruptAnimation();
     AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances));
     CalculateAndApplyStun(damageSource.stunMagnitude);
@@ -667,8 +668,6 @@ public class Character : WorldObject
     }
   }
 
-
-
   public int GetDamageTypeResistanceLevel(DamageType type)
   {
     bool exists = Enum.TryParse("Resist_" + type.ToString(), out CharacterAttribute resistAttribute);
@@ -679,63 +678,6 @@ public class Character : WorldObject
     }
     return GetAttribute(resistAttribute);
   }
-
-  protected float GetDamageTypeResistancePercent(DamageType type)
-  {
-    return 34 * GetDamageTypeResistanceLevel(type); // TODO: get rid of magic number!! base it on # of resistance levels?
-  }
-
-  protected float GetDamageAfterResistance(IDamageSource damageSource)
-  {
-    if (damageSource is EnvironmentalDamage)
-    {
-      if (GetDamageTypeResistanceLevel(damageSource.damageType) >= ((EnvironmentalDamage)damageSource).GetResistanceRequiredForImmunity())
-      {
-        return 0;
-      }
-      else
-      {
-        return damageSource.damageAmount;
-      }
-    }
-    if (damageSource != null)
-    {
-      return ((1 - GetDamageTypeResistancePercent(damageSource.damageType) / 100) * damageSource.damageAmount);
-    }
-    return 0;
-  }
-
-  // protected virtual void TakeDamage_OLD(Damage_OLD damage)
-  // {
-  //     if (
-  //       sourceInvulnerabilities.Contains(damage.sourceString)
-  //       && !damage.IgnoresInvulnerability())
-  //     { return; }
-  //     if (damage.owningCharacter == this) { return; }
-  //     float damageAfterResistances = GetDamageAfterResistance(damage.GetDamage(), damage.GetDamageType());
-  //     if (
-  //       damageAfterResistances <= 0
-  //       && damage.GetDamage() > 0
-  //     // && hb.characterStatModifications.Count == 0
-  //     ) { return; }
-  //     InterruptAnimation();
-  //     AdjustHealth(Mathf.Floor(-damageAfterResistances));
-  //     CalculateAndApplyStun(damage.GetStun());
-  //     // foreach (CharacterStatModification mod in damageObj.characterStatModifications)
-  //     // {
-  //     //   ApplyStatMod(mod);
-  //     // }
-  //     StartCoroutine(ApplyInvulnerability(damage));
-  //     // if (damageFlashCoroutine != null) {
-  //     //   StopCoroutine(damageFlashCoroutine);
-  //     // }
-  //     // StartCoroutine(ApplyDamageFlash(damageObj));
-  //     Vector3 knockback = damage.CalculateAndReturnKnockback();
-  //     if (knockback != Vector3.zero)
-  //     {
-  //         po.ApplyImpulseForce(knockback);
-  //     }
-  // }
 
   private IEnumerator ApplyDamageFlash(DamageData_OLD damageObj)
   {
@@ -754,15 +696,6 @@ public class Character : WorldObject
   {
     Destroy(gameObject);
   }
-
-  // Make us invulnerable, then un-make-us invulnerable. Damage is ignorned while invulnerable.
-  // void CalculateAndApplyInvulnerability(Damage_OLD damage)
-  // {
-  //     if (damage.GetInvulnerabilityWindow() > 0)
-  //     {
-  //         StartCoroutine(ApplyInvulnerability(damage));
-  //     }
-  // }
 
   IEnumerator ApplyInvulnerability(IDamageSource damageSource)
   {

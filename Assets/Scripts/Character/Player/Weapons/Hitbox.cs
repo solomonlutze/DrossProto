@@ -1,5 +1,6 @@
 
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Hitbox : MonoBehaviour, IDamageSource
@@ -41,6 +42,7 @@ public class Hitbox : MonoBehaviour, IDamageSource
   {
     return character && character.characterType == c.characterType;
   }
+
   public int damageAmount
   {
     get
@@ -93,4 +95,27 @@ public class Hitbox : MonoBehaviour, IDamageSource
       return attack.ForcesItemDrop();
     }
   }
+
+  public float CalculateDamageAfterResistances(Character c)
+  {
+    if (c != null)
+    {
+      return ((1 - GetDamageTypeResistancePercent(c) / 100) * damageAmount);
+    }
+    return 0;
+  }
+
+  protected float GetDamageTypeResistancePercent(Character c)
+  {
+    return 34 * c.GetDamageTypeResistanceLevel(damageType); // TODO: get rid of magic number!! build it into resistance tiers maybe?
+  }
+
+  public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage
+  {
+    get
+    {
+      return new List<CharacterMovementAbility>();
+    }
+  }
+
 }
