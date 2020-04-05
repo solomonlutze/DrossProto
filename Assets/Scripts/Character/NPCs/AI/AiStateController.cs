@@ -201,9 +201,9 @@ public class AiStateController : Character
     return weaponInstance.effectiveRange - characterAttack.ai_preferredAttackRangeBuffer;
   }
 
-  protected override void TakeDamage(DamageSource damageSource)
+  protected override void TakeDamage(IDamageSource damageSource)
   {
-    if (damageSource.ForcesItemDrop())
+    if (damageSource.forcesItemDrop)
     {
       SpawnDroppedItems();
     }

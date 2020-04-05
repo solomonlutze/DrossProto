@@ -2,50 +2,87 @@
 using System;
 using UnityEngine;
 
-public class EnvironmentalDamage : DamageSource
+public class EnvironmentalDamage : IDamageSource
 {
-    public EnvironmentTile tileType;
-    public Character character;
+  public EnvironmentTile tileType;
+  public Character character;
 
-    public override string sourceString
+  public string sourceString
+  {
+    get
     {
-        get
-        {
-            return tileType.name;
-        }
+      return tileType.name;
     }
-    public void Init(EnvironmentTile t)
-    {
-        tileType = t;
-    }
+  }
+  public void Init(EnvironmentTile t)
+  {
+    tileType = t;
+  }
 
-    public override int GetDamageAmount()
-    {
-        return tileType.environmentalDamageInfo.damageAmount;
-    }
 
-    public override DamageType GetDamageType()
-    {
-        return tileType.environmentalDamageInfo.damageType;
-    }
+  public bool IsOwnedBy(Character c)
+  {
+    return false;
+  }
 
-    public override float GetStun()
-    {
-        return tileType.environmentalDamageInfo.stun;
-    }
+  public bool IsSameOwnerType(Character c)
+  {
+    return false;
+  }
 
-    public override bool IgnoresInvulnerability()
+  public int damageAmount
+  {
+    get
     {
-        return tileType.environmentalDamageInfo.ignoreInvulnerability;
+      return tileType.environmentalDamageInfo.damageAmount;
     }
+  }
 
-    public override float GetInvulnerabilityWindow(Character c)
+  public DamageType damageType
+  {
+    get
     {
-        return tileType.environmentalDamageInfo.invulnerabilityWindow;
+      return tileType.environmentalDamageInfo.damageType;
     }
+  }
 
-    public int GetResistanceRequiredForImmunity()
+  public float stunMagnitude
+  {
+    get
     {
-        return tileType.environmentalDamageInfo.resistanceRequiredForImmunity;
+      return tileType.environmentalDamageInfo.stun;
     }
+  }
+
+  public bool ignoresInvulnerability
+  {
+    get
+    {
+      return tileType.environmentalDamageInfo.ignoreInvulnerability;
+    }
+  }
+
+  public float invulnerabilityWindow
+  {
+    get
+    {
+      return tileType.environmentalDamageInfo.invulnerabilityWindow;
+    }
+  }
+  public Vector3 GetKnockbackForCharacter(Character c)
+  {
+    return Vector3.zero;
+  }
+  public int GetResistanceRequiredForImmunity()
+  {
+    return tileType.environmentalDamageInfo.resistanceRequiredForImmunity;
+  }
+
+  public bool forcesItemDrop
+  {
+    get
+    {
+      return false;
+    }
+  }
 }
