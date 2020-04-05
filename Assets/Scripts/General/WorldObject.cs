@@ -37,7 +37,6 @@ public class WorldObject : MonoBehaviour
   {
     if (t.position.z != GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(layerName)) + zOffset)
     {
-      Debug.Log("setting z position for " + t.gameObject.name + " to " + GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(layerName)));
       t.position = new Vector3(t.position.x, t.position.y, GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(layerName)) + zOffset);
     }
     ChangeLayersRecursively(t, layerName.ToString());

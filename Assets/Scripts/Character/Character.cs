@@ -284,7 +284,7 @@ public class Character : WorldObject
     {
       Debug.LogError("No physics controller component on Character object: " + gameObject.name);
     }
-    WorldObject.ChangeLayersRecursively(transform, currentFloor.ToString());
+    WorldObject.ChangeLayersRecursively(transform, currentFloor);
   }
 
   protected virtual void Init()
@@ -640,42 +640,13 @@ public class Character : WorldObject
 
   // DAMAGE FUNCTIONS
 
-  // Called from Hitbox's OnTriggerEnter. Calls other functions to determine outcome of getting hit.
-  protected virtual void TakeDamage(DamageSource damageSource)
-  {
-    if (damageSource is Hitbox)
-    {
-      TakeHitboxDamage(damageSource as Hitbox);
-    }
-    else if (damageSource is EnvironmentalDamage)
-    { // unlikely to be needed but w/e
-      TakeEnvironmentalDamage(damageSource as EnvironmentalDamage);
-    }
-  }
-
-
-  protected virtual void TakeEnvironmentalDamage(EnvironmentalDamage damageSource)
-  {
-    if (GetDamageTypeResistanceLevel(damageSource.GetDamageType()) >= damageSource.GetResistanceRequiredForImmunity())
-    {
-      return;
-    }
-    if (
-      sourceInvulnerabilities.Contains(damageSource.sourceString)
-      && !damageSource.IgnoresInvulnerability())
-    { return; }
-    Debug.Log("damagesource: " + damageSource.sourceString);
-    AdjustCurrentHealth(Mathf.Floor(-damageSource.GetDamageAmount()));
-    StartCoroutine(ApplyInvulnerability(damageSource));
-  }
-
-  protected virtual void TakeHitboxDamage(Hitbox damageSource)
+  protected virtual void TakeDamage(IDamageSource damageSource)
   {
     if (damageSource.IsOwnedBy(this)) { return; }
     if (damageSource.IsSameOwnerType(this)) { return; }
     if (
       sourceInvulnerabilities.Contains(damageSource.sourceString)
-      && !damageSource.IgnoresInvulnerability())
+      && !damageSource.ignoresInvulnerability)
     { return; }
     float damageAfterResistances = GetDamageAfterResistance(
       damageSource
@@ -683,18 +654,19 @@ public class Character : WorldObject
 
     if (
       damageAfterResistances <= 0
-      && damageSource.GetDamageAmount() > 0
+      && damageSource.damageAmount > 0
     ) { return; }
     InterruptAnimation();
     AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances));
-    CalculateAndApplyStun(damageSource.GetStun());
+    CalculateAndApplyStun(damageSource.stunMagnitude);
     StartCoroutine(ApplyInvulnerability(damageSource));
-    Vector3 knockback = damageSource.GetKnockback();
+    Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
     if (knockback != Vector3.zero)
     {
       po.ApplyImpulseForce(knockback);
     }
   }
+
 
 
   public int GetDamageTypeResistanceLevel(DamageType type)
@@ -713,11 +685,22 @@ public class Character : WorldObject
     return 34 * GetDamageTypeResistanceLevel(type); // TODO: get rid of magic number!! base it on # of resistance levels?
   }
 
-  protected float GetDamageAfterResistance(DamageSource damageSource)
+  protected float GetDamageAfterResistance(IDamageSource damageSource)
   {
-    if (damageSource)
+    if (damageSource is EnvironmentalDamage)
     {
-      return ((100 - GetDamageTypeResistancePercent(damageSource.GetDamageType())) / 100) * damageSource.GetDamageAmount();
+      if (GetDamageTypeResistanceLevel(damageSource.damageType) >= ((EnvironmentalDamage)damageSource).GetResistanceRequiredForImmunity())
+      {
+        return 0;
+      }
+      else
+      {
+        return damageSource.damageAmount;
+      }
+    }
+    if (damageSource != null)
+    {
+      return ((1 - GetDamageTypeResistancePercent(damageSource.damageType) / 100) * damageSource.damageAmount);
     }
     return 0;
   }
@@ -781,9 +764,9 @@ public class Character : WorldObject
   //     }
   // }
 
-  IEnumerator ApplyInvulnerability(DamageSource damageSource)
+  IEnumerator ApplyInvulnerability(IDamageSource damageSource)
   {
-    float invulnerabilityDuration = damageSource.GetInvulnerabilityWindow(this);
+    float invulnerabilityDuration = damageSource.invulnerabilityWindow;
     if (invulnerabilityDuration <= 0) { yield break; }
     string src = damageSource.sourceString;
     sourceInvulnerabilities.Add(src);
@@ -1060,7 +1043,7 @@ public class Character : WorldObject
     {
       foreach (EnvironmentalDamage envDamage in tile.environmentalDamageSources)
       {
-        TakeEnvironmentalDamage(envDamage);
+        TakeDamage(envDamage);
       }
     }
   }
