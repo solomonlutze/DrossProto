@@ -162,15 +162,6 @@ public class PlayerController : Character
     GridManager.Instance.ReplaceTileAtLocation(GetTileLocation(), burrowHoleTile);
   }
 
-  private void AscendOneFloor()
-  {
-    SetCurrentFloor(currentFloor + 1);
-  }
-
-  private void DescendOneFloor()
-  {
-    SetCurrentFloor(currentFloor - 1);
-  }
   private void ClimbAdjacentTile()
   {
     SetCurrentFloor(currentFloor + 1);
@@ -208,10 +199,10 @@ public class PlayerController : Character
     {
       AddContextualAction("climb", ClimbAdjacentTile);
     }
-    if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
-    {
-      AddContextualAction("ascend", AscendOneFloor);
-    }
+    // if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
+    // {
+    //   AddContextualAction("ascend", AscendOneFloor);
+    // }
     if (GridManager.Instance.CanDescendThroughCurrentTile(GetTileLocation(), this))
     {
       AddContextualAction("descend", DescendOneFloor);
@@ -293,9 +284,27 @@ public class PlayerController : Character
         {
           Attack();
         }
-        else if (Input.GetButtonDown("Fly"))
+        else if (Input.GetButtonDown("Ascend"))
         {
-          Fly();
+          if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
+          {
+            FlyUp();
+          }
+          else if (!flying)
+          {
+            Fly();
+          }
+        }
+        else if (Input.GetButtonDown("Descend"))
+        {
+          if (flying)
+          {
+            FlyDown();
+          }
+          else
+          {
+            // DescendOneFloor(); // maybe descend??
+          }
         }
         else if (Input.GetButtonDown("Activate"))
         {

@@ -241,6 +241,7 @@ public class Character : WorldObject
   public bool animationPreventsMoving = false;
   public bool sticking = false;
   public Coroutine attackCoroutine;
+  protected Coroutine flyCoroutine;
   protected Vector2 movementInput;
   // point in space we would like to face
   public Vector3 orientTowards;
@@ -575,7 +576,7 @@ public class Character : WorldObject
   {
     // if (vitals[CharacterVital.CurrentFlightCooldown] > 0) { return; }
     // DoDashAttack();
-    StartCoroutine(DoFly());
+    flyCoroutine = StartCoroutine(DoFly());
     // vitals[CharacterVital.CurrentFlightCooldown] = GetStat(CharacterStat.MaxDashCooldown);
   }
 
@@ -603,7 +604,8 @@ public class Character : WorldObject
 
   protected void EndFly()
   {
-
+    Debug.Log("end fly!");
+    StopCoroutine(flyCoroutine);
     flying = false;
     if (GetAttribute(CharacterAttribute.Flight) < 3)
     { // TODO: don't hardcode this!!
@@ -611,6 +613,25 @@ public class Character : WorldObject
     }
     ChangeLayersRecursively(transform, currentFloor, .0f);
   }
+
+  protected void FlyUp()
+  {
+    // consume stamina here
+    AscendOneFloor();
+  }
+
+  protected void FlyDown()
+  {
+    if (GridManager.Instance.TileIsValidAndEmpty(GetTileLocation()))
+    {
+      DescendOneFloor();
+    }
+    else
+    {
+      EndFly();
+    }
+  }
+
   protected void DoDashAttack()
   {
     if (dashAttackEnabled)
@@ -618,6 +639,19 @@ public class Character : WorldObject
       CreateDashAttackHitbox();
     }
   }
+
+  protected void AscendOneFloor()
+  {
+
+    Debug.Log("ascending one floor!");
+    SetCurrentFloor(currentFloor + 1);
+  }
+
+  protected void DescendOneFloor()
+  {
+    SetCurrentFloor(currentFloor - 1);
+  }
+
   // determines if input-based movement is allowed
   protected virtual bool CanMove()
   {
@@ -787,6 +821,14 @@ public class Character : WorldObject
   public float GetMaxHealthLostPerMolt()
   {
     return defaultCharacterData.defaultStats[CharacterStat.MaxHealthLostPerMolt];
+  }
+
+  public bool GetCanFlyUp()
+  {
+    return defaultCharacterData
+      .GetFlightAttributeData()
+      .GetAttributeTier(this)
+      .canFlyUp;
   }
 
   public float GetMaxFlightDuration()
