@@ -199,11 +199,11 @@ public class PlayerController : Character
     {
       AddContextualAction("climb", ClimbAdjacentTile);
     }
-    // if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
-    // {
-    //   AddContextualAction("ascend", AscendOneFloor);
-    // }
-    if (GridManager.Instance.CanDescendThroughCurrentTile(GetTileLocation(), this))
+    if (GridManager.Instance.AdjacentTileIsValid(GetTileLocation(), TilemapDirection.Above) && GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
+    {
+      AddContextualAction("ascend", AscendOneFloor);
+    }
+    if (GridManager.Instance.AdjacentTileIsValid(GetTileLocation(), TilemapDirection.Below) && GridManager.Instance.CanDescendThroughCurrentTile(GetTileLocation(), this))
     {
       AddContextualAction("descend", DescendOneFloor);
     }

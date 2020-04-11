@@ -295,6 +295,7 @@ public class GridManager : Singleton<GridManager>
     }
     return false;
   }
+
   public bool CanClimbAdjacentTile(TileLocation tileLoc)
   {
     if (GetAdjacentTile(tileLoc.position3D, tileLoc.floorLayer, TilemapDirection.Above).IsEmpty())
