@@ -20,7 +20,7 @@ public enum CharacterVital
 {
   CurrentHealth,
   CurrentEnvironmentalDamageCooldown,
-  CurrentFlightCooldown,
+  RemainingFlightStamina,
   CurrentMoltCount
 }
 
@@ -312,6 +312,7 @@ public class Character : WorldObject
     vitals = new CharacterVitalToFloatDictionary();
     // statModifications = new StatToActiveStatModificationsDictionary();
     vitals[CharacterVital.CurrentHealth] = GetMaxHealth();
+    vitals[CharacterVital.RemainingFlightStamina] = GetMaxFlightDuration();
     // vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
     // vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
   }
@@ -576,21 +577,22 @@ public class Character : WorldObject
   {
     // if (vitals[CharacterVital.CurrentFlightCooldown] > 0) { return; }
     // DoDashAttack();
-    flyCoroutine = StartCoroutine(DoFly());
+    BeginFly();
+    // flyCoroutine = StartCoroutine(DoFly());
     // vitals[CharacterVital.CurrentFlightCooldown] = GetStat(CharacterStat.MaxDashCooldown);
   }
 
-  protected IEnumerator DoFly()
-  {
-    float t = 0;
-    BeginFly();
-    while (t < GetMaxFlightDuration() && flying)
-    {
-      t += Time.deltaTime;
-      yield return null;
-    }
-    EndFly();
-  }
+  // protected IEnumerator DoFly()
+  // {
+  //   float t = 0;
+  //   BeginFly();
+  //   while (t < GetMaxFlightDuration() && flying)
+  //   {
+  //     t += Time.deltaTime;
+  //     yield return null;
+  //   }
+  //   EndFly();
+  // }
 
   protected void BeginFly()
   {
@@ -604,8 +606,7 @@ public class Character : WorldObject
 
   protected void EndFly()
   {
-    Debug.Log("end fly!");
-    StopCoroutine(flyCoroutine);
+    // StopCoroutine(flyCoroutine);
     flying = false;
     if (GetAttribute(CharacterAttribute.Flight) < 3)
     { // TODO: don't hardcode this!!
@@ -833,6 +834,9 @@ public class Character : WorldObject
 
   public float GetMaxFlightDuration()
   {
+    Debug.Log("defaultCharacterData: " + defaultCharacterData);
+    Debug.Log("flightAttributeData: " + defaultCharacterData.GetFlightAttributeData());
+    Debug.Log("tier: " + defaultCharacterData.GetFlightAttributeData().GetAttributeTier(this));
     return defaultCharacterData
       .GetFlightAttributeData()
       .GetAttributeTier(this)
@@ -1077,6 +1081,19 @@ public class Character : WorldObject
 
   protected void HandleCooldowns()
   {
+    if (flying)
+    {
+      vitals[CharacterVital.RemainingFlightStamina] -= Time.deltaTime;
+      if (vitals[CharacterVital.RemainingFlightStamina] <= 0)
+      {
+        EndFly();
+      }
+    }
+    else
+    {
+      vitals[CharacterVital.RemainingFlightStamina]
+        = Mathf.Min(vitals[CharacterVital.RemainingFlightStamina] + Time.deltaTime, GetMaxFlightDuration());
+    }
     // if (vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] > 0)
     // {
     //     vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] -= Time.deltaTime;

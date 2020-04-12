@@ -23,9 +23,7 @@ public class CharacterData : ScriptableObject
     }
     if (attributeDatas == null)
     {
-      Debug.Log("creating new dictionary?");
       attributeDatas = new CharacterAttributeToScriptableObjectDictionary();
-      Debug.Log("attribute datas? " + attributeDatas);
     }
     if (damageTypeResistances == null)
     {
