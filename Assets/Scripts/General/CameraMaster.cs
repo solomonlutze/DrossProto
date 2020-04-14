@@ -9,10 +9,10 @@ public class CameraMaster : MonoBehaviour
 
     void Start()
     {
-        foreach (FloorLayer fl in (FloorLayer[])Enum.GetValues(typeof(FloorLayer)))
-        {
-            LayerCamera c = Instantiate(cameraPrefab);
-            c.Init(fl);
-        }
+        // foreach (FloorLayer fl in (FloorLayer[])Enum.GetValues(typeof(FloorLayer)))
+        // {
+        //     LayerCamera c = Instantiate(cameraPrefab);
+        //     c.Init(fl);
+        // }
     }
 }

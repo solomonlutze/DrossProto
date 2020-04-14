@@ -23,9 +23,9 @@ public class Weapon : MonoBehaviour
         }
         range = b.size.x + attack.range;
         effectiveRange = range + attack.distance;
-        Debug.Log("weapon's extents are" + b.extents);
-        Debug.Log("weapon's bounds are " + b.extents.x);
-        Debug.Log("weapon's position.x is" + transform.position.x);
-        Debug.Log("weapon's range is " + range);
+        // Debug.Log("weapon's extents are" + b.extents);
+        // Debug.Log("weapon's bounds are " + b.extents.x);
+        // Debug.Log("weapon's position.x is" + transform.position.x);
+        // Debug.Log("weapon's range is " + range);
     }
 }

@@ -32,6 +32,10 @@ public class PlayerController : Character
   public List<ContextualAction> availableContextualActions;
   private int selectedContextualActionIdx;
 
+
+  [Header("Trait Info", order = 1)]
+  public TraitSlotToTraitDictionary pupa;
+
   [Header("Trait-Related Prefabs")]
   public EnvironmentTile burrowHoleTile;
   // Use this for initialization
@@ -40,32 +44,51 @@ public class PlayerController : Character
     base.Start();
   }
 
-  public void Init(bool initialSpawn, TraitSlotToUpcomingTraitDictionary previousPupa)
+  public void Init(bool initialSpawn, TraitSlotToTraitDictionary previousPupa)
   {
+    if (!initialSpawn)
+    {
+      traits = previousPupa;
+      pupa = new TraitSlotToTraitDictionary(previousPupa);
+    }
+    Debug.Log("Init??");
+    characterVisuals.SetCharacterVisuals(traits);
     base.Init();
     availableContextualActions = new List<ContextualAction>();
     interactables = new List<GameObject>();
     inventory = GetComponent<Inventory>();
     inventory.owner = this;
-    if (!initialSpawn)
-    {
-      // Debug.Log("init - cachedPupa head trait: " + previousPupa[TraitSlot.Head].trait);
-    }
-    if (initialSpawn)
-    {
-      AssignTraitsForFirstLife();
-    }
-    else
-    {
-      inventory.AdvanceUpcomingLifeTraits(previousPupa);
-    }
+    // if (initialSpawn)
+    // {
+    //     AssignTraitsForFirstLife();
+    // }
+    // else
+    // {
+    //     // inventory.AdvanceUpcomingLifeTraits(previousPupa);
+    // }
   }
   // Player specific non-physics biz.
 
   // TODO: setting orientTowards can prolly be its own function
   override protected void Update()
   {
-    orientTowards = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+    // Ray ray;
+    // RaycastHit hit;
+    // ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+    // if (Physics2d.Raycast(ray, out hit, Mathf.Infinity))
+    // {
+    //     Debug.Log("hit: " + hit.point);
+    // }
+    // Ray ray = GameMaster.Instance.mainCamera.ScreenPointToRay(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0));
+    // Debug.DrawRay(ray.origin, ray.direction * 50, Color.yellow);
+    // Debug.Log("Mouse position: " + Input.mousePosition);
+    orientTowards = GameMaster.Instance.camera2D.ScreenToWorldPoint(Input.mousePosition);
+    // Debug.Log("orientTowards: " + orientTowards);
+    // Debug.Log("transform position: " + transform.position);
+    // Debug.Log("target direction: " + (orientTowards - transform.position));
+    // Debug.DrawLine(orientTowards, transform.position, Color.cyan, .1f);
     base.Update();
     PopulateContextualActions();
     HandleInput();
@@ -86,7 +109,7 @@ public class PlayerController : Character
     }
   }
 
-  protected void RespawnPlayerAtLatSafeLocation()
+  protected void RespawnPlayerAtLastSafeLocation()
   {
     // skill1.CancelActiveEffects();
     // skill2.CancelActiveEffects();
@@ -107,9 +130,9 @@ public class PlayerController : Character
     if (tile == null) { return; }
     if (tile.CanRespawnPlayer())
     {
-      if (!tile.CharacterCanCrossTile(activeMovementAbilities))
+      if (!tile.CharacterCanCrossTile(this))
       {
-        RespawnPlayerAtLatSafeLocation();
+        RespawnPlayerAtLastSafeLocation();
       }
     }
     else
@@ -127,10 +150,9 @@ public class PlayerController : Character
     else
     {
       // Debug.Log("collided with " + tile);
-      if (tile.objectTileTags.Contains(TileTag.Ground) && activeMovementAbilities.Contains(CharacterMovementAbility.Burrow))
+      if (tile.CharacterCanBurrowThroughObjectTile(this))
       {
-        tile.DestroyTile();
-        tile.DestroyTile();
+        tile.DestroyObjectTile();
       }
     }
   }
@@ -142,11 +164,6 @@ public class PlayerController : Character
 
   private void ClimbAdjacentTile()
   {
-    transform.position = new Vector3(
-      currentTileLocation.position.x + .5f,
-      currentTileLocation.position.y + .5f,
-      0f
-    );
     SetCurrentFloor(currentFloor + 1);
   }
 
@@ -165,9 +182,12 @@ public class PlayerController : Character
     }
     if (interactables.Count > 0)
     {
+
+      interactables.RemoveAll(interactableObject => interactableObject == null);
       foreach (GameObject interactableObject in interactables)
       {
         Interactable interactable = interactableObject.GetComponent<Interactable>();
+        Debug.Log("interactableObject: " + interactableObject);
         if (!interactable.isInteractable) { continue; }
         AddContextualAction(
           interactable.interactableText,
@@ -179,10 +199,18 @@ public class PlayerController : Character
     {
       AddContextualAction("climb", ClimbAdjacentTile);
     }
-    if (activeMovementAbilities.Contains(CharacterMovementAbility.Burrow) && GridManager.Instance.CanBurrowOnCurrentTile(GetTileLocation()))
+    if (GridManager.Instance.AdjacentTileIsValid(GetTileLocation(), TilemapDirection.Above) && GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
     {
-      AddContextualAction("burrow", SpawnBurrowHoleTile);
+      AddContextualAction("ascend", AscendOneFloor);
     }
+    if (GridManager.Instance.AdjacentTileIsValid(GetTileLocation(), TilemapDirection.Below) && GridManager.Instance.CanDescendThroughCurrentTile(GetTileLocation(), this))
+    {
+      AddContextualAction("descend", DescendOneFloor);
+    }
+    // if (GridManager.Instance.CanBurrowOnCurrentTile(GetTileLocation(), this))
+    // {
+    //     AddContextualAction("burrow", SpawnBurrowHoleTile);
+    // }
     if (selectedContextualActionIdx > 0 && selectedContextualActionIdx >= availableContextualActions.Count)
     {
       selectedContextualActionIdx = 0;
@@ -256,9 +284,27 @@ public class PlayerController : Character
         {
           Attack();
         }
-        else if (Input.GetButtonDown("Dash"))
+        else if (Input.GetButtonDown("Ascend"))
         {
-          Dash();
+          if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
+          {
+            FlyUp();
+          }
+          else if (!flying)
+          {
+            Fly();
+          }
+        }
+        else if (Input.GetButtonDown("Descend"))
+        {
+          if (flying)
+          {
+            FlyDown();
+          }
+          else
+          {
+            // DescendOneFloor(); // maybe descend??
+          }
         }
         else if (Input.GetButtonDown("Activate"))
         {
@@ -368,20 +414,21 @@ public class PlayerController : Character
     inventory.EquipConsumableToSlot(itemToEquip, slot);
   }
 
+  // TODO: Delete or update this so it sets attributes
   private void AssignTraitsForFirstLife()
   {
-    Debug.Log("assigning traits for first life~");
-    TraitSlotToTraitDictionary et = initialEquippedTraits.EquippedTraits();
-    foreach (TraitSlot traitSlot in et.Keys)
-    {
-      Trait trait = et[traitSlot];
-      if (et[traitSlot] != null)
-      {
-        Debug.Log("added " + trait);
-        trait.OnTraitAdded(this);
-      }
-      equippedTraits[traitSlot] = trait;
-    }
+    // Debug.Log("assigning traits for first life~");
+    // TraitSlotToTraitDictionary et = initialEquippedTraits.EquippedTraits();
+    // foreach (TraitSlot traitSlot in et.Keys)
+    // {
+    //     Trait trait = et[traitSlot];
+    //     if (et[traitSlot] != null)
+    //     {
+    //         Debug.Log("added " + trait);
+    //         // trait.OnTraitAdded(this);
+    //     }
+    //     traits[traitSlot] = trait;
+    // }
     // ActiveTraitInstance activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
     // ActiveTrait activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+initialskill1) as ActiveTrait;
     // if (activeTrait != null && activeTraitData != null) {
@@ -396,9 +443,9 @@ public class PlayerController : Character
     // }
   }
 
-  public void EquipTrait(InventoryEntry itemToEquip, TraitSlot slot)
+  public void EquipTrait(Trait itemTrait, TraitSlot slot)
   {
-    inventory.EquipTraitToUpcomingLifeTrait(itemToEquip, slot);
+    pupa[slot] = itemTrait;
   }
 
   override public void AssignTraitsForNextLife(TraitSlotToUpcomingTraitDictionary nextLifeTraits)
@@ -407,8 +454,8 @@ public class PlayerController : Character
     {
       if (nextLifeTraits[slot] != null && nextLifeTraits[slot].trait != null)
       {
-        equippedTraits[slot] = nextLifeTraits[slot].trait;
-        nextLifeTraits[slot].trait.OnTraitAdded(this);
+        traits[slot] = nextLifeTraits[slot].trait;
+        // nextLifeTraits[slot].trait.OnTraitAdded(this);
       }
     }
     LymphTypeToIntDictionary lymphTypeCounts = inventory.GetLymphTypeCounts(nextLifeTraits);
@@ -470,16 +517,16 @@ public class PlayerController : Character
 
   override public void Die()
   {
-    foreach (TraitSlot slot in equippedTraits.Keys)
+    foreach (TraitSlot slot in traits.Keys)
     {
-      if (equippedTraits[slot] != null && equippedTraits[slot])
+      if (traits[slot] != null && traits[slot])
       {
         // Debug.Log("Removing trait in" + slot);
-        equippedTraits[slot].OnTraitRemoved(this);
+        // traits[slot].OnTraitRemoved(this);
       }
     }
     // Debug.Log("all traits removed; killing player");
-    GameMaster.Instance.KillPlayer(inventory.GetUpcomingPupa());
+    GameMaster.Instance.KillPlayer(pupa);
     // Debug.Log("destroying gameobject");
     base.Die();
   }

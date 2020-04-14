@@ -52,7 +52,7 @@ public class MoveAiAction : AiAction
             if (controller.pathToTarget != null && controller.pathToTarget.Count > 0)
             {
                 Vector3 nextNodeLocation = new Vector3(controller.pathToTarget[0].loc.position.x + .5f, controller.pathToTarget[0].loc.position.y + .5f, 0);
-                Vector3 colliderCenterWorldSpace = controller.transform.TransformPoint(controller.col.offset);
+                Vector3 colliderCenterWorldSpace = controller.transform.TransformPoint(controller.circleCollider.offset);
                 movementInput = (nextNodeLocation - colliderCenterWorldSpace).normalized;
                 Debug.DrawLine(nextNodeLocation, colliderCenterWorldSpace, Color.red, .25f, true);
                 if (Vector3.Distance(nextNodeLocation, colliderCenterWorldSpace) < controller.minDistanceFromPathNode)

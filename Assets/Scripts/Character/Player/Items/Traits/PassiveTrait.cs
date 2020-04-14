@@ -5,25 +5,27 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-public class PassiveTrait : Trait {
+public class PassiveTrait : Trait_OLD
+{
 
-	public override TraitType traitType {
-		get { return TraitType.Passive; }
-		set { }
-	}
+    public override TraitType traitType
+    {
+        get { return TraitType.Passive; }
+        set { }
+    }
 
 
-	#if UNITY_EDITOR
+#if UNITY_EDITOR
     // The following is a helper that adds a menu item to create an TraitItem Asset
-        [MenuItem("Assets/Create/Trait/PassiveTrait")]
-        public static void CreatePassiveTrait()
-        {
-            string path = EditorUtility.SaveFilePanelInProject("Save Passive Trait", "New Passive Trait", "Asset", "Save Passive Trait", "Assets/resources/Data/TraitData/PassiveTraits");
-            if (path == "")
-                return;
-       		AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<PassiveTrait>(), path);
-        }
-    #endif
+    [MenuItem("Assets/Create/Trait/PassiveTrait")]
+    public static void CreatePassiveTrait()
+    {
+        string path = EditorUtility.SaveFilePanelInProject("Save Passive Trait", "New Passive Trait", "Asset", "Save Passive Trait", "Assets/resources/Data/TraitData/PassiveTraits");
+        if (path == "")
+            return;
+        AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<PassiveTrait>(), path);
+    }
+#endif
 }
 
 

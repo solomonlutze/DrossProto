@@ -31,6 +31,33 @@ public class LymphTypeToIntDictionary : SerializableDictionaryBase<LymphType, in
     }
   }
 }
+
+// [System.Serializable]
+// public class TraitSlotToGameObjectDictionary : SerializableDictionaryBase<TraitSlot, GameObject>
+// {
+
+//     public TraitSlotToGameObjectDictionary()
+//     {
+//         foreach (TraitSlot slot in (TraitSlot[])Enum.GetValues(typeof(TraitSlot)))
+//         {
+//             Add(slot, null);
+//         }
+//     }
+// }
+
+[System.Serializable]
+public class TraitSlotToCharacterCharacterBodyPartVisualDictionary : SerializableDictionaryBase<TraitSlot, CharacterBodyPartVisual>
+{
+
+  public TraitSlotToCharacterCharacterBodyPartVisualDictionary()
+  {
+    foreach (TraitSlot slot in (TraitSlot[])Enum.GetValues(typeof(TraitSlot)))
+    {
+      Add(slot, null);
+    }
+  }
+}
+
 [System.Serializable]
 public class TraitSlotToTraitDictionary : SerializableDictionaryBase<TraitSlot, Trait>
 {
@@ -42,10 +69,62 @@ public class TraitSlotToTraitDictionary : SerializableDictionaryBase<TraitSlot, 
       Add(slot, null);
     }
   }
+
+  public TraitSlotToTraitDictionary(TraitSlotToTraitDictionary toClone)
+  {
+    foreach (TraitSlot slot in toClone.Keys)
+    {
+      Add(slot, toClone[slot]);
+    }
+  }
 }
 [System.Serializable]
 public class DamageTypeToFloatDictionary : SerializableDictionaryBase<DamageType, float> { }
 
+
+[System.Serializable]
+public class CharacterAttributeToGameObjectDictionary : SerializableDictionaryBase<CharacterAttribute, GameObject>
+{
+  public CharacterAttributeToGameObjectDictionary()
+  {
+    {
+      foreach (CharacterAttribute attribute in (CharacterAttribute[])Enum.GetValues(typeof(CharacterAttribute)))
+      {
+        Add(attribute, null);
+      }
+    }
+  }
+}
+
+
+[System.Serializable]
+public class CharacterAttributeToScriptableObjectDictionary : SerializableDictionaryBase<CharacterAttribute, ScriptableObject>
+{
+  public CharacterAttributeToScriptableObjectDictionary()
+  {
+    {
+      foreach (CharacterAttribute attribute in (CharacterAttribute[])Enum.GetValues(typeof(CharacterAttribute)))
+      {
+        Add(attribute, null);
+      }
+    }
+  }
+}
+[System.Serializable]
+public class CharacterAttributeToIntDictionary : SerializableDictionaryBase<CharacterAttribute, int>
+{
+
+  public CharacterAttributeToIntDictionary(bool populate = true)
+  {
+    if (populate)
+    {
+      foreach (CharacterAttribute attribute in (CharacterAttribute[])Enum.GetValues(typeof(CharacterAttribute)))
+      {
+        Add(attribute, 0);
+      }
+    }
+  }
+}
 
 [System.Serializable]
 public class StringToIntDictionary : SerializableDictionaryBase<string, int>
@@ -69,8 +148,9 @@ public class CharacterVitalToFloatDictionary : SerializableDictionaryBase<Charac
   public CharacterVitalToFloatDictionary()
   {
     Add(CharacterVital.CurrentHealth, 0);
-    Add(CharacterVital.CurrentEnvironmentalDamageCooldown, 0);
-    Add(CharacterVital.CurrentDashCooldown, 0f);
+    Add(CharacterVital.CurrentMoltCount, 0);
+    Add(CharacterVital.RemainingFlightStamina, 0);
+    // Add(CharacterVital.CurrentDashCooldown, 0f);
   }
 }
 
@@ -82,6 +162,19 @@ public class CharacterStatToFloatDictionary : SerializableDictionaryBase<Charact
     foreach (CharacterStat stat in (CharacterStat[])Enum.GetValues(typeof(CharacterStat)))
     {
       Add(stat, 0);
+    }
+  }
+}
+
+[System.Serializable]
+public class CharacterAttributeToIAttributeDataInterfaceDictionary : SerializableDictionaryBase<CharacterAttribute, IAttributeDataInterface>
+{
+  public CharacterAttributeToIAttributeDataInterfaceDictionary()
+  {
+
+    foreach (CharacterAttribute attribute in (CharacterAttribute[])Enum.GetValues(typeof(CharacterAttribute)))
+    {
+      Add(attribute, null);
     }
   }
 }

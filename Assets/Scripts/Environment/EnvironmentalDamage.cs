@@ -1,40 +1,107 @@
-
-using System;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class EnvironmentalDamage : DamageSource
+public class EnvironmentalDamage : IDamageSource
 {
-    public EnvironmentTile tileType;
-    public Character character;
+  public EnvironmentTile tileType;
 
-    public void Init(EnvironmentTile t)
+  public string sourceString
+  {
+    get
     {
-        tileType = t;
+      return tileType.name;
     }
+  }
+  public void Init(EnvironmentTile t)
+  {
+    tileType = t;
+  }
 
-    public override int GetDamageAmount()
+
+  public bool IsOwnedBy(Character c)
+  {
+    return false;
+  }
+
+  public bool IsSameOwnerType(Character c)
+  {
+    return false;
+  }
+
+  // No partial damage from environmental hazards; resistances can ignore altogether
+  public float CalculateDamageAfterResistances(Character c)
+  {
+    if (
+      c.GetDamageTypeResistanceLevel(damageType) >= GetResistanceRequiredForImmunity() // high enough resistance to ignore altogether
+      )
     {
-        return tileType.environmentalDamageInfo.damageAmount;
+      return 0;
     }
-
-    public override DamageType GetDamageType()
+    else
     {
-        return tileType.environmentalDamageInfo.damageType;
+      return damageAmount;
     }
-
-    public override float GetStun()
+  }
+  public int damageAmount
+  {
+    get
     {
-        return tileType.environmentalDamageInfo.stun;
+      return tileType.environmentalDamageInfo.damageAmount;
     }
+  }
 
-    public override bool IgnoresInvulnerability()
+  public DamageType damageType
+  {
+    get
     {
-        return tileType.environmentalDamageInfo.ignoreInvulnerability;
+      return tileType.environmentalDamageInfo.damageType;
     }
+  }
 
-    public override float GetInvulnerabilityWindow(Character c)
+  public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage
+  {
+    get
     {
-        return tileType.environmentalDamageInfo.invulnerabilityWindow;
+      return tileType.movementAbilitiesWhichBypassDamage;
     }
+  }
 
+  public float stunMagnitude
+  {
+    get
+    {
+      return tileType.environmentalDamageInfo.stun;
+    }
+  }
+
+  public bool ignoresInvulnerability
+  {
+    get
+    {
+      return tileType.environmentalDamageInfo.ignoreInvulnerability;
+    }
+  }
+
+  public float invulnerabilityWindow
+  {
+    get
+    {
+      return tileType.environmentalDamageInfo.invulnerabilityWindow;
+    }
+  }
+  public Vector3 GetKnockbackForCharacter(Character c)
+  {
+    return Vector3.zero;
+  }
+  public int GetResistanceRequiredForImmunity()
+  {
+    return tileType.environmentalDamageInfo.resistanceRequiredForImmunity;
+  }
+  public bool forcesItemDrop
+  {
+    get
+    {
+      return false;
+    }
+  }
 }

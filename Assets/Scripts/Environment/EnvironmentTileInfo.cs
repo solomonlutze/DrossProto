@@ -95,22 +95,81 @@ public class EnvironmentTileInfo
         return groundTileType != null && groundTileType.shouldRespawnPlayer;
     }
 
-    public bool CharacterCanCrossTile(List<CharacterMovementAbility> characterMovementAbilities)
+    public bool CharacterCanCrossTile(Character character)
     {
         if (!CanRespawnPlayer())
         {
             return true;
         }
-        foreach (CharacterMovementAbility characterAbility in characterMovementAbilities)
+        foreach (CharacterAttribute attribute in groundTileType.attributesWhichBypassRespawn.Keys)
         {
-            if (groundTileType != null &&
-                groundTileType.movementAbilitiesWhichBypassRespawn.Contains(characterAbility))
+            if (character.GetAttribute(attribute) > 0
+                && character.GetAttribute(attribute) >= groundTileType.attributesWhichBypassRespawn[attribute]
+            )
             {
                 return true;
             }
         }
         return false;
     }
+
+    // ONLY for deciding if a tile can physically accommodate you.
+    // NOT for deciding if you would want to be there (e.g. damaging, respawning, etc)
+    public bool CharacterCanOccupyTile(Character c)
+    {
+        return objectTileType == null
+        || GetColliderType() == Tile.ColliderType.None
+        || CharacterCanBurrowThroughObjectTile(c);
+    }
+
+    // Used to determine if character can pass through otherwise-impassible block
+    public bool CharacterCanBurrowThroughObjectTile(Character character)
+    {
+        if (objectTileType == null) { return false; }
+        foreach (CharacterAttribute attribute in objectTileType.attributesWhichAllowBurrowing.Keys)
+        {
+            if (character.GetAttribute(attribute) > 0
+                && character.GetAttribute(attribute) >= objectTileType.attributesWhichAllowBurrowing[attribute]
+            )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Used to determine if character can ascend through floor tile above them,
+    // or descend through floor tile they're currently on
+    public bool CharacterCanPassThroughFloorTile(Character character)
+    {
+        if (groundTileType == null) { return false; }
+        foreach (CharacterAttribute attribute in groundTileType.attributesWhichAllowPassingThrough.Keys)
+        {
+            if (character.GetAttribute(attribute) > 0
+                && character.GetAttribute(attribute) >= groundTileType.attributesWhichAllowPassingThrough[attribute]
+            )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    // public bool CharacterCanCrossTile_OLD(List<CharacterMovementAbility> characterMovementAbilities)
+    // {
+    //     if (!CanRespawnPlayer())
+    //     {
+    //         return true;
+    //     }
+    //     foreach ( characterAbility in characterMovementAbilities)
+    //     {
+    //         if (groundTileType != null &&
+    //             groundTileType.movementAbilitiesWhichBypassRespawn.Contains(characterAbility))
+    //         {
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
 
     public void TakeDamage(Damage_OLD damage)
     {
@@ -131,7 +190,7 @@ public class EnvironmentTileInfo
     public bool IsClimbable()
     {
         return objectTileType != null &&
-                objectTileType.isClimbable &&
+                objectTileType.attributesWhichAllowClimbing.Keys.Count > 0 &&
                 !dealsDamage &&
                 !CanRespawnPlayer();
     }
@@ -146,9 +205,16 @@ public class EnvironmentTileInfo
     {
         return (groundTileType == null && objectTileType == null);
     }
+
+    // DEPRECATED
     public void DestroyTile()
     {
         GridManager.Instance.ReplaceTileAtLocation(tileLocation, null);
+    }
+
+    public void DestroyObjectTile()
+    {
+        GridManager.Instance.DestroyObjectTileAtLocation(tileLocation);
     }
 
     public Tile.ColliderType GetColliderType()

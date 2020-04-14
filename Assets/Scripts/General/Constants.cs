@@ -24,9 +24,8 @@ public static class Constants
         {CharacterStat.DetectableRange, .5f},
         {CharacterStat.MaxHealth, .02f},
         {CharacterStat.MoveAcceleration, .05f},
-        {CharacterStat.DashAcceleration, .1f},
-        {CharacterStat.DashDuration, .3f},
-        {CharacterStat.MaxEnvironmentalDamageCooldown, 10f},
+        {CharacterStat.FlightAcceleration, .1f},
+        {CharacterStat.FlightStamina, .3f},
         {CharacterStat.RotationSpeed, .02f},
     };
 }
