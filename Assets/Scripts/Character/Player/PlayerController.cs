@@ -220,7 +220,7 @@ public class PlayerController : Character
     Debug.Log("is attack: " + (CharacterAttackData)characterSkills[selectedSkillIdx] != null);
     if ((CharacterAttackData)characterSkills[selectedSkillIdx] != null) // TODO: handle this more generically!!
     {
-      StartCoroutine(DoAttack((CharacterAttackData)characterSkills[selectedSkillIdx]),);
+      StartCoroutine(DoAttack((CharacterAttackData)characterSkills[selectedSkillIdx]));
     }
   }
 

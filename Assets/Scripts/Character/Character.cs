@@ -296,11 +296,18 @@ public class Character : WorldObject
     sourceInvulnerabilities = new List<string>();
     conditionallyActivatedTraitEffects = new List<TraitEffect>();
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
-    foreach (Weapon w in weaponInstances.Values)
+    if (weaponInstances != null)
     {
-      Destroy(w.gameObject);
+      foreach (Weapon w in weaponInstances.Values)
+      {
+        Destroy(w.gameObject);
+      }
+      weaponInstances.Clear();
     }
-    weaponInstances.Clear();
+    else
+    {
+      weaponInstances = new Dictionary<string, Weapon>();
+    }
     for (int i = 0; i < characterSkills.Count; i++)
     {
       characterSkills[i].Init(this);
@@ -445,20 +452,14 @@ public class Character : WorldObject
 
   public float GetRange(int skillIdxForAttack = 0)
   {
-    if (weaponInstances.Count > skillIdxForAttack && weaponInstances[skillIdxForAttack] != null)
-    {
-      return weaponInstances[skillIdxForAttack].range;
-    }
-    return 0;
+    string skillName = GetSkillNameFromIndex(skillIdxForAttack);
+    return weaponInstances[skillName].range;
     // return attack.range + Character.GetAttackValueModifier(mods.attackValueModifiers, CharacterAttackValue.Range);
   }
   public int GetAttackRadiusInDegrees(int skillIdxForAttack)
   {
-    if (weaponInstances.Count > skillIdxForAttack && weaponInstances[skillIdxForAttack] != null)
-    {
-      return weaponInstances[skillIdxForAttack].sweepRadiusInDegrees;
-    }
-    return 0;
+    string skillName = GetSkillNameFromIndex(skillIdxForAttack);
+    return weaponInstances[skillName].sweepRadiusInDegrees;
   }
   public void CreateHitbox(CharacterAttackData atk, CharacterAttackModifiers mods)
   {
