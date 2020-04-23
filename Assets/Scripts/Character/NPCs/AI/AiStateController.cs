@@ -198,7 +198,7 @@ public class AiStateController : Character
 
   public float GetMaxPreferredAttackRange()
   {
-    return weaponInstance.effectiveRange - characterAttack.ai_preferredAttackRangeBuffer;
+    return GetEffectiveAttackRange() - characterAttack.ai_preferredAttackRangeBuffer;
   }
 
   protected override void TakeDamage(IDamageSource damageSource)

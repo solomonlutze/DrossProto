@@ -2,11 +2,10 @@ using UnityEngine;
 using System.Collections;
 
 [System.Serializable]
-public class CharacterAttack : ScriptableObject
+public class CharacterAttackData : CharacterSkillData
 {
-
-  //
-  public Weapon weaponPrefab;
+  public Weapon weaponPrefab; // actual weapon prefab. instantiate this on init
+  // public Weapon weaponInstance; // reference to actual weapon gameobject instance, instantiated from the prefab
   public float windupDuration;
   public float attackDuration;
   public float range; // how far away from the owner the weapon starts
@@ -18,16 +17,22 @@ public class CharacterAttack : ScriptableObject
 
   public DamageInfo baseDamage;
 
-  public virtual void Init(Character owner)
+  public override void Init(Character owner)
   {
-    owner.weaponInstance = Instantiate(weaponPrefab, owner.weaponPivot.position + GetInitialPosition(), owner.weaponPivot.rotation, owner.weaponPivot);
-    owner.weaponInstance.Init(this);
-    owner.weaponInstance.gameObject.SetActive(false);
+    Weapon wi = Instantiate(weaponPrefab, owner.weaponPivot.position + GetInitialPosition(), owner.weaponPivot.rotation, owner.weaponPivot);
+    owner.weaponInstances.Add(name, wi);
+    wi.Init(this);
+    wi.gameObject.SetActive(false);
   }
 
   public Vector3 GetInitialPosition()
   {
     return new Vector3(range, 0, 0);
+  }
+
+  public override IEnumerator UseSkill(Character owner)
+  {
+    yield return PerformAttackCycle(owner);
   }
 
   public virtual IEnumerator PerformAttackCycle(Character owner)
@@ -46,18 +51,18 @@ public class CharacterAttack : ScriptableObject
 
   public virtual void BeforeAttack(Character owner)
   {
-    owner.weaponInstance.gameObject.SetActive(true);
+    owner.weaponInstances[name].gameObject.SetActive(true);
     InitializeHitboxes(owner);
   }
 
   public virtual void AfterAttack(Character owner)
   {
-    owner.weaponInstance.gameObject.SetActive(false);
+    owner.weaponInstances[name].gameObject.SetActive(false);
   }
 
   public virtual void InitializeHitboxes(Character owner)
   {
-    foreach (Hitbox hb in owner.weaponInstance.hitboxes)
+    foreach (Hitbox hb in owner.weaponInstances[name].hitboxes)
     {
       hb.Init(this, owner);
     }

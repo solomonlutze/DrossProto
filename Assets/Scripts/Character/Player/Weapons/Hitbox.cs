@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Hitbox : MonoBehaviour, IDamageSource
 {
-  public CharacterAttack attack;
+  public CharacterAttackData attack;
   public Character character;
 
   protected string _sourceString = "";
@@ -21,7 +21,7 @@ public class Hitbox : MonoBehaviour, IDamageSource
     }
   }
 
-  public void Init(CharacterAttack atk, Character ch)
+  public void Init(CharacterAttackData atk, Character ch)
   {
     attack = atk;
     character = ch;

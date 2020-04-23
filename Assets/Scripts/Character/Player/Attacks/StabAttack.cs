@@ -3,7 +3,7 @@ using UnityEditor;
 using System.Collections;
 
 [System.Serializable]
-public class StabAttack : CharacterAttack
+public class StabAttack : CharacterAttackData
 {
 
 #if UNITY_EDITOR
