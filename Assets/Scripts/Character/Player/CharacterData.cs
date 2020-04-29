@@ -9,6 +9,7 @@ public class CharacterData : ScriptableObject
 {
 
   public CharacterStatToFloatDictionary defaultStats;
+  public AttackSkillData defaultCharacterAttack;
   public DamageTypeToFloatDictionary damageTypeResistances;
   public CharacterAttackModifiers attackModifiers;
   public CharacterAttackModifiers dashAttackModifiers;

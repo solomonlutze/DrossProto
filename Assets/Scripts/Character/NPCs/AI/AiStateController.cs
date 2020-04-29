@@ -15,7 +15,7 @@ public class AiStateController : Character
   {
     get
     {
-      return characterAttack.range + GetAttackValueModifier(attackModifiers.attackValueModifiers, CharacterAttackValue.Range);
+      return GetSelectedWeaponInstance().range + GetAttackValueModifier(attackModifiers.attackValueModifiers, CharacterAttackValue.Range);
     }
   }
   public float attackAngleInDegrees = 45f;
@@ -193,12 +193,12 @@ public class AiStateController : Character
 
   public float GetMinPreferredAttackRange()
   {
-    return characterAttack.ai_preferredMinAttackRange;
+    return GetSelectedCharacterSkill().ai_preferredMinRange;
   }
 
   public float GetMaxPreferredAttackRange()
   {
-    return weaponInstance.effectiveRange - characterAttack.ai_preferredAttackRangeBuffer;
+    return GetEffectiveAttackRange() - GetSelectedCharacterSkill().ai_preferredAttackRangeBuffer;
   }
 
   protected override void TakeDamage(IDamageSource damageSource)

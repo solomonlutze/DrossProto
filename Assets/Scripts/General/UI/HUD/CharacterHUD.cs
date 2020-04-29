@@ -86,8 +86,11 @@ public class CharacterHUD : MonoBehaviour
     }
     else
     {
-      StopCoroutine(recoveryFlashCoroutine);
-      recoveryFlashCoroutine = null;
+      if (recoveryFlashCoroutine != null)
+      {
+        StopCoroutine(recoveryFlashCoroutine);
+        recoveryFlashCoroutine = null;
+      }
       staminaBarContentsSprite.color = defaultStaminaColor;
     }
     // if the player is at full stamina: hide the bar

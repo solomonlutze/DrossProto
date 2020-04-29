@@ -3,7 +3,7 @@ using UnityEditor;
 using System.Collections;
 
 [System.Serializable]
-public class SlashAttack : CharacterAttack
+public class SlashAttack : AttackSkillData
 {
 
 #if UNITY_EDITOR
@@ -29,7 +29,7 @@ public class SlashAttack : CharacterAttack
   {
     float startingRot = sweepRadiusInDegrees / 2;
     owner.weaponPivot.transform.localEulerAngles = new Vector3(0, 0, startingRot);
-    owner.weaponInstance.gameObject.SetActive(true);
+    owner.weaponInstances[name].gameObject.SetActive(true);
     float t = 0;
     while (t < attackDuration)
     {
@@ -40,6 +40,6 @@ public class SlashAttack : CharacterAttack
       t += Time.deltaTime;
       yield return new WaitForFixedUpdate();
     }
-    owner.weaponInstance.gameObject.SetActive(false);
+    owner.weaponInstances[name].gameObject.SetActive(false);
   }
 }

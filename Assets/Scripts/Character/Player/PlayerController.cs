@@ -30,7 +30,8 @@ public class PlayerController : Character
 
   public string lastActivatedTrait = null;
   public List<ContextualAction> availableContextualActions;
-  private int selectedContextualActionIdx;
+  private int selectedContextualActionIdx = 0;
+  private int selectedSkillIdx = 0;
 
 
   [Header("Trait Info", order = 1)]
@@ -207,13 +208,36 @@ public class PlayerController : Character
     {
       AddContextualAction("descend", DescendOneFloor);
     }
-    // if (GridManager.Instance.CanBurrowOnCurrentTile(GetTileLocation(), this))
-    // {
-    //     AddContextualAction("burrow", SpawnBurrowHoleTile);
-    // }
     if (selectedContextualActionIdx > 0 && selectedContextualActionIdx >= availableContextualActions.Count)
     {
       selectedContextualActionIdx = 0;
+    }
+  }
+
+  public void UseSelectedSkill()
+  {
+    Debug.Log("using skill " + characterSkills[selectedSkillIdx]);
+    Debug.Log("is attack: " + (AttackSkillData)characterSkills[selectedSkillIdx] != null);
+    if ((AttackSkillData)characterSkills[selectedSkillIdx] != null) // TODO: handle this more generically!!
+    {
+      StartCoroutine(DoAttack((AttackSkillData)characterSkills[selectedSkillIdx]));
+    }
+  }
+
+  public void AdvanceSelectedSkill()
+  {
+    if (characterSkills.Count > 0)
+    {
+      selectedSkillIdx = selectedSkillIdx + 1;
+      if (selectedSkillIdx >= characterSkills.Count)
+      {
+        selectedSkillIdx = 0;
+      }
+      Debug.Log("selected skill: " + characterSkills[selectedSkillIdx]);
+    }
+    else
+    {
+      selectedSkillIdx = 0;
     }
   }
 
@@ -231,12 +255,6 @@ public class PlayerController : Character
     {
       selectedContextualActionIdx = 0;
     }
-    // Debug.Log("contextualActions: ");
-    foreach (ContextualAction c in availableContextualActions)
-    {
-      // Debug.Log(c.actionName);
-    }
-    // Debug.Log("selectedContextualActionIdx = " + selectedContextualActionIdx);
 
   }
   public ContextualAction GetSelectedContextualAction()
@@ -282,7 +300,8 @@ public class PlayerController : Character
       case (Constants.GameState.Play):
         if (Input.GetButtonDown("Attack"))
         {
-          Attack();
+          UseSelectedSkill();
+          // Attack();
         }
         else if (Input.GetButtonDown("Ascend"))
         {
@@ -316,6 +335,10 @@ public class PlayerController : Character
           {
             inventory.ClearPickedUpItem();
           }
+        }
+        else if (Input.GetButtonDown("AdvanceSkill"))
+        {
+          AdvanceSelectedSkill();
         }
         else if (Input.GetButtonDown("AdvanceSelectedAction"))
         {
@@ -514,6 +537,25 @@ public class PlayerController : Character
   //   skill2.Init(this, activeTraitData);
   // }
   // }
+
+  public override CharacterSkillData GetSelectedCharacterSkill()
+  {
+    if (characterSkills.Count > selectedSkillIdx)
+    {
+      return characterSkills[selectedSkillIdx];
+    }
+    return null;
+  }
+
+  public override Weapon GetSelectedWeaponInstance()
+  {
+    if (characterSkills.Count > selectedSkillIdx)
+    {
+      string skillName = GetSkillNameFromIndex(selectedSkillIdx);
+      return weaponInstances[skillName];
+    }
+    return null;
+  }
 
   override public void Die()
   {
