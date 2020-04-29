@@ -202,12 +202,11 @@ public class Character : WorldObject
   [Header("Attack Info")]
   public List<CharacterSkillData> characterSkills;
   public Dictionary<string, Weapon> weaponInstances;
-  public CharacterAttackData characterAttack;
   // public Weapon weaponInstance;
   public CharacterAttackModifiers attackModifiers;
   public Hitbox_OLD hitboxPrefab;
   private bool dashAttackEnabled = true;
-  public CharacterAttackData dashCharacterAttack;
+  public AttackSkillData dashCharacterAttack;
   public CharacterAttackModifiers dashAttackModifiers;
   public Hitbox_OLD dashAttackHitboxPrefab;
 
@@ -308,6 +307,11 @@ public class Character : WorldObject
     {
       weaponInstances = new Dictionary<string, Weapon>();
     }
+    characterSkills = CalculateSkills(traits);
+    if (!HasAttackSkill(characterSkills))
+    {
+      characterSkills.Insert(0, defaultCharacterData.defaultCharacterAttack);
+    }
     for (int i = 0; i < characterSkills.Count; i++)
     {
       characterSkills[i].Init(this);
@@ -359,7 +363,50 @@ public class Character : WorldObject
       }
     }
     return ret;
+  }
 
+  public virtual CharacterSkillData GetSelectedCharacterSkill()
+  {
+    if (characterSkills.Count > 0)
+    {
+      return characterSkills[0];
+    }
+    return null;
+  }
+
+  public virtual Weapon GetSelectedWeaponInstance()
+  {
+    if (characterSkills.Count > 0)
+    {
+      string skillName = GetSkillNameFromIndex(0);
+      return weaponInstances[skillName];
+    }
+    return null;
+  }
+  public static List<CharacterSkillData> CalculateSkills(TraitSlotToTraitDictionary traits)
+  {
+    List<CharacterSkillData> ret = new List<CharacterSkillData>();
+    foreach (Trait trait in traits.Values)
+    {
+      if (trait == null) { continue; }
+      if (trait.skillData != null)
+      {
+        ret.Add(trait.skillData);
+      }
+    }
+    return ret;
+  }
+
+  public static bool HasAttackSkill(List<CharacterSkillData> skills)
+  {
+    foreach (CharacterSkillData skill in skills)
+    {
+      if ((AttackSkillData)skill != null)
+      {
+        return true;
+      }
+    }
+    return false;
   }
   // non-physics biz
   protected virtual void Update()
@@ -391,7 +438,7 @@ public class Character : WorldObject
 
   // called via play input or npc AI
 
-  public void UseAttack(CharacterAttackData attack)
+  public void UseAttack(AttackSkillData attack)
   {
     if (attack != null)
     {
@@ -403,7 +450,7 @@ public class Character : WorldObject
     }
   }
 
-  public IEnumerator DoAttack(CharacterAttackData attack)
+  public IEnumerator DoAttack(AttackSkillData attack)
   {
     attacking = true;
     Debug.Log("performing attack??");
@@ -422,11 +469,11 @@ public class Character : WorldObject
     return attackModifiers[value] * Constants.CharacterAttackAdjustmentIncrements[value];
   }
 
-  // TODO: Refactor attack info so that it all lives on a single object (...maybe)
-  public void CreateAttackHitbox()
-  {
-    CreateHitbox(characterAttack, attackModifiers);
-  }
+  // // TODO: Refactor attack info so that it all lives on a single object (...maybe)
+  // public void CreateAttackHitbox()
+  // {
+  //   CreateHitbox(defaultCharacterAttack, attackModifiers);
+  // }
 
   public void CreateDashAttackHitbox()
   {
@@ -461,7 +508,7 @@ public class Character : WorldObject
     string skillName = GetSkillNameFromIndex(skillIdxForAttack);
     return weaponInstances[skillName].sweepRadiusInDegrees;
   }
-  public void CreateHitbox(CharacterAttackData atk, CharacterAttackModifiers mods)
+  public void CreateHitbox(AttackSkillData atk, CharacterAttackModifiers mods)
   {
     // HitboxData hbi = atk.hitboxData;
     // if (hbi == null) { Debug.LogError("no attack object defined for " + gameObject.name); }

@@ -217,10 +217,10 @@ public class PlayerController : Character
   public void UseSelectedSkill()
   {
     Debug.Log("using skill " + characterSkills[selectedSkillIdx]);
-    Debug.Log("is attack: " + (CharacterAttackData)characterSkills[selectedSkillIdx] != null);
-    if ((CharacterAttackData)characterSkills[selectedSkillIdx] != null) // TODO: handle this more generically!!
+    Debug.Log("is attack: " + (AttackSkillData)characterSkills[selectedSkillIdx] != null);
+    if ((AttackSkillData)characterSkills[selectedSkillIdx] != null) // TODO: handle this more generically!!
     {
-      StartCoroutine(DoAttack((CharacterAttackData)characterSkills[selectedSkillIdx]));
+      StartCoroutine(DoAttack((AttackSkillData)characterSkills[selectedSkillIdx]));
     }
   }
 
@@ -537,6 +537,25 @@ public class PlayerController : Character
   //   skill2.Init(this, activeTraitData);
   // }
   // }
+
+  public override CharacterSkillData GetSelectedCharacterSkill()
+  {
+    if (characterSkills.Count > selectedSkillIdx)
+    {
+      return characterSkills[selectedSkillIdx];
+    }
+    return null;
+  }
+
+  public override Weapon GetSelectedWeaponInstance()
+  {
+    if (characterSkills.Count > selectedSkillIdx)
+    {
+      string skillName = GetSkillNameFromIndex(selectedSkillIdx);
+      return weaponInstances[skillName];
+    }
+    return null;
+  }
 
   override public void Die()
   {

@@ -11,90 +11,90 @@ using UnityEngine;
 public class CanvasHandler : MonoBehaviour
 {
 
-    public InventoryScreen inventoryScreen;
+  public InventoryScreen inventoryScreen;
 
-    public AttributesView attributesView;
-    private List<GameObject> canvasList = new List<GameObject>();
+  public AttributesView attributesView;
+  private List<GameObject> canvasList = new List<GameObject>();
 
-    // Use this for initialization
-    void Start()
+  // Use this for initialization
+  void Start()
+  {
+    // canvasList.Add(inventoryScreen.gameObject);
+    canvasList.Add(attributesView.gameObject);
+    SetAllCanvasesInactive();
+  }
+
+  // Update is called once per frame
+  void Update()
+  {
+    if (Input.GetKeyDown(KeyCode.Escape))
     {
-        // canvasList.Add(inventoryScreen.gameObject);
-        canvasList.Add(attributesView.gameObject);
-        SetAllCanvasesInactive();
+      Debug.Log("Quit!"); Application.Quit();
     }
-
-    // Update is called once per frame
-    void Update()
+    else if (Input.GetKeyDown(KeyCode.I))
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Debug.Log("Quit!"); Application.Quit();
-        }
-        else if (Input.GetKeyDown(KeyCode.I))
-        {
-            if (attributesView.gameObject.activeSelf)
-            {
-                SetAllCanvasesInactive();
-                GameMaster.Instance.SetGameStatus(Constants.GameState.Play);
-            }
-            else
-            {
-                DisplayAttributesView();
-            }
-        }
-
-    }
-
-    // TODO: this should def actually advance dialogue
-    // TODO: Should this go in DialogueCanvas?
-    public void AdvanceDialogue()
-    {
+      if (attributesView.gameObject.activeSelf)
+      {
         SetAllCanvasesInactive();
         GameMaster.Instance.SetGameStatus(Constants.GameState.Play);
+      }
+      else
+      {
+        DisplayAttributesView();
+      }
     }
 
-    public void SetAllCanvasesInactive()
+  }
+
+  // TODO: this should def actually advance dialogue
+  // TODO: Should this go in DialogueCanvas?
+  public void AdvanceDialogue()
+  {
+    SetAllCanvasesInactive();
+    GameMaster.Instance.SetGameStatus(Constants.GameState.Play);
+  }
+
+  public void SetAllCanvasesInactive()
+  {
+    foreach (GameObject canvas in canvasList)
     {
-        foreach (GameObject canvas in canvasList)
-        {
-            canvas.SetActive(false);
-        }
+      canvas.SetActive(false);
     }
+  }
 
-    // Dialogue canvas functions
+  // Dialogue canvas functions
 
-    public void DisplayAttributesView()
+  public void DisplayAttributesView()
+  {
+    // BulletinBoardCanvas.GetComponent<BulletinBoardCanvas>().SetBulletinBoardText();
+    PlayerController player = GameMaster.Instance.GetPlayerController();
+    if (player != null)
     {
-        // BulletinBoardCanvas.GetComponent<BulletinBoardCanvas>().SetBulletinBoardText();
-        PlayerController player = GameMaster.Instance.GetPlayerController();
-        if (player != null)
-        {
-            DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.pupa, null);
-        }
+      DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.pupa, null);
     }
+  }
 
-    public void DisplayAttributesView(
-        CharacterAttributeToIntDictionary currentAttributes,
-        CharacterAttributeToIntDictionary nextAttributes,
-        TraitSlotToTraitDictionary pupaTraits,
-        TraitPickupItem traitPickupItem)
+  public void DisplayAttributesView(
+      CharacterAttributeToIntDictionary currentAttributes,
+      CharacterAttributeToIntDictionary nextAttributes,
+      TraitSlotToTraitDictionary pupaTraits,
+      TraitPickupItem traitPickupItem)
+  {
+    SetAllCanvasesInactive();
     {
-        SetAllCanvasesInactive();
-        {
-            attributesView.gameObject.SetActive(true);
-            attributesView.Init(currentAttributes, nextAttributes, pupaTraits, traitPickupItem);
-            attributesView.gameObject.SetActive(true);
-            GameMaster.Instance.SetGameStatus(Constants.GameState.Menu);
-        }
+      attributesView.gameObject.SetActive(true);
+      attributesView.Init(currentAttributes, nextAttributes, pupaTraits, traitPickupItem);
+      attributesView.gameObject.SetActive(true);
+      GameMaster.Instance.SetGameStatus(Constants.GameState.Menu);
     }
+  }
 
-    public void DisplayAttributesViewForTraitItem(TraitPickupItem traitItem)
+  public void DisplayAttributesViewForTraitItem(TraitPickupItem traitItem)
+  {
+    PlayerController player = GameMaster.Instance.GetPlayerController();
+    if (player != null)
     {
-        PlayerController player = GameMaster.Instance.GetPlayerController();
-        if (player != null)
-        {
-            DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.pupa, traitItem);
-        }
+      DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.pupa, traitItem);
     }
+  }
 }

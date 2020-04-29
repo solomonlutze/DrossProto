@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 
 [System.Serializable]
-public class CharacterAttackData : CharacterSkillData
+public class AttackSkillData : CharacterSkillData
 {
   public Weapon weaponPrefab; // actual weapon prefab. instantiate this on init
   // public Weapon weaponInstance; // reference to actual weapon gameobject instance, instantiated from the prefab
@@ -12,8 +12,6 @@ public class CharacterAttackData : CharacterSkillData
   public float distance; // how far from the spawn point the weapon travels
   public float cooldown;
   public int sweepRadiusInDegrees;
-  public float ai_preferredMinAttackRange; // closer than this and we'd like to back up
-  public float ai_preferredAttackRangeBuffer; // weapon effectiveRange minus range buffer = ideal attaack spot
 
   public DamageInfo baseDamage;
 

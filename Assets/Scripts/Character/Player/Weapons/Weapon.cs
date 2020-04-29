@@ -14,7 +14,7 @@ public class Weapon : MonoBehaviour
     hitboxes = GetComponentsInChildren<Hitbox>();
   }
 
-  public void Init(CharacterAttackData attack)
+  public void Init(AttackSkillData attack)
   {
     Bounds b = gameObject.GetComponentInChildren<Collider2D>().bounds;
     Collider2D[] cols = gameObject.GetComponentsInChildren<Collider2D>();

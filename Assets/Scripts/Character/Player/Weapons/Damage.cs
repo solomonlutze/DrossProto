@@ -39,7 +39,7 @@ public class EnvironmentalDamageInfo : DamageInfo
 public class Damage
 {
   DamageInfo baseDamage;
-  CharacterAttackData characterAttack;
+  AttackSkillData characterAttack;
   Character owner;
   private string _sourceString = "";
   public string sourceString

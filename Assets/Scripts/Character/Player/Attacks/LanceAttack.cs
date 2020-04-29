@@ -3,7 +3,7 @@ using UnityEditor;
 using System.Collections;
 
 [System.Serializable]
-public class LanceAttack : CharacterAttackData
+public class LanceAttack : AttackSkillData
 {
 
 #if UNITY_EDITOR
