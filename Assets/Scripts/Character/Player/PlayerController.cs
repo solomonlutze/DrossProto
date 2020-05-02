@@ -303,6 +303,13 @@ public class PlayerController : Character
           UseSelectedSkill();
           // Attack();
         }
+        else if (Input.GetButtonDown("Dash"))
+        {
+          if (CanDash())
+          {
+            Dash();
+          }
+        }
         else if (Input.GetButtonDown("Ascend"))
         {
           if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
