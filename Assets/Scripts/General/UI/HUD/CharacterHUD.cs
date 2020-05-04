@@ -62,7 +62,7 @@ public class CharacterHUD : MonoBehaviour
   }
   void HandleStaminaBar()
   {
-    float currentStamina = pc.GetCharacterVital(CharacterVital.RemainingStamina);
+    float currentStamina = Mathf.Max(pc.GetCharacterVital(CharacterVital.RemainingStamina), 0);
     float maxStamina = pc.GetMaxStamina();
     if (currentStamina >= maxStamina)
     {

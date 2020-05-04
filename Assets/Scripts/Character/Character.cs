@@ -653,8 +653,9 @@ public class Character : WorldObject
 
   protected bool CanDash()
   {
-    return dashTimer <= 0 && dashRecoveryTimer <= 0;
+    return GetCharacterVital(CharacterVital.RemainingStamina) > 0 && dashTimer <= 0 && dashRecoveryTimer <= 0 && !flying && CanMove();
   }
+
   protected void Dash()
   {
     BeginDash();
@@ -662,6 +663,7 @@ public class Character : WorldObject
 
   protected void BeginDash()
   {
+    vitals[CharacterVital.RemainingStamina] -= (GetMaxStamina() / 2);
     dashTimer = GetStat(CharacterStat.DashDuration);
   }
 
@@ -914,15 +916,15 @@ public class Character : WorldObject
         defaultCharacterData.defaultStats[CharacterStat.MaxHealth]
         - (GetMaxHealthLostPerMolt() * GetCharacterVital(CharacterVital.CurrentMoltCount));
   }
+
   public float GetMaxStamina()
   {
-    return
-        defaultCharacterData.defaultStats[CharacterStat.MaxHealth]
-        - (GetMaxHealthLostPerMolt() * GetCharacterVital(CharacterVital.CurrentMoltCount));
+    return defaultCharacterData.defaultStats[CharacterStat.Stamina];
   }
+
   public float GetStaminaRecoverySpeed()
   {
-    return 1;
+    return 3;
   }
   public float GetRotationSpeed()
   {
@@ -1191,15 +1193,16 @@ public class Character : WorldObject
 
   protected void HandleCooldowns()
   {
+    Debug.LogWarning("stamina: " + vitals[CharacterVital.RemainingStamina]);
     if (flying)
     {
-      vitals[CharacterVital.RemainingStamina] -= Time.deltaTime;
+      vitals[CharacterVital.RemainingStamina] -= Time.deltaTime * GetMaxStamina() / 5;
       if (vitals[CharacterVital.RemainingStamina] <= 0)
       {
         EndFly();
       }
     }
-    if (IsDashing())
+    else if (IsDashing())
     {
       dashTimer -= Time.deltaTime;
       if (!IsDashing())
@@ -1207,14 +1210,14 @@ public class Character : WorldObject
         EndDash();
       }
     }
-    if (IsRecoveringFromDash())
+    else if (IsRecoveringFromDash())
     {
       dashRecoveryTimer -= Time.deltaTime;
     }
     else
     {
       vitals[CharacterVital.RemainingStamina]
-        = Mathf.Min(vitals[CharacterVital.RemainingStamina] + Time.deltaTime * GetStaminaRecoverySpeed(), GetMaxStamina());
+        = Mathf.Min(vitals[CharacterVital.RemainingStamina] + (Time.deltaTime * GetMaxStamina() / GetStaminaRecoverySpeed()), GetMaxStamina());
     }
     // if (vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] > 0)
     // {
