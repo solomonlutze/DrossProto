@@ -55,7 +55,8 @@ public enum CharacterAttribute
   Resist_Acid,
   Resist_Physical,
   WaterResistance,
-  Flight
+  Flight,
+  Dash
 }
 public enum CharacterAttackValue
 {
@@ -957,23 +958,24 @@ public class Character : WorldObject
 
   public float GetStat(CharacterStat statToGet)
   {
-    StringToIntDictionary statMods = statModifications[statToGet];
-    int modValue = 0;
-    float returnValue = defaultCharacterData.defaultStats[statToGet];
-    foreach (int modMagnitude in statMods.Values)
-    {
-      modValue += modMagnitude;
-    }
-    modValue = Mathf.Clamp(-12, modValue, 12);
-    if (modValue >= 0)
-    {
-      returnValue *= ((3 + modValue) / 3);
-    }
-    else
-    {
-      returnValue *= (3f / (3 + Mathf.Abs(modValue)));
-    }
-    return returnValue;
+    return defaultCharacterData.defaultStats[statToGet];
+    // StringToIntDictionary statMods = statModifications[statToGet];
+    // int modValue = 0;
+    // float returnValue = defaultCharacterData.defaultStats[statToGet];
+    // foreach (int modMagnitude in statMods.Values)
+    // {
+    //   modValue += modMagnitude;
+    // }
+    // modValue = Mathf.Clamp(-12, modValue, 12);
+    // if (modValue >= 0)
+    // {
+    //   returnValue *= ((3 + modValue) / 3);
+    // }
+    // else
+    // {
+    //   returnValue *= (3f / (3 + Mathf.Abs(modValue)));
+    // }
+    // return returnValue;
   }
 
 
