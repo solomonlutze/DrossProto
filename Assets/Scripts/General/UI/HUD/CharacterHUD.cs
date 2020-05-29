@@ -62,8 +62,8 @@ public class CharacterHUD : MonoBehaviour
   }
   void HandleStaminaBar()
   {
-    float currentStamina = pc.GetCharacterVital(CharacterVital.RemainingFlightStamina);
-    float maxStamina = pc.GetMaxFlightDuration();
+    float currentStamina = Mathf.Max(pc.GetCharacterVital(CharacterVital.RemainingStamina), 0);
+    float maxStamina = pc.GetMaxStamina();
     if (currentStamina >= maxStamina)
     {
       staminaBarContainer.alpha -= Time.deltaTime / staminaBarFadeTime;
@@ -103,7 +103,7 @@ public class CharacterHUD : MonoBehaviour
   public IEnumerator RecoveryFlash()
   {
     Debug.Log("starting recovery flash!");
-    while (pc.GetCharacterVital(CharacterVital.RemainingFlightStamina) < pc.GetMaxFlightDuration())
+    while (pc.GetCharacterVital(CharacterVital.RemainingStamina) < pc.GetMaxStamina())
     {
       staminaBarContentsSprite.color = staminaBarContentsSprite.color == recoveryColor ? defaultStaminaColor : recoveryColor;
       yield return new WaitForSeconds(.2f);

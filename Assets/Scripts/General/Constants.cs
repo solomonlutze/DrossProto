@@ -25,7 +25,7 @@ public static class Constants
         {CharacterStat.MaxHealth, .02f},
         {CharacterStat.MoveAcceleration, .05f},
         {CharacterStat.FlightAcceleration, .1f},
-        {CharacterStat.FlightStamina, .3f},
+        {CharacterStat.Stamina, .3f},
         {CharacterStat.RotationSpeed, .02f},
     };
 }

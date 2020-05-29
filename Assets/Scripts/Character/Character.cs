@@ -20,13 +20,14 @@ public enum CharacterVital
 {
   CurrentHealth,
   CurrentEnvironmentalDamageCooldown,
-  RemainingFlightStamina,
+  RemainingStamina,
   CurrentMoltCount
 }
 
 // values driving physical character behavior
-// base values live in character data, actual values are always derived from
-// base values with some modifications via attribute.
+// base values live in character data
+// can include maximums, cooldown periods, etc
+// not usually user facing, so can be pretty grody and granular if need be
 public enum CharacterStat
 {
   MaxHealth,
@@ -34,8 +35,10 @@ public enum CharacterStat
   DetectableRange,
   MoveAcceleration,
   FlightAcceleration,
-  FlightStamina,
-  FlightStaminaRecoverySpeed,
+  Stamina,
+  DashAcceleration,
+  DashDuration,
+  DashRecoveryDuration,
   RotationSpeed
 }
 
@@ -52,7 +55,8 @@ public enum CharacterAttribute
   Resist_Acid,
   Resist_Physical,
   WaterResistance,
-  Flight
+  Flight,
+  Dash
 }
 public enum CharacterAttackValue
 {
@@ -237,6 +241,8 @@ public class Character : WorldObject
   public float damageFlashSpeed = 1.0f;
   public bool attacking = false;
   public bool flying = false;
+  public float dashTimer = 0.0f;
+  public float dashRecoveryTimer = 0.0f;
   protected bool attackCooldown = false;
   protected bool stunned = false;
   public bool animationPreventsMoving = false;
@@ -333,7 +339,7 @@ public class Character : WorldObject
     vitals = new CharacterVitalToFloatDictionary();
     // statModifications = new StatToActiveStatModificationsDictionary();
     vitals[CharacterVital.CurrentHealth] = GetMaxHealth();
-    vitals[CharacterVital.RemainingFlightStamina] = GetMaxFlightDuration();
+    vitals[CharacterVital.RemainingStamina] = GetMaxStamina();
     // vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
     // vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
   }
@@ -592,7 +598,7 @@ public class Character : WorldObject
   {
     if (CanMove())
     {
-      if (movementInput == Vector2.zero)
+      if (!IsDashing() && !flying && (movementInput == Vector2.zero))
       { // should be an approximate equals
         timeStandingStill += Time.deltaTime;
         timeMoving = 0;
@@ -602,14 +608,14 @@ public class Character : WorldObject
         timeMoving += Time.deltaTime;
         timeStandingStill = 0f;
       }
-      // if (flying)
-      // {
-      //   po.SetMovementInput(orientation.rotation * new Vector3(1, 0, 0));
-      // }
-      // else
-      // {
-      po.SetMovementInput(new Vector2(movementInput.x, movementInput.y));
-      // }
+      if (IsDashing())
+      {
+        po.SetMovementInput(orientation.rotation * new Vector3(1, 0, 0));
+      }
+      else
+      {
+        po.SetMovementInput(new Vector2(movementInput.x, movementInput.y));
+      }
     }
     else
     {
@@ -635,7 +641,38 @@ public class Character : WorldObject
     AdjustCurrentHealth(5);
   }
   // Traits activated on dash are handled in HandleConditionallyActivatedTraits()
-  // todo: fly not dash??
+
+  public bool IsDashing()
+  {
+    return dashTimer > 0;
+  }
+
+  public bool IsRecoveringFromDash()
+  {
+    return dashRecoveryTimer > 0;
+  }
+
+  protected bool CanDash()
+  {
+    return GetCharacterVital(CharacterVital.RemainingStamina) > 0 && dashTimer <= 0 && dashRecoveryTimer <= 0 && !flying && CanMove();
+  }
+
+  protected void Dash()
+  {
+    BeginDash();
+  }
+
+  protected void BeginDash()
+  {
+    vitals[CharacterVital.RemainingStamina] -= GetDashStaminaCost();
+    dashTimer = GetStat(CharacterStat.DashDuration);
+  }
+
+  protected void EndDash()
+  {
+    dashRecoveryTimer = GetStat(CharacterStat.DashRecoveryDuration);
+  }
+
   protected void Fly()
   {
     // if (vitals[CharacterVital.CurrentFlightCooldown] > 0) { return; }
@@ -731,6 +768,10 @@ public class Character : WorldObject
       }
     }
     if (stunned)
+    {
+      return false;
+    }
+    if (IsRecoveringFromDash())
     {
       return false;
     }
@@ -877,6 +918,15 @@ public class Character : WorldObject
         - (GetMaxHealthLostPerMolt() * GetCharacterVital(CharacterVital.CurrentMoltCount));
   }
 
+  public float GetMaxStamina()
+  {
+    return defaultCharacterData.defaultStats[CharacterStat.Stamina];
+  }
+
+  public float GetStaminaRecoverySpeed()
+  {
+    return 3;
+  }
   public float GetRotationSpeed()
   {
     return defaultCharacterData.defaultStats[CharacterStat.RotationSpeed];
@@ -906,25 +956,33 @@ public class Character : WorldObject
       .flightDuration;
   }
 
+  public float GetDashStaminaCost()
+  {
+    return defaultCharacterData
+      .GetDashAttributeData()
+      .GetDashStaminaCost(this);
+  }
+
   public float GetStat(CharacterStat statToGet)
   {
-    StringToIntDictionary statMods = statModifications[statToGet];
-    int modValue = 0;
-    float returnValue = defaultCharacterData.defaultStats[statToGet];
-    foreach (int modMagnitude in statMods.Values)
-    {
-      modValue += modMagnitude;
-    }
-    modValue = Mathf.Clamp(-12, modValue, 12);
-    if (modValue >= 0)
-    {
-      returnValue *= ((3 + modValue) / 3);
-    }
-    else
-    {
-      returnValue *= (3f / (3 + Mathf.Abs(modValue)));
-    }
-    return returnValue;
+    return defaultCharacterData.defaultStats[statToGet];
+    // StringToIntDictionary statMods = statModifications[statToGet];
+    // int modValue = 0;
+    // float returnValue = defaultCharacterData.defaultStats[statToGet];
+    // foreach (int modMagnitude in statMods.Values)
+    // {
+    //   modValue += modMagnitude;
+    // }
+    // modValue = Mathf.Clamp(-12, modValue, 12);
+    // if (modValue >= 0)
+    // {
+    //   returnValue *= ((3 + modValue) / 3);
+    // }
+    // else
+    // {
+    //   returnValue *= (3f / (3 + Mathf.Abs(modValue)));
+    // }
+    // return returnValue;
   }
 
 
@@ -1144,18 +1202,31 @@ public class Character : WorldObject
 
   protected void HandleCooldowns()
   {
+    Debug.LogWarning("stamina: " + vitals[CharacterVital.RemainingStamina]);
     if (flying)
     {
-      vitals[CharacterVital.RemainingFlightStamina] -= Time.deltaTime;
-      if (vitals[CharacterVital.RemainingFlightStamina] <= 0)
+      vitals[CharacterVital.RemainingStamina] -= Time.deltaTime * GetMaxStamina() / 5;
+      if (vitals[CharacterVital.RemainingStamina] <= 0)
       {
         EndFly();
       }
     }
+    else if (IsDashing())
+    {
+      dashTimer -= Time.deltaTime;
+      if (!IsDashing())
+      {
+        EndDash();
+      }
+    }
+    else if (IsRecoveringFromDash())
+    {
+      dashRecoveryTimer -= Time.deltaTime;
+    }
     else
     {
-      vitals[CharacterVital.RemainingFlightStamina]
-        = Mathf.Min(vitals[CharacterVital.RemainingFlightStamina] + Time.deltaTime, GetMaxFlightDuration());
+      vitals[CharacterVital.RemainingStamina]
+        = Mathf.Min(vitals[CharacterVital.RemainingStamina] + (Time.deltaTime * GetMaxStamina() / GetStaminaRecoverySpeed()), GetMaxStamina());
     }
     // if (vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] > 0)
     // {
