@@ -100,6 +100,10 @@ public class CharacterData : ScriptableObject
   {
     return (FlightAttributeData)GetAttributeDataInterface(CharacterAttribute.Flight);
   }
+  public DashAttributeData GetDashAttributeData()
+  {
+    return (DashAttributeData)GetAttributeDataInterface(CharacterAttribute.Dash);
+  }
 
 #if UNITY_EDITOR
   // The following is a helper that adds a menu item to create an PlayerCharacterData Asset

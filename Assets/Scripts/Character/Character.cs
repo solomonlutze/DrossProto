@@ -664,7 +664,7 @@ public class Character : WorldObject
 
   protected void BeginDash()
   {
-    vitals[CharacterVital.RemainingStamina] -= (GetMaxStamina() / 2);
+    vitals[CharacterVital.RemainingStamina] -= GetDashStaminaCost();
     dashTimer = GetStat(CharacterStat.DashDuration);
   }
 
@@ -954,6 +954,13 @@ public class Character : WorldObject
       .GetFlightAttributeData()
       .GetAttributeTier(this)
       .flightDuration;
+  }
+
+  public float GetDashStaminaCost()
+  {
+    return defaultCharacterData
+      .GetDashAttributeData()
+      .GetDashStaminaCost(this);
   }
 
   public float GetStat(CharacterStat statToGet)

@@ -6,24 +6,28 @@ using UnityEditor;
 [System.Serializable]
 public class DashAttributeTier : AttributeTier
 {
-  public int flightDuration;
-  public bool canFlyUp;
+  public float dashStaminaCostPercent;
+  // public bool canFlyUp;
 }
 public class DashAttributeData : BaseAttributeData<DashAttributeTier>
 {
 
-  public int GetFlightDurationForTier(int tier)
+  public float GetDashStaminaCostPercentForTier(int tier)
   {
-    return GetAttributeTier(tier).flightDuration;
+    return GetAttributeTier(tier).dashStaminaCostPercent;
+  }
+
+  public float GetDashStaminaCost(Character c)
+  {
+    return GetDashStaminaCostPercentForTier(c.GetAttribute(CharacterAttribute.Dash)) / 100 * c.GetMaxStamina();
   }
 
 
-
 #if UNITY_EDITOR
-  [MenuItem("Assets/Create/Attributes/FlightAttributeData")]
-  public static void CreateFlightAttributeData()
+  [MenuItem("Assets/Create/Attributes/DashAttributeData")]
+  public static void CreateDashAttributeData()
   {
-    string path = EditorUtility.SaveFilePanelInProject("Save Attribute Data", "New Flight Attribute Data", "Asset", "Save Attribute Data", "Assets/resources/Data/TraitData/Attributes");
+    string path = EditorUtility.SaveFilePanelInProject("Save Attribute Data", "New Dash Attribute Data", "Asset", "Save Attribute Data", "Assets/resources/Data/TraitData/Attributes");
     if (path == "")
       return;
     AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<DashAttributeData>(), path);
