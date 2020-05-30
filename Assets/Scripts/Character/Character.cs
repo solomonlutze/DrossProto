@@ -56,7 +56,8 @@ public enum CharacterAttribute
   Resist_Physical,
   WaterResistance,
   Flight,
-  Dash
+  Dash,
+  Health
 }
 public enum CharacterAttackValue
 {
