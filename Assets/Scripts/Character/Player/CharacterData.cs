@@ -105,6 +105,10 @@ public class CharacterData : ScriptableObject
     return (DashAttributeData)GetAttributeDataInterface(CharacterAttribute.Dash);
   }
 
+  public HealthAttributeData GetHealthAttributeData()
+  {
+    return (HealthAttributeData)GetAttributeDataInterface(CharacterAttribute.Health);
+  }
 #if UNITY_EDITOR
   // The following is a helper that adds a menu item to create an PlayerCharacterData Asset
   [MenuItem("Assets/Create/CharacterData/PlayerCharacterData")]

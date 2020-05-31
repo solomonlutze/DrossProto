@@ -339,7 +339,7 @@ public class Character : WorldObject
     }
     vitals = new CharacterVitalToFloatDictionary();
     // statModifications = new StatToActiveStatModificationsDictionary();
-    vitals[CharacterVital.CurrentHealth] = GetMaxHealth();
+    vitals[CharacterVital.CurrentHealth] = GetCurrentMaxHealth();
     vitals[CharacterVital.RemainingStamina] = GetMaxStamina();
     // vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
     // vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
@@ -912,13 +912,19 @@ public class Character : WorldObject
   }
 
   // STAT GETTERS
-  public float GetMaxHealth()
+  public float GetCurrentMaxHealth()
   {
     return
-        defaultCharacterData.defaultStats[CharacterStat.MaxHealth]
+        GetMaxHealth()
         - (GetMaxHealthLostPerMolt() * GetCharacterVital(CharacterVital.CurrentMoltCount));
   }
 
+  public float GetMaxHealth()
+  {
+    return defaultCharacterData
+      .GetHealthAttributeData()
+      .GetMaxHealth(this);
+  }
   public float GetMaxStamina()
   {
     return defaultCharacterData.defaultStats[CharacterStat.Stamina];
@@ -1043,7 +1049,7 @@ public class Character : WorldObject
   public void AdjustCurrentHealth(float adjustment)
   {
     vitals[CharacterVital.CurrentHealth] =
-      Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, 0, GetMaxHealth());
+      Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, 0, GetCurrentMaxHealth());
   }
 
   public void AdjustCurrentMoltCount(float adjustment)

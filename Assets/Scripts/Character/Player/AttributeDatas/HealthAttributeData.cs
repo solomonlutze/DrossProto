@@ -16,6 +16,10 @@ public class HealthAttributeData : BaseAttributeData<HealthAttributeTier>
     return GetAttributeTier(tier).maxHealth;
   }
 
+  public int GetMaxHealth(Character c)
+  {
+    return GetMaxHealthForTier(c.GetAttribute(CharacterAttribute.Health));
+  }
 
 
 #if UNITY_EDITOR

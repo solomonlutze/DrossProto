@@ -40,7 +40,7 @@ public class PlayerHUD : MonoBehaviour
     {
       healthFieldText.text = "Health: ";
       healthValueText.text = Mathf.Max(Mathf.RoundToInt(playerController.GetCharacterVital(CharacterVital.CurrentHealth)), 0).ToString();
-      maxHealthValueText.text = Mathf.Round(playerController.GetStat(CharacterStat.MaxHealth)).ToString();
+      maxHealthValueText.text = Mathf.Round(playerController.GetMaxHealth()).ToString();
       if (playerController.GetCharacterVital(CharacterVital.CurrentHealth) > 0)
       {
         diedText.text = " ";
