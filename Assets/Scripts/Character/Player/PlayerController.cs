@@ -150,9 +150,10 @@ public class PlayerController : Character
     }
     else
     {
-      // Debug.Log("collided with " + tile);
+      Debug.Log("collided with " + tile.objectTileType);
       if (tile.CharacterCanBurrowThroughObjectTile(this))
       {
+        GridManager.Instance.MarkTileToRestoreOnPlayerRespawn(tile);
         tile.DestroyObjectTile();
       }
     }
@@ -315,6 +316,10 @@ public class PlayerController : Character
           if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
           {
             FlyUp();
+          }
+          else if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
+          {
+            AscendOneFloor();
           }
           else if (!flying)
           {
