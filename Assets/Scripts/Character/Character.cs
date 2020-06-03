@@ -44,20 +44,20 @@ public enum CharacterStat
 
 public enum CharacterAttribute
 {
-  Attack_Power,
-  Attack_Agility,
-  Attack_Range,
-  Burrow,
-  Camouflage,
-  HazardResistance,
-  Resist_Fungal,
-  Resist_Heat,
-  Resist_Acid,
-  Resist_Physical,
-  WaterResistance,
-  Flight,
-  Dash,
-  Health
+  // Attack_Power = 0,
+  // Attack_Agility = 1,
+  // Attack_Range = 2,
+  Burrow = 3,
+  Camouflage = 4,
+  HazardResistance = 5,
+  Resist_Fungal = 6,
+  Resist_Heat = 7,
+  Resist_Acid = 8,
+  Resist_Physical = 9,
+  WaterResistance = 10,
+  Flight = 11,
+  Dash = 12,
+  Health = 13
 }
 public enum CharacterAttackValue
 {
