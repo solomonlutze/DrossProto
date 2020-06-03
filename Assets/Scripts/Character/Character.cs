@@ -255,6 +255,7 @@ public class Character : WorldObject
   public Vector3 orientTowards;
   protected TileLocation currentTileLocation;
   protected EnvironmentTileInfo currentTile;
+  protected TileLocation lastSafeTileLocation;
   protected float timeStandingStill = 0;
   protected float timeMoving = 0;
   protected Dictionary<string, GameObject> traitSpawnedGameObjects;
@@ -1153,8 +1154,37 @@ public class Character : WorldObject
         TakeDamage(envDamage);
       }
     }
+    if (tile.CanRespawnPlayer())
+    {
+      if (!tile.CharacterCanCrossTile(this))
+      {
+        RespawnCharacterAtLastSafeLocation();
+      }
+    }
+    else
+    {
+      lastSafeTileLocation = currentTileLocation;
+    }
   }
 
+  protected void RespawnCharacterAtLastSafeLocation()
+  {
+    // skill1.CancelActiveEffects();
+    // skill2.CancelActiveEffects();
+    transform.position =
+      new Vector3(lastSafeTileLocation.position.x + .5f, lastSafeTileLocation.position.y + .5f, GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
+    if (currentFloor != lastSafeTileLocation.floorLayer)
+    {
+      SetCurrentFloor(lastSafeTileLocation.floorLayer);
+    }
+    CalculateAndApplyStun(.5f, true);
+    po.HardSetVelocityToZero();
+  }
+
+  public virtual void HandleContactWithRespawnTile()
+  {
+
+  }
   public virtual void HandleTileCollision(EnvironmentTileInfo tile)
   {
     if (tile.GetColliderType() == Tile.ColliderType.None)
