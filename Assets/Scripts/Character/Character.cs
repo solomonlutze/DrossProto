@@ -30,23 +30,23 @@ public enum CharacterVital
 // not usually user facing, so can be pretty grody and granular if need be
 public enum CharacterStat
 {
-  MaxHealth,
-  MaxHealthLostPerMolt,
-  DetectableRange,
-  MoveAcceleration,
-  FlightAcceleration,
-  Stamina,
-  DashAcceleration,
-  DashDuration,
-  DashRecoveryDuration,
-  RotationSpeed
+  REMOVE_0 = 0,
+  MaxHealthLostPerMolt = 1,
+  DetectableRange = 2,
+  MoveAcceleration = 3,
+  FlightAcceleration = 4,
+  Stamina = 5,
+  DashAcceleration = 6,
+  DashDuration = 7,
+  DashRecoveryDuration = 8,
+  RotationSpeed = 9
 }
 
 public enum CharacterAttribute
 {
-  // Attack_Power = 0,
-  // Attack_Agility = 1,
-  // Attack_Range = 2,
+  REMOVE_0 = 0,
+  REMOVE_1 = 1,
+  REMOVE_2 = 2,
   Burrow = 3,
   Camouflage = 4,
   HazardResistance = 5,
@@ -1103,7 +1103,7 @@ public class Character : WorldObject
       renderer.color = Color.Lerp(
         damagedColor,
         Color.white,
-        vitals[CharacterVital.CurrentHealth] / GetStat(CharacterStat.MaxHealth)
+        vitals[CharacterVital.CurrentHealth] / GetMaxHealth()
       );
     }
   }

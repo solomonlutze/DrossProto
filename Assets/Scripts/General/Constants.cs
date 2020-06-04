@@ -22,7 +22,6 @@ public static class Constants
   public static Dictionary<CharacterStat, float> CharacterStatAdjustmentIncrements
     = new Dictionary<CharacterStat, float>() {
         {CharacterStat.DetectableRange, .5f},
-        {CharacterStat.MaxHealth, .02f},
         {CharacterStat.MoveAcceleration, .05f},
         {CharacterStat.FlightAcceleration, .1f},
         {CharacterStat.Stamina, .3f},
