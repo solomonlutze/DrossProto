@@ -17,14 +17,7 @@ public class CharacterVisuals : MonoBehaviour
       else
       {
         CharacterBodyPartVisual visual = traitSlotsToVisuals[slot];
-        if (visual.visualRenderer1 != null)
-        {
-          visual.visualRenderer1.sprite = traits[slot].visual1;
-        }
-        if (visual.visualRenderer2 != null)
-        {
-          visual.visualRenderer2.sprite = traits[slot].visual2;
-        }
+        visual.SetSpritesFromTrait(traits[slot]);
       }
     }
   }
