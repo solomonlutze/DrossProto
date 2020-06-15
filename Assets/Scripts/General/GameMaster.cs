@@ -8,6 +8,7 @@ using Yarn.Unity;
 public class GameMaster : Singleton<GameMaster>
 {
 
+  public Constants.GameState startingGameStatus;
   public CanvasHandler canvasHandler;
   public GameObject playerPrefab;
   public DialogueRunner dialogueRunner;
@@ -30,7 +31,30 @@ public class GameMaster : Singleton<GameMaster>
   void Start()
   {
     pathfinding = GetComponent<PathfindingSystem>();
-    Respawn(true);
+    SetGameStatus(startingGameStatus);
+    switch (GetGameStatus())
+    {
+      case Constants.GameState.Play:
+        BeginGame();
+        break;
+      case Constants.GameState.ChooseBug:
+        canvasHandler.DisplaySelectBugScreen();
+        break;
+    }
+  }
+
+  public void SelectBugPresetAndBegin(BugPresetData data)
+  {
+    Debug.Log("Selecting bug preset " + data.displayName);
+    canvasHandler.SetAllCanvasesInactive();
+    SetGameStatus(Constants.GameState.Play);
+    Respawn(data.loadout);
+  }
+
+  void BeginGame()
+  {
+    SetGameStatus(Constants.GameState.Play);
+    Respawn();
   }
 
   // Update is called once per frame
@@ -46,12 +70,14 @@ public class GameMaster : Singleton<GameMaster>
       case Constants.GameState.Dead:
         HandleDeadInput();
         break;
-      default:
+      case Constants.GameState.Play:
         if (Input.GetKeyDown("=") && playerController != null)
         {
           playerController.Die();
         }
         break;
+        // default:
+        // b
     }
   }
 
@@ -59,11 +85,11 @@ public class GameMaster : Singleton<GameMaster>
   {
     if (Input.GetButtonDown("Respawn"))
     {
-      Respawn(false);
+      Respawn(cachedPupa);
     }
   }
 
-  private void Respawn(bool initialSpawn = false)
+  private void Respawn(TraitSlotToTraitDictionary overrideTraits = null)
   {
     Debug.Log("GridManager Instance: " + GridManager.Instance.name);
     GridManager.Instance.DestroyTilesOnPlayerRespawn();
@@ -86,7 +112,8 @@ public class GameMaster : Singleton<GameMaster>
       playerController.currentFloor = fl;
     }
     playerController.SetCurrentFloor(playerController.currentFloor);
-    playerController.Init(initialSpawn, cachedPupa);
+    Debug.Break();
+    playerController.Init(overrideTraits);
     DoActivateOnPlayerRespawn();
     SetGameStatus(Constants.GameState.Play);
   }

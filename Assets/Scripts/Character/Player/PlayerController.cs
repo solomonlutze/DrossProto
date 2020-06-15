@@ -44,12 +44,12 @@ public class PlayerController : Character
     base.Start();
   }
 
-  public void Init(bool initialSpawn, TraitSlotToTraitDictionary previousPupa)
+  public void Init(TraitSlotToTraitDictionary overrideTraits = null)
   {
-    if (!initialSpawn)
+    if (overrideTraits != null)
     {
-      traits = previousPupa;
-      pupa = new TraitSlotToTraitDictionary(previousPupa);
+      traits = overrideTraits;
+      pupa = new TraitSlotToTraitDictionary(overrideTraits);
     }
     Debug.Log("Init??");
     characterVisuals.SetCharacterVisuals(traits);

@@ -28,4 +28,24 @@ public class CharacterBodyPartVisual : MonoBehaviour
       image2.sprite = trait.visual2;
     }
   }
+
+  public void ClearSprites()
+  {
+    if (spriteRenderer1 != null)
+    {
+      spriteRenderer1.sprite = null;
+    }
+    if (spriteRenderer2 != null)
+    {
+      spriteRenderer2.sprite = null;
+    }
+    if (image1 != null)
+    {
+      image1.sprite = null;
+    }
+    if (image2 != null)
+    {
+      image2.sprite = null;
+    }
+  }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 public static class Constants
 {
-  public enum GameState { Play, Dead, Dialogue, Menu }
+  public enum GameState { Play, Dead, Dialogue, Menu, ChooseBug }
   public const float DEFAULT_DETECTION_RANGE = 20f;
   public static int numberOfFloorLayers = Enum.GetNames(typeof(FloorLayer)).Length;
 

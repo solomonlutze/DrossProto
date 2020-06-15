@@ -17,8 +17,21 @@ public class CharacterVisuals : MonoBehaviour
       else
       {
         CharacterBodyPartVisual visual = traitSlotsToVisuals[slot];
+        Debug.Log("Setting sprites for " + visual + "to " + traits[slot]);
         visual.SetSpritesFromTrait(traits[slot]);
+        visual.gameObject.SetActive(true);
       }
+    }
+  }
+
+  public void ClearCharacterVisuals()
+  {
+
+    foreach (TraitSlot slot in traitSlotsToVisuals.Keys)
+    {
+      CharacterBodyPartVisual visual = traitSlotsToVisuals[slot];
+      visual.ClearSprites();
+      visual.gameObject.SetActive(false);
     }
   }
 }
