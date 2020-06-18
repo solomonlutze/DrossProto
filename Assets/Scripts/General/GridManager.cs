@@ -111,6 +111,7 @@ public class GridManager : Singleton<GridManager>
   {
     worldGrid = new Dictionary<FloorLayer, Dictionary<Vector2Int, EnvironmentTileInfo>>();
     tilesToDestroyOnPlayerRespawn = new List<EnvironmentTileInfo>();
+    tilesToRestoreOnPlayerRespawn = new List<EnvironmentTileInfo>();
     Dictionary<Vector2, EnvironmentTileInfo> floor = new Dictionary<Vector2, EnvironmentTileInfo>();
     Tilemap groundTilemap;
     Tilemap objectTilemap;
@@ -454,7 +455,7 @@ public class GridManager : Singleton<GridManager>
     tilesToDestroyOnPlayerRespawn.Add(newTileInfo);
   }
 
-  public void MarkTileToRestoreOnPlayerRespawn(EnvironmentTileInfo tile, EnvironmentTile replacementTile)
+  public void MarkTileToRestoreOnPlayerRespawn(EnvironmentTileInfo tile)
   {
     EnvironmentTileInfo oldTileInfo = tile;
     tilesToRestoreOnPlayerRespawn.Add(oldTileInfo);

@@ -30,34 +30,34 @@ public enum CharacterVital
 // not usually user facing, so can be pretty grody and granular if need be
 public enum CharacterStat
 {
-  MaxHealth,
-  MaxHealthLostPerMolt,
-  DetectableRange,
-  MoveAcceleration,
-  FlightAcceleration,
-  Stamina,
-  DashAcceleration,
-  DashDuration,
-  DashRecoveryDuration,
-  RotationSpeed
+  REMOVE_0 = 0,
+  MaxHealthLostPerMolt = 1,
+  DetectableRange = 2,
+  MoveAcceleration = 3,
+  FlightAcceleration = 4,
+  Stamina = 5,
+  DashAcceleration = 6,
+  DashDuration = 7,
+  DashRecoveryDuration = 8,
+  RotationSpeed = 9
 }
 
 public enum CharacterAttribute
 {
-  Attack_Power,
-  Attack_Agility,
-  Attack_Range,
-  Burrow,
-  Camouflage,
-  HazardResistance,
-  Resist_Fungal,
-  Resist_Heat,
-  Resist_Acid,
-  Resist_Physical,
-  WaterResistance,
-  Flight,
-  Dash,
-  Health
+  REMOVE_0 = 0,
+  REMOVE_1 = 1,
+  REMOVE_2 = 2,
+  Burrow = 3,
+  Camouflage = 4,
+  HazardResistance = 5,
+  Resist_Fungal = 6,
+  Resist_Heat = 7,
+  Resist_Acid = 8,
+  Resist_Physical = 9,
+  WaterResistance = 10,
+  Flight = 11,
+  Dash = 12,
+  Health = 13
 }
 public enum CharacterAttackValue
 {
@@ -255,6 +255,7 @@ public class Character : WorldObject
   public Vector3 orientTowards;
   protected TileLocation currentTileLocation;
   protected EnvironmentTileInfo currentTile;
+  protected TileLocation lastSafeTileLocation;
   protected float timeStandingStill = 0;
   protected float timeMoving = 0;
   protected Dictionary<string, GameObject> traitSpawnedGameObjects;
@@ -1102,7 +1103,7 @@ public class Character : WorldObject
       renderer.color = Color.Lerp(
         damagedColor,
         Color.white,
-        vitals[CharacterVital.CurrentHealth] / GetStat(CharacterStat.MaxHealth)
+        vitals[CharacterVital.CurrentHealth] / GetMaxHealth()
       );
     }
   }
@@ -1153,8 +1154,37 @@ public class Character : WorldObject
         TakeDamage(envDamage);
       }
     }
+    if (tile.CanRespawnPlayer())
+    {
+      if (!tile.CharacterCanCrossTile(this))
+      {
+        RespawnCharacterAtLastSafeLocation();
+      }
+    }
+    else
+    {
+      lastSafeTileLocation = currentTileLocation;
+    }
   }
 
+  protected void RespawnCharacterAtLastSafeLocation()
+  {
+    // skill1.CancelActiveEffects();
+    // skill2.CancelActiveEffects();
+    transform.position =
+      new Vector3(lastSafeTileLocation.position.x + .5f, lastSafeTileLocation.position.y + .5f, GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
+    if (currentFloor != lastSafeTileLocation.floorLayer)
+    {
+      SetCurrentFloor(lastSafeTileLocation.floorLayer);
+    }
+    CalculateAndApplyStun(.5f, true);
+    po.HardSetVelocityToZero();
+  }
+
+  public virtual void HandleContactWithRespawnTile()
+  {
+
+  }
   public virtual void HandleTileCollision(EnvironmentTileInfo tile)
   {
     if (tile.GetColliderType() == Tile.ColliderType.None)

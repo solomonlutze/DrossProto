@@ -25,7 +25,6 @@ public class PlayerController : Character
   private PassiveTrait passiveTrait1;
   private PassiveTrait passiveTrait2;
   public Transform cameraFollowTarget;
-  private TileLocation lastSafeTileLocation;
   public SpawnPoint spawnPoint;
 
   public string lastActivatedTrait = null;
@@ -45,12 +44,12 @@ public class PlayerController : Character
     base.Start();
   }
 
-  public void Init(bool initialSpawn, TraitSlotToTraitDictionary previousPupa)
+  public void Init(TraitSlotToTraitDictionary overrideTraits = null)
   {
-    if (!initialSpawn)
+    if (overrideTraits != null)
     {
-      traits = previousPupa;
-      pupa = new TraitSlotToTraitDictionary(previousPupa);
+      traits = overrideTraits;
+      pupa = new TraitSlotToTraitDictionary(overrideTraits);
     }
     Debug.Log("Init??");
     characterVisuals.SetCharacterVisuals(traits);
@@ -110,38 +109,6 @@ public class PlayerController : Character
     }
   }
 
-  protected void RespawnPlayerAtLastSafeLocation()
-  {
-    // skill1.CancelActiveEffects();
-    // skill2.CancelActiveEffects();
-    transform.position =
-      new Vector3(lastSafeTileLocation.position.x + .5f, lastSafeTileLocation.position.y + .5f, 0);
-    if (currentFloor != lastSafeTileLocation.floorLayer)
-    {
-      SetCurrentFloor(lastSafeTileLocation.floorLayer);
-    }
-    CalculateAndApplyStun(.5f, true);
-    po.HardSetVelocityToZero();
-  }
-
-  protected override void HandleTile()
-  {
-    EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(CalculateCurrentTileLocation());
-    base.HandleTile();
-    if (tile == null) { return; }
-    if (tile.CanRespawnPlayer())
-    {
-      if (!tile.CharacterCanCrossTile(this))
-      {
-        RespawnPlayerAtLastSafeLocation();
-      }
-    }
-    else
-    {
-      lastSafeTileLocation = currentTileLocation;
-    }
-  }
-
   public override void HandleTileCollision(EnvironmentTileInfo tile)
   {
     if (tile.GetColliderType() == Tile.ColliderType.None)
@@ -150,9 +117,9 @@ public class PlayerController : Character
     }
     else
     {
-      // Debug.Log("collided with " + tile);
       if (tile.CharacterCanBurrowThroughObjectTile(this))
       {
+        GridManager.Instance.MarkTileToRestoreOnPlayerRespawn(tile);
         tile.DestroyObjectTile();
       }
     }
@@ -315,6 +282,10 @@ public class PlayerController : Character
           if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
           {
             FlyUp();
+          }
+          else if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
+          {
+            AscendOneFloor();
           }
           else if (!flying)
           {

@@ -4,28 +4,34 @@
 // Visuals are populated from scriptableobjects....... somehow
 public class CharacterVisuals : MonoBehaviour
 {
-    public TraitSlotToCharacterCharacterBodyPartVisualDictionary traitSlotsToVisuals;
+  public TraitSlotToCharacterCharacterBodyPartVisualDictionary traitSlotsToVisuals;
 
-    public void SetCharacterVisuals(TraitSlotToTraitDictionary traits)
+  public void SetCharacterVisuals(TraitSlotToTraitDictionary traits)
+  {
+    foreach (TraitSlot slot in traits.Keys)
     {
-        foreach (TraitSlot slot in traits.Keys)
-        {
-            if (!traitSlotsToVisuals.ContainsKey(slot))
-            {
-                Debug.LogError("Need to assign body part transforms to character visuals on character " + gameObject.name);
-            }
-            else
-            {
-                CharacterBodyPartVisual visual = traitSlotsToVisuals[slot];
-                if (visual.visualRenderer1 != null)
-                {
-                    visual.visualRenderer1.sprite = traits[slot].visual1;
-                }
-                if (visual.visualRenderer2 != null)
-                {
-                    visual.visualRenderer2.sprite = traits[slot].visual2;
-                }
-            }
-        }
+      if (!traitSlotsToVisuals.ContainsKey(slot))
+      {
+        Debug.LogError("Need to assign body part transforms to character visuals on character " + gameObject.name);
+      }
+      else
+      {
+        CharacterBodyPartVisual visual = traitSlotsToVisuals[slot];
+        Debug.Log("Setting sprites for " + visual + "to " + traits[slot]);
+        visual.SetSpritesFromTrait(traits[slot]);
+        visual.gameObject.SetActive(true);
+      }
     }
+  }
+
+  public void ClearCharacterVisuals()
+  {
+
+    foreach (TraitSlot slot in traitSlotsToVisuals.Keys)
+    {
+      CharacterBodyPartVisual visual = traitSlotsToVisuals[slot];
+      visual.ClearSprites();
+      visual.gameObject.SetActive(false);
+    }
+  }
 }

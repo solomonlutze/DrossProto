@@ -14,6 +14,7 @@ public class CanvasHandler : MonoBehaviour
   public InventoryScreen inventoryScreen;
 
   public AttributesView attributesView;
+  public StartingBugSelectScreen startingBugSelectScreen;
   private List<GameObject> canvasList = new List<GameObject>();
 
   // Use this for initialization
@@ -21,12 +22,17 @@ public class CanvasHandler : MonoBehaviour
   {
     // canvasList.Add(inventoryScreen.gameObject);
     canvasList.Add(attributesView.gameObject);
+    canvasList.Add(startingBugSelectScreen.gameObject);
     SetAllCanvasesInactive();
   }
 
   // Update is called once per frame
   void Update()
   {
+    if (GameMaster.Instance.GetGameStatus() == Constants.GameState.ChooseBug)
+    {
+      DisplaySelectBugScreen();
+    }
     if (Input.GetKeyDown(KeyCode.Escape))
     {
       Debug.Log("Quit!"); Application.Quit();
@@ -74,19 +80,23 @@ public class CanvasHandler : MonoBehaviour
     }
   }
 
-  public void DisplayAttributesView(
-      CharacterAttributeToIntDictionary currentAttributes,
-      CharacterAttributeToIntDictionary nextAttributes,
-      TraitSlotToTraitDictionary pupaTraits,
-      TraitPickupItem traitPickupItem)
+  public void DisplaySelectBugScreen()
   {
     SetAllCanvasesInactive();
-    {
-      attributesView.gameObject.SetActive(true);
-      attributesView.Init(currentAttributes, nextAttributes, pupaTraits, traitPickupItem);
-      attributesView.gameObject.SetActive(true);
-      GameMaster.Instance.SetGameStatus(Constants.GameState.Menu);
-    }
+    startingBugSelectScreen.gameObject.SetActive(true);
+  }
+
+  public void DisplayAttributesView(
+    CharacterAttributeToIntDictionary currentAttributes,
+    CharacterAttributeToIntDictionary nextAttributes,
+    TraitSlotToTraitDictionary pupaTraits,
+    TraitPickupItem traitPickupItem)
+  {
+    SetAllCanvasesInactive();
+    attributesView.gameObject.SetActive(true);
+    attributesView.Init(currentAttributes, nextAttributes, pupaTraits, traitPickupItem);
+    attributesView.gameObject.SetActive(true);
+    GameMaster.Instance.SetGameStatus(Constants.GameState.Menu);
   }
 
   public void DisplayAttributesViewForTraitItem(TraitPickupItem traitItem)
