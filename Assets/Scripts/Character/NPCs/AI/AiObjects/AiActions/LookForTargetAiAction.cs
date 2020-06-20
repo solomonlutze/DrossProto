@@ -8,7 +8,7 @@ public class LookForTargetAiAction : AiAction
     PlayerController player = GameMaster.Instance.GetPlayerController();
     if (player != null && Vector2.Distance(player.transform.position, controller.transform.position) < controller.detectionRange)
     {
-      controller.StartCalculatingPath(player.GetTileLocation(), player);
+      controller.StartCalculatingPath(player.GetTileLocation(), this, player);
     }
   }
 }

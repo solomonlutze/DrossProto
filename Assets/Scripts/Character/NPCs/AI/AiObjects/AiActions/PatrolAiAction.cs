@@ -8,7 +8,7 @@ public class PatrolAiAction : MoveAiAction
   {
     if (controller.wanderDestination == null)
     {
-      controller.StartValidateAndSetWanderDestination((Random.insideUnitCircle * patrolRadius) + controller.spawnLocation, controller.currentFloor);
+      controller.StartValidateAndSetWanderDestination((Random.insideUnitCircle * patrolRadius) + controller.spawnLocation, controller.currentFloor, this);
     }
     MoveTowardsObjectOfInterest(controller);
   }

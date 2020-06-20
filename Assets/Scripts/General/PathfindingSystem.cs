@@ -25,7 +25,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
 
   public GridManager gridManager;
 
-  public IEnumerator CalculatePathToTarget(Vector3 startPosition, TileLocation targetLocation, AiStateController ai, WorldObject objectOfInterest = null)
+  public IEnumerator CalculatePathToTarget(Vector3 startPosition, TileLocation targetLocation, AiStateController ai, AiAction initiatingAction, WorldObject objectOfInterest = null)
   {
     ai.SetIsCalculatingPath(true);
     bool foundPath = false;
@@ -67,7 +67,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         foundPath = true;
         break;
       }
-      adjacentNodes = GetAdjacentNodes(nextNode, targetLocation, ai);
+      adjacentNodes = GetAdjacentNodes(nextNode, targetLocation, ai, initiatingAction);
       foreach (Node node in adjacentNodes)
       {
         if (closedNodes.Contains(node.loc))
@@ -89,14 +89,17 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       }
     }
     ai.SetIsCalculatingPath(false);
-    if (!foundPath)
+    if (foundPath)
     {
-      ai.SetPathToTarget(null);
+      UnityEngine.Debug.Log("found a path");
+      DebugDrawPath(finalPath, .01f);
+      // UnityEngine.Debug.Break();
+      if (objectOfInterest != null) { ai.objectOfInterest = objectOfInterest; }
+      ai.SetPathToTarget(finalPath);
     }
     else
     {
-      if (objectOfInterest != null) { ai.objectOfInterest = objectOfInterest; }
-      ai.SetPathToTarget(finalPath);
+      ai.SetPathToTarget(null);
     }
     // Each node has a score F, equal to G+H
     // G is cost to get to this node from original node
@@ -112,15 +115,23 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   }
 
 
-  List<Node> GetAdjacentNodes(Node originNode, TileLocation targetLocation, AiStateController ai)
+  private void DebugDrawPath(List<Node> path, float t)
+  {
+    for (int i = 0; i < path.Count - 1; i++)
+    {
+      UnityEngine.Debug.DrawLine(path[i].loc.position3D, path[i + 1].loc.position3D, Color.red, t);
+    }
+  }
+
+  List<Node> GetAdjacentNodes(Node originNode, TileLocation targetLocation, AiStateController ai, AiAction initiatingAction)
   {
     List<Node> nodes = new List<Node>();
-    MaybeAddNode(nodes, originNode.loc.position.x + 1, originNode.loc.position.y, originNode.loc.floorLayer, originNode, targetLocation, ai);
-    MaybeAddNode(nodes, originNode.loc.position.x - 1, originNode.loc.position.y, originNode.loc.floorLayer, originNode, targetLocation, ai);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y + 1, originNode.loc.floorLayer, originNode, targetLocation, ai);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y - 1, originNode.loc.floorLayer, originNode, targetLocation, ai);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y, originNode.loc.floorLayer + 1, originNode, targetLocation, ai);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y, originNode.loc.floorLayer - 1, originNode, targetLocation, ai);
+    MaybeAddNode(nodes, originNode.loc.position.x + 1, originNode.loc.position.y, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.position.x - 1, originNode.loc.position.y, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y + 1, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y - 1, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y, originNode.loc.floorLayer + 1, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y, originNode.loc.floorLayer - 1, originNode, targetLocation, ai, initiatingAction);
     return nodes;
   }
 
@@ -165,7 +176,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
 
   // USUALLY returns either 1 (can cross) or -1 (can't cross).
   // MAY return a higher value if the tile deals damage; edit this function to adjust how hard that's weighed
-  private int GetNodeTravelCost(EnvironmentTileInfo tileInfo, AiStateController ai)
+  private int GetNodeTravelCost(EnvironmentTileInfo tileInfo, AiStateController ai, AiAction initiatingAction)
   {
     if (!tileInfo.CharacterCanOccupyTile(ai) || !tileInfo.CharacterCanCrossTile(ai))
     {
@@ -179,7 +190,8 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
 
         if (ai.GetDamageTypeResistanceLevel(envDamage.damageType) < envDamage.GetResistanceRequiredForImmunity())
         {
-          cost += 10; // ARBITRARY, should probably be driven by AI's recklessness/difficulty
+          if (initiatingAction.hazardCrossingCost == -1) { return -1; }
+          cost += initiatingAction.hazardCrossingCost;
         }
       }
     }
@@ -334,7 +346,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     return (targetLayer != null && targetLayer == newFloor);
   }
 
-  void MaybeAddNode(List<Node> nodeList, int x, int y, FloorLayer floor, Node originNode, TileLocation targetLocation, AiStateController ai)
+  void MaybeAddNode(List<Node> nodeList, int x, int y, FloorLayer floor, Node originNode, TileLocation targetLocation, AiStateController ai, AiAction initiatingAction)
   {
     if (!gridManager.layerFloors.ContainsKey(floor)) { return; }
     LayerFloor layer = gridManager.layerFloors[floor];
@@ -352,11 +364,11 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     if (eti == null || eti.IsEmpty())
     {
       // UnityEngine.Debug.Log("should be checking node below this one?");
-      MaybeAddNode(nodeList, x, y, floor - 1, InitNewNode(x, y, 0, floor, originNode, targetLocation), targetLocation, ai);
+      MaybeAddNode(nodeList, x, y, floor - 1, InitNewNode(x, y, 0, floor, originNode, targetLocation), targetLocation, ai, initiatingAction);
       return;
     }
     if (eti.groundTileType == null) { return; }
-    int costToTravelOverNode = GetNodeTravelCost(eti, ai);
+    int costToTravelOverNode = GetNodeTravelCost(eti, ai, initiatingAction);
     if (costToTravelOverNode < 0)
     {
       return;

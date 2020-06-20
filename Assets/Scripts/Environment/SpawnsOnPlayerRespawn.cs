@@ -15,7 +15,6 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
   void Start()
   {
     List<SpriteRenderer> srs = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>());
-    Debug.Log("srs: " + srs.Count);
     foreach (SpriteRenderer sr in srs)
     {
       sr.enabled = false;

@@ -2,56 +2,56 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "PluggableAi/State")]
 public class AiState : ScriptableObject
 {
-    public AiAction[] actions;
+  public AiAction[] actions;
 
-    public AiTransition[] transitions;
-    public void UpdateState(AiStateController controller)
+  public AiTransition[] transitions;
+  public void UpdateState(AiStateController controller)
+  {
+    DoActions(controller);
+    CheckTransitions(controller);
+  }
+
+  void DoActions(AiStateController controller)
+  {
+    for (int i = 0; i < actions.Length; i++)
     {
-        DoActions(controller);
-        CheckTransitions(controller);
+      actions[i].Act(controller);
     }
+  }
 
-    void DoActions(AiStateController controller)
+  private void CheckTransitions(AiStateController controller)
+  {
+    for (int i = 0; i < transitions.Length; i++)
     {
-        for (int i = 0; i < actions.Length; i++)
+      if (transitions[i].decision.Decide(controller))
+      {
+        controller.TransitionToState(transitions[i].trueState);
+        if (transitions[i].trueState != controller.remainState)
         {
-            actions[i].Act(controller);
+          break;
         }
-    }
-
-    private void CheckTransitions(AiStateController controller)
-    {
-        for (int i = 0; i < transitions.Length; i++)
+      }
+      else
+      {
+        controller.TransitionToState(transitions[i].falseState);
+        if (transitions[i].falseState != controller.remainState)
         {
-            if (transitions[i].decision.Decide(controller))
-            {
-                controller.TransitionToState(transitions[i].trueState);
-                if (transitions[i].trueState != controller.remainState)
-                {
-                    break;
-                }
-            }
-            else
-            {
-                controller.TransitionToState(transitions[i].falseState);
-                if (transitions[i].falseState != controller.remainState)
-                {
-                    break;
-                }
-            }
+          break;
         }
+      }
     }
+  }
 
-    public bool OnEntry(AiStateController controller)
+  public bool OnEntry(AiStateController controller)
+  {
+    foreach (AiAction action in actions)
     {
-        foreach (AiAction action in actions)
-        {
-            if (!action.OnEntry(controller))
-            {
-                return false;
-            }
-        }
-        return true;
-
+      if (!action.OnEntry(controller))
+      {
+        return false;
+      }
     }
+    return true;
+
+  }
 }

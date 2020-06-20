@@ -91,7 +91,6 @@ public class GameMaster : Singleton<GameMaster>
 
   private void Respawn(TraitSlotToTraitDictionary overrideTraits = null)
   {
-    Debug.Log("GridManager Instance: " + GridManager.Instance.name);
     GridManager.Instance.DestroyTilesOnPlayerRespawn();
     GridManager.Instance.RestoreTilesOnPlayerRespawn();
     GameObject player = GameObject.FindGameObjectWithTag("Player");
@@ -112,7 +111,6 @@ public class GameMaster : Singleton<GameMaster>
       playerController.currentFloor = fl;
     }
     playerController.SetCurrentFloor(playerController.currentFloor);
-    Debug.Break();
     playerController.Init(overrideTraits);
     DoActivateOnPlayerRespawn();
     SetGameStatus(Constants.GameState.Play);

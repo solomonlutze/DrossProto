@@ -57,7 +57,6 @@ public class AiStateController : Character
   {
     base.Update();
     timeSpentInState += Time.deltaTime;
-    movementInput = Vector2.zero;
   }
 
   protected override void FixedUpdate()
@@ -74,6 +73,7 @@ public class AiStateController : Character
   {
     if (nextState != remainState)
     {
+      Debug.Log(gameObject.name + "transitioning from " + currentState + " to " + nextState);
       timeSpentInState = 0f;
       currentState = nextState;
       //TODO: should we fall back if onEntry fails?
@@ -105,18 +105,19 @@ public class AiStateController : Character
     }
   }
 
-  public void StartValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl)
+  public void StartValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl, AiAction initiatingAction)
   {
     if (isCalculatingPath) { return; }
-    StartCoroutine(ValidateAndSetWanderDestination(pos, fl));
+    StartCoroutine(ValidateAndSetWanderDestination(pos, fl, initiatingAction));
   }
 
-  public IEnumerator ValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl)
+  public IEnumerator ValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl, AiAction initiatingAction)
   {
     TileLocation targetLocation = new TileLocation(pos, fl);
-    yield return StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this));
+    yield return StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, initiatingAction));
     if (pathToTarget != null)
     {
+      Debug.Log("Wander destination identified");
       SetWanderDestination(targetLocation.tileCenter, fl);
     }
     else
@@ -174,10 +175,16 @@ public class AiStateController : Character
   {
     isCalculatingPath = flag;
   }
-  public void StartCalculatingPath(TileLocation targetLocation, WorldObject potentialObjectOfInterest = null)
+
+  public bool IsCalculatingPath()
+  {
+    return isCalculatingPath;
+  }
+
+  public void StartCalculatingPath(TileLocation targetLocation, AiAction initiatingAction, WorldObject potentialObjectOfInterest = null)
   {
     if (isCalculatingPath) { return; }
-    StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, potentialObjectOfInterest));
+    StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, initiatingAction, potentialObjectOfInterest));
   }
 
   //We can reach our target if:
