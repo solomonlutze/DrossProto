@@ -9,7 +9,7 @@ public class WithinAttackRangeAiDecision : AiDecision
       && Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetMaxPreferredAttackRange()
       && controller.GetAngleToTarget() < controller.attackAngleInDegrees)
     {
-      controller.DoAttack((AttackSkillData)controller.GetSelectedCharacterSkill()); // todo: fix this????
+      controller.UseAttack((AttackSkillData)controller.GetSelectedCharacterSkill()); // todo: fix this????
       return true;
     }
     return false;

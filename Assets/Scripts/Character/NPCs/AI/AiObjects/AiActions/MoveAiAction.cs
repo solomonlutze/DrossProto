@@ -39,13 +39,11 @@ public class MoveAiAction : AiAction
 
       if ((distanceFromTarget + .3f) > controller.minDistanceFromTarget)
       {
-        Debug.Log("path clear + far away - movement input getting set");
         movementInput = (targetWorldLocation.transform.position - controller.transform.position).normalized;
       }
     }
     else
     {
-      Debug.Log("Calculating path to target...");
       controller.StartCalculatingPath(targetWorldLocation.GetTileLocation(), this);
       if (controller.pathToTarget != null && controller.pathToTarget.Count > 0)
       {
@@ -53,7 +51,6 @@ public class MoveAiAction : AiAction
         Vector3 colliderCenterWorldSpace = controller.transform.TransformPoint(controller.circleCollider.offset);
         movementInput = (nextNodeLocation - colliderCenterWorldSpace).normalized;
         Debug.DrawLine(nextNodeLocation, colliderCenterWorldSpace, Color.red, .25f, true);
-        Debug.Log("pathfinding - movement input getting set ");
         if (Vector3.Distance(nextNodeLocation, colliderCenterWorldSpace) < controller.minDistanceFromPathNode)
         {
           controller.pathToTarget.RemoveAt(0);
@@ -62,9 +59,7 @@ public class MoveAiAction : AiAction
     }
     if (controller.pathToTarget == null && !controller.IsCalculatingPath())
     {
-      Debug.Log("No path found - we may never reach our destination");
     }
-    Debug.Log("movement input: " + movementInput);
     controller.SetMoveInput(movementInput);
   }
 }
