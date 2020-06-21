@@ -51,7 +51,6 @@ public class PlayerController : Character
       traits = overrideTraits;
       pupa = new TraitSlotToTraitDictionary(overrideTraits);
     }
-    Debug.Log("Init??");
     characterVisuals.SetCharacterVisuals(traits);
     base.Init();
     availableContextualActions = new List<ContextualAction>();

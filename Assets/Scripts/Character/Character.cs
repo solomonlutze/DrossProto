@@ -1239,7 +1239,6 @@ public class Character : WorldObject
 
   protected void HandleCooldowns()
   {
-    Debug.LogWarning("stamina: " + vitals[CharacterVital.RemainingStamina]);
     if (flying)
     {
       vitals[CharacterVital.RemainingStamina] -= Time.deltaTime * GetMaxStamina() / 5;

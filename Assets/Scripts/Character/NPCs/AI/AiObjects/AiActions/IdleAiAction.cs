@@ -6,5 +6,6 @@ public class IdleAiAction : AiAction
   public override void Act(AiStateController controller)
   {
     // Do nothing. Maybe spin about a little?
+    controller.SetMoveInput(Vector2.zero);
   }
 }
