@@ -154,7 +154,6 @@ public class PlayerController : Character
       foreach (GameObject interactableObject in interactables)
       {
         Interactable interactable = interactableObject.GetComponent<Interactable>();
-        Debug.Log("interactableObject: " + interactableObject);
         if (!interactable.isInteractable) { continue; }
         AddContextualAction(
           interactable.interactableText,
@@ -182,8 +181,6 @@ public class PlayerController : Character
 
   public void UseSelectedSkill()
   {
-    Debug.Log("using skill " + characterSkills[selectedSkillIdx]);
-    Debug.Log("is attack: " + (AttackSkillData)characterSkills[selectedSkillIdx] != null);
     if ((AttackSkillData)characterSkills[selectedSkillIdx] != null) // TODO: handle this more generically!!
     {
       StartCoroutine(DoAttack((AttackSkillData)characterSkills[selectedSkillIdx]));

@@ -11,7 +11,6 @@ public class EvadeAttackAiDecision : AiDecision
       && controller.objectOfInterest.GetComponent<Character>().attacking
       && controller.objectOfInterest.GetComponent<Character>().GetAngleToDirection(controller.transform.position) < assumedEnemyAttackAngle / 2)
     {
-      Debug.Log("Deciding to invade!");
       return true;
     }
     controller.UnsetOverrideDestination();

@@ -461,7 +461,6 @@ public class Character : WorldObject
   public IEnumerator DoAttack(AttackSkillData attack)
   {
     attacking = true;
-    Debug.Log("performing attack??");
     yield return StartCoroutine(attack.PerformAttackCycle(this));
     attacking = false;
     attackCooldown = false;

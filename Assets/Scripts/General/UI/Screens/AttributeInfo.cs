@@ -13,110 +13,111 @@ using UnityEngine.UI;
 public class AttributeInfo : MonoBehaviour
 {
 
-    public CharacterAttribute attribute;
-    public GameObject attributeValuePipPrefab;
-    public SuperTextMesh attributeNameText;
-    public SuperTextMesh attributeDescriptionText;
-    public SuperTextMesh pupaAttributeDescriptionText;
-    public Transform pipsContainer;
-    public int defaultFontSize;
-    public Color32 defaultFontColor;
+  public CharacterAttribute attribute;
+  public GameObject attributeValuePipPrefab;
+  public SuperTextMesh attributeNameText;
+  public SuperTextMesh attributeDescriptionText;
+  public SuperTextMesh pupaAttributeDescriptionText;
+  public Transform pipsContainer;
+  public int defaultFontSize;
+  public Color32 defaultFontColor;
 
-    private AttributeData attributeData;
-    private int actualPupaAttributeValue;
+  private AttributeData attributeData;
+  private int actualPupaAttributeValue;
 
-    public Image arrowImage;
-    void Start()
-    {
-        defaultFontSize = pupaAttributeDescriptionText.quality;
-        defaultFontColor = pupaAttributeDescriptionText.color;
-    }
+  public Image arrowImage;
+  void Start()
+  {
+    defaultFontSize = pupaAttributeDescriptionText.quality;
+    defaultFontColor = pupaAttributeDescriptionText.color;
+  }
 
-    void Update()
+  void Update()
+  {
+    if (!Application.IsPlaying(gameObject))
     {
-        if (!Application.IsPlaying(gameObject))
-        {
-            if (gameObject.name != attribute.ToString() + "_AttributeInfo")
-            {
-                gameObject.name = attribute.ToString() + "_AttributeInfo";
-            }
-        }
+      if (gameObject.name != attribute.ToString() + "_AttributeInfo")
+      {
+        gameObject.name = attribute.ToString() + "_AttributeInfo";
+      }
     }
+  }
 
-    public void Init(AttributeData data, int value, int nextValue)
-    {
-        attributeData = data;
-        attributeNameText.text = attributeData.displayName;
-        attributeDescriptionText.text = attributeData.attributeTiers[value].attributeTierDescription;
-        pupaAttributeDescriptionText.text = attributeData.attributeTiers[nextValue].attributeTierDescription;
-        actualPupaAttributeValue = nextValue; // save to modify when looking at items
-        arrowImage.gameObject.SetActive(false);
-        DisableAllPips();
-    }
+  public void Init(AttributeData data, int value, int nextValue)
+  {
+    attributeData = data;
+    Debug.Log("attribute: " + attributeData.displayName);
+    attributeNameText.text = attributeData.displayName;
+    attributeDescriptionText.text = attributeData.attributeTiers[value].attributeTierDescription;
+    pupaAttributeDescriptionText.text = attributeData.attributeTiers[nextValue].attributeTierDescription;
+    actualPupaAttributeValue = nextValue; // save to modify when looking at items
+    arrowImage.gameObject.SetActive(false);
+    DisableAllPips();
+  }
 
-    public void HighlightDelta(int proposedChange)
+  public void HighlightDelta(int proposedChange)
+  {
+    int desiredFontSize = defaultFontSize;
+    Color32 desiredFontColor = defaultFontColor;
+    if (proposedChange > 0)
     {
-        int desiredFontSize = defaultFontSize;
-        Color32 desiredFontColor = defaultFontColor;
-        if (proposedChange > 0)
-        {
-            Debug.Log("changing font color to positive");
-            desiredFontColor = Color.red;
-            desiredFontSize = defaultFontSize + 2;
-            arrowImage.gameObject.SetActive(true);
-            arrowImage.color = Color.red;
-            arrowImage.transform.localScale = new Vector3(1, 1, 1);
-        }
-        else if (proposedChange < 0)
-        {
-            Debug.Log("changing font color to negative");
-            desiredFontColor = Color.blue;
-            desiredFontSize = defaultFontSize - 1;
-            arrowImage.gameObject.SetActive(true);
-            arrowImage.color = Color.blue;
-            arrowImage.SetAllDirty();
-            arrowImage.transform.localScale = new Vector3(1, -1, 1);
-        }
-        else
-        {
-            arrowImage.gameObject.SetActive(false);
-        }
-        pupaAttributeDescriptionText.color = desiredFontColor;
-        pupaAttributeDescriptionText.quality = desiredFontSize;
-        pupaAttributeDescriptionText.text = attributeData.attributeTiers[actualPupaAttributeValue + proposedChange].attributeTierDescription;
+      Debug.Log("changing font color to positive");
+      desiredFontColor = Color.red;
+      desiredFontSize = defaultFontSize + 2;
+      arrowImage.gameObject.SetActive(true);
+      arrowImage.color = Color.red;
+      arrowImage.transform.localScale = new Vector3(1, 1, 1);
     }
+    else if (proposedChange < 0)
+    {
+      Debug.Log("changing font color to negative");
+      desiredFontColor = Color.blue;
+      desiredFontSize = defaultFontSize - 1;
+      arrowImage.gameObject.SetActive(true);
+      arrowImage.color = Color.blue;
+      arrowImage.SetAllDirty();
+      arrowImage.transform.localScale = new Vector3(1, -1, 1);
+    }
+    else
+    {
+      arrowImage.gameObject.SetActive(false);
+    }
+    pupaAttributeDescriptionText.color = desiredFontColor;
+    pupaAttributeDescriptionText.quality = desiredFontSize;
+    pupaAttributeDescriptionText.text = attributeData.attributeTiers[actualPupaAttributeValue + proposedChange].attributeTierDescription;
+  }
 
-    public void UnhighlightDelta()
+  public void UnhighlightDelta()
+  {
+    pupaAttributeDescriptionText.color = defaultFontColor;
+    pupaAttributeDescriptionText.quality = defaultFontSize;
+    pupaAttributeDescriptionText.text = attributeData.attributeTiers[actualPupaAttributeValue].attributeTierDescription;
+    arrowImage.gameObject.SetActive(false);
+  }
+  public void InitPips(int numberOfPips)
+  {
+    while (pipsContainer.childCount < numberOfPips)
     {
-        pupaAttributeDescriptionText.color = defaultFontColor;
-        pupaAttributeDescriptionText.quality = defaultFontSize;
-        pupaAttributeDescriptionText.text = attributeData.attributeTiers[actualPupaAttributeValue].attributeTierDescription;
-        arrowImage.gameObject.SetActive(false);
+      Instantiate(attributeValuePipPrefab).transform.parent = pipsContainer;
     }
-    public void InitPips(int numberOfPips)
+    for (int i = 0; i < pipsContainer.childCount; i++)
     {
-        while (pipsContainer.childCount < numberOfPips)
-        {
-            Instantiate(attributeValuePipPrefab).transform.parent = pipsContainer;
-        }
-        for (int i = 0; i < pipsContainer.childCount; i++)
-        {
-            if (i < numberOfPips)
-            {
-                pipsContainer.GetChild(i).gameObject.SetActive(true);
-            }
-            else
-            {
-                pipsContainer.GetChild(i).gameObject.SetActive(false);
-            }
-        }
+      if (i < numberOfPips)
+      {
+        pipsContainer.GetChild(i).gameObject.SetActive(true);
+      }
+      else
+      {
+        pipsContainer.GetChild(i).gameObject.SetActive(false);
+      }
     }
+  }
 
-    void DisableAllPips()
+  void DisableAllPips()
+  {
+    for (int i = 0; i < pipsContainer.childCount; i++)
     {
-        for (int i = 0; i < pipsContainer.childCount; i++)
-        {
-            pipsContainer.GetChild(i).gameObject.SetActive(false);
-        }
+      pipsContainer.GetChild(i).gameObject.SetActive(false);
     }
+  }
 }
