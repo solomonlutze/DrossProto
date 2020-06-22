@@ -22,7 +22,7 @@ public class AttributeInfo : MonoBehaviour
   public int defaultFontSize;
   public Color32 defaultFontColor;
 
-  private AttributeData attributeData;
+  private BaseAttributeData<AttributeTier> attributeData;
   private int actualPupaAttributeValue;
 
   public Image arrowImage;
@@ -43,9 +43,10 @@ public class AttributeInfo : MonoBehaviour
     }
   }
 
-  public void Init(AttributeData data, int value, int nextValue)
+  public void Init(BaseAttributeData<AttributeTier> data, int value, int nextValue)
   {
     attributeData = data;
+    Debug.Log("data: " + data);
     Debug.Log("attribute: " + attributeData.displayName);
     attributeNameText.text = attributeData.displayName;
     attributeDescriptionText.text = attributeData.attributeTiers[value].attributeTierDescription;

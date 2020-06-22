@@ -183,7 +183,7 @@ public class PlayerController : Character
   {
     if ((AttackSkillData)characterSkills[selectedSkillIdx] != null) // TODO: handle this more generically!!
     {
-      StartCoroutine(DoAttack((AttackSkillData)characterSkills[selectedSkillIdx]));
+      UseAttack((AttackSkillData)characterSkills[selectedSkillIdx]);
     }
   }
 
