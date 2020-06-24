@@ -68,7 +68,6 @@ public class AttributeInfo : MonoBehaviour
     }
     else if (proposedChange < 0)
     {
-      Debug.Log("changing font color to negative");
       desiredFontColor = Color.blue;
       desiredFontSize = defaultFontSize - 1;
       arrowImage.gameObject.SetActive(true);

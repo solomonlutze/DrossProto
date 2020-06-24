@@ -17,6 +17,7 @@ public class AttributesView : MonoBehaviour
   public Transform traitButtonsContainer;
 
   public CharacterAttributeToGameObjectDictionary attributeInfoGameObjects;
+  public SkillInfo[] skillInfoGameObjects;
   Dictionary<TraitSlot, TraitButton> traitButtons;
   Dictionary<CharacterAttribute, IAttributeDataInterface> attributeDataObjects;
 
@@ -44,7 +45,14 @@ public class AttributesView : MonoBehaviour
     }
   }
 
-  public void Init(CharacterAttributeToIntDictionary attributes, CharacterAttributeToIntDictionary nextAttributes, TraitSlotToTraitDictionary pupaTraits, TraitPickupItem traitPickupItem = null)
+  public void Init(
+    CharacterAttributeToIntDictionary attributes,
+    CharacterAttributeToIntDictionary nextAttributes,
+    List<CharacterSkillData> skillDatas,
+    List<CharacterSkillData> pupaSkillDatas,
+    TraitSlotToTraitDictionary pupaTraits,
+    TraitPickupItem traitPickupItem = null
+    )
   {
     foreach (CharacterAttribute attribute in attributes.Keys)
     {
@@ -64,10 +72,22 @@ public class AttributesView : MonoBehaviour
     }
     else
     {
-      // foreach (TraitButton button in traitButtons.Values)
-      // {
-      //     button.gameObject.SetActive(false);
-      // }
+      CharacterSkillData skillData = null;
+      CharacterSkillData pupaSkillData = null;
+      for (int i = 0; i < skillInfoGameObjects.Length; i++)
+      {
+        skillData = i < skillDatas.Count ? skillDatas[i] : null;
+        pupaSkillData = i < pupaSkillDatas.Count ? pupaSkillDatas[i] : null;
+        if (skillData == null && pupaSkillData == null)
+        {
+          skillInfoGameObjects[i].gameObject.SetActive(false);
+        }
+        else
+        {
+          skillInfoGameObjects[i].gameObject.SetActive(true);
+          skillInfoGameObjects[i].Init(skillData, pupaSkillData, 0);
+        }
+      }
     }
   }
 
@@ -114,6 +134,10 @@ public class AttributesView : MonoBehaviour
           traitToRemove.attributeModifiers.TryGetValue(attribute, out proposedAttributeRemove);
         }
         attributeInfoGameObjects[attribute].GetComponent<AttributeInfo>().HighlightDelta(proposedAttributeAdd - proposedAttributeRemove);
+      }
+      if (remove.skillData != add.skillData)
+      {
+
       }
     }
   }
