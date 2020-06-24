@@ -15,8 +15,9 @@ public class TraitInfo : MonoBehaviour
   public SuperTextMesh nameLabelObject;
   public SuperTextMesh[] traitAttributeTexts;
 
-  public void Init(Trait trait, TraitSlot traitSlot, Dictionary<CharacterAttribute, BaseAttributeData<AttributeTier>> attributeDataObjects)
+  public void Init(Trait trait, TraitSlot traitSlot, Dictionary<CharacterAttribute, IAttributeDataInterface> attributeDataObjects)
   {
+    Debug.Log("init'ing trait info for " + trait);
     if (trait == null)
     {
       gameObject.SetActive(false);
@@ -29,14 +30,13 @@ public class TraitInfo : MonoBehaviour
     if (lymphLogoObject != null) { lymphLogoObject.Init(trait.lymphType); }
   }
 
-  public void SetTraitAttributeText(Trait trait, TraitSlot traitSlot, Dictionary<CharacterAttribute, BaseAttributeData<AttributeTier>> attributeDataObjects)
+  public void SetTraitAttributeText(Trait trait, TraitSlot traitSlot, Dictionary<CharacterAttribute, IAttributeDataInterface> attributeDataObjects)
   {
     int i = 0;
     if (trait.attributeModifiers.Keys.Count > 4) { Debug.LogError("More attributes than text fields in TraitButton: " + trait); }
     foreach (KeyValuePair<CharacterAttribute, int> entry in trait.attributeModifiers)
     {
       traitAttributeTexts[i].gameObject.SetActive(true);
-      Debug.Log("looking for attribute " + entry.Key);
       string attributeName = attributeDataObjects[entry.Key].displayNameWithGroup;
       traitAttributeTexts[i].text = $"{attributeName}{System.String.Concat(Enumerable.Repeat("+", entry.Value - 1))}";
       i++;

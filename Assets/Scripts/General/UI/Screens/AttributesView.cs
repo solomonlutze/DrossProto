@@ -18,7 +18,7 @@ public class AttributesView : MonoBehaviour
 
   public CharacterAttributeToGameObjectDictionary attributeInfoGameObjects;
   Dictionary<TraitSlot, TraitButton> traitButtons;
-  Dictionary<CharacterAttribute, BaseAttributeData<AttributeTier>> attributeDataObjects;
+  Dictionary<CharacterAttribute, IAttributeDataInterface> attributeDataObjects;
 
   private PickupItem displayedPickupItem;
 
@@ -28,21 +28,18 @@ public class AttributesView : MonoBehaviour
   public void Awake()
   {
     // attributeInfoGameObjects = new Dictionary<CharacterAttribute, GameObject>();
-    attributeDataObjects = new Dictionary<CharacterAttribute, BaseAttributeData<AttributeTier>>();
+    attributeDataObjects = new Dictionary<CharacterAttribute, IAttributeDataInterface>();
     traitButtons = new Dictionary<TraitSlot, TraitButton>();
     UnityEngine.Object[] dataObjects = Resources.LoadAll("Data/TraitData/Attributes");
     foreach (UnityEngine.Object obj in dataObjects)
     {
-      BaseAttributeData<AttributeTier> attrObj = obj as BaseAttributeData<AttributeTier>;
-      Debug.Log("got data object " + obj);
+      IAttributeDataInterface attrObj = obj as IAttributeDataInterface;
       if (attrObj == null) { continue; }
-      Debug.Log("...and it's an attrObj: " + attrObj);
       attributeDataObjects.Add(attrObj.attribute, attrObj);
     }
     foreach (TraitSlot slot in Enum.GetValues(typeof(TraitSlot)))
     {
       GameObject button = Instantiate(traitButtonPrefab, traitButtonsContainer);
-      // button.transform.parent = traitButtonsContainer;
       traitButtons.Add(slot, button.GetComponentInChildren<TraitButton>());
     }
   }
@@ -88,7 +85,6 @@ public class AttributesView : MonoBehaviour
     }
 
     GameObject go = attributeInfoGameObjects[attribute];
-    Debug.Log("adding or updating for " + attribute);
     go.GetComponent<AttributeInfo>().Init(attributeDataObjects[attribute], value, nextValue);
   }
 
@@ -101,6 +97,7 @@ public class AttributesView : MonoBehaviour
 
   public void ShowHighlightedTraitDelta(Trait remove, Trait add)
   {
+    Debug.Log("adding: " + add + ", removing " + remove);
     if (add != null && remove != null)
     {
       traitToRemove = remove;

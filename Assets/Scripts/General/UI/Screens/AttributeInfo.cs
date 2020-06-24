@@ -22,7 +22,7 @@ public class AttributeInfo : MonoBehaviour
   public int defaultFontSize;
   public Color32 defaultFontColor;
 
-  private BaseAttributeData<AttributeTier> attributeData;
+  private IAttributeDataInterface attributeData;
   private int actualPupaAttributeValue;
 
   public Image arrowImage;
@@ -43,11 +43,9 @@ public class AttributeInfo : MonoBehaviour
     }
   }
 
-  public void Init(BaseAttributeData<AttributeTier> data, int value, int nextValue)
+  public void Init(IAttributeDataInterface data, int value, int nextValue)
   {
     attributeData = data;
-    Debug.Log("data: " + data);
-    Debug.Log("attribute: " + attributeData.displayName);
     attributeNameText.text = attributeData.displayName;
     attributeDescriptionText.text = attributeData.attributeTiers[value].attributeTierDescription;
     pupaAttributeDescriptionText.text = attributeData.attributeTiers[nextValue].attributeTierDescription;
@@ -62,7 +60,6 @@ public class AttributeInfo : MonoBehaviour
     Color32 desiredFontColor = defaultFontColor;
     if (proposedChange > 0)
     {
-      Debug.Log("changing font color to positive");
       desiredFontColor = Color.red;
       desiredFontSize = defaultFontSize + 2;
       arrowImage.gameObject.SetActive(true);

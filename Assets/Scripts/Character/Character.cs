@@ -44,9 +44,9 @@ public enum CharacterStat
 
 public enum CharacterAttribute
 {
-  REMOVE_0 = 0,
-  REMOVE_1 = 1,
-  REMOVE_2 = 2,
+  // REMOVE_0 = 0,
+  // REMOVE_1 = 1,
+  // REMOVE_2 = 2,
   Burrow = 3,
   Camouflage = 4,
   HazardResistance = 5,

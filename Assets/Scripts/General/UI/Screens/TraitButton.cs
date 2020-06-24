@@ -18,7 +18,7 @@ public class TraitButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
   public TraitInfo nextTraitInfo;
   AttributesView parentScreen;
 
-  public void Init(TraitSlot ts, Trait et, Trait it, AttributesView ps, Dictionary<CharacterAttribute, BaseAttributeData<AttributeTier>> attributeDataObjects)
+  public void Init(TraitSlot ts, Trait et, Trait it, AttributesView ps, Dictionary<CharacterAttribute, IAttributeDataInterface> attributeDataObjects)
   {
     // base.Init(itemEntryInfo, parentScreen);
     traitSlot = ts;
@@ -26,6 +26,7 @@ public class TraitButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     itemTrait = it;
     parentScreen = ps;
     currentTraitInfo.Init(et, ts, attributeDataObjects);
+    Debug.Log("itemTrait: " + it);
     if (it != null)
     {
       nextTraitInfo.gameObject.SetActive(true);
