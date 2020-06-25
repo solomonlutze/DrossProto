@@ -38,14 +38,13 @@ public class TraitButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     }
     // nameLabel.text = et.traitName;
     slotNameLabel.text = ts.ToString();
-    // SetTraitAttributeText(it);
+    // SetTraitAttributeText(it);z
     // if (itemEntryInfo.equipped) { nameLabel.text += "\n (Equipped)"; }
     // if (lymphLogo != null) { lymphLogo.Init(et.lymphType); }
   }
 
   public void SetTraitAttributeText(Trait it)
   {
-    Debug.LogWarning("it: " + it);
     if (it == null)
     {
       foreach (SuperTextMesh m in traitAttributeTexts)

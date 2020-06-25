@@ -25,18 +25,21 @@ public class SkillInfo : MonoBehaviour
   public void Init(CharacterSkillData data, CharacterSkillData pupaData, int addOrRemove)
   {
     skillNameText.text = data != null ? data.displayName : "";
-    pupaSkillNameText.text = pupaData != null ? pupaData.displayName : "";
     if (addOrRemove > 0)
     {
       pupaSkillNameText.color = Color.red;
+      pupaSkillNameText.text = pupaData != null ? "+" + pupaData.displayName : "";
     }
     else if (addOrRemove < 0)
     {
       pupaSkillNameText.color = Color.blue;
+      pupaSkillNameText.text = pupaData != null ? "-" + pupaData.displayName : "";
     }
     else
     {
       pupaSkillNameText.color = Color.white;
+      pupaSkillNameText.text = pupaData != null ? pupaData.displayName : "";
     }
+    pupaSkillNameText.Rebuild();
   }
 }

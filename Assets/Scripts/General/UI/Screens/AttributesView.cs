@@ -21,6 +21,9 @@ public class AttributesView : MonoBehaviour
   Dictionary<TraitSlot, TraitButton> traitButtons;
   Dictionary<CharacterAttribute, IAttributeDataInterface> attributeDataObjects;
 
+  List<CharacterSkillData> skillDatas;
+  List<CharacterSkillData> pupaSkillDatas;
+
   private PickupItem displayedPickupItem;
 
   private Trait traitToRemove;
@@ -48,12 +51,14 @@ public class AttributesView : MonoBehaviour
   public void Init(
     CharacterAttributeToIntDictionary attributes,
     CharacterAttributeToIntDictionary nextAttributes,
-    List<CharacterSkillData> skillDatas,
-    List<CharacterSkillData> pupaSkillDatas,
+    List<CharacterSkillData> sd,
+    List<CharacterSkillData> psd,
     TraitSlotToTraitDictionary pupaTraits,
     TraitPickupItem traitPickupItem = null
     )
   {
+    skillDatas = sd;
+    pupaSkillDatas = psd == null ? new List<CharacterSkillData>() : psd;
     foreach (CharacterAttribute attribute in attributes.Keys)
     {
       AddOrUpdateAttributeInfoObject(attribute, attributes[attribute], nextAttributes[attribute]);
@@ -70,23 +75,41 @@ public class AttributesView : MonoBehaviour
         traitButtons[slot].Init(slot, pupaTraits[slot], itemTrait, this, attributeDataObjects);
       }
     }
-    else
+    for (int i = 0; i < skillInfoGameObjects.Length; i++)
     {
-      CharacterSkillData skillData = null;
-      CharacterSkillData pupaSkillData = null;
-      for (int i = 0; i < skillInfoGameObjects.Length; i++)
+      if (i >= skillDatas.Count && i > pupaSkillDatas.Count)
       {
-        skillData = i < skillDatas.Count ? skillDatas[i] : null;
-        pupaSkillData = i < pupaSkillDatas.Count ? pupaSkillDatas[i] : null;
-        if (skillData == null && pupaSkillData == null)
-        {
-          skillInfoGameObjects[i].gameObject.SetActive(false);
-        }
-        else
-        {
-          skillInfoGameObjects[i].gameObject.SetActive(true);
-          skillInfoGameObjects[i].Init(skillData, pupaSkillData, 0);
-        }
+        skillInfoGameObjects[i].gameObject.SetActive(false);
+
+      }
+      else
+      {
+        skillInfoGameObjects[i].gameObject.SetActive(true);
+      }
+    }
+    InitSkillData();
+  }
+
+  void InitSkillData(CharacterSkillData add = null, CharacterSkillData remove = null)
+  {
+    Debug.Log("refreshing skill data");
+    CharacterSkillData skillData = null;
+    CharacterSkillData pupaSkillData = null;
+    for (int i = 0; i < skillInfoGameObjects.Length; i++)
+    {
+      skillData = i < skillDatas.Count ? skillDatas[i] : null;
+      pupaSkillData = i < pupaSkillDatas.Count ? pupaSkillDatas[i] : null;
+      if (pupaSkillData != null && pupaSkillData == remove && add != remove)
+      {
+        skillInfoGameObjects[i].Init(skillData, pupaSkillData, -1);
+      }
+      else if (i == pupaSkillDatas.Count && add != null)
+      {
+        skillInfoGameObjects[i].Init(skillData, add, 1);
+      }
+      else
+      {
+        skillInfoGameObjects[i].Init(skillData, pupaSkillData, 0);
       }
     }
   }
@@ -117,7 +140,6 @@ public class AttributesView : MonoBehaviour
 
   public void ShowHighlightedTraitDelta(Trait remove, Trait add)
   {
-    Debug.Log("adding: " + add + ", removing " + remove);
     if (add != null && remove != null)
     {
       traitToRemove = remove;
@@ -135,10 +157,7 @@ public class AttributesView : MonoBehaviour
         }
         attributeInfoGameObjects[attribute].GetComponent<AttributeInfo>().HighlightDelta(proposedAttributeAdd - proposedAttributeRemove);
       }
-      if (remove.skillData != add.skillData)
-      {
-
-      }
+      InitSkillData(add.skillData, remove.skillData);
     }
   }
 
@@ -151,5 +170,6 @@ public class AttributesView : MonoBehaviour
     }
     traitToRemove = null;
     traitToAdd = null;
+    InitSkillData(null, null);
   }
 }

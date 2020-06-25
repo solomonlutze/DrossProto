@@ -41,6 +41,11 @@ public class TraitInfo : MonoBehaviour
       traitAttributeTexts[i].text = $"{attributeName}{System.String.Concat(Enumerable.Repeat("+", entry.Value - 1))}";
       i++;
     }
+    if (trait.skillData != null)
+    {
+      traitAttributeTexts[i].text = trait.skillData.displayName;
+      i++;
+    }
     while (i < traitAttributeTexts.Length)
     {
       traitAttributeTexts[i].gameObject.SetActive(false);
