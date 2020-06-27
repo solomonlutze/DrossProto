@@ -44,9 +44,9 @@ public enum CharacterStat
 
 public enum CharacterAttribute
 {
-  REMOVE_0 = 0,
-  REMOVE_1 = 1,
-  REMOVE_2 = 2,
+  // REMOVE_0 = 0,
+  // REMOVE_1 = 1,
+  // REMOVE_2 = 2,
   Burrow = 3,
   Camouflage = 4,
   HazardResistance = 5,
@@ -461,7 +461,6 @@ public class Character : WorldObject
   public IEnumerator DoAttack(AttackSkillData attack)
   {
     attacking = true;
-    Debug.Log("performing attack??");
     yield return StartCoroutine(attack.PerformAttackCycle(this));
     attacking = false;
     attackCooldown = false;

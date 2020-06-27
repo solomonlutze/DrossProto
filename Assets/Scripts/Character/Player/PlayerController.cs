@@ -57,37 +57,13 @@ public class PlayerController : Character
     interactables = new List<GameObject>();
     inventory = GetComponent<Inventory>();
     inventory.owner = this;
-    // if (initialSpawn)
-    // {
-    //     AssignTraitsForFirstLife();
-    // }
-    // else
-    // {
-    //     // inventory.AdvanceUpcomingLifeTraits(previousPupa);
-    // }
   }
   // Player specific non-physics biz.
 
   // TODO: setting orientTowards can prolly be its own function
   override protected void Update()
   {
-
-    // Ray ray;
-    // RaycastHit hit;
-    // ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-    // if (Physics2d.Raycast(ray, out hit, Mathf.Infinity))
-    // {
-    //     Debug.Log("hit: " + hit.point);
-    // }
-    // Ray ray = GameMaster.Instance.mainCamera.ScreenPointToRay(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0));
-    // Debug.DrawRay(ray.origin, ray.direction * 50, Color.yellow);
-    // Debug.Log("Mouse position: " + Input.mousePosition);
     orientTowards = GameMaster.Instance.camera2D.ScreenToWorldPoint(Input.mousePosition);
-    // Debug.Log("orientTowards: " + orientTowards);
-    // Debug.Log("transform position: " + transform.position);
-    // Debug.Log("target direction: " + (orientTowards - transform.position));
-    // Debug.DrawLine(orientTowards, transform.position, Color.cyan, .1f);
     base.Update();
     PopulateContextualActions();
     HandleInput();
@@ -154,7 +130,6 @@ public class PlayerController : Character
       foreach (GameObject interactableObject in interactables)
       {
         Interactable interactable = interactableObject.GetComponent<Interactable>();
-        Debug.Log("interactableObject: " + interactableObject);
         if (!interactable.isInteractable) { continue; }
         AddContextualAction(
           interactable.interactableText,
@@ -182,11 +157,9 @@ public class PlayerController : Character
 
   public void UseSelectedSkill()
   {
-    Debug.Log("using skill " + characterSkills[selectedSkillIdx]);
-    Debug.Log("is attack: " + (AttackSkillData)characterSkills[selectedSkillIdx] != null);
     if ((AttackSkillData)characterSkills[selectedSkillIdx] != null) // TODO: handle this more generically!!
     {
-      StartCoroutine(DoAttack((AttackSkillData)characterSkills[selectedSkillIdx]));
+      UseAttack((AttackSkillData)characterSkills[selectedSkillIdx]);
     }
   }
 

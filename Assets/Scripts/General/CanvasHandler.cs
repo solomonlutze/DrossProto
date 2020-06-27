@@ -76,7 +76,7 @@ public class CanvasHandler : MonoBehaviour
     PlayerController player = GameMaster.Instance.GetPlayerController();
     if (player != null)
     {
-      DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.pupa, null);
+      DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.characterSkills, Character.CalculateSkills(player.pupa), player.pupa, null);
     }
   }
 
@@ -89,12 +89,14 @@ public class CanvasHandler : MonoBehaviour
   public void DisplayAttributesView(
     CharacterAttributeToIntDictionary currentAttributes,
     CharacterAttributeToIntDictionary nextAttributes,
+    List<CharacterSkillData> skillDatas,
+    List<CharacterSkillData> pupaSkillDatas,
     TraitSlotToTraitDictionary pupaTraits,
     TraitPickupItem traitPickupItem)
   {
     SetAllCanvasesInactive();
     attributesView.gameObject.SetActive(true);
-    attributesView.Init(currentAttributes, nextAttributes, pupaTraits, traitPickupItem);
+    attributesView.Init(currentAttributes, nextAttributes, skillDatas, pupaSkillDatas, pupaTraits, traitPickupItem);
     attributesView.gameObject.SetActive(true);
     GameMaster.Instance.SetGameStatus(Constants.GameState.Menu);
   }
@@ -104,7 +106,7 @@ public class CanvasHandler : MonoBehaviour
     PlayerController player = GameMaster.Instance.GetPlayerController();
     if (player != null)
     {
-      DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.pupa, traitItem);
+      DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.characterSkills, Character.CalculateSkills(player.pupa), player.pupa, traitItem);
     }
   }
 }
