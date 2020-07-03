@@ -16,6 +16,9 @@ Hey hi welcome back!
 
 <<endif>>
 [[how do I play?|Lint_DEMO.HowToPlay]]
+<<if visited("Lint_DEMO.HowToPlay")
+[[ok so how do I get to your basement|Lint_DEMO.HowToBasement]]
+<<endif>
 [[ok bye|Lint_DEMO.Leave]]
 ===
 title: Lint_DEMO.HowToPlay
@@ -24,13 +27,33 @@ colorID: 0
 position: 0,0
 parent: 
 ---
-Grab some of the lymph inside and try assigning them to your pupa - your next life. Press "I" to see your inventory. When you want to try out your pupa, press "=" to die!
+Go kill some bugs and steal their lymph!
 
-The same lymph will have different effects in different slots, so try them out! You can read the provided readme for a breakdown of what the different traits do.
+You can equip lymph to each of the different body parts - head, thorax, abdomen, legs, wings - of your pupa, or next life.
 
-Otherwise, just mess around - if you find another NPC you've basically got it all figured out.
+Whenever you get around to dying, you'll respawn with the body parts equipped to your pupa. Different parts have different effects, s=o experiment with equipping different lymphs to the same slot, or the same lymph to different slots.
 
-If not, just keep track of stuff you can't figure out how to do or things that aren't surfaced well.
+The finished game will have a dense, winding world, full of strange bugs to flirt with, mysterious histories to unravel, and a life-or-death confrontation with extinction and empire.
+
+But this is just a demo, and I locked myself out of my basement, so if you can just get that resolved it'd probably count as a win for you. Plus I'd really appreciate it.
+
+[[great, thanks|Lint_DEMO]]
+===
+title: Lint_DEMO.HowToBasement
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Your starting bug has one of three abilities: water walking, burrowing, or fungus protection. 
+
+Find whichever two of those you're missing,  and use all three abilities to get under the house, right below where we are now. 
+
+There's a few kinds of bug around here - they'll have what you need!
+
+If you kill them, I mean.
+
+[[got it.|Lint_DEMO.Leave]]
 ===
 title: Lint_DEMO.Leave
 tags: 
