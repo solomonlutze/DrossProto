@@ -16,9 +16,9 @@ Hey hi welcome back!
 
 <<endif>>
 [[how do I play?|Lint_DEMO.HowToPlay]]
-<<if visited("Lint_DEMO.HowToPlay")
+<<if visited("Lint_DEMO.HowToPlay")>>
 [[ok so how do I get to your basement|Lint_DEMO.HowToBasement]]
-<<endif>
+<<endif>>
 [[ok bye|Lint_DEMO.Leave]]
 ===
 title: Lint_DEMO.HowToPlay
