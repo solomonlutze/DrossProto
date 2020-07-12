@@ -280,7 +280,7 @@ public class GridManager : Singleton<GridManager>
   public bool CanDescendThroughCurrentTile(TileLocation location, Character c)
   {
     EnvironmentTileInfo tileBelow = GetAdjacentTile(location.position3D, location.floorLayer, TilemapDirection.Below);
-    if (tileBelow != null && tileBelow.CharacterCanOccupyTile(c))
+    if (tileBelow != null && tileBelow.CharacterCanOccupyTile(c) && tileBelow.CharacterCanCrossTile(c))
     {
       return GetTileAtLocation(location).CharacterCanPassThroughFloorTile(c);
     }
@@ -290,7 +290,7 @@ public class GridManager : Singleton<GridManager>
   public bool CanAscendThroughTileAbove(TileLocation location, Character c)
   {
     EnvironmentTileInfo tileAbove = GetAdjacentTile(location.position3D, location.floorLayer, TilemapDirection.Above);
-    if (tileAbove != null && tileAbove.CharacterCanOccupyTile(c))
+    if (tileAbove != null && tileAbove.CharacterCanOccupyTile(c) && tileAbove.CharacterCanCrossTile(c))
     {
       return GetTileAtLocation(tileAbove.tileLocation).CharacterCanPassThroughFloorTile(c);
     }

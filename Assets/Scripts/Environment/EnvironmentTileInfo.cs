@@ -128,9 +128,6 @@ public class EnvironmentTileInfo
     if (objectTileType == null) { return false; }
     foreach (CharacterAttribute attribute in objectTileType.attributesWhichAllowBurrowing.Keys)
     {
-      Debug.Log("attribute: " + attribute);
-      Debug.Log("value: " + character.GetAttribute(attribute));
-      Debug.Log("required: " + objectTileType.attributesWhichAllowBurrowing[attribute]);
       if (character.GetAttribute(attribute) > 0
           && character.GetAttribute(attribute) >= objectTileType.attributesWhichAllowBurrowing[attribute]
       )
