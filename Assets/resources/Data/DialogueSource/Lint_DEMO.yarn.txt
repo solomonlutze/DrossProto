@@ -1,4 +1,14 @@
 
+title: Lint_DEMO.Congratulations
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Congratulations! That means you've beaten the demo!
+
+I hope you won't be too offended if I don't go check it out. Scripted motion for cutscenes isn't implemented yet, plus it sucks down there.
+===
 title: Lint_DEMO
 tags: 
 colorID: 0
@@ -14,6 +24,9 @@ Name's Lint. Happy to meetcha, and welcome to the Delta! Er. A neatly-sequestere
 
 Hey hi welcome back!
 
+<<endif>>
+<<if $basement_open>>
+[[hey I fixed your basement|Lint_DEMO.Congratulations]]
 <<endif>>
 [[how do I play?|Lint_DEMO.HowToPlay]]
 <<if visited("Lint_DEMO.HowToPlay")>>
@@ -35,7 +48,7 @@ Whenever you get around to dying, you'll respawn with the body parts equipped to
 
 The finished game will have a dense, winding world, full of strange bugs to flirt with, mysterious histories to unravel, and a life-or-death confrontation with extinction and empire.
 
-But this is just a demo, and I locked myself out of my basement, so if you can just get that resolved it'd probably count as a win for you. Plus I'd really appreciate it.
+But this is just a demo, and I locked myself out of my basement, so if you can just get that resolved it'd probably count as a win for you. And I'd really appreciate it.
 
 [[great, thanks|Lint_DEMO]]
 ===

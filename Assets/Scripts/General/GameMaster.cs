@@ -113,6 +113,7 @@ public class GameMaster : Singleton<GameMaster>
     playerController.SetCurrentFloor(playerController.currentFloor);
     playerController.Init(overrideTraits);
     DoActivateOnPlayerRespawn();
+    DoDestroyOnPlayerRespawn();
     SetGameStatus(Constants.GameState.Play);
   }
 
@@ -124,6 +125,16 @@ public class GameMaster : Singleton<GameMaster>
       obj.SendMessage("Activate", SendMessageOptions.RequireReceiver);
     }
   }
+
+  private void DoDestroyOnPlayerRespawn()
+  {
+    GameObject[] objectsToDestroy = GameObject.FindGameObjectsWithTag("DestroyOnPlayerRespawn");
+    foreach (GameObject obj in objectsToDestroy)
+    {
+      obj.SendMessage("Destroy", SendMessageOptions.RequireReceiver);
+    }
+  }
+
   private GameObject ChooseSpawnPoint()
   {
     return nextSpawnPoint ?? null;
