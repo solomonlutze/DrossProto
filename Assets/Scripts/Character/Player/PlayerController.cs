@@ -250,6 +250,7 @@ public class PlayerController : Character
         }
         else if (Input.GetButtonDown("Dash"))
         {
+          return; // TODO: DELETE THIS
           Debug.Log("dash?");
           if (CanDash())
           {
@@ -269,6 +270,7 @@ public class PlayerController : Character
           }
           else if (!flying)
           {
+            return; // TODO: DELETE THIS
             Fly();
           }
         }

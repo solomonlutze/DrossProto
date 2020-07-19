@@ -8,26 +8,33 @@ public class TileChangingSwitch : Interactable
   public Sprite flippedSprite;
   public GameObject tileTargets;
   private bool flipped = false;
-  public override string interactableText {
-    get {
-      if (!flipped) {
+  public override string interactableText
+  {
+    get
+    {
+      if (!flipped)
+      {
         return "use switch";
       }
       return "";
     }
-    set {}
+    set { }
   }
 
-  void PlayerActivate () {
-		// Replace each tile
+  void PlayerActivate()
+  {
+    // Replace each tile
     if (flipped) { return; }
     flipped = true;
     isInteractable = false;
     GetComponent<SpriteRenderer>().sprite = flippedSprite;
-    foreach(TileTarget tileTarget in tileTargets.GetComponentsInChildren<TileTarget>()) {
-      FloorLayer fl = (FloorLayer) Enum.Parse(typeof (FloorLayer), LayerMask.LayerToName(tileTarget.gameObject.layer));
+    GameMaster.Instance.dialogueVariableStorage.SetValue("$" + transform.parent.gameObject.name, new Yarn.Value(true));
+    Debug.Log(GameMaster.Instance.dialogueVariableStorage.GetValue("$" + transform.parent.gameObject.name));
+    foreach (TileTarget tileTarget in tileTargets.GetComponentsInChildren<TileTarget>())
+    {
+      FloorLayer fl = (FloorLayer)Enum.Parse(typeof(FloorLayer), LayerMask.LayerToName(tileTarget.gameObject.layer));
       TileLocation loc = new TileLocation(tileTarget.transform.position, fl);
       GridManager.Instance.ReplaceTileAtLocation(loc, tileTarget.tileToReplaceWith);
     }
-	}
+  }
 }

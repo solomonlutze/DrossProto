@@ -12,6 +12,7 @@ public class GameMaster : Singleton<GameMaster>
   public CanvasHandler canvasHandler;
   public GameObject playerPrefab;
   public DialogueRunner dialogueRunner;
+  public VariableStorage dialogueVariableStorage;
   private PlayerController playerController;
   private PathfindingSystem pathfinding;
   private Constants.GameState gameStatus;

@@ -20,11 +20,11 @@ public class LayerRenderer : MonoBehaviour
     }
     else
     {
-      GameObject selectedObject = Selection.objects.Length > 0 ? Selection.objects[0] as GameObject : null;
-      if (selectedObject && WorldObject.GetFloorLayerOfGameObject(selectedObject) != lastTargetedFloorLayer)
-      {
-        lastTargetedFloorLayer = WorldObject.GetFloorLayerOfGameObject(selectedObject);
-      }
+      // GameObject selectedObject = Selection.objects.Length > 0 ? Selection.objects[0] as GameObject : null;
+      // if (selectedObject && WorldObject.GetFloorLayerOfGameObject(selectedObject) != lastTargetedFloorLayer)
+      // {
+      //   lastTargetedFloorLayer = WorldObject.GetFloorLayerOfGameObject(selectedObject);
+      // }
       HandleOpacity(lastTargetedFloorLayer);
     }
   }

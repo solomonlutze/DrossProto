@@ -25,7 +25,7 @@ Name's Lint. Happy to meetcha, and welcome to the Delta! Er. A neatly-sequestere
 Hey hi welcome back!
 
 <<endif>>
-<<if $basement_open>>
+<<if $TileChangingSwitch_Stairs_Basement>>
 [[hey I fixed your basement|Lint_DEMO.Congratulations]]
 <<endif>>
 [[how do I play?|Lint_DEMO.HowToPlay]]
@@ -44,13 +44,17 @@ Go kill some bugs and steal their lymph!
 
 You can equip lymph to each of the different body parts - head, thorax, abdomen, legs, wings - of your pupa, or next life.
 
-Whenever you get around to dying, you'll respawn with the body parts equipped to your pupa. Different parts have different effects, s=o experiment with equipping different lymphs to the same slot, or the same lymph to different slots.
+Whenever you get around to dying, you'll respawn with the body parts equipped to your pupa. 
 
-The finished game will have a dense, winding world, full of strange bugs to flirt with, mysterious histories to unravel, and a life-or-death confrontation with extinction and empire.
+Different parts have different effects, so experiment with equipping different lymphs to the same slot, or the same lymph to different slots.
 
-But this is just a demo, and I locked myself out of my basement, so if you can just get that resolved it'd probably count as a win for you. And I'd really appreciate it.
+The finished game will have a dense, winding world, full of strange bugs to flirt with and a life-or-death confrontation with extinction and empire.
 
-[[great, thanks|Lint_DEMO]]
+But this is just a demo, and I locked myself out of my basement, so if you can just get that resolved that's fine for now. 
+
+And I'd really appreciate it.
+
+[[great, thanks|Lint_DEMO.Leave]]
 ===
 title: Lint_DEMO.HowToBasement
 tags: 
