@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[SelectionBase]
 public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
 {
   // Update is called once per frame

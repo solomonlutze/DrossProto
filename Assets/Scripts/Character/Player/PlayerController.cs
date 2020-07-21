@@ -239,7 +239,7 @@ public class PlayerController : Character
     switch (GameMaster.Instance.GetGameStatus())
     {
       case (Constants.GameState.Play):
-        Debug.Log("handling player input");
+        // Debug.Log("handling player input");
         if (Input.GetButtonDown("Activate")) { Debug.Log("pressed activate"); }
         if (Input.GetKeyDown("e")) { Debug.Log("pressed e"); }
         if (Input.GetButtonDown("Attack"))
@@ -251,7 +251,7 @@ public class PlayerController : Character
         else if (Input.GetButtonDown("Dash"))
         {
           return; // TODO: DELETE THIS
-          Debug.Log("dash?");
+          // Debug.Log("dash?");
           if (CanDash())
           {
             Dash();
@@ -309,6 +309,7 @@ public class PlayerController : Character
         }
         else if (Input.GetButtonDown("Molt"))
         {
+          return; // TODO: DELETE THIS
           Molt();
         }
         // else if (Input.GetButtonDown("Skill1"))
