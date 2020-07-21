@@ -132,7 +132,7 @@ public class GameMaster : Singleton<GameMaster>
     GameObject[] objectsToDestroy = GameObject.FindGameObjectsWithTag("DestroyOnPlayerRespawn");
     foreach (GameObject obj in objectsToDestroy)
     {
-      obj.SendMessage("Destroy", SendMessageOptions.RequireReceiver);
+      Destroy(obj);
     }
   }
 

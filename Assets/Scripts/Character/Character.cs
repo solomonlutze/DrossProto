@@ -637,7 +637,7 @@ public class Character : WorldObject
   protected void Molt()
   {
     Instantiate(moltCasingPrefab, orientation.transform.position, orientation.transform.rotation);
-    // moltCasingPrefab.Init(mainRenderer.color, this);
+    moltCasingPrefab.Init(Color.white, this);
     AdjustCurrentMoltCount(1);
     AdjustCurrentHealth(5);
   }
