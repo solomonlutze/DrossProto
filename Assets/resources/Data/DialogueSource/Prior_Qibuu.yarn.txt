@@ -1,0 +1,48 @@
+
+title: Qibuu.Delta
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+
+===
+title: Qibuu.Cathedral
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+This place is a respite within the Delta, and the start of the Pilgrim's Walk to the Capital, northeast of here.
+
+The Cathedral is for celebrating and contemplating the nature of God, and of the Province. You may stay as long as you like.
+===
+title: Qibuu.Church
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+
+===
+title: Qibuu
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+<< if visited("Qibuu") is false >>
+
+Welcome to the Dross Cathedral, child.
+
+I am Prior Qibuu. I administer the Cathedral. Be at ease here.
+
+<<else>>
+
+Welcome home, child.
+
+[[Tell me about the Cathedral.|Qibuu.Cathedral]]
+[[Tell me about the Dross Church.|Qibuu.Church]]
+[[Tell me about the rest of the Delta.|Qibuu.Delta]]
+<<endif>>
+===

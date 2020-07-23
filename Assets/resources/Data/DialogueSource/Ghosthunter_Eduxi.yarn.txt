@@ -1,0 +1,92 @@
+
+title: Eduxi.Mushrooms
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+The ones here are straightforward enough. They'll just kill you.
+
+Deeper in the forest, though, there's older ones. Stranger ones. Cursed spores that linger in the soul.
+
+There's more at stake than death when you deal with ghosts. If you go in there, you're not just risking your life.
+
+Stay on your guard.
+===
+title: Eduxi.Camp
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+This is as close as we can safely get to the Forest north of here, mostly because it's full of mushrooms that will kill you very quickly.
+
+<<set $eduxi_camp_explained to true>>
+In fact, if you look below us you can see some of them. Watch your step.
+===
+title: Eduxi.LeaveAnnoyed
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Hrm.
+===
+title: Eduxi.Leave
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+
+===
+title: Eduxi.Explain
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+I thought it would be self-evident.
+
+Ghosts wander out of the forest. We keep them from getting to civilization. Ghosts don't mingle well with polite company.
+->Can't you try to reason with them?
+	Ghosts are inherently unreasonable. They're ghosts. 
+->Can't you go into the forest and kill them all?
+	Ha! I love it. I love your enthusiasm.
+	But, no. That's a singularly terrible idea. The forest is poisonous to the living, and the ghosts in there...
+	Well. Suffice it to say, it's not feasible. So we set up a perimeter, and we keep what we can from getting out.
+===
+title: Ghosthunter_Eduxi
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+<<if not visited("Ghosthunter_Eduxi")>>
+Do you believe in ghosts, pilgrim?
+
+-> Of course.
+	Ha. Good. Good. But are you afraid of them?
+	-> Yes?
+		Hm. Well. We'll see. We'll see.
+	->No?
+		Hm. Well. We'll see. We'll see.
+
+-> Of course not.
+	Hah. They don't believe in you either.
+
+Name's Eduxi. I'm the captain of the Ghosthunter camp, which is the thing you're standing in. You can call me "Captain."
+<<else>>
+
+Pilgrim.
+[[What's a Ghosthunter?|Eduxi.Explain]]
+<<if $eduxi_camp_explained>>
+[[What's this about mushrooms?|Eduxi.Mushrooms]]
+<<else>>
+[[Tell me about the camp?|Eduxi.Camp]]
+<<endif>>
+[[Captain.|Eduxi.Leave]]
+[[Eduxi.|Eduxi.LeaveAnnoyed]]
+
+<<endif>>
+===

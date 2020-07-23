@@ -68,7 +68,11 @@ public class CustomPhysicsController : MonoBehaviour
   {
     if (owningCharacter != null)
     {
-      if (owningCharacter.dashing)
+      if (owningCharacter.flying)
+      {
+        moveAcceleration = owningCharacter.GetStat(CharacterStat.FlightAcceleration);
+      }
+      if (owningCharacter.IsDashing())
       {
         moveAcceleration = owningCharacter.GetStat(CharacterStat.DashAcceleration);
       }
@@ -256,4 +260,13 @@ public class CustomPhysicsController : MonoBehaviour
     velocity += new Vector2(impulse.x, impulse.y);
   }
 
+  public static float GetMinimumDistanceBetweenObjects(GameObject a, GameObject b)
+  {
+    if (a.GetComponentInChildren<Collider2D>() == null || b.GetComponentInChildren<Collider2D>() == null)
+    {
+      // one of these doesn't have a collider; they are allowed to overlap, so a min distance of 0 is allowed
+      return Vector3.Distance(a.transform.position, b.transform.position);
+    }
+    return a.GetComponentInChildren<Collider2D>().Distance(b.GetComponentInChildren<Collider2D>()).distance;
+  }
 }

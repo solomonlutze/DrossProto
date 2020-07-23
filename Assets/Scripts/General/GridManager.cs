@@ -104,20 +104,17 @@ public class GridManager : Singleton<GridManager>
   public Dictionary<FloorLayer, Dictionary<Vector2Int, EnvironmentTileInfo>> worldGrid;
 
   private List<EnvironmentTileInfo> tilesToDestroyOnPlayerRespawn;
+
+  private List<EnvironmentTileInfo> tilesToRestoreOnPlayerRespawn;
   public GameObject highlightTilePrefab;
   public void Awake()
   {
     worldGrid = new Dictionary<FloorLayer, Dictionary<Vector2Int, EnvironmentTileInfo>>();
     tilesToDestroyOnPlayerRespawn = new List<EnvironmentTileInfo>();
+    tilesToRestoreOnPlayerRespawn = new List<EnvironmentTileInfo>();
     Dictionary<Vector2, EnvironmentTileInfo> floor = new Dictionary<Vector2, EnvironmentTileInfo>();
     Tilemap groundTilemap;
     Tilemap objectTilemap;
-    foreach (LayerFloor layerFloor in levelGrid.GetComponentsInChildren<LayerFloor>())
-    {
-      FloorLayer fl = (FloorLayer)Enum.Parse(typeof(FloorLayer), layerFloor.gameObject.name);
-      layerFloors[fl] = layerFloor;
-    }
-
     int minXAcrossAllFloors = 5000;
     int maxXAcrossAllFloors = -5000;
     int minYAcrossAllFloors = 5000;
@@ -151,6 +148,7 @@ public class GridManager : Singleton<GridManager>
 
         }
       }
+      // }
     }
   }
 
@@ -195,6 +193,25 @@ public class GridManager : Singleton<GridManager>
     return worldGrid[loc.floorLayer][loc.position];
   }
 
+  public LayerFloor GetFloorLayerAbove(FloorLayer floorLayer)
+  {
+    FloorLayer fl = (FloorLayer)floorLayer + 1;
+    if (layerFloors.ContainsKey(fl))
+    {
+      return layerFloors[fl];
+    }
+    return null;
+  }
+
+  public LayerFloor GetFloorLayerBelow(FloorLayer floorLayer)
+  {
+    FloorLayer fl = (FloorLayer)floorLayer - 1;
+    if (layerFloors.ContainsKey(fl))
+    {
+      return layerFloors[fl];
+    }
+    return null;
+  }
   // public EnvironmentTile GetTileAtLocation(Vector2 loc, FloorLayer floor, FloorTilemapType? floorTilemapType=null) {
   // 	Debug.Log("inside GetTileAtLocation?");
   // 	if (!layerFloors.ContainsKey(floor) || layerFloors[floor].groundTilemap == null || layerFloors[floor].objectTilemap == null)
@@ -255,9 +272,29 @@ public class GridManager : Singleton<GridManager>
     }
     return false;
   }
-  public bool CanBurrowOnCurrentTile(TileLocation tileLoc)
+  public bool CanBurrowOnCurrentTile(TileLocation tileLoc, Character c)
   {
     return GetTileAtLocation(tileLoc).groundTileTags.Contains(TileTag.Ground);
+  }
+
+  public bool CanDescendThroughCurrentTile(TileLocation location, Character c)
+  {
+    EnvironmentTileInfo tileBelow = GetAdjacentTile(location.position3D, location.floorLayer, TilemapDirection.Below);
+    if (tileBelow != null && tileBelow.CharacterCanOccupyTile(c) && tileBelow.CharacterCanCrossTile(c))
+    {
+      return GetTileAtLocation(location).CharacterCanPassThroughFloorTile(c);
+    }
+    return false;
+  }
+
+  public bool CanAscendThroughTileAbove(TileLocation location, Character c)
+  {
+    EnvironmentTileInfo tileAbove = GetAdjacentTile(location.position3D, location.floorLayer, TilemapDirection.Above);
+    if (tileAbove != null && tileAbove.CharacterCanOccupyTile(c) && tileAbove.CharacterCanCrossTile(c))
+    {
+      return GetTileAtLocation(tileAbove.tileLocation).CharacterCanPassThroughFloorTile(c);
+    }
+    return false;
   }
 
   public bool CanClimbAdjacentTile(TileLocation tileLoc)
@@ -286,6 +323,56 @@ public class GridManager : Singleton<GridManager>
       }
     }
     return false;
+  }
+
+  public bool AdjacentTileIsValid(TileLocation location, TilemapDirection direction)
+  {
+    switch (direction)
+    {
+      case TilemapDirection.Up:
+        return TileIsValid(new TileLocation(location.position + new Vector2Int(0, 1), location.floorLayer));
+      case TilemapDirection.Down:
+        return TileIsValid(new TileLocation(location.position + new Vector2Int(0, -1), location.floorLayer));
+      case TilemapDirection.Right:
+        return TileIsValid(new TileLocation(location.position + new Vector2Int(1, 0), location.floorLayer));
+      case TilemapDirection.Left:
+        return TileIsValid(new TileLocation(location.position + new Vector2Int(-1, 0), location.floorLayer));
+      case TilemapDirection.Above:
+        return TileIsValid(new TileLocation(location.position, location.floorLayer + 1));
+      case TilemapDirection.Below:
+        return TileIsValid(new TileLocation(location.position + new Vector2Int(0, 1), location.floorLayer - 1));
+      case TilemapDirection.None:
+      default:
+        return TileIsValid(location);
+    }
+  }
+
+  public bool TileIsValid(TileLocation loc)
+  {
+    if (!worldGrid.ContainsKey(loc.floorLayer))
+    {
+      return false;
+    }
+    if (!worldGrid[loc.floorLayer].ContainsKey(loc.position))
+    {
+      return false;
+    }
+    return true;
+  }
+
+  public bool AdjacentTileIsValidAndEmpty(TileLocation location, TilemapDirection dir)
+  {
+    return AdjacentTileIsValid(location, dir) && GetAdjacentTile(location, dir).IsEmpty();
+  }
+
+  public bool TileIsValidAndEmpty(TileLocation location)
+  {
+    return TileIsValid(location) && GetTileAtLocation(location).IsEmpty();
+  }
+
+  public EnvironmentTileInfo GetAdjacentTile(TileLocation location, TilemapDirection dir)
+  {
+    return GetAdjacentTile(location.position3D, location.floorLayer, dir);
   }
 
   public EnvironmentTileInfo GetAdjacentTile(Vector3 loc, FloorLayer floor, TilemapDirection direction)
@@ -367,6 +454,13 @@ public class GridManager : Singleton<GridManager>
     EnvironmentTileInfo newTileInfo = ReplaceTileAtLocation(tile.tileLocation, replacementTile);
     tilesToDestroyOnPlayerRespawn.Add(newTileInfo);
   }
+
+  public void MarkTileToRestoreOnPlayerRespawn(EnvironmentTileInfo tile)
+  {
+    EnvironmentTileInfo oldTileInfo = tile;
+    tilesToRestoreOnPlayerRespawn.Add(oldTileInfo);
+  }
+
   public void DestroyTilesOnPlayerRespawn()
   {
     foreach (EnvironmentTileInfo tile in tilesToDestroyOnPlayerRespawn)
@@ -376,9 +470,18 @@ public class GridManager : Singleton<GridManager>
     tilesToDestroyOnPlayerRespawn.Clear();
   }
 
+  public void RestoreTilesOnPlayerRespawn()
+  {
+    foreach (EnvironmentTileInfo tileInfo in tilesToRestoreOnPlayerRespawn)
+    {
+      ReplaceTileAtLocation(tileInfo.tileLocation, tileInfo.objectTileType);
+    }
+  }
+
   public void DEBUGHighlightTile(TileLocation tilePos)
   {
     GameObject tileHighlight = Instantiate(highlightTilePrefab, tilePos.position3D + new Vector3(.5f, .5f, 0), Quaternion.identity);
+    WorldObject.ChangeLayersRecursively(tileHighlight.transform, tilePos.floorLayer);
     StartCoroutine(DEBUGHighlightTileCleanup(tileHighlight));
   }
 
@@ -386,5 +489,16 @@ public class GridManager : Singleton<GridManager>
   {
     yield return null;
     Destroy(th);
+  }
+  public static float GetZOffsetForFloor(int floorLayer)
+  {
+    return (LayerMask.NameToLayer("B6") + Constants.numberOfFloorLayers) - floorLayer;
+    // floor layers 9-20 (bottom to top)
+    // we want them from 0-12, top to bottom
+    // 20 = 0, 19 = 1, 18 = 2, 17 = 3
+    // fl - (firstFloorLayerIndex + number of floors)?
+    // int firstFloorLayerIndex = LayerMask.NameToLayer("B6"); // like... 15
+    // return firstFloorLayerIndex - floorLayer;
+    // int numberOfFloorLayers = Constants.numberOfFloorLayers; // 12?
   }
 }

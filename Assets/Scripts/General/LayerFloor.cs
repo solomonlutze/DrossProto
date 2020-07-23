@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEditor;
 
+[SelectionBase]
 [ExecuteAlways]
 public class LayerFloor : MonoBehaviour
 {
@@ -12,6 +13,11 @@ public class LayerFloor : MonoBehaviour
   {
     if (!Application.IsPlaying(gameObject))
     {
+      if (transform.position.z != GridManager.GetZOffsetForFloor(gameObject.layer))
+      {
+        transform.position = new Vector3(0, 0, GridManager.GetZOffsetForFloor(gameObject.layer));
+      }
+      if (gameObject.name == "LayerFloor") { return; }
       gameObject.layer = LayerMask.NameToLayer(gameObject.name);
       if (groundTilemap == null && transform.Find(gameObject.name + "_Ground") != null)
       {

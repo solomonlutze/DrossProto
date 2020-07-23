@@ -25,7 +25,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
 
   public GridManager gridManager;
 
-  public IEnumerator CalculatePathToTarget(Vector3 startPosition, TileLocation targetLocation, AiStateController ai, WorldObject objectOfInterest = null)
+  public IEnumerator CalculatePathToTarget(Vector3 startPosition, TileLocation targetLocation, AiStateController ai, AiAction initiatingAction, WorldObject objectOfInterest = null)
   {
     ai.SetIsCalculatingPath(true);
     bool foundPath = false;
@@ -35,13 +35,13 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     Dictionary<TileLocation, Node> nodeLocationsToNodes = new Dictionary<TileLocation, Node>();
     List<Node> adjacentNodes;
     List<Node> finalPath = new List<Node>();
-    Node startNode = InitNewNode(Mathf.FloorToInt(startPosition.x), Mathf.FloorToInt(startPosition.y), ai.currentFloor, null, targetLocation);
+    Node startNode = InitNewNode(Mathf.FloorToInt(startPosition.x), Mathf.FloorToInt(startPosition.y), 0, ai.currentFloor, null, targetLocation);
     openNodes.Enqueue(startNode.loc, startNode.f);
     nodeLocationsToNodes[startNode.loc] = startNode;
     timeSpentThisFrame.Start();
     while (openNodes.Count > 0)
     {
-      if (timeSpentThisFrame.ElapsedMilliseconds > 15)
+      if (timeSpentThisFrame.ElapsedMilliseconds > 1)
       {
         yield return null;
         timeSpentThisFrame.Restart();
@@ -67,7 +67,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         foundPath = true;
         break;
       }
-      adjacentNodes = GetAdjacentNodes(nextNode, targetLocation, ai);
+      adjacentNodes = GetAdjacentNodes(nextNode, targetLocation, ai, initiatingAction);
       foreach (Node node in adjacentNodes)
       {
         if (closedNodes.Contains(node.loc))
@@ -89,14 +89,16 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       }
     }
     ai.SetIsCalculatingPath(false);
-    if (!foundPath)
+    if (foundPath)
     {
-      ai.SetPathToTarget(null);
+      DebugDrawPath(finalPath, .01f);
+      // UnityEngine.Debug.Break();
+      if (objectOfInterest != null) { ai.objectOfInterest = objectOfInterest; }
+      ai.SetPathToTarget(finalPath);
     }
     else
     {
-      if (objectOfInterest != null) { ai.objectOfInterest = objectOfInterest; }
-      ai.SetPathToTarget(finalPath);
+      ai.SetPathToTarget(null);
     }
     // Each node has a score F, equal to G+H
     // G is cost to get to this node from original node
@@ -112,15 +114,23 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   }
 
 
-  List<Node> GetAdjacentNodes(Node originNode, TileLocation targetLocation, AiStateController ai)
+  private void DebugDrawPath(List<Node> path, float t)
+  {
+    for (int i = 0; i < path.Count - 1; i++)
+    {
+      UnityEngine.Debug.DrawLine(path[i].loc.position3D, path[i + 1].loc.position3D, Color.red, t);
+    }
+  }
+
+  List<Node> GetAdjacentNodes(Node originNode, TileLocation targetLocation, AiStateController ai, AiAction initiatingAction)
   {
     List<Node> nodes = new List<Node>();
-    MaybeAddNode(nodes, originNode.loc.position.x + 1, originNode.loc.position.y, originNode.loc.floorLayer, originNode, targetLocation, ai);
-    MaybeAddNode(nodes, originNode.loc.position.x - 1, originNode.loc.position.y, originNode.loc.floorLayer, originNode, targetLocation, ai);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y + 1, originNode.loc.floorLayer, originNode, targetLocation, ai);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y - 1, originNode.loc.floorLayer, originNode, targetLocation, ai);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y, originNode.loc.floorLayer + 1, originNode, targetLocation, ai);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y, originNode.loc.floorLayer - 1, originNode, targetLocation, ai);
+    MaybeAddNode(nodes, originNode.loc.position.x + 1, originNode.loc.position.y, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.position.x - 1, originNode.loc.position.y, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y + 1, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y - 1, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y, originNode.loc.floorLayer + 1, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y, originNode.loc.floorLayer - 1, originNode, targetLocation, ai, initiatingAction);
     return nodes;
   }
 
@@ -131,10 +141,10 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       return false;
     }
     Vector3[] colliderCorners = new Vector3[]{
-      new Vector3 (ai.col.radius, 0, 0),
-      new Vector3 (-ai.col.radius, 0, 0),
-      new Vector3 (0, ai.col.radius, 0),
-      new Vector3 (0, -ai.col.radius, 0),
+      new Vector3 (ai.circleCollider.radius, 0, 0),
+      new Vector3 (-ai.circleCollider.radius, 0, 0),
+      new Vector3 (0, ai.circleCollider.radius, 0),
+      new Vector3 (0, -ai.circleCollider.radius, 0),
 			// new Vector3 (col.bounds.extents.x, col.bounds.extents.y, 0),
 			// new Vector3 (-col.bounds.extents.x, col.bounds.extents.y, 0),
 			// new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),
@@ -143,12 +153,12 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     HashSet<EnvironmentTileInfo> tilesAlongPath = new HashSet<EnvironmentTileInfo>();
     foreach (Vector3 pt in colliderCorners)
     {
-      tilesAlongPath.UnionWith(GetAllTilesBetweenPoints(ai.transform.TransformPoint(pt), targetPosition, targetFloor));
+      tilesAlongPath.UnionWith(GetAllTilesBetweenPoints(ai.transform.TransformPoint(pt), targetPosition + pt, targetFloor));
     }
-    foreach (EnvironmentTileInfo eti in tilesAlongPath)
-    {
-      GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
-    }
+    // foreach (EnvironmentTileInfo eti in tilesAlongPath)
+    // {
+    // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
+    // }
     foreach (EnvironmentTileInfo eti in tilesAlongPath)
     {
       if (eti == null || eti.dealsDamage)
@@ -163,6 +173,29 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     return true;
   }
 
+  // USUALLY returns either 1 (can cross) or -1 (can't cross).
+  // MAY return a higher value if the tile deals damage; edit this function to adjust how hard that's weighed
+  private int GetNodeTravelCost(EnvironmentTileInfo tileInfo, AiStateController ai, AiAction initiatingAction)
+  {
+    if (!tileInfo.CharacterCanOccupyTile(ai) || !tileInfo.CharacterCanCrossTile(ai))
+    {
+      return -1;
+    }
+    int cost = 1;
+    if (tileInfo.dealsDamage)
+    {
+      foreach (EnvironmentalDamage envDamage in tileInfo.environmentalDamageSources)
+      {
+
+        if (ai.GetDamageTypeResistanceLevel(envDamage.damageType) < envDamage.GetResistanceRequiredForImmunity())
+        {
+          if (initiatingAction.hazardCrossingCost == -1) { return -1; }
+          cost += initiatingAction.hazardCrossingCost;
+        }
+      }
+    }
+    return cost;
+  }
   private bool CanPassOverTile(EnvironmentTileInfo tile, AiStateController ai)
   {
     return
@@ -176,7 +209,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     // return !tile.dealsDamage || ai.damageTypeResistances[tile.environmentalDamage.damageType] == 100;
     return !tile.dealsDamage;
   }
-  // remorselessly borrowed from
+
   //TODO: in order to prevent enemies from deciding to step on hazards at low slopes, might need to conditionally floor or ceil instead of RoundToInt
   // This function assumes both points are on the same floor layer. You've been warned!!
   public HashSet<EnvironmentTileInfo> GetAllTilesBetweenPoints(Vector3 origin, Vector3 target, FloorLayer floor)
@@ -299,6 +332,10 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       return false;
     }
     EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(currentNode.loc);
+    if (tileInfo.IsEmpty() && currentNode.loc.floorLayer - 1 == newFloor)
+    {
+      return true;
+    }
     if (tileInfo == null) { return false; }
     FloorLayer? targetLayer = null;
     if (tileInfo.ChangesFloorLayer())
@@ -308,7 +345,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     return (targetLayer != null && targetLayer == newFloor);
   }
 
-  void MaybeAddNode(List<Node> nodeList, int x, int y, FloorLayer floor, Node originNode, TileLocation targetLocation, AiStateController ai)
+  void MaybeAddNode(List<Node> nodeList, int x, int y, FloorLayer floor, Node originNode, TileLocation targetLocation, AiStateController ai, AiAction initiatingAction)
   {
     if (!gridManager.layerFloors.ContainsKey(floor)) { return; }
     LayerFloor layer = gridManager.layerFloors[floor];
@@ -323,15 +360,22 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     }
     Vector2Int tilePos = new Vector2Int(x, y);
     EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(new TileLocation(tilePos, floor));
-    if (eti == null) { return; }
-    if (!CanPassOverTile(eti, ai))
+    if (eti == null || eti.IsEmpty())
+    {
+      MaybeAddNode(nodeList, x, y, floor - 1, InitNewNode(x, y, 0, floor, originNode, targetLocation), targetLocation, ai, initiatingAction);
+      return;
+    }
+    if (eti.groundTileType == null) { return; }
+    int costToTravelOverNode = GetNodeTravelCost(eti, ai, initiatingAction);
+    if (costToTravelOverNode < 0)
     {
       return;
     }
-    nodeList.Add(InitNewNode(x, y, floor, originNode, targetLocation));
+    // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
+    nodeList.Add(InitNewNode(x, y, costToTravelOverNode, floor, originNode, targetLocation));
   }
 
-  Node InitNewNode(int x, int y, FloorLayer floor, Node parent, TileLocation targetLocation)
+  Node InitNewNode(int x, int y, int g, FloorLayer floor, Node parent, TileLocation targetLocation)
   {
     Node newNode = new Node();
     newNode.loc = new TileLocation(new Vector2Int(x, y), floor);
@@ -341,7 +385,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     if (parent != null)
     {
       newNode.parent = parent;
-      newNode.g = parent.g + 1;
+      newNode.g = parent.g + g;
       newNode.h = Mathf.Abs(Mathf.RoundToInt(targetLocation.position.x) - x)
         + Mathf.Abs(Mathf.RoundToInt(targetLocation.position.y) - y)
         + Mathf.Abs(targetLocation.floorLayer - floor);

@@ -1,0 +1,107 @@
+Skills:
+  -Help finding art direction
+  -Artist to produce assets
+  -Sound/music, if possible (could also use cheap sound assets + limited music, but soundtracking the game would be great)
+  
+
+Dross is a game about turning a single frail life into a link in an epochal, unbroken legacy. As a bug, you’ll explore a collapsing empire by collecting the lymph of your fallen foes, which will give your next life different abilities and allow you to travel to new locations and face tougher enemies. You are all too fragile, but for your descendants, perfection is attainable - and if your empire cannot be saved, perhaps it can be redeemed. 
+
+	Equip the traits of defeated enemies to gain their powers - scale steep cliffs, survive fungal spores, skate across water, and more
+	Master a variety of forms, combat styles, and strategies - consider an obstacle and build the best bug to overcome it
+	Navigate a dense, intricate world one twisting path at a time - each change to your bug opens some doors and closes others
+  
+Overall game structure: ~7 areas the player will explore. The player always respawns at (roughly) the center of the map; traversing to other parts of the map won’t take long once you know how to get there and have appropriate abilities. The most complete way to beat the game will involve visiting and “completing” all of them, but like e.g. Breath of the Wild it will be possible to get another ending for the game much earlier. In the “dream version” of this project, the late game would involve an asynchronous multiplayer, where certain save data is uploaded and downloaded by other players; only by receiving data from other players, and contributing to other players’ games in kind, would the “true ending” be possible.
+
+To-dos:
+
+-Art. There isn’t a style planned, and no worthy assets to speak of. I’d like to work with an artist to find a style, have an artist deliver on the style, and then add my own vfx etc.
+-UI. I need to add one, probably.
+-Programming. A lot of the systems already exist, but:
+	- Want to change ability system to be tiered - instead of just having “burrow”, we might have 2 tiers of burrowing, where 1 can burrow through sand and 2 can burrow through both sand and dirt, etc
+	-Additional abilities need to be programmed
+	-AI and combat abilities will need tweaking (AI especially needs to be able to sort of use the environment
+	-physics is mostly solid but there’s always more physics bugs
+	-Need a lot of boilerplate game stuff - save/load, etc.
+-Level building. Level development can happen fairly quickly but there’s a lot of it. Likely this will consist of building out main paths and then finding interesting ways to connect them to each other
+	-Level building will likely include fleshing out NPCs/their storylines too
+-Sound/Music: See above. Might have additional coding things to do here too.
+
+Best-case timeframe to launch:
+
+I think a year of full-time work is the minimum for what I’ve currently scoped. Failing that my guess is scope will be trimmed or it’ll go longer than that, or both. 
+
+Systems:
+
+Lymph System
+	Your character has five slots for lymph: head, thorax, abdomen, wings, legs.
+	Defeated enemies drop lymph, which can be equipped to any body part - equipping a lymph applies it towards your next life
+	Lymph improves your Attributes, which are a collection of scores that govern everything about your character. Attributes everything from combat abilities (power, speed, range) to exploration abilities (water resistance, wall climbing); you’ll need to balance the two to play effectively. There are many Attributes, and not every build will have all of them.
+	Lymph provides different Attribute bonuses based on where it’s equipped; eg one lymph might provide +2  Burrow when equipped to the Head, but provide  +1 Flight and +1 Hazard Resist when equipped to the Wings.
+	You can go through as many lives as you like with your current bug, but equipping a new lymph overrides the one in that slot; to get those effects back you’ll need to collect the lymph again. (But an NPC could be persuaded to hold on to very valuable lymph for you).
+	All character sprites are sliced into images for each of the 5 body parts. Equipping a lymph in a slot gives that body part the visual appearance of the lymph type you equipped. For example, you can equip a Templar Beetle lymph to your Head and an Old Ghost Moth lymph to your Wings, and have a big beetle horn with beautiful moth wings. This will be very badass, and everyone will be impressed.
+	
+	All characters are defined *entirely by their lymph.* If you equip an enemy’s lymph to all of your five slots, you will have all the same abilities as that enemy, and also look like them.
+	
+	Some Attributes have secondary effects; for example, sufficient physical damage can break cracked blocks, any Acid damage can melt weak metal, etc.
+	
+	Some of the known/possible Attributes:
+	
+	Attack
+	  Attack Power
+	  Attack Range
+	  Attack Agility
+	Damage Type
+	  Acid
+	  Cold
+	  Fungal
+	  Heat
+	Resistances
+	  Acid
+	  Cold
+	  Fungal
+	  Heat
+	  Water
+	  Hazard
+	Flight
+	  Speed
+	  Duration
+	Wall Climbing
+	Burrowing
+	Camouflage
+	Lure
+	Tremorsense (detect enemies on other floors)
+	Antennae (detect enemies off-screen)
+	
+	Attributes that provide special actions or abilities, such as Wall Climbing or Burrowing, will only be shown if they are above 0.
+	
+	Additionally, each Lymph has a weight value; the character’s weight is the sum of all their equipped Lymphs’ weight, and affects the character’s mobility, stun resist, and damage when colliding with an enemy.
+	  Right now, every enemy drops 1 lymph, but if that results in too frequent decision-making they might occur less often (or more lymph might be required to change an ability, etc).
+	  
+	Combat
+	
+	Combat emphasizes planning over repeatedly beating your head against a wall. It should be possible to overcome most challenges with only perseverance, but a willingness to step back and find a new build can work wonders. For example, an enemy with long-range attacks on a sandbar in a river might be a very tough foe, but could be overcome by building a bug with quicker attacks (to get in close) or one that can walk on water (to offer more space to evade). Melting away into hazards where the enemy can’t follow, dropping on them from above, or using camouflage to stay hidden are all viable ways of extending your lifespan. 
+	Combat has a “weapons triangle” aspect to it. Your character’s attack depends on which of their three attack stats - Power, Agility, Range - is highest (possibly with special attacks for ties). 
+	Power has a wide, slow sweep with high knockback; 
+	Agility has a short, fast jab; 
+	Range has a long-distance lance.
+	
+	Each of these is a soft counter to the attack after it: Range can snipe Power from afar, Power can zone out Agility with its sweeps, and Agility can hit Range before it can turn to fire. Because attack stats often appear alongside other desirable attributes, the player will have to use different weapon types with different builds, and may want to build towards a particular weapon type to ensure a favorable matchup against difficult enemies.
+	
+	All weapons increase in Range, Speed, and Power as those respective attributes rise.
+	
+	World
+	In technical terms, the world is made up of 12 “floor layers” that the player can move up and down between at particular points. Each of these is backed by a grid of tiles, and each tile type has its own behavior defined: Rocks block the player’s way, Water respawns the player, a player with Burrow can choose to descend through Dirt to the next floor down, etc. If the player or another character walks over an empty floor tile, they will fall through empty tiles until they land on something. 
+	The players’ abilities offer different traversal options, some of which might be required in combination to advance through particular paths. 
+	For example:
+	 -A route from the Delta to the Forest may require either Wall Climbing 1 _or_ Water Resistance 1. 
+	 -Along the way, there may be side paths/secrets that offer bonuses (rare lymph, etc) if the player has both Wall Climbing 1 _and_ Water Resistance 1.
+	 -Halfway through, the player may activate a shortcut that allows them to return WITHOUT either attribute, allowing them to replace their Water Resist 1 with Fungus Resist 1 so they can explore the forest beyond.
+	 
+	 In the final acts of the game the player will venture to each of the world’s furthest reaches in a single life, requiring a carefully-constructed bug with particular traits suited to that area’s enemies and terrain.
+	 
+	 Art Style - Notes
+	 
+	 Bugs are intricate and beautiful, and I’d like the art to be as well. Having brilliant characters is my first priority; after that I’d like the backgrounds to be as interesting as they can be without becoming hard to look at (or produce). I would very much like to have help defining this style, and ideally also producing the attendent art.
+	 Tempted towards a collage/cut-paper style. As is, each of the floor layers looks very two-dimensional due to the orthognal camera with faux-parallax; I think that’s a cool look and would like to lean into it. Very inspired by the witches labyrinths in _Madoka_, but I also keep looking at Leo Leonni’s childrens books; those might be a touch simple, but I like the collage effect of layering different pieces that all have very noticeable brush textures.
+	 For animations, I want very very smiple things. I’m fine with either very simple (2-4 frame) sprite animations, or keyframing by moving bug parts independently of one another. I can probably program either; the latter would use fewer assets so it’s my instinct.
+	 The art I’m most able to do myself is mostly related to visual effects like particle systems/postprocessing, and I’ll probably  use those to add juice to whatever art style I end up with. I might like assistance with shaders depending on how nicely the art style I go with meshes with the existing tile system.

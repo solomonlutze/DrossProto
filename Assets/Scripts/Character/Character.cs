@@ -1,34 +1,64 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using UnityEditor;
 // TODO: Character can probably extend CustomPhysicsController, which simplifies movement code a bit.
 public class AnimationInfoObject
 {
   public Vector2 animationInput;
 }
 
+public enum CharacterType
+{
+  Player,
+  Enemy
+}
+// non-derivable values like health, current number of molts, etc
 public enum CharacterVital
 {
   CurrentHealth,
   CurrentEnvironmentalDamageCooldown,
-  CurrentDashCooldown
-}
-public enum CharacterStat
-{
-  MaxHealth,
-  DetectableRange,
-  MaxEnvironmentalDamageCooldown,
-  MoveAcceleration,
-  DashAcceleration,
-  DashDuration,
-  RotationSpeed,
-  MaxDashCooldown,
-  DashRange
+  RemainingStamina,
+  CurrentMoltCount
 }
 
+// values driving physical character behavior
+// base values live in character data
+// can include maximums, cooldown periods, etc
+// not usually user facing, so can be pretty grody and granular if need be
+public enum CharacterStat
+{
+  REMOVE_0 = 0,
+  MaxHealthLostPerMolt = 1,
+  DetectableRange = 2,
+  MoveAcceleration = 3,
+  FlightAcceleration = 4,
+  Stamina = 5,
+  DashAcceleration = 6,
+  DashDuration = 7,
+  DashRecoveryDuration = 8,
+  RotationSpeed = 9
+}
+
+public enum CharacterAttribute
+{
+  // REMOVE_0 = 0,
+  // REMOVE_1 = 1,
+  // REMOVE_2 = 2,
+  Burrow = 3,
+  Camouflage = 4,
+  HazardResistance = 5,
+  Resist_Fungal = 6,
+  Resist_Heat = 7,
+  Resist_Acid = 8,
+  Resist_Physical = 9,
+  WaterResistance = 10,
+  Flight = 11,
+  Dash = 12,
+  Health = 13
+}
 public enum CharacterAttackValue
 {
   Damage,
@@ -61,9 +91,9 @@ public enum CharacterPerceptionAbility
 }
 
 [System.Serializable]
-public class CharacterStatModification
+public class CharacterAttributeModification
 {
-  public CharacterStat statToModify;
+  public CharacterAttribute statToModify;
 
   public int magnitude;
 
@@ -73,7 +103,7 @@ public class CharacterStatModification
 
   public string source;
 
-  public CharacterStatModification(CharacterStat s, int m, float dur, float del, string src)
+  public CharacterAttributeModification(CharacterAttribute s, int m, float dur, float del, string src)
   {
     statToModify = s;
     magnitude = m;
@@ -112,6 +142,25 @@ public class CharacterAttackModifiers
 [System.Serializable]
 public class TraitsLoadout
 {
+  public Trait head;
+  public Trait thorax;
+  public Trait abdomen;
+  public Trait legs;
+  public Trait wings;
+
+  public bool AllTraitsEmpty()
+  {
+    return head == null
+        && thorax == null
+        && abdomen == null
+        && legs == null
+        && wings == null;
+  }
+}
+
+[System.Serializable]
+public class TraitsLoadout_OLD
+{
   public string head;
   public string thorax;
   public string abdomen;
@@ -121,11 +170,11 @@ public class TraitsLoadout
   public TraitSlotToTraitDictionary EquippedTraits()
   {
     TraitSlotToTraitDictionary d = new TraitSlotToTraitDictionary();
-    d[TraitSlot.Head] = Resources.Load("Data/TraitData/PassiveTraits/" + head) as PassiveTrait;
-    d[TraitSlot.Thorax] = Resources.Load("Data/TraitData/PassiveTraits/" + thorax) as PassiveTrait;
-    d[TraitSlot.Abdomen] = Resources.Load("Data/TraitData/PassiveTraits/" + abdomen) as PassiveTrait;
-    d[TraitSlot.Legs] = Resources.Load("Data/TraitData/PassiveTraits/" + legs) as PassiveTrait;
-    d[TraitSlot.Wings] = Resources.Load("Data/TraitData/PassiveTraits/" + wings) as PassiveTrait;
+    // d[TraitSlot.Head] = Resources.Load("Data/TraitData/PassiveTraits/" + head) as PassiveTrait;
+    // d[TraitSlot.Thorax] = Resources.Load("Data/TraitData/PassiveTraits/" + thorax) as PassiveTrait;
+    // d[TraitSlot.Abdomen] = Resources.Load("Data/TraitData/PassiveTraits/" + abdomen) as PassiveTrait;
+    // d[TraitSlot.Legs] = Resources.Load("Data/TraitData/PassiveTraits/" + legs) as PassiveTrait;
+    // d[TraitSlot.Wings] = Resources.Load("Data/TraitData/PassiveTraits/" + wings) as PassiveTrait;
     return d;
   }
 
@@ -150,53 +199,63 @@ public class TraitsLoadout
 public class Character : WorldObject
 {
   [Header("Stats and Vitals")]
+  public CharacterType characterType;
   public CharacterVitalToFloatDictionary vitals;
   public StatToActiveStatModificationsDictionary statModifications;
   public DamageTypeToFloatDictionary damageTypeResistances;
 
   [Header("Attack Info")]
-  public CharacterAttack characterAttack;
+  public List<CharacterSkillData> characterSkills;
+  public Dictionary<string, Weapon> weaponInstances;
+  // public Weapon weaponInstance;
   public CharacterAttackModifiers attackModifiers;
-  public Hitbox hitboxPrefab;
+  public Hitbox_OLD hitboxPrefab;
   private bool dashAttackEnabled = true;
-  public CharacterAttack dashCharacterAttack;
+  public AttackSkillData dashCharacterAttack;
   public CharacterAttackModifiers dashAttackModifiers;
-  public Hitbox dashAttackHitboxPrefab;
+  public Hitbox_OLD dashAttackHitboxPrefab;
 
-  [Header("Trait Info")]
-  public TraitSlotToTraitDictionary equippedTraits;
+  [Header("Trait Info", order = 1)]
+  public TraitSlotToTraitDictionary traits;
+  public CharacterAttributeToIntDictionary attributes;
   public List<TraitEffect> conditionallyActivatedTraitEffects;
   public List<TraitEffect> activeConditionallyActivatedTraitEffects;
   public List<CharacterMovementAbility> activeMovementAbilities;
 
   [Header("Child Components")]
   public Transform orientation;
+
+  public Transform weaponPivot;
   public Transform crosshair;
   // our physics object
   public CustomPhysicsController po;
   // animation object
   protected Animator animator;
-  public SpriteRenderer mainRenderer;
+  public SpriteRenderer[] renderers;
 
-  public CircleCollider2D col;
+  public CircleCollider2D circleCollider;
+  public CharacterVisuals characterVisuals;
 
   [Header("Game State Info")]
   public Color damageFlashColor = Color.red;
   public Color attackColor = Color.grey;
   public float damageFlashSpeed = 1.0f;
   public bool attacking = false;
-  public bool dashing = false;
+  public bool flying = false;
+  public float dashTimer = 0.0f;
+  public float dashRecoveryTimer = 0.0f;
   protected bool attackCooldown = false;
   protected bool stunned = false;
   public bool animationPreventsMoving = false;
   public bool sticking = false;
   public Coroutine attackCoroutine;
-  public FloorLayer currentFloor;
+  protected Coroutine flyCoroutine;
   protected Vector2 movementInput;
   // point in space we would like to face
   public Vector3 orientTowards;
   protected TileLocation currentTileLocation;
   protected EnvironmentTileInfo currentTile;
+  protected TileLocation lastSafeTileLocation;
   protected float timeStandingStill = 0;
   protected float timeMoving = 0;
   protected Dictionary<string, GameObject> traitSpawnedGameObjects;
@@ -204,7 +263,6 @@ public class Character : WorldObject
 
   [Header("Default Info")]
   public CharacterData defaultCharacterData;
-  public TraitsLoadout initialEquippedTraits;
 
   private Coroutine damageFlashCoroutine;
 
@@ -216,11 +274,17 @@ public class Character : WorldObject
   protected virtual void Awake()
   {
     orientation = transform.Find("Orientation");
-    col = GetComponent<CircleCollider2D>();
+    circleCollider = GetComponent<CircleCollider2D>();
     if (orientation == null)
     {
       Debug.LogError("No object named 'Orientation' on Character object: " + gameObject.name);
+      return;
     }
+    // weaponPivot = orientation.Find("WeaponPivot");
+    // if (weaponPivot == null)
+    // {
+    //   Debug.LogError("No object named 'WeaponPivot' on Character object: " + gameObject.name);
+    // }
   }
 
   protected virtual void Start()
@@ -231,7 +295,7 @@ public class Character : WorldObject
     {
       Debug.LogError("No physics controller component on Character object: " + gameObject.name);
     }
-    WorldObject.ChangeLayersRecursively(transform, currentFloor.ToString());
+    WorldObject.ChangeLayersRecursively(transform, currentFloor);
   }
 
   protected virtual void Init()
@@ -239,6 +303,28 @@ public class Character : WorldObject
     sourceInvulnerabilities = new List<string>();
     conditionallyActivatedTraitEffects = new List<TraitEffect>();
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
+    if (weaponInstances != null)
+    {
+      foreach (Weapon w in weaponInstances.Values)
+      {
+        Destroy(w.gameObject);
+      }
+      weaponInstances.Clear();
+    }
+    else
+    {
+      weaponInstances = new Dictionary<string, Weapon>();
+    }
+    characterSkills = CalculateSkills(traits);
+    if (!HasAttackSkill(characterSkills))
+    {
+      characterSkills.Insert(0, defaultCharacterData.defaultCharacterAttack);
+    }
+    for (int i = 0; i < characterSkills.Count; i++)
+    {
+      characterSkills[i].Init(this);
+    }
+    attributes = CalculateAttributes(traits);
     InitializeFromCharacterData();
   }
 
@@ -253,12 +339,83 @@ public class Character : WorldObject
       activeMovementAbilities.AddRange(dataInstance.movementAbilities);
     }
     vitals = new CharacterVitalToFloatDictionary();
-    statModifications = new StatToActiveStatModificationsDictionary();
-    vitals[CharacterVital.CurrentHealth] = GetStat(CharacterStat.MaxHealth);
-    vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
-    vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
+    // statModifications = new StatToActiveStatModificationsDictionary();
+    vitals[CharacterVital.CurrentHealth] = GetCurrentMaxHealth();
+    vitals[CharacterVital.RemainingStamina] = GetMaxStamina();
+    // vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
+    // vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
   }
 
+  protected virtual void InitializeAttributes()
+  {
+    foreach (Trait trait in traits.Values)
+    {
+      if (trait == null) { continue; }
+      foreach (CharacterAttribute attribute in trait.attributeModifiers.Keys)
+      {
+        attributes[attribute] += trait.attributeModifiers[attribute];
+      }
+    }
+  }
+
+  public static CharacterAttributeToIntDictionary CalculateAttributes(TraitSlotToTraitDictionary traits)
+  {
+
+    CharacterAttributeToIntDictionary ret = new CharacterAttributeToIntDictionary(true);
+    foreach (Trait trait in traits.Values)
+    {
+      if (trait == null) { continue; }
+      foreach (CharacterAttribute attribute in trait.attributeModifiers.Keys)
+      {
+        ret[attribute] += trait.attributeModifiers[attribute];
+      }
+    }
+    return ret;
+  }
+
+  public virtual CharacterSkillData GetSelectedCharacterSkill()
+  {
+    if (characterSkills.Count > 0)
+    {
+      return characterSkills[0];
+    }
+    return null;
+  }
+
+  public virtual Weapon GetSelectedWeaponInstance()
+  {
+    if (characterSkills.Count > 0)
+    {
+      string skillName = GetSkillNameFromIndex(0);
+      return weaponInstances[skillName];
+    }
+    return null;
+  }
+  public static List<CharacterSkillData> CalculateSkills(TraitSlotToTraitDictionary traits)
+  {
+    List<CharacterSkillData> ret = new List<CharacterSkillData>();
+    foreach (Trait trait in traits.Values)
+    {
+      if (trait == null) { continue; }
+      if (trait.skillData != null)
+      {
+        ret.Add(trait.skillData);
+      }
+    }
+    return ret;
+  }
+
+  public static bool HasAttackSkill(List<CharacterSkillData> skills)
+  {
+    foreach (CharacterSkillData skill in skills)
+    {
+      if ((AttackSkillData)skill != null)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
   // non-physics biz
   protected virtual void Update()
   {
@@ -270,7 +427,7 @@ public class Character : WorldObject
   }
 
   // physics biz
-  void FixedUpdate()
+  protected virtual void FixedUpdate()
   {
     CalculateMovement();
   }
@@ -288,27 +445,28 @@ public class Character : WorldObject
   // if an attack is NOT queued, the combo is reset, and attacking is reset to false (Weapon.FinishCombo)
 
   // called via play input or npc AI
-  protected void Attack()
+
+  public void UseAttack(AttackSkillData attack)
   {
-    if (characterAttack != null)
+    if (attack != null)
     {
-      if (!attackCooldown)
+      if (attackCoroutine == null)
+      // if (!attackCooldown)
       {
-        attackCoroutine = StartCoroutine(DoAttack());
+        attackCoroutine = StartCoroutine(DoAttack(attack));
       }
     }
   }
 
-  public IEnumerator DoAttack()
+  public IEnumerator DoAttack(AttackSkillData attack)
   {
     attacking = true;
-    yield return new WaitForSeconds(characterAttack.attackSpeed);
-    CreateAttackHitbox();
+    yield return StartCoroutine(attack.PerformAttackCycle(this));
     attacking = false;
-    yield return new WaitForSeconds(characterAttack.cooldown);
     attackCooldown = false;
     attackCoroutine = null;
   }
+
   public static float GetAttackValueModifier(CharacterAttackValueToIntDictionary attackModifiers, CharacterAttackValue value)
   {
     if (attackModifiers == null || !attackModifiers.ContainsKey(value))
@@ -318,26 +476,54 @@ public class Character : WorldObject
     return attackModifiers[value] * Constants.CharacterAttackAdjustmentIncrements[value];
   }
 
-  // TODO: Refactor attack info so that it all lives on a single object (...maybe)
-  public void CreateAttackHitbox()
-  {
-    CreateHitbox(characterAttack, attackModifiers);
-  }
+  // // TODO: Refactor attack info so that it all lives on a single object (...maybe)
+  // public void CreateAttackHitbox()
+  // {
+  //   CreateHitbox(defaultCharacterAttack, attackModifiers);
+  // }
 
   public void CreateDashAttackHitbox()
   {
     CreateHitbox(dashCharacterAttack, dashAttackModifiers);
   }
 
-  public void CreateHitbox(CharacterAttack atk, CharacterAttackModifiers mods)
+  public string GetSkillNameFromIndex(int idx)
   {
-    HitboxData hbi = atk.hitboxData;
-    if (hbi == null) { Debug.LogError("no attack object defined for " + gameObject.name); }
-    Vector3 pos = orientation.TransformPoint(Vector3.right * (atk.range + Character.GetAttackValueModifier(mods.attackValueModifiers, CharacterAttackValue.Range)));
-    Hitbox hb = GameObject.Instantiate(hitboxPrefab, pos, orientation.rotation) as Hitbox;
-    hb.gameObject.layer = LayerMask.NameToLayer(currentFloor.ToString());
-    hb.gameObject.GetComponent<SpriteRenderer>().sortingLayerName = currentFloor.ToString();
-    hb.Init(orientation, this, hbi, mods);
+    return characterSkills[idx].name;
+  }
+  public float GetAttackRange(int skillIdxForAttack = 0)
+  {
+    string skillName = GetSkillNameFromIndex(skillIdxForAttack);
+    return weaponInstances[skillName].range;
+    // return attack.range + Character.GetAttackValueModifier(mods.attackValueModifiers, CharacterAttackValue.Range);
+  }
+
+  public float GetEffectiveAttackRange(int skillIdxForAttack = 0)
+  {
+    string skillName = GetSkillNameFromIndex(skillIdxForAttack);
+    return weaponInstances[skillName].effectiveRange;
+  }
+
+  public float GetRange(int skillIdxForAttack = 0)
+  {
+    string skillName = GetSkillNameFromIndex(skillIdxForAttack);
+    return weaponInstances[skillName].range;
+    // return attack.range + Character.GetAttackValueModifier(mods.attackValueModifiers, CharacterAttackValue.Range);
+  }
+  public int GetAttackRadiusInDegrees(int skillIdxForAttack)
+  {
+    string skillName = GetSkillNameFromIndex(skillIdxForAttack);
+    return weaponInstances[skillName].sweepRadiusInDegrees;
+  }
+  public void CreateHitbox(AttackSkillData atk, CharacterAttackModifiers mods)
+  {
+    // HitboxData hbi = atk.hitboxData;
+    // if (hbi == null) { Debug.LogError("no attack object defined for " + gameObject.name); }
+    // Vector3 pos = orientation.TransformPoint(Vector3.right * GetAttackRange(atk, mods) / 2);
+    // Hitbox_OLD hb = GameObject.Instantiate(hitboxPrefab, pos, orientation.rotation) as Hitbox_OLD;
+    // hb.gameObject.layer = LayerMask.NameToLayer(currentFloor.ToString());
+    // hb.gameObject.GetComponent<SpriteRenderer>().sortingLayerName = currentFloor.ToString();
+    // hb.Init(orientation, this, hbi, mods, GetAttackRange(atk, mods));
   }
 
   public void ApplyAttackModifier(CharacterAttackModifiers mods, bool forDashAttack)
@@ -378,7 +564,7 @@ public class Character : WorldObject
       return;
     }
     Quaternion targetDirection = GetTargetDirection();
-    orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, GetStat(CharacterStat.RotationSpeed) * Time.deltaTime);
+    orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
   }
 
   // Rotate character smoothly towards a particular orientation around the Z axis.
@@ -386,7 +572,12 @@ public class Character : WorldObject
   // potential culprit.
   Quaternion GetTargetDirection()
   {
-    Vector3 target = orientTowards - transform.position;
+    return GetDirectionAngle(orientTowards);
+  }
+
+  Quaternion GetDirectionAngle(Vector3 targetPoint)
+  {
+    Vector2 target = targetPoint - transform.position;
     float angle = Mathf.Atan2(target.y, target.x) * Mathf.Rad2Deg;
     return Quaternion.AngleAxis(angle, Vector3.forward);
   }
@@ -398,12 +589,17 @@ public class Character : WorldObject
     return Quaternion.Angle(GetTargetDirection(), orientation.rotation);
   }
 
+  public float GetAngleToDirection(Vector3 targetPoint)
+  {
+    return Quaternion.Angle(GetDirectionAngle(targetPoint), orientation.rotation);
+  }
+
   // add input to our velocity, if necessary/possible.
   protected void CalculateMovement()
   {
     if (CanMove())
     {
-      if (movementInput == Vector2.zero)
+      if (!IsDashing() && !flying && (movementInput == Vector2.zero))
       { // should be an approximate equals
         timeStandingStill += Time.deltaTime;
         timeMoving = 0;
@@ -413,7 +609,14 @@ public class Character : WorldObject
         timeMoving += Time.deltaTime;
         timeStandingStill = 0f;
       }
-      po.SetMovementInput(new Vector2(movementInput.x, movementInput.y));
+      if (IsDashing())
+      {
+        po.SetMovementInput(orientation.rotation * new Vector3(1, 0, 0));
+      }
+      else
+      {
+        po.SetMovementInput(new Vector2(movementInput.x, movementInput.y));
+      }
     }
     else
     {
@@ -421,39 +624,114 @@ public class Character : WorldObject
     }
   }
 
+  // Should mainly be used for ascending/descending.
+  // Ideally, should only be used to avoid collision.
+  protected void CenterCharacterOnCurrentTile()
+  {
+    transform.position = new Vector3(
+      currentTileLocation.position.x + .5f,
+      currentTileLocation.position.y + .5f,
+      0f
+    );
+  }
   protected void Molt()
   {
     Instantiate(moltCasingPrefab, orientation.transform.position, orientation.transform.rotation);
-    moltCasingPrefab.Init(mainRenderer.color, this);
-    ApplyStatMod(new CharacterStatModification(
-      CharacterStat.MaxHealth,
-      -1,
-      0,
-      0,
-      Guid.NewGuid().ToString("N").Substring(0, 15)
-    ));
-    AdjustHealth(5);
+    moltCasingPrefab.Init(Color.white, this);
+    AdjustCurrentMoltCount(1);
+    AdjustCurrentHealth(5);
   }
   // Traits activated on dash are handled in HandleConditionallyActivatedTraits()
-  protected void Dash()
+
+  public bool IsDashing()
   {
-    if (vitals[CharacterVital.CurrentDashCooldown] > 0) { return; }
-    DoDashAttack();
-    StartCoroutine(ApplyDashInput());
-    vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
+    return dashTimer > 0;
   }
 
-  protected IEnumerator ApplyDashInput()
+  public bool IsRecoveringFromDash()
   {
-    float t = 0;
-    dashing = true;
-    while (t < GetStat(CharacterStat.DashDuration))
-    {
-      po.SetMovementInput(orientation.rotation * new Vector3(1, 0, 0));
-      t += Time.deltaTime;
-      yield return null;
+    return dashRecoveryTimer > 0;
+  }
+
+  protected bool CanDash()
+  {
+    return GetCharacterVital(CharacterVital.RemainingStamina) > 0 && dashTimer <= 0 && dashRecoveryTimer <= 0 && !flying && CanMove();
+  }
+
+  protected void Dash()
+  {
+    BeginDash();
+  }
+
+  protected void BeginDash()
+  {
+    vitals[CharacterVital.RemainingStamina] -= GetDashStaminaCost();
+    dashTimer = GetStat(CharacterStat.DashDuration);
+  }
+
+  protected void EndDash()
+  {
+    dashRecoveryTimer = GetStat(CharacterStat.DashRecoveryDuration);
+  }
+
+  protected void Fly()
+  {
+    // if (vitals[CharacterVital.CurrentFlightCooldown] > 0) { return; }
+    // DoDashAttack();
+    BeginFly();
+    // flyCoroutine = StartCoroutine(DoFly());
+    // vitals[CharacterVital.CurrentFlightCooldown] = GetStat(CharacterStat.MaxDashCooldown);
+  }
+
+  // protected IEnumerator DoFly()
+  // {
+  //   float t = 0;
+  //   BeginFly();
+  //   while (t < GetMaxFlightDuration() && flying)
+  //   {
+  //     t += Time.deltaTime;
+  //     yield return null;
+  //   }
+  //   EndFly();
+  // }
+
+  protected void BeginFly()
+  {
+    flying = true;
+    if (GetAttribute(CharacterAttribute.Flight) < 3)
+    { // TODO: don't hardcode this!!
+      activeMovementAbilities.Add(CharacterMovementAbility.Hover);
     }
-    dashing = false;
+    ChangeLayersRecursively(transform, currentFloor, -.5f);
+  }
+
+  protected void EndFly()
+  {
+    // StopCoroutine(flyCoroutine);
+    flying = false;
+    if (GetAttribute(CharacterAttribute.Flight) < 3)
+    { // TODO: don't hardcode this!!
+      activeMovementAbilities.Remove(CharacterMovementAbility.Hover);
+    }
+    ChangeLayersRecursively(transform, currentFloor, .0f);
+  }
+
+  protected void FlyUp()
+  {
+    // consume stamina here
+    AscendOneFloor();
+  }
+
+  protected void FlyDown()
+  {
+    if (GridManager.Instance.TileIsValidAndEmpty(GetTileLocation()))
+    {
+      DescendOneFloor();
+    }
+    else
+    {
+      EndFly();
+    }
   }
 
   protected void DoDashAttack()
@@ -463,6 +741,19 @@ public class Character : WorldObject
       CreateDashAttackHitbox();
     }
   }
+
+  protected void AscendOneFloor()
+  {
+
+    Debug.Log("ascending one floor!");
+    SetCurrentFloor(currentFloor + 1);
+  }
+
+  protected void DescendOneFloor()
+  {
+    SetCurrentFloor(currentFloor - 1);
+  }
+
   // determines if input-based movement is allowed
   protected virtual bool CanMove()
   {
@@ -481,89 +772,93 @@ public class Character : WorldObject
     {
       return false;
     }
+    if (IsRecoveringFromDash())
+    {
+      return false;
+    }
     return true;
   }
 
   // DAMAGE FUNCTIONS
-
-  // Called from Hitbox's OnTriggerEnter. Calls other functions to determine outcome of getting hit.
-  protected float GetDamageAfterResistance(float damage, DamageType damageType)
+  protected virtual void TakeDamage(IDamageSource damageSource)
   {
-    return ((100 - damageTypeResistances[damageType]) / 100) * damage;
-  }
-  protected virtual void TakeDamage(Damage damage)
-  {
+    if (damageSource.IsOwnedBy(this)) { return; }
+    if (damageSource.IsSameOwnerType(this)) { return; }
     if (
-      sourceInvulnerabilities.Contains(damage.sourceString)
-      && !damage.IgnoresInvulnerability())
+      sourceInvulnerabilities.Contains(damageSource.sourceString)
+      && !damageSource.ignoresInvulnerability)
     { return; }
-    if (damage.owningCharacter == this) { return; }
-    float damageAfterResistances = GetDamageAfterResistance(damage.GetDamage(), damage.GetDamageType());
+    float damageAfterResistances = damageSource.CalculateDamageAfterResistances(this);
     if (
       damageAfterResistances <= 0
-      && damage.GetDamage() > 0
-    // && hb.characterStatModifications.Count == 0
+      && damageSource.damageAmount > 0
     ) { return; }
+    if (damageSource.movementAbilitiesWhichBypassDamage.Intersect(activeMovementAbilities).Any())
+    {
+      return;
+    }
     InterruptAnimation();
-    AdjustHealth(Mathf.Floor(-damageAfterResistances));
-    CalculateAndApplyStun(damage.GetStun());
-    // foreach (CharacterStatModification mod in damageObj.characterStatModifications)
-    // {
-    //   ApplyStatMod(mod);
-    // }
-    StartCoroutine(ApplyInvulnerability(damage));
-    // if (damageFlashCoroutine != null) {
-    //   StopCoroutine(damageFlashCoroutine);
-    // }
-    // StartCoroutine(ApplyDamageFlash(damageObj));
-    Vector3 knockback = damage.CalculateAndReturnKnockback();
+    AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances));
+    CalculateAndApplyStun(damageSource.stunMagnitude);
+    StartCoroutine(ApplyInvulnerability(damageSource));
+    Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
     if (knockback != Vector3.zero)
     {
       po.ApplyImpulseForce(knockback);
     }
   }
 
-  private IEnumerator ApplyDamageFlash(DamageData damageObj)
+  public int GetDamageTypeResistanceLevel(DamageType type)
+  {
+    bool exists = Enum.TryParse("Resist_" + type.ToString(), out CharacterAttribute resistAttribute);
+    if (!exists)
+    {
+      Debug.LogError("Could not find attribute Resist_" + type.ToString());
+      return 0;
+    }
+    return GetAttribute(resistAttribute);
+  }
+
+  private IEnumerator ApplyDamageFlash(DamageData_OLD damageObj)
   {
     // Todo: might wanna change this!
     Color baseColor = Color.white;
-    mainRenderer.color = damageFlashColor;
-    yield return new WaitForSeconds(damageFlashSpeed / 3);
-    mainRenderer.color = baseColor;
-    yield return new WaitForSeconds(damageFlashSpeed / 3);
-    mainRenderer.color = damageFlashColor;
-    yield return new WaitForSeconds(damageFlashSpeed / 3);
-    mainRenderer.color = baseColor;
+    yield return null;
+    // mainRenderer.color = damageFlashColor;
+    // yield return new WaitForSeconds(damageFlashSpeed / 3);
+    // mainRenderer.color = baseColor;
+    // yield return new WaitForSeconds(damageFlashSpeed / 3);
+    // mainRenderer.color = damageFlashColor;
+    // yield return new WaitForSeconds(damageFlashSpeed / 3);
+    // mainRenderer.color = baseColor;
   }
   public virtual void Die()
   {
     Destroy(gameObject);
   }
 
-  public virtual void AssignTraitsForNextLife(TraitSlotToUpcomingTraitDictionary nextLifeTraits)
+  IEnumerator ApplyInvulnerability(IDamageSource damageSource)
   {
-
-  }
-
-  // Make us invulnerable, then un-make-us invulnerable. Damage is ignorned while invulnerable.
-  void CalculateAndApplyInvulnerability(Damage damage)
-  {
-    if (damage.GetInvulnerabilityWindow() > 0)
-    {
-      StartCoroutine(ApplyInvulnerability(damage));
-    }
-  }
-
-  IEnumerator ApplyInvulnerability(Damage damage)
-  {
-    string src = damage.sourceString;
+    float invulnerabilityDuration = damageSource.invulnerabilityWindow;
+    if (invulnerabilityDuration <= 0) { yield break; }
+    string src = damageSource.sourceString;
     sourceInvulnerabilities.Add(src);
-    yield return new WaitForSeconds(damage.GetInvulnerabilityWindow());
+    yield return new WaitForSeconds(invulnerabilityDuration);
     if (sourceInvulnerabilities.Contains(src))
     {
       sourceInvulnerabilities.Remove(src);
     }
   }
+  // IEnumerator ApplyInvulnerability(Damage_OLD damage)
+  // {
+  //     string src = damage.sourceString;
+  //     sourceInvulnerabilities.Add(src);
+  //     yield return new WaitForSeconds(damage.GetInvulnerabilityWindow());
+  //     if (sourceInvulnerabilities.Contains(src))
+  //     {
+  //         sourceInvulnerabilities.Remove(src);
+  //     }
+  // }
 
   // Determines if we should be stunned, and stuns us if so.
   protected void CalculateAndApplyStun(float stunDuration, bool overrideStunResistance = false)
@@ -599,70 +894,145 @@ public class Character : WorldObject
   }
   // END DAMAGE FUNCTIONS
 
+
+  public virtual void AssignTraitsForNextLife(TraitSlotToUpcomingTraitDictionary nextLifeTraits)
+  {
+
+  }
+
+  // ATTRIBUTE/VITALS ACCESSORS
+  public int GetAttribute(CharacterAttribute attributeToGet)
+  {
+    bool exists = attributes.TryGetValue(attributeToGet, out int val);
+    if (!exists)
+    {
+      Debug.LogError("Tried to access non-existant attribute " + attributeToGet);
+    }
+    return val;
+  }
+
+  // STAT GETTERS
+  public float GetCurrentMaxHealth()
+  {
+    return
+        GetMaxHealth()
+        - (GetMaxHealthLostPerMolt() * GetCharacterVital(CharacterVital.CurrentMoltCount));
+  }
+
+  public float GetMaxHealth()
+  {
+    return defaultCharacterData
+      .GetHealthAttributeData()
+      .GetMaxHealth(this);
+  }
+  public float GetMaxStamina()
+  {
+    return defaultCharacterData.defaultStats[CharacterStat.Stamina];
+  }
+
+  public float GetStaminaRecoverySpeed()
+  {
+    return 3;
+  }
+  public float GetRotationSpeed()
+  {
+    return defaultCharacterData.defaultStats[CharacterStat.RotationSpeed];
+  }
+
+  public float GetMaxHealthLostPerMolt()
+  {
+    return defaultCharacterData.defaultStats[CharacterStat.MaxHealthLostPerMolt];
+  }
+
+  public bool GetCanFlyUp()
+  {
+    return defaultCharacterData
+      .GetFlightAttributeData()
+      .GetAttributeTier(this)
+      .canFlyUp;
+  }
+
+  public float GetMaxFlightDuration()
+  {
+    Debug.Log("defaultCharacterData: " + defaultCharacterData);
+    Debug.Log("flightAttributeData: " + defaultCharacterData.GetFlightAttributeData());
+    Debug.Log("tier: " + defaultCharacterData.GetFlightAttributeData().GetAttributeTier(this));
+    return defaultCharacterData
+      .GetFlightAttributeData()
+      .GetAttributeTier(this)
+      .flightDuration;
+  }
+
+  public float GetDashStaminaCost()
+  {
+    return defaultCharacterData
+      .GetDashAttributeData()
+      .GetDashStaminaCost(this);
+  }
+
   public float GetStat(CharacterStat statToGet)
   {
-    Debug.Log("Stat to get: " + statToGet);
-    Debug.Log("StatModifications: " + statToGet);
-    StringToIntDictionary statMods = statModifications[statToGet];
-    int modValue = 0;
-    float returnValue = defaultCharacterData.defaultStats[statToGet];
-    foreach (int modMagnitude in statMods.Values)
-    {
-      modValue += modMagnitude;
-    }
-    modValue = Mathf.Clamp(-12, modValue, 12);
-    if (modValue >= 0)
-    {
-      returnValue *= ((3 + modValue) / 3);
-    }
-    else
-    {
-      returnValue *= (3f / (3 + Mathf.Abs(modValue)));
-    }
-    return returnValue;
+    return defaultCharacterData.defaultStats[statToGet];
+    // StringToIntDictionary statMods = statModifications[statToGet];
+    // int modValue = 0;
+    // float returnValue = defaultCharacterData.defaultStats[statToGet];
+    // foreach (int modMagnitude in statMods.Values)
+    // {
+    //   modValue += modMagnitude;
+    // }
+    // modValue = Mathf.Clamp(-12, modValue, 12);
+    // if (modValue >= 0)
+    // {
+    //   returnValue *= ((3 + modValue) / 3);
+    // }
+    // else
+    // {
+    //   returnValue *= (3f / (3 + Mathf.Abs(modValue)));
+    // }
+    // return returnValue;
   }
 
 
-  public void ApplyStatMod(CharacterStatModification mod)
-  {
-    if (mod.duration > 0)
-    {
-      StartCoroutine(ApplyTemporaryStatMod(mod));
-    }
-    else
-    {
-      AddStatMod(mod);
-    }
-  }
+  // public void ApplyStatMod(CharacterStatModification mod)
+  // {
+  //     if (mod.duration > 0)
+  //     {
+  //         StartCoroutine(ApplyTemporaryStatMod(mod));
+  //     }
+  //     else
+  //     {
+  //         AddStatMod(mod);
+  //     }
+  // }
 
-  public IEnumerator ApplyTemporaryStatMod(CharacterStatModification mod)
-  {
-    AddStatMod(mod);
-    yield return new WaitForSeconds(mod.duration);
-    RemoveStatMod(mod.source);
-  }
+  // public IEnumerator ApplyTemporaryStatMod(CharacterStatModification mod)
+  // {
+  //     AddStatMod(mod);
+  //     yield return new WaitForSeconds(mod.duration);
+  //     RemoveStatMod(mod.source);
+  // }
 
-  public void AddStatMod(CharacterStatModification mod)
-  {
-    AddStatMod(mod.statToModify, mod.magnitude, mod.source);
-  }
+  // public void AddStatMod(CharacterStatModification mod)
+  // {
+  //     AddStatMod(mod.statToModify, mod.magnitude, mod.source);
+  // }
 
-  public void AddStatMod(CharacterStat statToMod, int magnitude, string source)
-  {
-    statModifications[statToMod][source] = magnitude;
-  }
+  // public void AddStatMod(CharacterStat statToMod, int magnitude, string source)
+  // {
+  //     statModifications[statToMod][source] = magnitude;
+  // }
 
-  public void RemoveStatMod(string source)
-  {
-    foreach (CharacterStat stat in (CharacterStat[])Enum.GetValues(typeof(CharacterStat)))
-    {
-      StringToIntDictionary statMods = statModifications[stat];
-      if (statMods.ContainsKey(source))
-      {
-        statMods.Remove(source);
-      }
-    }
-  }
+  // public void RemoveStatMod(string source)
+  // {
+  //     foreach (CharacterStat stat in (CharacterStat[])Enum.GetValues(typeof(CharacterStat)))
+  //     {
+  //         StringToIntDictionary statMods = statModifications[stat];
+  //         if (statMods.ContainsKey(source))
+  //         {
+  //             statMods.Remove(source);
+  //         }
+  //     }
+  // }
 
   public void AddMovementAbility(CharacterMovementAbility movementAbility)
   {
@@ -675,18 +1045,28 @@ public class Character : WorldObject
   }
 
 
-  //TODO: SHOULD PROBS BE DEPRECATED
-  public void AdjustHealth(float adjustment)
+  //VITALS GETTERS/SETTERS
+  public void AdjustCurrentHealth(float adjustment)
   {
     vitals[CharacterVital.CurrentHealth] =
-      Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, 0, GetStat(CharacterStat.MaxHealth));
+      Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, 0, GetCurrentMaxHealth());
   }
 
+  public void AdjustCurrentMoltCount(float adjustment)
+  {
+    vitals[CharacterVital.CurrentMoltCount] += adjustment;
+  }
+  public float GetCharacterVital(CharacterVital vital)
+  {
+    return vitals[vital];
+  }
   public virtual void SetCurrentFloor(FloorLayer newFloorLayer)
   {
     currentFloor = newFloorLayer;
     currentTileLocation = CalculateCurrentTileLocation();
-    ChangeLayersRecursively(transform, newFloorLayer.ToString());
+    CenterCharacterOnCurrentTile();
+    ChangeLayersRecursively(transform, newFloorLayer, flying ? .5f : 0);
+    HandleTileCollision(GridManager.Instance.GetTileAtLocation(currentTileLocation));
     po.OnLayerChange();
   }
 
@@ -717,11 +1097,15 @@ public class Character : WorldObject
     {
       Die();
     }
-    mainRenderer.color = Color.Lerp(
-      damagedColor,
-      Color.white,
-      vitals[CharacterVital.CurrentHealth] / GetStat(CharacterStat.MaxHealth)
-    );
+    foreach (SpriteRenderer renderer in renderers)
+    {
+
+      renderer.color = Color.Lerp(
+        damagedColor,
+        Color.white,
+        vitals[CharacterVital.CurrentHealth] / GetMaxHealth()
+      );
+    }
   }
   protected virtual void HandleTile()
   {
@@ -740,19 +1124,20 @@ public class Character : WorldObject
     {
       currentTileLocation = nowTileLocation;
     }
-    if (tile.objectTileType == null && tile.groundTileType == null)
+    if (tile.objectTileType == null && tile.groundTileType == null) // Falling logic
     {
       bool canstick = GridManager.Instance.CanStickToAdjacentTile(transform.position, currentFloor);
       if (
-        (activeMovementAbilities.Contains(CharacterMovementAbility.StickyFeet)
-        && canstick)
+        (activeMovementAbilities.Contains(CharacterMovementAbility.StickyFeet) && canstick)
+        || activeMovementAbilities.Contains(CharacterMovementAbility.Hover)
         || sticking
       )
       {
-        // do nothing. no fall plz.
+        //Character is flying or sticking to something; do not fall
       }
       else
       {
+        Debug.Log("Falling: " + gameObject.name);
         transform.position = new Vector3(
           nowTileLocation.position.x + .5f,
           nowTileLocation.position.y + .5f,
@@ -762,24 +1147,45 @@ public class Character : WorldObject
       }
       return;
     }
-    if (tile.dealsDamage && tile.environmentalDamage != null && vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] <= 0)
+    if (tile.dealsDamage/* && vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] <= 0*/)
     {
-      TakeEnvironmentalDamage(tile.environmentalDamage);
-      vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
+      foreach (EnvironmentalDamage envDamage in tile.environmentalDamageSources)
+      {
+        TakeDamage(envDamage);
+      }
+    }
+    if (tile.CanRespawnPlayer())
+    {
+      if (!tile.CharacterCanCrossTile(this))
+      {
+        RespawnCharacterAtLastSafeLocation();
+      }
+    }
+    else
+    {
+      lastSafeTileLocation = currentTileLocation;
     }
   }
 
-  public void TakeEnvironmentalDamage(DamageData damage)
+  protected void RespawnCharacterAtLastSafeLocation()
+  {
+    // skill1.CancelActiveEffects();
+    // skill2.CancelActiveEffects();
+    transform.position =
+      new Vector3(lastSafeTileLocation.position.x + .5f, lastSafeTileLocation.position.y + .5f, GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
+    if (currentFloor != lastSafeTileLocation.floorLayer)
+    {
+      SetCurrentFloor(lastSafeTileLocation.floorLayer);
+    }
+    CalculateAndApplyStun(.5f, true);
+    po.HardSetVelocityToZero();
+  }
+
+  public virtual void HandleContactWithRespawnTile()
   {
 
-    float damageAfterResistances = GetDamageAfterResistance(damage.damageAmount, damage.damageType);
-    if (
-      damageAfterResistances <= 0
-      && damage.damageAmount > 0
-    // && hb.characterStatModifications.Count == 0
-    ) { return; }
-    AdjustHealth(Mathf.Floor(-damageAfterResistances));
   }
+
   public virtual void HandleTileCollision(EnvironmentTileInfo tile)
   {
     if (tile.GetColliderType() == Tile.ColliderType.None)
@@ -788,7 +1194,11 @@ public class Character : WorldObject
     }
     else
     {
-      // Debug.Log("collided with "+tile);
+      if (tile.CharacterCanBurrowThroughObjectTile(this))
+      {
+        GridManager.Instance.MarkTileToRestoreOnPlayerRespawn(tile);
+        tile.DestroyObjectTile();
+      }
     }
   }
 
@@ -799,7 +1209,7 @@ public class Character : WorldObject
       switch (trait.activatingCondition)
       {
         case ConditionallyActivatedTraitCondition.Dashing:
-          if (dashing)
+          if (flying)
           {
             trait.Apply(this);
           }
@@ -834,14 +1244,39 @@ public class Character : WorldObject
 
   protected void HandleCooldowns()
   {
-    if (vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] > 0)
+    if (flying)
     {
-      vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] -= Time.deltaTime;
+      vitals[CharacterVital.RemainingStamina] -= Time.deltaTime * GetMaxStamina() / 5;
+      if (vitals[CharacterVital.RemainingStamina] <= 0)
+      {
+        EndFly();
+      }
     }
-    if (vitals[CharacterVital.CurrentDashCooldown] > 0)
+    else if (IsDashing())
     {
-      vitals[CharacterVital.CurrentDashCooldown] -= Time.deltaTime;
+      dashTimer -= Time.deltaTime;
+      if (!IsDashing())
+      {
+        EndDash();
+      }
     }
+    else if (IsRecoveringFromDash())
+    {
+      dashRecoveryTimer -= Time.deltaTime;
+    }
+    else
+    {
+      vitals[CharacterVital.RemainingStamina]
+        = Mathf.Min(vitals[CharacterVital.RemainingStamina] + (Time.deltaTime * GetMaxStamina() / GetStaminaRecoverySpeed()), GetMaxStamina());
+    }
+    // if (vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] > 0)
+    // {
+    //     vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] -= Time.deltaTime;
+    // }
+    // if (vitals[CharacterVital.CurrentDashCooldown] > 0)
+    // {
+    //     vitals[CharacterVital.CurrentDashCooldown] -= Time.deltaTime;
+    // }
   }
 
   public virtual void AddAura(TraitEffect effect)

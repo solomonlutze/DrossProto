@@ -24,14 +24,17 @@ public class PlayerController : Character
 
   private PassiveTrait passiveTrait1;
   private PassiveTrait passiveTrait2;
-
-  // public ActiveTraitInstance skill1;
-  // public ActiveTraitInstance skill2;
-  private TileLocation lastSafeTileLocation;
+  public Transform cameraFollowTarget;
+  public SpawnPoint spawnPoint;
 
   public string lastActivatedTrait = null;
   public List<ContextualAction> availableContextualActions;
-  private int selectedContextualActionIdx;
+  private int selectedContextualActionIdx = 0;
+  private int selectedSkillIdx = 0;
+
+
+  [Header("Trait Info", order = 1)]
+  public TraitSlotToTraitDictionary pupa;
 
   [Header("Trait-Related Prefabs")]
   public EnvironmentTile burrowHoleTile;
@@ -41,32 +44,26 @@ public class PlayerController : Character
     base.Start();
   }
 
-  public void Init(bool initialSpawn, TraitSlotToUpcomingTraitDictionary previousPupa)
+  public void Init(TraitSlotToTraitDictionary overrideTraits = null)
   {
+    if (overrideTraits != null)
+    {
+      traits = overrideTraits;
+      pupa = new TraitSlotToTraitDictionary(overrideTraits);
+    }
+    characterVisuals.SetCharacterVisuals(traits);
     base.Init();
     availableContextualActions = new List<ContextualAction>();
     interactables = new List<GameObject>();
     inventory = GetComponent<Inventory>();
     inventory.owner = this;
-    if (!initialSpawn)
-    {
-      Debug.Log("init - cachedPupa head trait: " + previousPupa[TraitSlot.Head].trait);
-    }
-    if (initialSpawn)
-    {
-      AssignTraitsForFirstLife();
-    }
-    else
-    {
-      inventory.AdvanceUpcomingLifeTraits(previousPupa);
-    }
   }
   // Player specific non-physics biz.
 
   // TODO: setting orientTowards can prolly be its own function
   override protected void Update()
   {
-    orientTowards = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+    orientTowards = GameMaster.Instance.camera2D.ScreenToWorldPoint(Input.mousePosition);
     base.Update();
     PopulateContextualActions();
     HandleInput();
@@ -87,54 +84,21 @@ public class PlayerController : Character
     }
   }
 
-  protected void RespawnPlayerAtLatSafeLocation()
-  {
-    // skill1.CancelActiveEffects();
-    // skill2.CancelActiveEffects();
-    transform.position =
-      new Vector3(lastSafeTileLocation.position.x + .5f, lastSafeTileLocation.position.y + .5f, 0);
-    if (currentFloor != lastSafeTileLocation.floorLayer)
-    {
-      SetCurrentFloor(lastSafeTileLocation.floorLayer);
-    }
-    CalculateAndApplyStun(.5f, true);
-    po.HardSetVelocityToZero();
-  }
-
-  protected override void HandleTile()
-  {
-    EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(CalculateCurrentTileLocation());
-    base.HandleTile();
-    if (tile == null) { return; }
-    if (tile.CanRespawnPlayer())
-    {
-      if (!tile.CharacterCanCrossTile(activeMovementAbilities))
-      {
-        RespawnPlayerAtLatSafeLocation();
-      }
-    }
-    else
-    {
-      lastSafeTileLocation = currentTileLocation;
-    }
-  }
-
-  public override void HandleTileCollision(EnvironmentTileInfo tile)
-  {
-    if (tile.GetColliderType() == Tile.ColliderType.None)
-    {
-      return;
-    }
-    else
-    {
-      Debug.Log("collided with " + tile);
-      if (tile.objectTileTags.Contains(TileTag.Ground) && activeMovementAbilities.Contains(CharacterMovementAbility.Burrow))
-      {
-        tile.DestroyTile();
-        tile.DestroyTile();
-      }
-    }
-  }
+  // public override void HandleTileCollision(EnvironmentTileInfo tile)
+  // {
+  //   if (tile.GetColliderType() == Tile.ColliderType.None)
+  //   {
+  //     return;
+  //   }
+  //   else
+  //   {
+  //     if (tile.CharacterCanBurrowThroughObjectTile(this))
+  //     {
+  //       GridManager.Instance.MarkTileToRestoreOnPlayerRespawn(tile);
+  //       tile.DestroyObjectTile();
+  //     }
+  //   }
+  // }
 
   private void SpawnBurrowHoleTile()
   {
@@ -143,11 +107,6 @@ public class PlayerController : Character
 
   private void ClimbAdjacentTile()
   {
-    transform.position = new Vector3(
-      currentTileLocation.position.x + .5f,
-      currentTileLocation.position.y + .5f,
-      0f
-    );
     SetCurrentFloor(currentFloor + 1);
   }
 
@@ -162,10 +121,14 @@ public class PlayerController : Character
     EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(GetTileLocation());
     if (tile.isInteractable)
     {
+      Debug.Log("adding interactable");
       AddContextualAction(tile.GetInteractableText(this), UseTile);
     }
+    Debug.Log("interactables count: " + interactables.Count);
     if (interactables.Count > 0)
     {
+
+      interactables.RemoveAll(interactableObject => interactableObject == null);
       foreach (GameObject interactableObject in interactables)
       {
         Interactable interactable = interactableObject.GetComponent<Interactable>();
@@ -180,13 +143,43 @@ public class PlayerController : Character
     {
       AddContextualAction("climb", ClimbAdjacentTile);
     }
-    if (activeMovementAbilities.Contains(CharacterMovementAbility.Burrow) && GridManager.Instance.CanBurrowOnCurrentTile(GetTileLocation()))
+    if (GridManager.Instance.AdjacentTileIsValid(GetTileLocation(), TilemapDirection.Above) && GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
     {
-      AddContextualAction("burrow", SpawnBurrowHoleTile);
+      Debug.Log("adding ascend action");
+      AddContextualAction("ascend", AscendOneFloor);
+    }
+    if (GridManager.Instance.AdjacentTileIsValid(GetTileLocation(), TilemapDirection.Below) && GridManager.Instance.CanDescendThroughCurrentTile(GetTileLocation(), this))
+    {
+      AddContextualAction("descend", DescendOneFloor);
     }
     if (selectedContextualActionIdx > 0 && selectedContextualActionIdx >= availableContextualActions.Count)
     {
       selectedContextualActionIdx = 0;
+    }
+  }
+
+  public void UseSelectedSkill()
+  {
+    if ((AttackSkillData)characterSkills[selectedSkillIdx] != null) // TODO: handle this more generically!!
+    {
+      UseAttack((AttackSkillData)characterSkills[selectedSkillIdx]);
+    }
+  }
+
+  public void AdvanceSelectedSkill()
+  {
+    if (characterSkills.Count > 0)
+    {
+      selectedSkillIdx = selectedSkillIdx + 1;
+      if (selectedSkillIdx >= characterSkills.Count)
+      {
+        selectedSkillIdx = 0;
+      }
+      Debug.Log("selected skill: " + characterSkills[selectedSkillIdx]);
+    }
+    else
+    {
+      selectedSkillIdx = 0;
     }
   }
 
@@ -204,12 +197,6 @@ public class PlayerController : Character
     {
       selectedContextualActionIdx = 0;
     }
-    Debug.Log("contextualActions: ");
-    foreach (ContextualAction c in availableContextualActions)
-    {
-      Debug.Log(c.actionName);
-    }
-    Debug.Log("selectedContextualActionIdx = " + selectedContextualActionIdx);
 
   }
   public ContextualAction GetSelectedContextualAction()
@@ -246,25 +233,65 @@ public class PlayerController : Character
       movementInput.x = 0;
     }
   }
-  // Handle player action inputs. Currently only attack does anything useful.
-  // TODO: Use GetButtonDown instead of GetKeyDown
+
   void HandleActionInput()
   {
     switch (GameMaster.Instance.GetGameStatus())
     {
       case (Constants.GameState.Play):
+        // Debug.Log("handling player input");
+        if (Input.GetButtonDown("Activate")) { Debug.Log("pressed activate"); }
+        if (Input.GetKeyDown("e")) { Debug.Log("pressed e"); }
         if (Input.GetButtonDown("Attack"))
         {
-          Attack();
+          Debug.Log("attack?");
+          UseSelectedSkill();
+          // Attack();
         }
         else if (Input.GetButtonDown("Dash"))
         {
-          Dash();
+          return; // TODO: DELETE THIS
+          // Debug.Log("dash?");
+          if (CanDash())
+          {
+            Dash();
+          }
+        }
+        else if (Input.GetButtonDown("Ascend"))
+        {
+          Debug.Log("ascend?");
+          if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
+          {
+            FlyUp();
+          }
+          else if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
+          {
+            AscendOneFloor();
+          }
+          else if (!flying)
+          {
+            return; // TODO: DELETE THIS
+            Fly();
+          }
+        }
+        else if (Input.GetButtonDown("Descend"))
+        {
+          Debug.Log("descend?");
+          if (flying)
+          {
+            FlyDown();
+          }
+          else
+          {
+            // DescendOneFloor(); // maybe descend??
+          }
         }
         else if (Input.GetButtonDown("Activate"))
         {
+          Debug.Log("activate?");
           if (availableContextualActions.Count > 0)
           {
+            Debug.Log("executing contextual action " + GetSelectedContextualAction().actionName);
             GetSelectedContextualAction().actionToCall();
           }
           else if (inventory.lastPickedUpItems.Count > 0)
@@ -272,12 +299,17 @@ public class PlayerController : Character
             inventory.ClearPickedUpItem();
           }
         }
+        else if (Input.GetButtonDown("AdvanceSkill"))
+        {
+          AdvanceSelectedSkill();
+        }
         else if (Input.GetButtonDown("AdvanceSelectedAction"))
         {
           AdvanceSelectedContextualAction();
         }
         else if (Input.GetButtonDown("Molt"))
         {
+          return; // TODO: DELETE THIS
           Molt();
         }
         // else if (Input.GetButtonDown("Skill1"))
@@ -354,7 +386,7 @@ public class PlayerController : Character
 
   public override void SetCurrentFloor(FloorLayer newFloorLayer)
   {
-    Debug.Log("should be changing to floor " + newFloorLayer);
+    // Debug.Log("should be changing to floor " + newFloorLayer);
     // GridManager.Instance.OnLayerChange(newFloorLayer);
     base.SetCurrentFloor(newFloorLayer);
   }
@@ -369,20 +401,21 @@ public class PlayerController : Character
     inventory.EquipConsumableToSlot(itemToEquip, slot);
   }
 
+  // TODO: Delete or update this so it sets attributes
   private void AssignTraitsForFirstLife()
   {
-    Debug.Log("assigning traits for first life~");
-    TraitSlotToTraitDictionary et = initialEquippedTraits.EquippedTraits();
-    foreach (TraitSlot traitSlot in et.Keys)
-    {
-      Trait trait = et[traitSlot];
-      if (et[traitSlot] != null)
-      {
-        Debug.Log("added " + trait);
-        trait.OnTraitAdded(this);
-      }
-      equippedTraits[traitSlot] = trait;
-    }
+    // Debug.Log("assigning traits for first life~");
+    // TraitSlotToTraitDictionary et = initialEquippedTraits.EquippedTraits();
+    // foreach (TraitSlot traitSlot in et.Keys)
+    // {
+    //     Trait trait = et[traitSlot];
+    //     if (et[traitSlot] != null)
+    //     {
+    //         Debug.Log("added " + trait);
+    //         // trait.OnTraitAdded(this);
+    //     }
+    //     traits[traitSlot] = trait;
+    // }
     // ActiveTraitInstance activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
     // ActiveTrait activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+initialskill1) as ActiveTrait;
     // if (activeTrait != null && activeTraitData != null) {
@@ -397,9 +430,9 @@ public class PlayerController : Character
     // }
   }
 
-  public void EquipTrait(InventoryEntry itemToEquip, TraitSlot slot)
+  public void EquipTrait(Trait itemTrait, TraitSlot slot)
   {
-    inventory.EquipTraitToUpcomingLifeTrait(itemToEquip, slot);
+    pupa[slot] = itemTrait;
   }
 
   override public void AssignTraitsForNextLife(TraitSlotToUpcomingTraitDictionary nextLifeTraits)
@@ -408,8 +441,8 @@ public class PlayerController : Character
     {
       if (nextLifeTraits[slot] != null && nextLifeTraits[slot].trait != null)
       {
-        equippedTraits[slot] = nextLifeTraits[slot].trait;
-        nextLifeTraits[slot].trait.OnTraitAdded(this);
+        traits[slot] = nextLifeTraits[slot].trait;
+        // nextLifeTraits[slot].trait.OnTraitAdded(this);
       }
     }
     LymphTypeToIntDictionary lymphTypeCounts = inventory.GetLymphTypeCounts(nextLifeTraits);
@@ -469,19 +502,38 @@ public class PlayerController : Character
   // }
   // }
 
+  public override CharacterSkillData GetSelectedCharacterSkill()
+  {
+    if (characterSkills.Count > selectedSkillIdx)
+    {
+      return characterSkills[selectedSkillIdx];
+    }
+    return null;
+  }
+
+  public override Weapon GetSelectedWeaponInstance()
+  {
+    if (characterSkills.Count > selectedSkillIdx)
+    {
+      string skillName = GetSkillNameFromIndex(selectedSkillIdx);
+      return weaponInstances[skillName];
+    }
+    return null;
+  }
+
   override public void Die()
   {
-    foreach (TraitSlot slot in equippedTraits.Keys)
+    foreach (TraitSlot slot in traits.Keys)
     {
-      if (equippedTraits[slot] != null && equippedTraits[slot])
+      if (traits[slot] != null && traits[slot])
       {
-        Debug.Log("Removing trait in" + slot);
-        equippedTraits[slot].OnTraitRemoved(this);
+        // Debug.Log("Removing trait in" + slot);
+        // traits[slot].OnTraitRemoved(this);
       }
     }
-    Debug.Log("all traits removed; killing player");
-    GameMaster.Instance.KillPlayer(inventory.GetUpcomingPupa());
-    Debug.Log("destroying gameobject");
+    // Debug.Log("all traits removed; killing player");
+    GameMaster.Instance.KillPlayer(pupa);
+    // Debug.Log("destroying gameobject");
     base.Die();
   }
 

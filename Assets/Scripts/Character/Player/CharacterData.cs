@@ -9,16 +9,22 @@ public class CharacterData : ScriptableObject
 {
 
   public CharacterStatToFloatDictionary defaultStats;
+  public AttackSkillData defaultCharacterAttack;
   public DamageTypeToFloatDictionary damageTypeResistances;
   public CharacterAttackModifiers attackModifiers;
   public CharacterAttackModifiers dashAttackModifiers;
   public List<CharacterMovementAbility> movementAbilities;
+  public CharacterAttributeToScriptableObjectDictionary attributeDatas;
 
   public void Awake()
   {
     if (defaultStats == null)
     {
       defaultStats = new CharacterStatToFloatDictionary();
+    }
+    if (attributeDatas == null)
+    {
+      attributeDatas = new CharacterAttributeToScriptableObjectDictionary();
     }
     if (damageTypeResistances == null)
     {
@@ -36,9 +42,73 @@ public class CharacterData : ScriptableObject
     {
       movementAbilities = new List<CharacterMovementAbility>();
     }
-    Debug.Log("character data init'd!");
   }
 
+  public void RefreshAttributeDatas()
+  {
+    UnityEngine.Object[] dataObjects = Resources.LoadAll("Data/TraitData/Attributes");
+    UnityEngine.ScriptableObject[] cast = dataObjects as ScriptableObject[];
+    Debug.Log("dataObjects: " + dataObjects);
+    Debug.Log("cast: " + cast);
+    attributeDatas = new CharacterAttributeToScriptableObjectDictionary();
+    IAttributeDataInterface ad;
+    foreach (ScriptableObject obj in dataObjects)
+    {
+      ad = obj as FlightAttributeData;
+      if (ad != null)
+      {
+        Debug.Log("adding " + ad + "as flightAttributeData");
+        AddScriptableObjectToAttributeDatas(ad.attribute, obj);
+        continue;
+      }
+      ad = obj as AttributeData;
+      if (ad != null)
+      {
+        Debug.Log("adding " + ad + "as attributeData");
+        AddScriptableObjectToAttributeDatas(ad.attribute, obj);
+        continue;
+      }
+    }
+    // attributeDatas.AddRange(dataObjects as AttributeData[]); //Resources.LoadAll("Data/TraitData/Attributes") as AttributeData[]);  
+  }
+
+  void AddScriptableObjectToAttributeDatas(CharacterAttribute attr, ScriptableObject ad)
+  {
+    if (!attributeDatas.ContainsKey(attr))
+    {
+      Debug.Log("adding attribute: " + attr + " to " + ad);
+      attributeDatas.Add(attr, ad);
+    }
+    else
+    {
+      Debug.Log("updating attribute: " + attr + " to " + ad);
+      attributeDatas[attr] = ad;
+    }
+  }
+
+  public IAttributeDataInterface GetAttributeDataInterface(CharacterAttribute attribute)
+  {
+    return attributeDatas[attribute] as IAttributeDataInterface;
+  }
+
+  public AttributeData GetAttributeData(CharacterAttribute attribute)
+  {
+    return (AttributeData)GetAttributeDataInterface(attribute);
+  }
+
+  public FlightAttributeData GetFlightAttributeData()
+  {
+    return (FlightAttributeData)GetAttributeDataInterface(CharacterAttribute.Flight);
+  }
+  public DashAttributeData GetDashAttributeData()
+  {
+    return (DashAttributeData)GetAttributeDataInterface(CharacterAttribute.Dash);
+  }
+
+  public HealthAttributeData GetHealthAttributeData()
+  {
+    return (HealthAttributeData)GetAttributeDataInterface(CharacterAttribute.Health);
+  }
 #if UNITY_EDITOR
   // The following is a helper that adds a menu item to create an PlayerCharacterData Asset
   [MenuItem("Assets/Create/CharacterData/PlayerCharacterData")]

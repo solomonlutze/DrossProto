@@ -1,114 +1,121 @@
+
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class Hitbox : MonoBehaviour
+public class Hitbox : MonoBehaviour, IDamageSource
 {
+  public AttackSkillData attack;
+  public Character character;
 
-  //TODO: Size things
-  // - should be possible to set the shape: square, circle, or hitboxSpawn
-  // - should be possible to set radius, xy, or neither (for hitboxSpawn)
-
-  //how long this hitbox should last for
-  public float duration;
-
-  // what weapon does this hitbox belong to
-  public Transform owningTransform;
-  // damage we will apply on a hit
-  private Damage damage;
-  private CharacterAttackModifiers attackModifiers;
-  public FloorLayer floor;
-
-  // Use this for initialization
-  void Start()
+  protected string _sourceString = "";
+  public string sourceString
   {
-  }
-  // Characteristics of hitbox initialized by weapon.
-  public void Init(Transform initializingTransform, Character owner, HitboxData info, CharacterAttackModifiers mods)
-  {
-    duration = info.duration;
-    damage = new Damage(info.damageInfo, mods);
-    // WARNING: duration of 0 means a hitbox needs to be cleaned up manually
-    if (duration > 0)
+    get
     {
-      StartCoroutine(CleanUpSelf());
-    }
-    attackModifiers = mods;
-    owningTransform = initializingTransform;
-
-    switch (info.hitboxShape)
-    {
-      case HitboxShape.Box:
-        transform.localScale = new Vector2(
-            info.size.x + Character.GetAttackValueModifier(attackModifiers.attackValueModifiers, CharacterAttackValue.HitboxSize),
-            info.size.y + Character.GetAttackValueModifier(attackModifiers.attackValueModifiers, CharacterAttackValue.HitboxSize)
-        );
-        break;
-      case HitboxShape.Circle:
-        Destroy(GetComponent<BoxCollider2D>());
-        CircleCollider2D circleCol = gameObject.AddComponent<CircleCollider2D>();
-        circleCol.radius = info.radius;
-        break;
-      case HitboxShape.Spawn:
-        break;
-    }
-    if (info.followInitializingTransform && initializingTransform != null)
-    {
-      transform.parent = initializingTransform;
-    }
-    if (info.hitboxShape == HitboxShape.Spawn)
-    {
-      transform.localScale = Vector2.one;
-    }
-    floor = owner.currentFloor;
-    WorldObject.ChangeLayersRecursively(transform, owner.currentFloor);
-  }
-
-  // Characteristics of hitbox initialized by weapon.
-
-  // Destroys this hitbox. Waits until end of frame so it doesn't get cleaned up same frame; not sure
-  // if that's necessary or not
-  IEnumerator CleanUpSelf()
-  {
-    yield return new WaitForEndOfFrame();
-    yield return new WaitForSeconds(duration);
-    Destroy(gameObject);
-  }
-
-  void Update()
-  {
-    HandleTile();
-  }
-
-  void HandleTile()
-  {
-    // TODO: this should work for other collider shapes, not just boxes.
-    // It should also work for bigger box colliders, which this doesn't.
-    BoxCollider2D b = GetComponent<BoxCollider2D>();
-    if (b == null) { return; }
-    Vector3[] corners = {
-            transform.TransformPoint(b.offset + new Vector2(b.size.x, b.size.y)*0.5f),
-            transform.TransformPoint(b.offset + new Vector2(-b.size.x, b.size.y)*0.5f),
-            transform.TransformPoint(b.offset + new Vector2(b.size.x, -b.size.y)*0.5f),
-            transform.TransformPoint(b.offset + new Vector2(-b.size.x, -b.size.y)*0.5f)
-        };
-    foreach (Vector3 cornerPosition in corners)
-    {
-      EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(
-          new TileLocation(
-              new Vector2Int(Mathf.FloorToInt(cornerPosition.x),
-              Mathf.FloorToInt(cornerPosition.y)),
-              floor
-          )
-      );
-      tile.TakeDamage(damage);
+      if (_sourceString == "")
+      {
+        _sourceString = Guid.NewGuid().ToString("N").Substring(0, 15);
+      }
+      return _sourceString;
     }
   }
 
-  // Anything we hit, try to damage! This can be applied to destructible environments later too.
-  void OnTriggerStay2D(Collider2D col)
+  public void Init(AttackSkillData atk, Character ch)
   {
-    Debug.Log("hitbox collided with " + col.gameObject);
-    col.SendMessage("TakeDamage", damage, SendMessageOptions.DontRequireReceiver);
+    attack = atk;
+    character = ch;
   }
+
+
+  private void OnTriggerEnter2D(Collider2D other)
+  {
+    other.gameObject.SendMessage("TakeDamage", this, SendMessageOptions.DontRequireReceiver);
+  }
+
+  public bool IsOwnedBy(Character c)
+  {
+    return c == character;
+  }
+
+  public bool IsSameOwnerType(Character c)
+  {
+    return character && character.characterType == c.characterType;
+  }
+
+  public int damageAmount
+  {
+    get
+    {
+      return attack.GetDamageAmount(character);
+    }
+  }
+
+  public DamageType damageType
+  {
+    get
+    {
+      return attack.GetDamageType(character);
+    }
+  }
+
+  public float stunMagnitude
+  {
+    get
+    {
+      return attack.GetStun(character);
+    }
+  }
+
+  public bool ignoresInvulnerability
+  {
+    get
+    {
+      return attack.IgnoresInvulnerability();
+    }
+  }
+
+  public float invulnerabilityWindow
+  {
+    get
+    {
+      return attack.GetInvulnerabilityWindow();
+    }
+  }
+
+  public Vector3 GetKnockbackForCharacter(Character c)
+  {
+    return attack.GetKnockback(character, this);
+  }
+
+  public bool forcesItemDrop
+  {
+    get
+    {
+      return attack.ForcesItemDrop();
+    }
+  }
+
+  public float CalculateDamageAfterResistances(Character c)
+  {
+    if (c != null)
+    {
+      return ((1 - GetDamageTypeResistancePercent(c) / 100) * damageAmount);
+    }
+    return 0;
+  }
+
+  protected float GetDamageTypeResistancePercent(Character c)
+  {
+    return 34 * c.GetDamageTypeResistanceLevel(damageType); // TODO: get rid of magic number!! build it into resistance tiers maybe?
+  }
+
+  public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage
+  {
+    get
+    {
+      return new List<CharacterMovementAbility>();
+    }
+  }
+
 }

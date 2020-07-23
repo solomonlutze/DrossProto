@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEditor;
 
 public enum TraitName { }; // just a list of names of every possible trait
 public enum TraitType { Passive, Active };
@@ -110,9 +111,9 @@ public class TraitEffect
           owner.ApplyAttackModifier(attackModifiers, false);
         }
         break;
-      case TraitEffectType.CharacterStat:
-        owner.AddStatMod(stat, magnitude, sourceString);
-        break;
+      // case TraitEffectType.CharacterStat:
+      //     owner.AddStatMod(stat, magnitude, sourceString);
+      //     break;
       case TraitEffectType.Aura:
         owner.AddAura(this);
         break;
@@ -150,9 +151,9 @@ public class TraitEffect
             break;
         }
         break;
-      case TraitEffectType.CharacterStat:
-        owner.RemoveStatMod(sourceString);
-        break;
+      // case TraitEffectType.CharacterStat:
+      //     owner.RemoveStatMod(sourceString);
+      //     break;
       case TraitEffectType.Aura:
         owner.RemoveAura(this);
         break;
@@ -166,7 +167,89 @@ public class TraitEffect
   }
 }
 
-public abstract class Trait : ScriptableObject
+public class Trait : ScriptableObject
+{
+  public string traitName;
+
+  [TextArea]
+  public string traitDescription;
+  public CharacterAttributeToIntDictionary attributeModifiers;
+  public CharacterSkillData skillData;
+  public GameObject owningBugPrefab;
+  public LymphType lymphType;
+
+  public Sprite visual1;
+
+  public Sprite visual2;
+
+#if UNITY_EDITOR
+  // The following is a helper that adds a menu item to create an Trait Asset
+  [MenuItem("Assets/Create/Trait/Trait")]
+  public static void CreateTrait()
+  {
+    string path = EditorUtility.SaveFilePanelInProject("Save Trait", "New Trait", "Asset", "Save Trait", "Assets/resources/Data/TraitData/Traits");
+    if (path == "")
+      return;
+    Trait tAsset = ScriptableObject.CreateInstance<Trait>();
+    tAsset.attributeModifiers = new CharacterAttributeToIntDictionary(false);
+    AssetDatabase.CreateAsset(tAsset, path);
+  }
+
+  // The following is a helper that adds a menu item to create an TraitItem Asset
+  [MenuItem("Assets/Create/Trait/TraitSet")]
+  public static void CreateTraitSet()
+  {
+    string path = EditorUtility.SaveFilePanelInProject("Save Trait", "New Trait", "Asset", "Save Trait", "Assets/resources/Data/TraitData/Traits");
+    if (path == "")
+      return;
+    Debug.Log("path: " + path);
+    string[] splitPath = path.Split('/');
+    string objName = splitPath[splitPath.Length - 1];
+    int indexOfPeriod = objName.IndexOf('.');
+    objName = objName.Substring(0, indexOfPeriod);
+    Debug.Log("objName: " + objName);
+    foreach (TraitSlot slot in Enum.GetValues(typeof(TraitSlot)))
+    {
+      Trait tAsset = ScriptableObject.CreateInstance<Trait>();
+      tAsset.attributeModifiers = new CharacterAttributeToIntDictionary(false);
+      tAsset.name = objName + "_" + slot.ToString();
+      splitPath[splitPath.Length - 1] = tAsset.name + ".asset";
+      AssetDatabase.CreateAsset(tAsset, String.Join("/", splitPath));
+    }
+  }
+
+  // public static void CreateTraitSetForBug(string bugName)
+  // {
+  //     foreach (TraitSlot slot in Enum.GetValues(typeof(TraitSlot)))
+  //     {
+  //         Trait tAsset = ScriptableObject.CreateInstance<Trait>();
+  //         tAsset.attributeModifiers = new CharacterAttributeToIntDictionary(false);
+  //         tAsset.name = objName + "_" + slot.ToString();
+  //         splitPath[splitPath.Length - 1] = tAsset.name + ".asset";
+  //         AssetDatabase.CreateAsset(tAsset, String.Join("/", splitPath));
+  //     }
+  // }
+
+  public static Trait CreateTraitForBug(Character bug, TraitSlot slot)
+  {
+    Trait tAsset = ScriptableObject.CreateInstance<Trait>();
+    tAsset.name = bug.gameObject.name + "_" + slot.ToString();
+    string completePath = "Assets/resources/Data/TraitData/Traits/" + tAsset.name + ".asset";
+    Debug.Log("complete path: " + completePath);
+    tAsset.attributeModifiers = new CharacterAttributeToIntDictionary(false);
+    tAsset.owningBugPrefab = bug.gameObject;
+    AssetDatabase.CreateAsset(tAsset, completePath);
+    // Select the object in the project folder
+    Selection.activeObject = tAsset;
+
+    // Also flash the folder yellow to highlight it
+    EditorGUIUtility.PingObject(tAsset);
+    return tAsset;
+  }
+
+#endif
+}
+public abstract class Trait_OLD : ScriptableObject
 {
   TraitName tn; // do we use this?
   public string traitName;

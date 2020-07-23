@@ -12,7 +12,11 @@ public class MoveAiAction : AiAction
   {
     Vector2 movementInput = Vector2.zero;
     WorldObject targetWorldLocation;
-    if (controller.objectOfInterest != null)
+    if (controller.overrideDestination != null)
+    {
+      targetWorldLocation = controller.overrideDestination;
+    }
+    else if (controller.objectOfInterest != null)
     {
       targetWorldLocation = controller.objectOfInterest;
     }
@@ -31,15 +35,20 @@ public class MoveAiAction : AiAction
     );
     if (controller.lineToTargetIsClear)
     {
-      movementInput = (targetWorldLocation.transform.position - controller.transform.position).normalized;
+      float distanceFromTarget = CustomPhysicsController.GetMinimumDistanceBetweenObjects(targetWorldLocation.gameObject, controller.gameObject);
+
+      if ((distanceFromTarget + .3f) > controller.minDistanceFromTarget)
+      {
+        movementInput = (targetWorldLocation.transform.position - controller.transform.position).normalized;
+      }
     }
     else
     {
-      controller.StartCalculatingPath(targetWorldLocation.GetTileLocation());
+      controller.StartCalculatingPath(targetWorldLocation.GetTileLocation(), this);
       if (controller.pathToTarget != null && controller.pathToTarget.Count > 0)
       {
         Vector3 nextNodeLocation = new Vector3(controller.pathToTarget[0].loc.position.x + .5f, controller.pathToTarget[0].loc.position.y + .5f, 0);
-        Vector3 colliderCenterWorldSpace = controller.transform.TransformPoint(controller.col.offset);
+        Vector3 colliderCenterWorldSpace = controller.transform.TransformPoint(controller.circleCollider.offset);
         movementInput = (nextNodeLocation - colliderCenterWorldSpace).normalized;
         Debug.DrawLine(nextNodeLocation, colliderCenterWorldSpace, Color.red, .25f, true);
         if (Vector3.Distance(nextNodeLocation, colliderCenterWorldSpace) < controller.minDistanceFromPathNode)
@@ -47,6 +56,9 @@ public class MoveAiAction : AiAction
           controller.pathToTarget.RemoveAt(0);
         }
       }
+    }
+    if (controller.pathToTarget == null && !controller.IsCalculatingPath())
+    {
     }
     controller.SetMoveInput(movementInput);
   }

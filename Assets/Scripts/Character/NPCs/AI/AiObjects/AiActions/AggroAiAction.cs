@@ -5,6 +5,12 @@ public class AggroAiAction : MoveAiAction
 {
   public override void Act(AiStateController controller)
   {
-    MoveTowardsObjectOfInterest(controller);
+    if (
+      controller.objectOfInterest != null
+      // && Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetAttackRange(controller.characterAttack, controller.attackModifiers)
+      && Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) >= controller.GetAttackRange())
+    {
+      MoveTowardsObjectOfInterest(controller);
+    }
   }
 }

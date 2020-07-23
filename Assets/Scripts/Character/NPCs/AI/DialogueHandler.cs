@@ -56,7 +56,7 @@ public class DialogueHandler : Interactable
   void PlayerActivate(PlayerController player)
   {
     // if (character.aiState == AiStates.PlayerAggro) { return; }
-    Debug.Log("calling playerActivate for DialogueHandler");
+    // Debug.Log("calling playerActivate for DialogueHandler");
     if (startNode != null)
     {
       GameMaster.Instance.StartDialogue(startNode);

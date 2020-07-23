@@ -14,10 +14,10 @@ public class PlayerHUD : MonoBehaviour
 
   private SuperTextMesh activatedAbilityText;
 
-  public TextMeshProUGUI skill1TitleText;
-  public TextMeshProUGUI skill1ValueText;
-  public TextMeshProUGUI skill2TitleText;
-  public TextMeshProUGUI skill2ValueText;
+  public TextMeshProUGUI selectedSkillText;
+  // public TextMeshProUGUI skill1ValueText;
+  // public TextMeshProUGUI skill2TitleText;
+  // public TextMeshProUGUI skill2ValueText;
 
   private string diedString = "This body has been destroyed.\nPress Return to be reborn.";
   // Use this for initialization
@@ -39,15 +39,19 @@ public class PlayerHUD : MonoBehaviour
     if (playerController != null)
     {
       healthFieldText.text = "Health: ";
-      healthValueText.text = Mathf.Max(Mathf.Round(playerController.vitals[CharacterVital.CurrentHealth]), 0).ToString();
-      maxHealthValueText.text = Mathf.Round(playerController.GetStat(CharacterStat.MaxHealth)).ToString();
-      if (playerController.vitals[CharacterVital.CurrentHealth] > 0)
+      healthValueText.text = Mathf.Max(Mathf.RoundToInt(playerController.GetCharacterVital(CharacterVital.CurrentHealth)), 0).ToString();
+      maxHealthValueText.text = Mathf.Round(playerController.GetMaxHealth()).ToString();
+      if (playerController.GetCharacterVital(CharacterVital.CurrentHealth) > 0)
       {
         diedText.text = " ";
       }
       if (playerController.lastActivatedTrait != null && playerController.lastActivatedTrait != "")
       {
         activatedAbilityText.text = playerController.lastActivatedTrait + " Activated!";
+      }
+      if (playerController.GetSelectedCharacterSkill() != null)
+      {
+        selectedSkillText.text = playerController.GetSelectedCharacterSkill().displayName;
       }
       else
       {

@@ -4,7 +4,7 @@ public class TargetIsReachableAiDecision : AiDecision
 {
   public override bool Decide(AiStateController controller)
   {
-    if (controller.CanReachObjectOfInterest())
+    if (controller.CanReachObjectOfInterest() && controller.ObjectOfInterestWithinRangeOfSpawnPoint())
     {
       return true;
     }

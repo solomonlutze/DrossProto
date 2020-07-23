@@ -19,7 +19,8 @@ public class EnvironmentTile : Tile
   // Annoying workaround for non-nullable environmentalDamage. Mark True to have tile deal damage.
   public bool dealsDamage = false;
   public List<TileTag> tileTags;
-  public DamageData environmentalDamage;
+  public DamageData_OLD environmentalDamage_OLD;
+  public EnvironmentalDamageInfo environmentalDamageInfo;
   public bool corrodable;
   public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage;
 
@@ -31,6 +32,8 @@ public class EnvironmentTile : Tile
   public int changesFloorLayerByAmount;
   public TileDurability tileDurability = TileDurability.Indestructable;
   public FloorTilemapType floorTilemapType = FloorTilemapType.Ground;
+
+  public EnvironmentTile autoPlaceTileOnPaint_Above;
   public EnvironmentTile replacedByWhenDestroyed;
   public EnvironmentTile replacedByWhenCorroded;
   //TODO: should we just have statMods?
@@ -39,8 +42,14 @@ public class EnvironmentTile : Tile
 
   // Eventually this'll be a more complex thing, probably
   public bool shouldRespawnPlayer = false;
-  public List<CharacterMovementAbility> movementAbilitiesWhichBypassRespawn;
-  public bool isClimbable = false;
+  // map of attributes which can bypass : the value required to bypass
+  // characters can cross tile with ANY of these attributes in the right amount; they do not need all of them
+  public CharacterAttributeToIntDictionary attributesWhichBypassRespawn;
+  // map of attributes which can bypass : the value required to bypass
+  // characters can climb with ANY of these attributes in the right amount; they do not need all of them
+  public CharacterAttributeToIntDictionary attributesWhichAllowClimbing;
+  public CharacterAttributeToIntDictionary attributesWhichAllowBurrowing;
+  public CharacterAttributeToIntDictionary attributesWhichAllowPassingThrough;
   private string tileType;
   private Renderer _renderer;
   public ShaderData shaderData;
@@ -107,6 +116,7 @@ public class EnvironmentTile : Tile
   }
   public override void RefreshTile(Vector3Int location, ITilemap tilemap)
   {
+    // Debug.Log("tile " + this.name + " on tilemap " + tilemap);
     for (int yd = -1; yd <= 1; yd++)
       for (int xd = -1; xd <= 1; xd++)
       {
