@@ -637,7 +637,7 @@ public class Character : WorldObject
   protected void Molt()
   {
     Instantiate(moltCasingPrefab, orientation.transform.position, orientation.transform.rotation);
-    // moltCasingPrefab.Init(mainRenderer.color, this);
+    moltCasingPrefab.Init(Color.white, this);
     AdjustCurrentMoltCount(1);
     AdjustCurrentHealth(5);
   }
@@ -1066,6 +1066,7 @@ public class Character : WorldObject
     currentTileLocation = CalculateCurrentTileLocation();
     CenterCharacterOnCurrentTile();
     ChangeLayersRecursively(transform, newFloorLayer, flying ? .5f : 0);
+    HandleTileCollision(GridManager.Instance.GetTileAtLocation(currentTileLocation));
     po.OnLayerChange();
   }
 
@@ -1184,6 +1185,7 @@ public class Character : WorldObject
   {
 
   }
+
   public virtual void HandleTileCollision(EnvironmentTileInfo tile)
   {
     if (tile.GetColliderType() == Tile.ColliderType.None)
@@ -1192,7 +1194,11 @@ public class Character : WorldObject
     }
     else
     {
-      // Debug.Log("collided with "+tile);
+      if (tile.CharacterCanBurrowThroughObjectTile(this))
+      {
+        GridManager.Instance.MarkTileToRestoreOnPlayerRespawn(tile);
+        tile.DestroyObjectTile();
+      }
     }
   }
 

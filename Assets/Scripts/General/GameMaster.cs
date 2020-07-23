@@ -12,6 +12,7 @@ public class GameMaster : Singleton<GameMaster>
   public CanvasHandler canvasHandler;
   public GameObject playerPrefab;
   public DialogueRunner dialogueRunner;
+  public VariableStorage dialogueVariableStorage;
   private PlayerController playerController;
   private PathfindingSystem pathfinding;
   private Constants.GameState gameStatus;
@@ -113,6 +114,7 @@ public class GameMaster : Singleton<GameMaster>
     playerController.SetCurrentFloor(playerController.currentFloor);
     playerController.Init(overrideTraits);
     DoActivateOnPlayerRespawn();
+    DoDestroyOnPlayerRespawn();
     SetGameStatus(Constants.GameState.Play);
   }
 
@@ -124,6 +126,16 @@ public class GameMaster : Singleton<GameMaster>
       obj.SendMessage("Activate", SendMessageOptions.RequireReceiver);
     }
   }
+
+  private void DoDestroyOnPlayerRespawn()
+  {
+    GameObject[] objectsToDestroy = GameObject.FindGameObjectsWithTag("DestroyOnPlayerRespawn");
+    foreach (GameObject obj in objectsToDestroy)
+    {
+      Destroy(obj);
+    }
+  }
+
   private GameObject ChooseSpawnPoint()
   {
     return nextSpawnPoint ?? null;

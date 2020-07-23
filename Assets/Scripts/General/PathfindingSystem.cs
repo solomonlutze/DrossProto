@@ -41,7 +41,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     timeSpentThisFrame.Start();
     while (openNodes.Count > 0)
     {
-      if (timeSpentThisFrame.ElapsedMilliseconds > 15)
+      if (timeSpentThisFrame.ElapsedMilliseconds > 1)
       {
         yield return null;
         timeSpentThisFrame.Restart();

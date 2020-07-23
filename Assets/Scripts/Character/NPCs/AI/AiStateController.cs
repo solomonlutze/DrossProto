@@ -19,6 +19,7 @@ public class AiStateController : Character
     }
   }
   public float attackAngleInDegrees = 45f;
+  public float maxTargetDistanceFromSpawnPoint = 15;
   [HideInInspector] public float minDistanceFromPathNode;
 
   public float minDistanceFromTarget;
@@ -73,7 +74,7 @@ public class AiStateController : Character
   {
     if (nextState != remainState)
     {
-      Debug.Log(gameObject.name + "transitioning from " + currentState + " to " + nextState);
+      // Debug.Log(gameObject.name + "transitioning from " + currentState + " to " + nextState);
       timeSpentInState = 0f;
       currentState = nextState;
       //TODO: should we fall back if onEntry fails?
@@ -147,6 +148,17 @@ public class AiStateController : Character
     // Debug.Log("unsetting override destination!");
     overrideDestination = null;
   }
+  public void DelayThenSetOverrideDestination(Vector3 pos, FloorLayer fl)
+  {
+    StartCoroutine(DelayThenSetOverrideDestinationCoroutine(pos, fl));
+  }
+
+  public IEnumerator DelayThenSetOverrideDestinationCoroutine(Vector3 pos, FloorLayer fl)
+  {
+    yield return new WaitForSeconds(Random.Range(.3f, 1f));
+    SetOverrideDestination(pos, fl);
+  }
+
   public void SetOverrideDestination(Vector3 pos, FloorLayer fl)
   {
     if (overrideDestinationObject == null)
@@ -198,6 +210,14 @@ public class AiStateController : Character
       && (pathToTarget != null || lineToTargetIsClear || isCalculatingPath);
   }
 
+  public bool ObjectOfInterestWithinRangeOfSpawnPoint()
+  {
+    Debug.Log("maxTargetDistanceFromSpawnPoint squared:" + maxTargetDistanceFromSpawnPoint * maxTargetDistanceFromSpawnPoint);
+    Debug.Log("distance squared:" + ((Vector2)objectOfInterest.transform.position - spawnLocation).sqrMagnitude);
+    return
+      objectOfInterest != null
+      && maxTargetDistanceFromSpawnPoint * maxTargetDistanceFromSpawnPoint > ((Vector2)objectOfInterest.transform.position - spawnLocation).sqrMagnitude;
+  }
   public float GetMinPreferredAttackRange()
   {
     return GetSelectedCharacterSkill().ai_preferredMinRange;
@@ -207,7 +227,18 @@ public class AiStateController : Character
   {
     return GetEffectiveAttackRange() - GetSelectedCharacterSkill().ai_preferredAttackRangeBuffer;
   }
-
+  public void WaitThenAttack()
+  {
+    Debug.Log("begin attack");
+    StartCoroutine(WaitThenAttackCoroutine());
+  }
+  public IEnumerator WaitThenAttackCoroutine()
+  {
+    Debug.Log("wait then attack");
+    yield return new WaitForSeconds(Random.Range(.3f, .7f));
+    Debug.Log("use attack!!");
+    UseAttack((AttackSkillData)GetSelectedCharacterSkill()); // todo: fix this????
+  }
   protected override void TakeDamage(IDamageSource damageSource)
   {
     if (damageSource.forcesItemDrop)

@@ -84,21 +84,21 @@ public class PlayerController : Character
     }
   }
 
-  public override void HandleTileCollision(EnvironmentTileInfo tile)
-  {
-    if (tile.GetColliderType() == Tile.ColliderType.None)
-    {
-      return;
-    }
-    else
-    {
-      if (tile.CharacterCanBurrowThroughObjectTile(this))
-      {
-        GridManager.Instance.MarkTileToRestoreOnPlayerRespawn(tile);
-        tile.DestroyObjectTile();
-      }
-    }
-  }
+  // public override void HandleTileCollision(EnvironmentTileInfo tile)
+  // {
+  //   if (tile.GetColliderType() == Tile.ColliderType.None)
+  //   {
+  //     return;
+  //   }
+  //   else
+  //   {
+  //     if (tile.CharacterCanBurrowThroughObjectTile(this))
+  //     {
+  //       GridManager.Instance.MarkTileToRestoreOnPlayerRespawn(tile);
+  //       tile.DestroyObjectTile();
+  //     }
+  //   }
+  // }
 
   private void SpawnBurrowHoleTile()
   {
@@ -121,8 +121,10 @@ public class PlayerController : Character
     EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(GetTileLocation());
     if (tile.isInteractable)
     {
+      Debug.Log("adding interactable");
       AddContextualAction(tile.GetInteractableText(this), UseTile);
     }
+    Debug.Log("interactables count: " + interactables.Count);
     if (interactables.Count > 0)
     {
 
@@ -143,6 +145,7 @@ public class PlayerController : Character
     }
     if (GridManager.Instance.AdjacentTileIsValid(GetTileLocation(), TilemapDirection.Above) && GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
     {
+      Debug.Log("adding ascend action");
       AddContextualAction("ascend", AscendOneFloor);
     }
     if (GridManager.Instance.AdjacentTileIsValid(GetTileLocation(), TilemapDirection.Below) && GridManager.Instance.CanDescendThroughCurrentTile(GetTileLocation(), this))
@@ -230,20 +233,25 @@ public class PlayerController : Character
       movementInput.x = 0;
     }
   }
-  // Handle player action inputs. Currently only attack does anything useful.
-  // TODO: Use GetButtonDown instead of GetKeyDown
+
   void HandleActionInput()
   {
     switch (GameMaster.Instance.GetGameStatus())
     {
       case (Constants.GameState.Play):
+        // Debug.Log("handling player input");
+        if (Input.GetButtonDown("Activate")) { Debug.Log("pressed activate"); }
+        if (Input.GetKeyDown("e")) { Debug.Log("pressed e"); }
         if (Input.GetButtonDown("Attack"))
         {
+          Debug.Log("attack?");
           UseSelectedSkill();
           // Attack();
         }
         else if (Input.GetButtonDown("Dash"))
         {
+          return; // TODO: DELETE THIS
+          // Debug.Log("dash?");
           if (CanDash())
           {
             Dash();
@@ -251,6 +259,7 @@ public class PlayerController : Character
         }
         else if (Input.GetButtonDown("Ascend"))
         {
+          Debug.Log("ascend?");
           if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
           {
             FlyUp();
@@ -261,11 +270,13 @@ public class PlayerController : Character
           }
           else if (!flying)
           {
+            return; // TODO: DELETE THIS
             Fly();
           }
         }
         else if (Input.GetButtonDown("Descend"))
         {
+          Debug.Log("descend?");
           if (flying)
           {
             FlyDown();
@@ -277,8 +288,10 @@ public class PlayerController : Character
         }
         else if (Input.GetButtonDown("Activate"))
         {
+          Debug.Log("activate?");
           if (availableContextualActions.Count > 0)
           {
+            Debug.Log("executing contextual action " + GetSelectedContextualAction().actionName);
             GetSelectedContextualAction().actionToCall();
           }
           else if (inventory.lastPickedUpItems.Count > 0)
@@ -296,6 +309,7 @@ public class PlayerController : Character
         }
         else if (Input.GetButtonDown("Molt"))
         {
+          return; // TODO: DELETE THIS
           Molt();
         }
         // else if (Input.GetButtonDown("Skill1"))

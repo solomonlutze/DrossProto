@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[SelectionBase]
 public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
 {
   // Update is called once per frame
@@ -23,19 +24,20 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
 
   public override void Activate()
   {
-    if (!spawnedObj)
+    if (spawnedObj != null)
     {
-      spawnedObj = Instantiate(objectToSpawn, transform.position, transform.rotation);
-      WorldObject wObj = spawnedObj.GetComponent<WorldObject>();
-      if (wObj != null)
-      {
-        wObj.currentFloor = WorldObject.GetFloorLayerOfGameObject(gameObject);
-      }
-      WorldObject.ChangeLayersRecursively(spawnedObj.transform, wObj.currentFloor);
-      if (spawnOnlyOnce)
-      {
-        Destroy(gameObject);
-      }
+      Destroy(spawnedObj); // I just have a terrible feeling about this but I don't know why
+    }
+    spawnedObj = Instantiate(objectToSpawn, transform.position, transform.rotation);
+    WorldObject wObj = spawnedObj.GetComponent<WorldObject>();
+    if (wObj != null)
+    {
+      wObj.currentFloor = WorldObject.GetFloorLayerOfGameObject(gameObject);
+    }
+    WorldObject.ChangeLayersRecursively(spawnedObj.transform, wObj.currentFloor);
+    if (spawnOnlyOnce)
+    {
+      Destroy(gameObject);
     }
   }
 

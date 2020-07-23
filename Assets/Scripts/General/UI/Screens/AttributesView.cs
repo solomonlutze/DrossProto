@@ -92,7 +92,6 @@ public class AttributesView : MonoBehaviour
 
   void InitSkillData(CharacterSkillData add = null, CharacterSkillData remove = null)
   {
-    Debug.Log("refreshing skill data");
     CharacterSkillData skillData = null;
     CharacterSkillData pupaSkillData = null;
     for (int i = 0; i < skillInfoGameObjects.Length; i++)
@@ -136,6 +135,7 @@ public class AttributesView : MonoBehaviour
     GameMaster.Instance.GetPlayerController().EquipTrait(trait, slot);
     Destroy(displayedPickupItem.gameObject);
     GameMaster.Instance.canvasHandler.SetAllCanvasesInactive();
+    GameMaster.Instance.SetGameStatus(Constants.GameState.Play);
   }
 
   public void ShowHighlightedTraitDelta(Trait remove, Trait add)

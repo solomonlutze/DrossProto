@@ -26,7 +26,6 @@ public class TraitButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     itemTrait = it;
     parentScreen = ps;
     currentTraitInfo.Init(et, ts, attributeDataObjects);
-    Debug.Log("itemTrait: " + it);
     if (it != null)
     {
       nextTraitInfo.gameObject.SetActive(true);
@@ -94,14 +93,12 @@ public class TraitButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     //   + traitDescription
     //   + "\n\n" + itemEntry.itemDescription
     // );
-    UnityEngine.Debug.Log("Pointer enter!!");
     parentScreen.ShowHighlightedTraitDelta(equippedTrait, itemTrait);
   }
 
   public void OnPointerExit(PointerEventData data)
   {
     // inventoryScreen.SetItemDescriptionText("");
-    UnityEngine.Debug.Log("Pointer exit!!");
     parentScreen.UnshowHighlightedTraitDelta();
   }
 }

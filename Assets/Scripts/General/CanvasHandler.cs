@@ -35,7 +35,7 @@ public class CanvasHandler : MonoBehaviour
     }
     if (Input.GetKeyDown(KeyCode.Escape))
     {
-      Debug.Log("Quit!"); Application.Quit();
+      CloseMenus();
     }
     else if (Input.GetKeyDown(KeyCode.I))
     {
@@ -58,6 +58,15 @@ public class CanvasHandler : MonoBehaviour
   {
     SetAllCanvasesInactive();
     GameMaster.Instance.SetGameStatus(Constants.GameState.Play);
+  }
+
+  public void CloseMenus()
+  {
+    if (GameMaster.Instance.GetGameStatus() != Constants.GameState.Play)
+    {
+      SetAllCanvasesInactive();
+      GameMaster.Instance.SetGameStatus(Constants.GameState.Play);
+    }
   }
 
   public void SetAllCanvasesInactive()
