@@ -50,8 +50,8 @@ public class EnvironmentTile : Tile
   public CharacterAttributeToIntDictionary attributesWhichAllowClimbing;
   public CharacterAttributeToIntDictionary attributesWhichAllowBurrowing;
   public CharacterAttributeToIntDictionary attributesWhichAllowPassingThrough;
-  public ParticleSystem walkingParticleSystem; // used for particles created when something walks on this
-  public ParticleSystem.EmitParams walkingSystemParams;
+  public ParticleSystem footstepParticleSystem; // used for particles created when something walks on this
+  public ParticleSystem.EmitParams footstepSystemParams;
   private string tileType;
   private Renderer _renderer;
   public ShaderData shaderData;
@@ -61,7 +61,7 @@ public class EnvironmentTile : Tile
   [MenuItem("Assets/Create/EnvironmentTile")]
   public static void CreateEnvironmentTile()
   {
-    string path = EditorUtility.SaveFilePanelInProject("Save Environment Tile", "New Environment Tile", "Asset", "Save Environment Tile", "Assets/Art/Tiles");
+    string path = EditorUtility.SaveFilePanelInProject("Save Environment Tile", "New Environment Tile", "Asset", "Save Environment Tile", "resources/Art/Tiles");
     if (path == "")
       return;
     AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<EnvironmentTile>(), path);
