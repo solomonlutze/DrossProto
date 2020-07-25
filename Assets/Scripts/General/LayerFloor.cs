@@ -32,7 +32,7 @@ public class LayerFloor : MonoBehaviour
       {
         groundTilemap.gameObject.layer = LayerMask.NameToLayer(gameObject.name);
         groundTilemap.gameObject.name = gameObject.name + "_Ground";
-        groundTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Background";
+        groundTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
       }
       if (objectTilemap == null && transform.Find(gameObject.name + "_Object") != null)
       {
@@ -42,7 +42,7 @@ public class LayerFloor : MonoBehaviour
       {
         objectTilemap.gameObject.layer = LayerMask.NameToLayer(gameObject.name);
         objectTilemap.gameObject.name = gameObject.name + "_Object";
-        objectTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Background";
+        objectTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
         objectTilemap.GetComponent<TilemapRenderer>().sortingOrder = 1;
       }
     }

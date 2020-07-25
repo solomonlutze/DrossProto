@@ -260,6 +260,8 @@ public class Character : WorldObject
   protected float timeMoving = 0;
   protected Dictionary<string, GameObject> traitSpawnedGameObjects;
   protected List<string> sourceInvulnerabilities;
+  public float footstepCooldown = 0.0f;
+  public float maxFootstepCooldown = 0.2f;
 
   [Header("Default Info")]
   public CharacterData defaultCharacterData;
@@ -1154,7 +1156,11 @@ public class Character : WorldObject
         TakeDamage(envDamage);
       }
     }
-    tile.HandleGettingWalkedOn(this);
+    if (footstepCooldown <= 0 && timeMoving > 0)
+    {
+      tile.HandleFootstep(this);
+      footstepCooldown = maxFootstepCooldown;
+    }
     if (tile.CanRespawnPlayer())
     {
       if (!tile.CharacterCanCrossTile(this))
@@ -1270,6 +1276,10 @@ public class Character : WorldObject
       vitals[CharacterVital.RemainingStamina]
         = Mathf.Min(vitals[CharacterVital.RemainingStamina] + (Time.deltaTime * GetMaxStamina() / GetStaminaRecoverySpeed()), GetMaxStamina());
     }
+    if (footstepCooldown > 0)
+    {
+      footstepCooldown -= Time.deltaTime;
+    }
     // if (vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] > 0)
     // {
     //     vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] -= Time.deltaTime;
@@ -1284,7 +1294,7 @@ public class Character : WorldObject
   {
     GameObject go = GameObject.Instantiate(effect.auraPrefab, transform.position, transform.rotation);
     go.layer = gameObject.layer;
-    // go.GetComponent<Renderer>().sortingLayerName = LayerMask.LayerToName(go.layer);
+    go.GetComponent<Renderer>().sortingLayerName = LayerMask.LayerToName(go.layer);
     go.transform.parent = transform;
     traitSpawnedGameObjects.Add(effect.sourceString, go);
   }

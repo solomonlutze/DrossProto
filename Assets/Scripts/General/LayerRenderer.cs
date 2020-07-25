@@ -5,7 +5,7 @@ using UnityEngine.Tilemaps;
 [ExecuteInEditMode]
 public class LayerRenderer : MonoBehaviour
 {
-  public float fadeDampTime = 0.05f;
+  public float fadeDampTime = 0.005f;
 
   private FloorLayer lastTargetedFloorLayer;
   void Update()

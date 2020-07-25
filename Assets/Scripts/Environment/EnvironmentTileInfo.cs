@@ -226,7 +226,7 @@ public class EnvironmentTileInfo
     }
   }
 
-  public void HandleGettingWalkedOn(Character character)
+  public void HandleFootstep(Character character)
   {
     // if (character.time)
     groundTileType.EmitFootstepParticles(character);

@@ -237,11 +237,11 @@ public class EnvironmentTile : Tile
 
   public void EmitFootstepParticles(Character c)
   {
-    if (tileTags.Contains(TileTag.Water) && c.GetComponent<PlayerController>() != null)
+    if (tileTags.Contains(TileTag.Water))
     {
-      Debug.Log("Emitting!");
       ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams();
       emitParams.position = c.transform.position;
+      emitParams.rotation = Random.Range(0, 360);
       GameMaster.Instance.particleSystemMaster.EmitFootstep(c, this, emitParams, 1);
     }
   }
