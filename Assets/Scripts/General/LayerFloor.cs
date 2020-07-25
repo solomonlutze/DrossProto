@@ -13,6 +13,11 @@ public class LayerFloor : MonoBehaviour
   {
     if (!Application.IsPlaying(gameObject))
     {
+      // groundTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Background";
+      // objectTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Background";
+      // groundTilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
+      // objectTilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
+      // objectTilemap.transform.localPosition = new Vector3(0, 0, 0f);
       if (transform.position.z != GridManager.GetZOffsetForFloor(gameObject.layer))
       {
         transform.position = new Vector3(0, 0, GridManager.GetZOffsetForFloor(gameObject.layer));
@@ -27,7 +32,7 @@ public class LayerFloor : MonoBehaviour
       {
         groundTilemap.gameObject.layer = LayerMask.NameToLayer(gameObject.name);
         groundTilemap.gameObject.name = gameObject.name + "_Ground";
-        groundTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
+        groundTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Background";
       }
       if (objectTilemap == null && transform.Find(gameObject.name + "_Object") != null)
       {
@@ -37,7 +42,7 @@ public class LayerFloor : MonoBehaviour
       {
         objectTilemap.gameObject.layer = LayerMask.NameToLayer(gameObject.name);
         objectTilemap.gameObject.name = gameObject.name + "_Object";
-        objectTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
+        objectTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Background";
         objectTilemap.GetComponent<TilemapRenderer>().sortingOrder = 1;
       }
     }

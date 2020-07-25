@@ -48,7 +48,7 @@ public class WorldObject : MonoBehaviour
     SpriteRenderer r = trans.gameObject.GetComponent<SpriteRenderer>();
     if (r != null)
     {
-      r.sortingLayerName = layerName;
+      // r.sortingLayerName = layerName;
     }
     foreach (Transform child in trans)
     {

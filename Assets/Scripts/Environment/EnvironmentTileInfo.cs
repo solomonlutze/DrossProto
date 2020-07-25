@@ -226,6 +226,22 @@ public class EnvironmentTileInfo
     }
   }
 
+  public void HandleGettingWalkedOn(Character character)
+  {
+    // if (character.time)
+    groundTileType.EmitFootstepParticles(character);
+    // if (objectTileType && objectTileType.walkingParticleSystem != null)
+    // {
+    //   objectTileType.walkingSystemParams.position = character.transform.position;
+    //   objectTileType.walkingParticleSystem.Emit(objectTileType.walkingSystemParams, 1);
+    // }
+    // if (groundTileType && groundTileType.walkingParticleSystem != null)
+    // {
+    //   groundTileType.walkingSystemParams.position = character.transform.position;
+    //   groundTileType.walkingParticleSystem.Emit(groundTileType.walkingSystemParams, 1);
+    // }
+  }
+
   public string GetInteractableText(PlayerController pc)
   {
     if (ChangesFloorLayer())

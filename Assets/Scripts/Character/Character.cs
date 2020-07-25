@@ -1154,6 +1154,7 @@ public class Character : WorldObject
         TakeDamage(envDamage);
       }
     }
+    tile.HandleGettingWalkedOn(this);
     if (tile.CanRespawnPlayer())
     {
       if (!tile.CharacterCanCrossTile(this))
@@ -1283,7 +1284,7 @@ public class Character : WorldObject
   {
     GameObject go = GameObject.Instantiate(effect.auraPrefab, transform.position, transform.rotation);
     go.layer = gameObject.layer;
-    go.GetComponent<Renderer>().sortingLayerName = LayerMask.LayerToName(go.layer);
+    // go.GetComponent<Renderer>().sortingLayerName = LayerMask.LayerToName(go.layer);
     go.transform.parent = transform;
     traitSpawnedGameObjects.Add(effect.sourceString, go);
   }

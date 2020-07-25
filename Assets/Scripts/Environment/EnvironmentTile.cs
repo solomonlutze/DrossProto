@@ -50,6 +50,8 @@ public class EnvironmentTile : Tile
   public CharacterAttributeToIntDictionary attributesWhichAllowClimbing;
   public CharacterAttributeToIntDictionary attributesWhichAllowBurrowing;
   public CharacterAttributeToIntDictionary attributesWhichAllowPassingThrough;
+  public ParticleSystem walkingParticleSystem; // used for particles created when something walks on this
+  public ParticleSystem.EmitParams walkingSystemParams;
   private string tileType;
   private Renderer _renderer;
   public ShaderData shaderData;
@@ -233,4 +235,14 @@ public class EnvironmentTile : Tile
     return (changesFloorLayer);
   }
 
+  public void EmitFootstepParticles(Character c)
+  {
+    if (tileTags.Contains(TileTag.Water) && c.GetComponent<PlayerController>() != null)
+    {
+      Debug.Log("Emitting!");
+      ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams();
+      emitParams.position = c.transform.position;
+      GameMaster.Instance.particleSystemMaster.EmitFootstep(c, this, emitParams, 1);
+    }
+  }
 }
