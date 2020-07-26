@@ -49,8 +49,6 @@ public class ParticleSystemMaster : MonoBehaviour
   }
   public void EmitFootstep(Character c, EnvironmentTile tile, ParticleSystem.EmitParams emitParams, int count)
   {
-    Debug.Log("emitting footstep particle at " + emitParams.position);
     GetParticleSystemForCharacterAndTile(c, tile).Emit(emitParams, count);
-    // testPS.GetParticles
   }
 }

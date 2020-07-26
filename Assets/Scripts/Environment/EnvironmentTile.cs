@@ -237,7 +237,7 @@ public class EnvironmentTile : Tile
 
   public void EmitFootstepParticles(Character c)
   {
-    if (tileTags.Contains(TileTag.Water))
+    if (footstepParticleSystem != null)
     {
       ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams();
       emitParams.position = c.transform.position;
