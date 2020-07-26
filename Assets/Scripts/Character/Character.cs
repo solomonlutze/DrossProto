@@ -1158,8 +1158,7 @@ public class Character : WorldObject
     }
     if (footstepCooldown <= 0 && timeMoving > 0)
     {
-      tile.HandleFootstep(this);
-      footstepCooldown = maxFootstepCooldown;
+      footstepCooldown = tile.HandleFootstep(this);
     }
     if (tile.CanRespawnPlayer())
     {

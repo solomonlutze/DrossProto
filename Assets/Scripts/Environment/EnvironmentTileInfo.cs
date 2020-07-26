@@ -226,10 +226,10 @@ public class EnvironmentTileInfo
     }
   }
 
-  public void HandleFootstep(Character character)
+  public float HandleFootstep(Character character)
   {
     // if (character.time)
-    groundTileType.EmitFootstepParticles(character);
+    return groundTileType.EmitFootstepParticles(character);
     // if (objectTileType && objectTileType.walkingParticleSystem != null)
     // {
     //   objectTileType.walkingSystemParams.position = character.transform.position;

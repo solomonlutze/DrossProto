@@ -21,9 +21,9 @@ public class ParticleSystemMaster : MonoBehaviour
     // TODO: This loop can be cleaned up to allow the same system to be reused for multiple tiletypes, if they should be the same.
     foreach (EnvironmentTile tile in tileData)
     {
-      if (tile.footstepParticleSystem)
+      if (tile.footstepParticleSystemInfo.system)
       {
-        AddParticleSystemToEveryFloor(tile.footstepParticleSystem, tile);
+        AddParticleSystemToEveryFloor(tile.footstepParticleSystemInfo.system, tile);
       }
     }
   }
