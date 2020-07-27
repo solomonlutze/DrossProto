@@ -6,6 +6,7 @@ public class ParticleSystemMaster : MonoBehaviour
 {
 
   public Dictionary<FloorLayer, Dictionary<EnvironmentTile, ParticleSystem>> particleSystemMap;
+  public Dictionary<FloorLayer, Dictionary<ParticleSystem, ParticleSystem>> particleSystemDataToInstanceMap; // if we see a data that's already in here we reuse
   void Start()
   {
     EnvironmentTile[] tileData = Resources.LoadAll<EnvironmentTile>("Art/Environment/Tiles/TileData");
@@ -14,9 +15,11 @@ public class ParticleSystemMaster : MonoBehaviour
     // EnvironmentTile[] tileData = Resources.LoadAll("Art/Environment/Tiles") as EnvironmentTile[]
     // UnityEngine.ScriptableObject[] cast = dataObjects as ScriptableObject[];
     particleSystemMap = new Dictionary<FloorLayer, Dictionary<EnvironmentTile, ParticleSystem>>();
+    particleSystemDataToInstanceMap = new Dictionary<FloorLayer, Dictionary<ParticleSystem, ParticleSystem>>();
     foreach (FloorLayer fl in GridManager.Instance.layerFloors.Keys)
     {
       particleSystemMap.Add(fl, new Dictionary<EnvironmentTile, ParticleSystem>());
+      particleSystemDataToInstanceMap.Add(fl, new Dictionary<ParticleSystem, ParticleSystem>());
     }
     // TODO: This loop can be cleaned up to allow the same system to be reused for multiple tiletypes, if they should be the same.
     foreach (EnvironmentTile tile in tileData)
@@ -32,14 +35,19 @@ public class ParticleSystemMaster : MonoBehaviour
   {
     foreach (KeyValuePair<FloorLayer, LayerFloor> lfEntry in GridManager.Instance.layerFloors)
     {
-      ParticleSystem newSystem = Instantiate(ps, lfEntry.Value.transform) as ParticleSystem;
-      ParticleSystemRenderer newSystemRenderer = newSystem.GetComponent<ParticleSystemRenderer>();
-      newSystemRenderer.sortingLayerName = lfEntry.Key.ToString();
-      newSystemRenderer.sortingOrder = 3;
-      newSystem.Stop();
-      newSystem.gameObject.layer = LayerMask.NameToLayer(lfEntry.Key.ToString());
-      newSystem.transform.position = new Vector3(0, 0, GridManager.GetZOffsetForFloor(newSystem.gameObject.layer));
-      particleSystemMap[lfEntry.Key].Add(tile, newSystem);
+      bool systemIsNew = !particleSystemDataToInstanceMap[lfEntry.Key].ContainsKey(ps);
+      ParticleSystem systemToAdd = systemIsNew ? Instantiate(ps, lfEntry.Value.transform) as ParticleSystem : particleSystemDataToInstanceMap[lfEntry.Key][ps];
+      if (systemIsNew)
+      {
+        ParticleSystemRenderer newSystemRenderer = systemToAdd.GetComponent<ParticleSystemRenderer>();
+        newSystemRenderer.sortingLayerName = lfEntry.Key.ToString();
+        newSystemRenderer.sortingOrder = 3;
+        systemToAdd.Stop();
+        systemToAdd.gameObject.layer = LayerMask.NameToLayer(lfEntry.Key.ToString());
+        systemToAdd.transform.position = new Vector3(0, 0, GridManager.GetZOffsetForFloor(systemToAdd.gameObject.layer));
+        particleSystemDataToInstanceMap[lfEntry.Key].Add(ps, systemToAdd);
+      }
+      particleSystemMap[lfEntry.Key].Add(tile, systemToAdd);
     }
   }
 

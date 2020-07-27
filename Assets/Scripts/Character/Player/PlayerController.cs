@@ -121,10 +121,8 @@ public class PlayerController : Character
     EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(GetTileLocation());
     if (tile.isInteractable)
     {
-      Debug.Log("adding interactable");
       AddContextualAction(tile.GetInteractableText(this), UseTile);
     }
-    Debug.Log("interactables count: " + interactables.Count);
     if (interactables.Count > 0)
     {
 
