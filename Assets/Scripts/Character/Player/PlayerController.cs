@@ -84,22 +84,6 @@ public class PlayerController : Character
     }
   }
 
-  // public override void HandleTileCollision(EnvironmentTileInfo tile)
-  // {
-  //   if (tile.GetColliderType() == Tile.ColliderType.None)
-  //   {
-  //     return;
-  //   }
-  //   else
-  //   {
-  //     if (tile.CharacterCanBurrowThroughObjectTile(this))
-  //     {
-  //       GridManager.Instance.MarkTileToRestoreOnPlayerRespawn(tile);
-  //       tile.DestroyObjectTile();
-  //     }
-  //   }
-  // }
-
   private void SpawnBurrowHoleTile()
   {
     GridManager.Instance.ReplaceTileAtLocation(GetTileLocation(), burrowHoleTile);
