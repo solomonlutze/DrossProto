@@ -12,6 +12,17 @@ public enum FloorLayer { B6, B5, B4, B3, B2, B1, F1, F2, F3, F4, F5, F6 }
 public enum TileDurability { Delicate, Soft, Medium, Hard, Indestructable }
 public enum TileTag { Ground, Water }
 public enum FloorTilemapType { Ground, Object }
+
+[System.Serializable]
+public class EnvironmentTileParticleSystemInfo
+{
+  public ParticleSystem system;
+
+  public Color32 overrideColor = Color.white;
+  public int burstCount;
+  public float burstCooldown;
+}
+
 [System.Serializable]
 public class EnvironmentTile : Tile
 {
@@ -50,6 +61,9 @@ public class EnvironmentTile : Tile
   public CharacterAttributeToIntDictionary attributesWhichAllowClimbing;
   public CharacterAttributeToIntDictionary attributesWhichAllowBurrowing;
   public CharacterAttributeToIntDictionary attributesWhichAllowPassingThrough;
+  public EnvironmentTileParticleSystemInfo footstepParticleSystemInfo;
+  // public ParticleSystem footstepParticleSystem; // used for particles created when something walks on this
+  public ParticleSystem.EmitParams footstepSystemParams;
   private string tileType;
   private Renderer _renderer;
   public ShaderData shaderData;
@@ -59,7 +73,7 @@ public class EnvironmentTile : Tile
   [MenuItem("Assets/Create/EnvironmentTile")]
   public static void CreateEnvironmentTile()
   {
-    string path = EditorUtility.SaveFilePanelInProject("Save Environment Tile", "New Environment Tile", "Asset", "Save Environment Tile", "Assets/Art/Tiles");
+    string path = EditorUtility.SaveFilePanelInProject("Save Environment Tile", "New Environment Tile", "Asset", "Save Environment Tile", "resources/Art/Tiles");
     if (path == "")
       return;
     AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<EnvironmentTile>(), path);
@@ -233,4 +247,18 @@ public class EnvironmentTile : Tile
     return (changesFloorLayer);
   }
 
+  public float EmitFootstepParticles(Character c)
+  {
+    if (footstepParticleSystemInfo.system != null)
+    {
+      ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams();
+      emitParams.applyShapeToPosition = true;
+      emitParams.startColor = footstepParticleSystemInfo.overrideColor;
+      emitParams.position = c.transform.position;
+      emitParams.rotation = Random.Range(0, 360);
+      GameMaster.Instance.particleSystemMaster.EmitFootstep(c, this, emitParams, footstepParticleSystemInfo.burstCount);
+      return footstepParticleSystemInfo.burstCooldown;
+    }
+    return 0;
+  }
 }

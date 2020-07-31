@@ -13,6 +13,11 @@ public class LayerFloor : MonoBehaviour
   {
     if (!Application.IsPlaying(gameObject))
     {
+      // groundTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Background";
+      // objectTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Background";
+      // groundTilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
+      // objectTilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
+      // objectTilemap.transform.localPosition = new Vector3(0, 0, 0f);
       if (transform.position.z != GridManager.GetZOffsetForFloor(gameObject.layer))
       {
         transform.position = new Vector3(0, 0, GridManager.GetZOffsetForFloor(gameObject.layer));

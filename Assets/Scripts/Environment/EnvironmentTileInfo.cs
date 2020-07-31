@@ -226,6 +226,16 @@ public class EnvironmentTileInfo
     }
   }
 
+  public float HandleFootstep(Character character)
+  {
+    float objectResult = objectTileType ? objectTileType.EmitFootstepParticles(character) : 0;
+    if (objectResult > 0)
+    {
+      return objectResult;
+    }
+    return groundTileType.EmitFootstepParticles(character);
+  }
+
   public string GetInteractableText(PlayerController pc)
   {
     if (ChangesFloorLayer())

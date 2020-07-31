@@ -84,22 +84,6 @@ public class PlayerController : Character
     }
   }
 
-  // public override void HandleTileCollision(EnvironmentTileInfo tile)
-  // {
-  //   if (tile.GetColliderType() == Tile.ColliderType.None)
-  //   {
-  //     return;
-  //   }
-  //   else
-  //   {
-  //     if (tile.CharacterCanBurrowThroughObjectTile(this))
-  //     {
-  //       GridManager.Instance.MarkTileToRestoreOnPlayerRespawn(tile);
-  //       tile.DestroyObjectTile();
-  //     }
-  //   }
-  // }
-
   private void SpawnBurrowHoleTile()
   {
     GridManager.Instance.ReplaceTileAtLocation(GetTileLocation(), burrowHoleTile);
@@ -121,10 +105,8 @@ public class PlayerController : Character
     EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(GetTileLocation());
     if (tile.isInteractable)
     {
-      Debug.Log("adding interactable");
       AddContextualAction(tile.GetInteractableText(this), UseTile);
     }
-    Debug.Log("interactables count: " + interactables.Count);
     if (interactables.Count > 0)
     {
 

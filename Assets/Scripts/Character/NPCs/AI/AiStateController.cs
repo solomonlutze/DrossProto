@@ -212,8 +212,6 @@ public class AiStateController : Character
 
   public bool ObjectOfInterestWithinRangeOfSpawnPoint()
   {
-    Debug.Log("maxTargetDistanceFromSpawnPoint squared:" + maxTargetDistanceFromSpawnPoint * maxTargetDistanceFromSpawnPoint);
-    Debug.Log("distance squared:" + ((Vector2)objectOfInterest.transform.position - spawnLocation).sqrMagnitude);
     return
       objectOfInterest != null
       && maxTargetDistanceFromSpawnPoint * maxTargetDistanceFromSpawnPoint > ((Vector2)objectOfInterest.transform.position - spawnLocation).sqrMagnitude;

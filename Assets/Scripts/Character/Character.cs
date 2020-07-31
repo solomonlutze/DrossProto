@@ -260,6 +260,8 @@ public class Character : WorldObject
   protected float timeMoving = 0;
   protected Dictionary<string, GameObject> traitSpawnedGameObjects;
   protected List<string> sourceInvulnerabilities;
+  public float footstepCooldown = 0.0f;
+  public float maxFootstepCooldown = 0.2f;
 
   [Header("Default Info")]
   public CharacterData defaultCharacterData;
@@ -1154,6 +1156,10 @@ public class Character : WorldObject
         TakeDamage(envDamage);
       }
     }
+    if (footstepCooldown <= 0 && timeMoving > 0)
+    {
+      footstepCooldown = tile.HandleFootstep(this);
+    }
     if (tile.CanRespawnPlayer())
     {
       if (!tile.CharacterCanCrossTile(this))
@@ -1268,6 +1274,10 @@ public class Character : WorldObject
     {
       vitals[CharacterVital.RemainingStamina]
         = Mathf.Min(vitals[CharacterVital.RemainingStamina] + (Time.deltaTime * GetMaxStamina() / GetStaminaRecoverySpeed()), GetMaxStamina());
+    }
+    if (footstepCooldown > 0)
+    {
+      footstepCooldown -= Time.deltaTime;
     }
     // if (vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] > 0)
     // {

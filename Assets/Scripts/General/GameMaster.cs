@@ -10,6 +10,7 @@ public class GameMaster : Singleton<GameMaster>
 
   public Constants.GameState startingGameStatus;
   public CanvasHandler canvasHandler;
+  public ParticleSystemMaster particleSystemMaster;
   public GameObject playerPrefab;
   public DialogueRunner dialogueRunner;
   public VariableStorage dialogueVariableStorage;
