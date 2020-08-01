@@ -256,4 +256,10 @@ public class EnvironmentTileInfo
     }
   }
 
+  public GameObject GetInterestObject()
+  {
+    return groundTileType != null && groundTileType.interestObjects != null && groundTileType.interestObjects.Length > 0 ?
+      groundTileType.interestObjects[UnityEngine.Random.Range(0, groundTileType.interestObjects.Length)]
+      : null;
+  }
 }

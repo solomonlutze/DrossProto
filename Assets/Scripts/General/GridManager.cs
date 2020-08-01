@@ -145,7 +145,6 @@ public class GridManager : Singleton<GridManager>
           //get both object and ground tile, build an environmentTileInfo out of them, and put it into our worldGrid
           TileLocation loc = new TileLocation(new Vector2Int(x, y), layer);
           ConstructAndSetEnvironmentTileInfo(loc, groundTilemap, objectTilemap);
-
         }
       }
       // }
@@ -165,7 +164,50 @@ public class GridManager : Singleton<GridManager>
       objectTile
     );
     worldGrid[loc.floorLayer][loc.position] = info;
+    AddInterestObjects(loc);
     return info;
+  }
+
+  // Populate the world with small sprites that bridge gaps between areas.
+  public void AddInterestObjects(TileLocation loc)
+  {
+    foreach (TilemapDirection d in new TilemapDirection[] { TilemapDirection.Down })
+    {
+      AddInterestObjectsForBorder(loc, d);
+    }
+  }
+
+  public void AddInterestObjectsForBorder(TileLocation loc, TilemapDirection direction)
+  {
+    // Debug.Log("adding interest object");
+    if (TileIsValid(GetAdjacentTileLocation(loc, direction)))
+    {
+      // Debug.Log("adjacent tile within bounds");
+      EnvironmentTileInfo currentTile = GetTileAtLocation(loc);
+      EnvironmentTileInfo adjacentTile = GetAdjacentTile(loc, direction);
+      if (currentTile.groundTileType == adjacentTile.groundTileType) { return; }
+      {
+        // create interest object if it exists; locate and orient it correctly
+        CreateAndPlaceInterestObject(currentTile, adjacentTile);
+        CreateAndPlaceInterestObject(adjacentTile, currentTile);
+      }
+    }
+  }
+
+  public void CreateAndPlaceInterestObject(EnvironmentTileInfo interestTile, EnvironmentTileInfo destinationTile)
+  {
+    GameObject obj = interestTile.GetInterestObject();
+    if (obj != null)
+    {
+      // Debug.Log("interest object exists");
+      GameObject instance = Instantiate(obj);
+      instance.transform.position = destinationTile.tileLocation.tileCenter;
+      instance.layer = LayerMask.NameToLayer(interestTile.tileLocation.floorLayer.ToString());
+      SpriteRenderer sr = instance.GetComponent<SpriteRenderer>();
+      sr.sortingLayerName = interestTile.tileLocation.floorLayer.ToString();
+      sr.sortingOrder = 1;
+    }
+
   }
 
   public EnvironmentTileInfo GetTileAtLocation(int x, int y, FloorLayer f)
@@ -180,18 +222,14 @@ public class GridManager : Singleton<GridManager>
 
   public EnvironmentTileInfo GetTileAtLocation(TileLocation loc)
   {
-    if (!worldGrid.ContainsKey(loc.floorLayer))
+    if (!TileIsValid(loc))
     {
-      Debug.LogError("WARNING: Tried to find invalid floorlayer " + loc.floorLayer);
-      return null;
-    }
-    if (!worldGrid[loc.floorLayer].ContainsKey(loc.position))
-    {
-      Debug.LogError("WARNING: Tried to find invalid tile " + loc.position + " on floorlayer " + loc.floorLayer);
+      Debug.LogError("WARNING: Tried to find invalid tile at layer " + loc.floorLayer + ", coordinates " + loc.position);
       return null;
     }
     return worldGrid[loc.floorLayer][loc.position];
   }
+
 
   public LayerFloor GetFloorLayerAbove(FloorLayer floorLayer)
   {
@@ -375,35 +413,38 @@ public class GridManager : Singleton<GridManager>
     return GetAdjacentTile(location.position3D, location.floorLayer, dir);
   }
 
-  public EnvironmentTileInfo GetAdjacentTile(Vector3 loc, FloorLayer floor, TilemapDirection direction)
+  public TileLocation GetAdjacentTileLocation(TileLocation location, TilemapDirection direction)
+  {
+    return GetAdjacentTileLocation(location.position3D, location.floorLayer, direction);
+  }
+  public TileLocation GetAdjacentTileLocation(Vector3 loc, FloorLayer floor, TilemapDirection direction)
   {
     Vector2Int v2Loc = new Vector2Int(Mathf.FloorToInt(loc.x), Mathf.FloorToInt(loc.y));
-    TileLocation tileLoc;
     switch (direction)
     {
       case TilemapDirection.Up:
-        tileLoc = new TileLocation(v2Loc + new Vector2Int(0, 1), floor);
-        return GetTileAtLocation(tileLoc);
+        return new TileLocation(v2Loc + new Vector2Int(0, 1), floor);
       case TilemapDirection.Down:
-        tileLoc = new TileLocation(v2Loc + new Vector2Int(0, -1), floor);
-        return GetTileAtLocation(tileLoc);
+        return new TileLocation(v2Loc + new Vector2Int(0, -1), floor);
       case TilemapDirection.Right:
-        tileLoc = new TileLocation(v2Loc + new Vector2Int(1, 0), floor);
-        return GetTileAtLocation(tileLoc);
+        return new TileLocation(v2Loc + new Vector2Int(1, 0), floor);
       case TilemapDirection.Left:
-        tileLoc = new TileLocation(v2Loc + new Vector2Int(-1, 0), floor);
-        return GetTileAtLocation(tileLoc);
+        return new TileLocation(v2Loc + new Vector2Int(-1, 0), floor);
       case TilemapDirection.Above:
-        tileLoc = new TileLocation(v2Loc, floor + 1);
-        return GetTileAtLocation(tileLoc);
+        return new TileLocation(v2Loc, floor + 1);
       case TilemapDirection.Below:
-        tileLoc = new TileLocation(v2Loc, floor - 1);
-        return GetTileAtLocation(tileLoc);
+        return new TileLocation(v2Loc, floor - 1);
       case TilemapDirection.None:
       default:
-        return GetTileAtLocation(new TileLocation(v2Loc, floor));
+        return new TileLocation(v2Loc, floor);
     }
   }
+
+  public EnvironmentTileInfo GetAdjacentTile(Vector3 loc, FloorLayer floor, TilemapDirection direction)
+  {
+    return GetTileAtLocation(GetAdjacentTileLocation(loc, floor, direction));
+  }
+
   public void ReplaceAdjacentTile(TileLocation loc, EnvironmentTile replacementTile, TilemapDirection direction)
   {
     TileLocation modifiedLoc = new TileLocation(loc.position, loc.floorLayer);

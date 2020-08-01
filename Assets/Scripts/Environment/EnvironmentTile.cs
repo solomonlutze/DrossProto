@@ -67,6 +67,7 @@ public class EnvironmentTile : Tile
   private string tileType;
   private Renderer _renderer;
   public ShaderData shaderData;
+  public GameObject[] interestObjects;
 
 #if UNITY_EDITOR
   // The following is a helper that adds a menu item to create an EnvironmentTile Asset
