@@ -15,6 +15,8 @@ public class EnvironmentTileInfo
   public bool dealsDamage = false;
   public bool corroded = false;
   public List<EnvironmentalDamage> environmentalDamageSources;
+
+  public Dictionary<TilemapCorner, GameObject> cornerInterestObjects;
   // public DamageData_OLD environmentalDamage_OLD;
   public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile)
   {
@@ -25,6 +27,12 @@ public class EnvironmentTileInfo
     objectTileTags = new List<TileTag>();
     dealsDamage = false;
     environmentalDamageSources = new List<EnvironmentalDamage>();
+    cornerInterestObjects = new Dictionary<TilemapCorner, GameObject>() {
+      {TilemapCorner.UpperLeft, null},
+      {TilemapCorner.LowerLeft, null},
+      {TilemapCorner.UpperRight, null},
+      {TilemapCorner.LowerRight, null},
+    };
     if (groundTileType != null)
     {
       isInteractable |= groundTileType.IsInteractable();
@@ -275,4 +283,26 @@ public class EnvironmentTileInfo
     }
     return null;
   }
+
+  public bool IsBorderClear(TilemapDirection direction, EnvironmentTileInfo borderTile)
+  {
+    switch (direction)
+    {
+      case TilemapDirection.Up:
+        return cornerInterestObjects[TilemapCorner.UpperLeft] == null && cornerInterestObjects[TilemapCorner.UpperRight] == null
+          && borderTile.cornerInterestObjects[TilemapCorner.LowerLeft] == null && borderTile.cornerInterestObjects[TilemapCorner.LowerRight] == null;
+      case TilemapDirection.Left:
+        return cornerInterestObjects[TilemapCorner.LowerLeft] == null && cornerInterestObjects[TilemapCorner.UpperLeft] == null
+          && borderTile.cornerInterestObjects[TilemapCorner.LowerRight] == null && borderTile.cornerInterestObjects[TilemapCorner.UpperRight] == null;
+      case TilemapDirection.Right:
+        return cornerInterestObjects[TilemapCorner.UpperRight] == null && cornerInterestObjects[TilemapCorner.LowerRight] == null
+          && borderTile.cornerInterestObjects[TilemapCorner.UpperLeft] == null && borderTile.cornerInterestObjects[TilemapCorner.LowerLeft] == null;
+      case TilemapDirection.Down:
+        return cornerInterestObjects[TilemapCorner.LowerLeft] == null && cornerInterestObjects[TilemapCorner.LowerRight] == null
+          && borderTile.cornerInterestObjects[TilemapCorner.UpperLeft] == null && borderTile.cornerInterestObjects[TilemapCorner.UpperRight] == null;
+      default:
+        return false;
+    }
+  }
+
 }
