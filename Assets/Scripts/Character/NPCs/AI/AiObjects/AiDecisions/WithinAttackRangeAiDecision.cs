@@ -4,7 +4,7 @@ public class WithinAttackRangeAiDecision : AiDecision
 {
   public override bool Decide(AiStateController controller)
   {
-    Debug.Log("correct distance: " + (Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetMaxPreferredAttackRange()));
+    // Debug.Log("correct distance: " + (Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetMaxPreferredAttackRange()));
     if (
       controller.objectOfInterest != null
       && Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetMaxPreferredAttackRange()

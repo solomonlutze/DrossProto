@@ -256,10 +256,23 @@ public class EnvironmentTileInfo
     }
   }
 
-  public GameObject GetInterestObject()
+  public GameObject GetBorderInterestObject()
   {
-    return groundTileType != null && groundTileType.interestObjects != null && groundTileType.interestObjects.Length > 0 ?
-      groundTileType.interestObjects[UnityEngine.Random.Range(0, groundTileType.interestObjects.Length)]
+    return groundTileType != null && groundTileType.borderInterestObjects != null && groundTileType.borderInterestObjects.Length > 0 ?
+      groundTileType.borderInterestObjects[UnityEngine.Random.Range(0, groundTileType.borderInterestObjects.Length)]
       : null;
+  }
+
+  public GameObject GetCornerInterestObject(EnvironmentTileInfo otherTile, EnvironmentTileInfo destinationTile)
+  {
+    if (objectTileType == otherTile.objectTileType && objectTileType != destinationTile.objectTileType && objectTileType != null && objectTileType.cornerInterestObjects.Length > 0)
+    {
+      return objectTileType.cornerInterestObjects[UnityEngine.Random.Range(0, objectTileType.cornerInterestObjects.Length)];
+    }
+    else if (groundTileType == otherTile.groundTileType && groundTileType != destinationTile.groundTileType && groundTileType != null && groundTileType.cornerInterestObjects.Length > 0)
+    {
+      return groundTileType.cornerInterestObjects[UnityEngine.Random.Range(0, groundTileType.cornerInterestObjects.Length)];
+    }
+    return null;
   }
 }

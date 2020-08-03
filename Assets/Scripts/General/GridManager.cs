@@ -107,6 +107,8 @@ public class GridManager : Singleton<GridManager>
 
   private List<EnvironmentTileInfo> tilesToRestoreOnPlayerRespawn;
   public GameObject highlightTilePrefab;
+
+  int interestObjectsCount = 0;
   public void Awake()
   {
     worldGrid = new Dictionary<FloorLayer, Dictionary<Vector2Int, EnvironmentTileInfo>>();
@@ -122,6 +124,10 @@ public class GridManager : Singleton<GridManager>
     foreach (LayerFloor lf in layerFloors.Values)
     {
       groundTilemap = lf.groundTilemap;
+      lf.interestObjects = new GameObject().transform;
+      lf.interestObjects.parent = lf.transform;
+      lf.interestObjects.position = lf.transform.position;
+      lf.interestObjects.gameObject.layer = lf.gameObject.layer;
       minXAcrossAllFloors = Mathf.Min(minXAcrossAllFloors, groundTilemap.cellBounds.xMin);
       maxXAcrossAllFloors = Mathf.Max(maxXAcrossAllFloors, groundTilemap.cellBounds.xMax);
       minYAcrossAllFloors = Mathf.Min(minYAcrossAllFloors, groundTilemap.cellBounds.yMin);
@@ -149,6 +155,7 @@ public class GridManager : Singleton<GridManager>
       }
       // }
     }
+    Debug.Log("interest objects count: " + interestObjectsCount);
   }
 
   public EnvironmentTileInfo ConstructAndSetEnvironmentTileInfo(TileLocation loc, Tilemap groundTilemap, Tilemap objectTilemap)
@@ -171,10 +178,11 @@ public class GridManager : Singleton<GridManager>
   // Populate the world with small sprites that bridge gaps between areas.
   public void AddInterestObjects(TileLocation loc)
   {
-    foreach (TilemapDirection d in new TilemapDirection[] { TilemapDirection.Down })
+    foreach (TilemapDirection d in new TilemapDirection[] { TilemapDirection.Left, TilemapDirection.Down })
     {
       AddInterestObjectsForBorder(loc, d);
     }
+    AddCornerInterestObjects(GetAdjacentTileLocation(loc, TilemapDirection.Left));
   }
 
   public void AddInterestObjectsForBorder(TileLocation loc, TilemapDirection direction)
@@ -188,28 +196,77 @@ public class GridManager : Singleton<GridManager>
       if (currentTile.groundTileType == adjacentTile.groundTileType) { return; }
       {
         // create interest object if it exists; locate and orient it correctly
-        CreateAndPlaceInterestObject(currentTile, adjacentTile);
-        CreateAndPlaceInterestObject(adjacentTile, currentTile);
+        if (UnityEngine.Random.value > .5f)
+        {
+          CreateAndPlaceInterestObject(currentTile, adjacentTile, direction);
+        }
+        else
+        {
+          CreateAndPlaceInterestObject(adjacentTile, currentTile, GridManager.GetOppositeTilemapDirection(direction));
+        }
       }
     }
   }
 
-  public void CreateAndPlaceInterestObject(EnvironmentTileInfo interestTile, EnvironmentTileInfo destinationTile)
+  public void AddCornerInterestObjects(TileLocation loc)
   {
-    GameObject obj = interestTile.GetInterestObject();
-    if (obj != null)
+    if (TileIsValid(loc))
     {
-      // Debug.Log("interest object exists");
-      GameObject instance = Instantiate(obj);
-      instance.transform.position = destinationTile.tileLocation.tileCenter;
-      instance.layer = LayerMask.NameToLayer(interestTile.tileLocation.floorLayer.ToString());
-      SpriteRenderer sr = instance.GetComponent<SpriteRenderer>();
-      sr.sortingLayerName = interestTile.tileLocation.floorLayer.ToString();
-      sr.sortingOrder = 1;
+      AddCornerInterestObject(GetAdjacentTileLocation(loc, TilemapDirection.Left), GetAdjacentTileLocation(loc, TilemapDirection.Down), loc, 0);
+      AddCornerInterestObject(GetAdjacentTileLocation(loc, TilemapDirection.Up), GetAdjacentTileLocation(loc, TilemapDirection.Left), loc, 270);
+      AddCornerInterestObject(GetAdjacentTileLocation(loc, TilemapDirection.Right), GetAdjacentTileLocation(loc, TilemapDirection.Up), loc, 180);
+      AddCornerInterestObject(GetAdjacentTileLocation(loc, TilemapDirection.Down), GetAdjacentTileLocation(loc, TilemapDirection.Right), loc, 90);
     }
-
   }
 
+  public void AddCornerInterestObject(TileLocation loc1, TileLocation loc2, TileLocation destination, float rotation)
+  {
+    if (TileIsValid(loc1) && TileIsValid(loc2))
+    {
+      GameObject obj = GetTileAtLocation(loc1).GetCornerInterestObject(GetTileAtLocation(loc2), GetTileAtLocation(destination));
+      if (obj != null)
+      {
+        InstantiateInterestObject(obj, GetTileAtLocation(destination), rotation);
+      }
+    }
+  }
+
+  public void CreateAndPlaceInterestObject(EnvironmentTileInfo interestTile, EnvironmentTileInfo destinationTile, TilemapDirection direction)
+  {
+    GameObject obj = interestTile.GetBorderInterestObject();
+    if (obj != null)
+    {
+      InstantiateInterestObject(obj, destinationTile, GetInterestRotationForDirection(direction));
+    }
+  }
+
+  public void InstantiateInterestObject(GameObject obj, EnvironmentTileInfo destinationTile, float rotation)
+  {
+    GameObject instance = Instantiate(obj);
+    instance.transform.position = destinationTile.tileLocation.tileCenter;
+    instance.transform.SetParent(layerFloors[destinationTile.tileLocation.floorLayer].interestObjects, true);
+    instance.transform.eulerAngles = new Vector3(0, 0, rotation);
+    instance.layer = LayerMask.NameToLayer(destinationTile.tileLocation.floorLayer.ToString());
+    SpriteRenderer sr = instance.GetComponent<SpriteRenderer>();
+    sr.sortingLayerName = destinationTile.tileLocation.floorLayer.ToString();
+    sr.sortingOrder = 1;
+    interestObjectsCount += 1;
+  }
+  public float GetInterestRotationForDirection(TilemapDirection direction)
+  {
+    switch (direction)
+    {
+      case TilemapDirection.Left:
+        return 90f;
+      case TilemapDirection.Down:
+        return 180f;
+      case TilemapDirection.Right:
+        return 270f;
+      case TilemapDirection.Up:
+      default:
+        return 0;
+    }
+  }
   public EnvironmentTileInfo GetTileAtLocation(int x, int y, FloorLayer f)
   {
     return GetTileAtLocation(new TileLocation(x, y, f));
@@ -541,5 +598,25 @@ public class GridManager : Singleton<GridManager>
     // int firstFloorLayerIndex = LayerMask.NameToLayer("B6"); // like... 15
     // return firstFloorLayerIndex - floorLayer;
     // int numberOfFloorLayers = Constants.numberOfFloorLayers; // 12?
+  }
+  public static TilemapDirection GetOppositeTilemapDirection(TilemapDirection d)
+  {
+    switch (d)
+    {
+      case TilemapDirection.Up:
+        return TilemapDirection.Down;
+      case TilemapDirection.Down:
+        return TilemapDirection.Up;
+      case TilemapDirection.Left:
+        return TilemapDirection.Right;
+      case TilemapDirection.Right:
+        return TilemapDirection.Left;
+      case TilemapDirection.Above:
+        return TilemapDirection.Below;
+      case TilemapDirection.Below:
+        return TilemapDirection.Above;
+      default:
+        return d;
+    }
   }
 }

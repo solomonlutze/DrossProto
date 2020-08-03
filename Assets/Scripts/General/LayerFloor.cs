@@ -9,6 +9,7 @@ public class LayerFloor : MonoBehaviour
 {
   public Tilemap groundTilemap;
   public Tilemap objectTilemap;
+  public Transform interestObjects;
   void Update()
   {
     if (!Application.IsPlaying(gameObject))

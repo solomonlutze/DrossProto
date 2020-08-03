@@ -118,7 +118,6 @@ public class AiStateController : Character
     yield return StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, initiatingAction));
     if (pathToTarget != null)
     {
-      Debug.Log("Wander destination identified");
       SetWanderDestination(targetLocation.tileCenter, fl);
     }
     else
@@ -227,14 +226,14 @@ public class AiStateController : Character
   }
   public void WaitThenAttack()
   {
-    Debug.Log("begin attack");
+    // Debug.Log("begin attack");
     StartCoroutine(WaitThenAttackCoroutine());
   }
   public IEnumerator WaitThenAttackCoroutine()
   {
-    Debug.Log("wait then attack");
+    // Debug.Log("wait then attack");
     yield return new WaitForSeconds(Random.Range(.3f, .7f));
-    Debug.Log("use attack!!");
+    // Debug.Log("use attack!!");
     UseAttack((AttackSkillData)GetSelectedCharacterSkill()); // todo: fix this????
   }
   protected override void TakeDamage(IDamageSource damageSource)
