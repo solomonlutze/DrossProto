@@ -15,6 +15,8 @@ public class EnvironmentTileInfo
   public bool dealsDamage = false;
   public bool corroded = false;
   public List<EnvironmentalDamage> environmentalDamageSources;
+
+  public Dictionary<TilemapCorner, GameObject> cornerInterestObjects;
   // public DamageData_OLD environmentalDamage_OLD;
   public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile)
   {
@@ -25,6 +27,12 @@ public class EnvironmentTileInfo
     objectTileTags = new List<TileTag>();
     dealsDamage = false;
     environmentalDamageSources = new List<EnvironmentalDamage>();
+    cornerInterestObjects = new Dictionary<TilemapCorner, GameObject>() {
+      {TilemapCorner.UpperLeft, null},
+      {TilemapCorner.LowerLeft, null},
+      {TilemapCorner.UpperRight, null},
+      {TilemapCorner.LowerRight, null},
+    };
     if (groundTileType != null)
     {
       isInteractable |= groundTileType.IsInteractable();
@@ -253,6 +261,56 @@ public class EnvironmentTileInfo
     {
       Debug.LogWarning("Tried to get interactable text for a non-interactable tile");
       return "";
+    }
+  }
+
+  public int GetBorderInterestObjectPriority()
+  {
+    return groundTileType != null ? groundTileType.interestObjectPriority : 0;
+  }
+
+  public bool AcceptsInterestObjects()
+  {
+    return groundTileType != null && groundTileType.acceptsInterestObjects;
+  }
+  public GameObject GetBorderInterestObject()
+  {
+    return groundTileType != null && groundTileType.borderInterestObjects != null && groundTileType.borderInterestObjects.Length > 0 ?
+      groundTileType.borderInterestObjects[UnityEngine.Random.Range(0, groundTileType.borderInterestObjects.Length)]
+      : null;
+  }
+
+  public GameObject GetCornerInterestObject(EnvironmentTileInfo otherTile, EnvironmentTileInfo destinationTile)
+  {
+    if (objectTileType == otherTile.objectTileType && objectTileType != destinationTile.objectTileType && objectTileType != null && objectTileType.cornerInterestObjects.Length > 0)
+    {
+      return objectTileType.cornerInterestObjects[UnityEngine.Random.Range(0, objectTileType.cornerInterestObjects.Length)];
+    }
+    else if (groundTileType == otherTile.groundTileType && groundTileType != destinationTile.groundTileType && groundTileType != null && groundTileType.cornerInterestObjects.Length > 0)
+    {
+      return groundTileType.cornerInterestObjects[UnityEngine.Random.Range(0, groundTileType.cornerInterestObjects.Length)];
+    }
+    return null;
+  }
+
+  public bool IsBorderClear(TilemapDirection direction, EnvironmentTileInfo borderTile)
+  {
+    switch (direction)
+    {
+      case TilemapDirection.Up:
+        return cornerInterestObjects[TilemapCorner.UpperLeft] == null && cornerInterestObjects[TilemapCorner.UpperRight] == null
+          && borderTile.cornerInterestObjects[TilemapCorner.LowerLeft] == null && borderTile.cornerInterestObjects[TilemapCorner.LowerRight] == null;
+      case TilemapDirection.Left:
+        return cornerInterestObjects[TilemapCorner.LowerLeft] == null && cornerInterestObjects[TilemapCorner.UpperLeft] == null
+          && borderTile.cornerInterestObjects[TilemapCorner.LowerRight] == null && borderTile.cornerInterestObjects[TilemapCorner.UpperRight] == null;
+      case TilemapDirection.Right:
+        return cornerInterestObjects[TilemapCorner.UpperRight] == null && cornerInterestObjects[TilemapCorner.LowerRight] == null
+          && borderTile.cornerInterestObjects[TilemapCorner.UpperLeft] == null && borderTile.cornerInterestObjects[TilemapCorner.LowerLeft] == null;
+      case TilemapDirection.Down:
+        return cornerInterestObjects[TilemapCorner.LowerLeft] == null && cornerInterestObjects[TilemapCorner.LowerRight] == null
+          && borderTile.cornerInterestObjects[TilemapCorner.UpperLeft] == null && borderTile.cornerInterestObjects[TilemapCorner.UpperRight] == null;
+      default:
+        return false;
     }
   }
 
