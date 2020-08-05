@@ -264,6 +264,15 @@ public class EnvironmentTileInfo
     }
   }
 
+  public int GetBorderInterestObjectPriority()
+  {
+    return groundTileType != null ? groundTileType.interestObjectPriority : 0;
+  }
+
+  public bool AcceptsInterestObjects()
+  {
+    return groundTileType != null && groundTileType.acceptsInterestObjects;
+  }
   public GameObject GetBorderInterestObject()
   {
     return groundTileType != null && groundTileType.borderInterestObjects != null && groundTileType.borderInterestObjects.Length > 0 ?

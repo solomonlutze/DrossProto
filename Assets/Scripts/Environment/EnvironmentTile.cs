@@ -67,6 +67,8 @@ public class EnvironmentTile : Tile
   private string tileType;
   private Renderer _renderer;
   public ShaderData shaderData;
+  public int interestObjectPriority = 0; // whichever tile has the higher priority will place its border
+  public bool acceptsInterestObjects = true; // if false, no interest objects may be placed on this tile
   public GameObject[] borderInterestObjects;
   public GameObject[] cornerInterestObjects;
 

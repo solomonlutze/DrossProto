@@ -156,7 +156,6 @@ public class GridManager : Singleton<GridManager>
       }
       // }
     }
-    Debug.Log("interest objects count: " + interestObjectsCount);
   }
 
   public EnvironmentTileInfo ConstructAndSetEnvironmentTileInfo(TileLocation loc, Tilemap groundTilemap, Tilemap objectTilemap)
@@ -172,10 +171,10 @@ public class GridManager : Singleton<GridManager>
       objectTile
     );
     worldGrid[loc.floorLayer][loc.position] = info;
-    if (interestObjectsCount < 500)
-    {
-      AddInterestObjects(GetAdjacentTileLocation(loc, TilemapDirection.Left));
-    }
+    // if (interestObjectsCount < 500)
+    // {
+    AddInterestObjects(GetAdjacentTileLocation(loc, TilemapDirection.Left));
+    // }
     return info;
   }
 
@@ -199,7 +198,8 @@ public class GridManager : Singleton<GridManager>
       EnvironmentTileInfo adjacentTile = GetAdjacentTile(loc, direction);
       if (currentTile.groundTileType == adjacentTile.groundTileType || !currentTile.IsBorderClear(direction, adjacentTile)) { return; }
       {
-        if (UnityEngine.Random.value > .5f)
+        float interestPriority = currentTile.GetBorderInterestObjectPriority() - adjacentTile.GetBorderInterestObjectPriority() + UnityEngine.Random.value;
+        if (interestPriority > .5f || !currentTile.AcceptsInterestObjects())
         {
           CreateAndPlaceInterestObject(currentTile, adjacentTile, direction);
         }
@@ -213,8 +213,9 @@ public class GridManager : Singleton<GridManager>
 
   public void AddCornerInterestObjects(TileLocation loc)
   {
-    if (TileIsValid(loc))
+    if (TileIsValid(loc) && GetTileAtLocation(loc).AcceptsInterestObjects())
     {
+
       AddCornerInterestObject(GetAdjacentTileLocation(loc, TilemapDirection.Left), GetAdjacentTileLocation(loc, TilemapDirection.Down), loc, TilemapCorner.LowerLeft, 0);
       AddCornerInterestObject(GetAdjacentTileLocation(loc, TilemapDirection.Up), GetAdjacentTileLocation(loc, TilemapDirection.Left), loc, TilemapCorner.UpperLeft, 270);
       AddCornerInterestObject(GetAdjacentTileLocation(loc, TilemapDirection.Right), GetAdjacentTileLocation(loc, TilemapDirection.Up), loc, TilemapCorner.UpperRight, 180);
