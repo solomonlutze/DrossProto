@@ -154,7 +154,7 @@ public class AiStateController : Character
 
   public IEnumerator DelayThenSetOverrideDestinationCoroutine(Vector3 pos, FloorLayer fl)
   {
-    yield return new WaitForSeconds(Random.Range(.3f, 1f));
+    yield return new WaitForSeconds(Random.Range(.1f, 6f));
     SetOverrideDestination(pos, fl);
   }
 
@@ -232,7 +232,7 @@ public class AiStateController : Character
   public IEnumerator WaitThenAttackCoroutine()
   {
     // Debug.Log("wait then attack");
-    yield return new WaitForSeconds(Random.Range(.3f, .7f));
+    yield return new WaitForSeconds(Random.Range(.4f, 1f));
     // Debug.Log("use attack!!");
     UseAttack((AttackSkillData)GetSelectedCharacterSkill()); // todo: fix this????
   }

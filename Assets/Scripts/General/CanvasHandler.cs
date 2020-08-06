@@ -29,25 +29,29 @@ public class CanvasHandler : MonoBehaviour
   // Update is called once per frame
   void Update()
   {
-    if (GameMaster.Instance.GetGameStatus() == Constants.GameState.ChooseBug)
+    switch (GameMaster.Instance.GetGameStatus())
     {
-      DisplaySelectBugScreen();
-    }
-    if (Input.GetKeyDown(KeyCode.Escape))
-    {
-      CloseMenus();
-    }
-    else if (Input.GetKeyDown(KeyCode.I))
-    {
-      if (attributesView.gameObject.activeSelf)
-      {
-        SetAllCanvasesInactive();
-        GameMaster.Instance.SetGameStatus(Constants.GameState.Play);
-      }
-      else
-      {
-        DisplayAttributesView();
-      }
+      case Constants.GameState.ChooseBug:
+        if (!startingBugSelectScreen.gameObject.activeSelf)
+        {
+          DisplaySelectBugScreen();
+        }
+        break;
+      case Constants.GameState.Menu:
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.I))
+        {
+          CloseMenus();
+        }
+        break;
+      case Constants.GameState.Play:
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+          {
+            GameMaster.Instance.SetGameUnpaused();
+            DisplayAttributesView();
+          }
+        }
+        break;
     }
 
   }
@@ -62,11 +66,8 @@ public class CanvasHandler : MonoBehaviour
 
   public void CloseMenus()
   {
-    if (GameMaster.Instance.GetGameStatus() != Constants.GameState.Play)
-    {
-      SetAllCanvasesInactive();
-      GameMaster.Instance.SetGameStatus(Constants.GameState.Play);
-    }
+    GameMaster.Instance.SetGameUnpaused();
+    SetAllCanvasesInactive();
   }
 
   public void SetAllCanvasesInactive()
@@ -103,11 +104,11 @@ public class CanvasHandler : MonoBehaviour
     TraitSlotToTraitDictionary pupaTraits,
     TraitPickupItem traitPickupItem)
   {
+    GameMaster.Instance.SetGameMenu();
     SetAllCanvasesInactive();
     attributesView.gameObject.SetActive(true);
     attributesView.Init(currentAttributes, nextAttributes, skillDatas, pupaSkillDatas, pupaTraits, traitPickupItem);
     attributesView.gameObject.SetActive(true);
-    GameMaster.Instance.SetGameStatus(Constants.GameState.Menu);
   }
 
   public void DisplayAttributesViewForTraitItem(TraitPickupItem traitItem)

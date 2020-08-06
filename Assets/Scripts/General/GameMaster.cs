@@ -16,7 +16,7 @@ public class GameMaster : Singleton<GameMaster>
   public VariableStorage dialogueVariableStorage;
   private PlayerController playerController;
   private PathfindingSystem pathfinding;
-  private Constants.GameState gameStatus;
+  public Constants.GameState gameStatus;
 
   // Saved when player dies so their next life can be preserved
   private TraitSlotToTraitDictionary cachedPupa;
@@ -28,6 +28,7 @@ public class GameMaster : Singleton<GameMaster>
   public LymphTypeToLymphTypeSkillsDictionary lymphTypeToSkillsMapping;
   public Camera mainCamera;
   public Camera camera2D; // god save me
+  public bool isPaused = false;
 
   // Use this for initialization
   void Start()
@@ -77,9 +78,17 @@ public class GameMaster : Singleton<GameMaster>
         {
           playerController.Die();
         }
+        else if (Input.GetKeyDown(KeyCode.Escape))
+        {
+          SetGamePaused();
+        }
         break;
-        // default:
-        // b
+      case Constants.GameState.Pause:
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+          SetGameUnpaused();
+        }
+        break;
     }
   }
 
@@ -89,6 +98,33 @@ public class GameMaster : Singleton<GameMaster>
     {
       Respawn(cachedPupa);
     }
+  }
+
+  public void SetGameMenu()
+  {
+    PauseGame();
+    SetGameStatus(Constants.GameState.Menu);
+  }
+  public void SetGamePaused()
+  {
+    PauseGame();
+    SetGameStatus(Constants.GameState.Pause);
+  }
+
+  public void SetGameUnpaused()
+  {
+    UnpauseGame();
+    SetGameStatus(Constants.GameState.Play);
+  }
+
+  public void PauseGame()
+  {
+    Time.timeScale = 0;
+  }
+
+  public void UnpauseGame()
+  {
+    Time.timeScale = 1;
   }
 
   private void Respawn(TraitSlotToTraitDictionary overrideTraits = null)

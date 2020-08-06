@@ -173,7 +173,7 @@ public class GridManager : Singleton<GridManager>
     worldGrid[loc.floorLayer][loc.position] = info;
     // if (interestObjectsCount < 500)
     // {
-    AddInterestObjects(GetAdjacentTileLocation(loc, TilemapDirection.Left));
+    // AddInterestObjects(GetAdjacentTileLocation(loc, TilemapDirection.Left));
     // }
     return info;
   }

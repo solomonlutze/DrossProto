@@ -134,8 +134,7 @@ public class AttributesView : MonoBehaviour
   {
     GameMaster.Instance.GetPlayerController().EquipTrait(trait, slot);
     Destroy(displayedPickupItem.gameObject);
-    GameMaster.Instance.canvasHandler.SetAllCanvasesInactive();
-    GameMaster.Instance.SetGameStatus(Constants.GameState.Play);
+    GameMaster.Instance.canvasHandler.CloseMenus();
   }
 
   public void ShowHighlightedTraitDelta(Trait remove, Trait add)
