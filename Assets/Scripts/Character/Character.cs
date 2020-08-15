@@ -678,44 +678,18 @@ public class Character : WorldObject
 
   protected void Fly()
   {
-    // if (vitals[CharacterVital.CurrentFlightCooldown] > 0) { return; }
-    // DoDashAttack();
     BeginFly();
-    // flyCoroutine = StartCoroutine(DoFly());
-    // vitals[CharacterVital.CurrentFlightCooldown] = GetStat(CharacterStat.MaxDashCooldown);
   }
-
-  // protected IEnumerator DoFly()
-  // {
-  //   float t = 0;
-  //   BeginFly();
-  //   while (t < GetMaxFlightDuration() && flying)
-  //   {
-  //     t += Time.deltaTime;
-  //     yield return null;
-  //   }
-  //   EndFly();
-  // }
 
   protected void BeginFly()
   {
     flying = true;
-    if (GetAttribute(CharacterAttribute.Flight) < 3)
-    { // TODO: don't hardcode this!!
-      activeMovementAbilities.Add(CharacterMovementAbility.Hover);
-    }
-    ChangeLayersRecursively(transform, currentFloor, -.5f);
+    AscendOneFloor();
   }
 
   protected void EndFly()
   {
-    // StopCoroutine(flyCoroutine);
     flying = false;
-    if (GetAttribute(CharacterAttribute.Flight) < 3)
-    { // TODO: don't hardcode this!!
-      activeMovementAbilities.Remove(CharacterMovementAbility.Hover);
-    }
-    ChangeLayersRecursively(transform, currentFloor, .0f);
   }
 
   protected void FlyUp()
@@ -851,16 +825,6 @@ public class Character : WorldObject
       sourceInvulnerabilities.Remove(src);
     }
   }
-  // IEnumerator ApplyInvulnerability(Damage_OLD damage)
-  // {
-  //     string src = damage.sourceString;
-  //     sourceInvulnerabilities.Add(src);
-  //     yield return new WaitForSeconds(damage.GetInvulnerabilityWindow());
-  //     if (sourceInvulnerabilities.Contains(src))
-  //     {
-  //         sourceInvulnerabilities.Remove(src);
-  //     }
-  // }
 
   // Determines if we should be stunned, and stuns us if so.
   protected void CalculateAndApplyStun(float stunDuration, bool overrideStunResistance = false)
@@ -956,9 +920,6 @@ public class Character : WorldObject
 
   public float GetMaxFlightDuration()
   {
-    Debug.Log("defaultCharacterData: " + defaultCharacterData);
-    Debug.Log("flightAttributeData: " + defaultCharacterData.GetFlightAttributeData());
-    Debug.Log("tier: " + defaultCharacterData.GetFlightAttributeData().GetAttributeTier(this));
     return defaultCharacterData
       .GetFlightAttributeData()
       .GetAttributeTier(this)
@@ -1067,7 +1028,7 @@ public class Character : WorldObject
     currentFloor = newFloorLayer;
     currentTileLocation = CalculateCurrentTileLocation();
     CenterCharacterOnCurrentTile();
-    ChangeLayersRecursively(transform, newFloorLayer, flying ? .5f : 0);
+    ChangeLayersRecursively(transform, newFloorLayer);
     HandleTileCollision(GridManager.Instance.GetTileAtLocation(currentTileLocation));
     po.OnLayerChange();
   }
@@ -1133,13 +1094,13 @@ public class Character : WorldObject
         (activeMovementAbilities.Contains(CharacterMovementAbility.StickyFeet) && canstick)
         || activeMovementAbilities.Contains(CharacterMovementAbility.Hover)
         || sticking
+        || flying
       )
       {
         //Character is flying or sticking to something; do not fall
       }
       else
       {
-        Debug.Log("Falling: " + gameObject.name);
         transform.position = new Vector3(
           nowTileLocation.position.x + .5f,
           nowTileLocation.position.y + .5f,
@@ -1169,6 +1130,7 @@ public class Character : WorldObject
     }
     else
     {
+      flying = false;
       lastSafeTileLocation = currentTileLocation;
     }
   }

@@ -241,7 +241,6 @@ public class PlayerController : Character
         }
         else if (Input.GetButtonDown("Ascend"))
         {
-          Debug.Log("ascend?");
           if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
           {
             FlyUp();
@@ -250,9 +249,8 @@ public class PlayerController : Character
           {
             AscendOneFloor();
           }
-          else if (!flying)
+          else if (!flying && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
           {
-            return; // TODO: DELETE THIS
             Fly();
           }
         }
