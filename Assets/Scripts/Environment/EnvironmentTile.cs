@@ -36,11 +36,12 @@ public class EnvironmentTile : Tile
   public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage;
 
   [HideInInspector]
-  public bool changesFloorLayer;
+  public bool changesFloorLayer_old;
   // Which floor layer the tile sends the character to
   [HideInInspector]
   [SerializeField]
   public int changesFloorLayerByAmount;
+  public AscendingDescendingState changesFloorLayer = AscendingDescendingState.None;
   public TileDurability tileDurability = TileDurability.Indestructable;
   public FloorTilemapType floorTilemapType = FloorTilemapType.Ground;
 
@@ -248,7 +249,7 @@ public class EnvironmentTile : Tile
 
   public bool IsInteractable()
   {
-    return (changesFloorLayer);
+    return (changesFloorLayer != AscendingDescendingState.None);
   }
 
   public float EmitFootstepParticles(Character c)

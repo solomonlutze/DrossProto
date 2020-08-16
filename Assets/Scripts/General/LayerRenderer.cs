@@ -7,6 +7,7 @@ public class LayerRenderer : MonoBehaviour
 {
   public float fadeDampTime = 0.005f;
 
+  private float _ref = 0;
   private FloorLayer lastTargetedFloorLayer;
   void Update()
   {
@@ -15,7 +16,8 @@ public class LayerRenderer : MonoBehaviour
       PlayerController player = GameMaster.Instance.GetPlayerController();
       if (player != null)
       {
-        HandleOpacity(player.currentFloor);
+        int offset = player.ascendingDescendingState == AscendingDescendingState.None ? 0 : 1;
+        HandleOpacity(player.currentFloor + offset);
       }
     }
     else
@@ -36,7 +38,7 @@ public class LayerRenderer : MonoBehaviour
   }
 
 
-  public static void ChangeOpacityRecursively(Transform trans, FloorLayer playerFloorLayer, float fadeDampTime)
+  public void ChangeOpacityRecursively(Transform trans, FloorLayer playerFloorLayer, float fadeDampTime)
   {
     int floorOffsetFromPlayer = (int)(WorldObject.GetFloorLayerFromGameObjectLayer(trans.gameObject.layer) - playerFloorLayer); // positive means we are above player; negative means we are below
     float targetOpacity = 1;
@@ -45,7 +47,6 @@ public class LayerRenderer : MonoBehaviour
     // else if (floorOffsetFromPlayer == 2) { targetOpacity = .15f; }
     // else if (floorOffsetFromPlayer == 1) { targetOpacity = .35f; }
     float actualNewOpacity;
-    float _ref = 0;
     SpriteRenderer r = trans.gameObject.GetComponent<SpriteRenderer>();
     // if (trans.gameObject.name != "DarknessBelow")
     // {

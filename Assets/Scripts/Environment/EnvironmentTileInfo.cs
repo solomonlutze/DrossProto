@@ -62,18 +62,18 @@ public class EnvironmentTileInfo
   // for now, groundTiles should never change floor layer, but, y'know
   public bool ChangesFloorLayer()
   {
-    return (objectTileType && objectTileType.changesFloorLayer)
-        || (groundTileType && groundTileType.changesFloorLayer);
+    return (objectTileType && objectTileType.changesFloorLayer_old)
+        || (groundTileType && groundTileType.changesFloorLayer_old);
   }
   public FloorLayer GetTargetFloorLayer(FloorLayer currentFloor)
   {
     int currentFloorAsInt = (int)currentFloor;
     int targetFloorLayerAsInt = currentFloorAsInt;
-    if (objectTileType != null && objectTileType.changesFloorLayer)
+    if (objectTileType != null && objectTileType.changesFloorLayer_old)
     {
       targetFloorLayerAsInt = objectTileType.changesFloorLayerByAmount + currentFloorAsInt;
     }
-    else if (groundTileType != null && groundTileType.changesFloorLayer)
+    else if (groundTileType != null && groundTileType.changesFloorLayer_old)
     {
       targetFloorLayerAsInt = groundTileType.changesFloorLayerByAmount + currentFloorAsInt;
     }

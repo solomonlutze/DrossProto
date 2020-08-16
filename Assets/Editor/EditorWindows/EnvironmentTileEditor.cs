@@ -10,8 +10,8 @@ public class EnvironmentTileEditor : Editor
   {
     DrawDefaultInspector();
     EnvironmentTile environmentTile = target as EnvironmentTile;
-    environmentTile.changesFloorLayer = GUILayout.Toggle(environmentTile.changesFloorLayer, "Changes Floor Layer");
-    if (environmentTile.changesFloorLayer)
+    environmentTile.changesFloorLayer_old = GUILayout.Toggle(environmentTile.changesFloorLayer_old, "Changes Floor Layer");
+    if (environmentTile.changesFloorLayer_old)
     {
       int oldChanges = environmentTile.changesFloorLayerByAmount;
       environmentTile.changesFloorLayerByAmount = EditorGUILayout.Popup(

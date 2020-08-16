@@ -85,6 +85,8 @@ public enum CharacterMovementAbility
   WaterStride
 }
 
+public enum AscendingDescendingState { Ascending, Descending, None }
+
 public enum CharacterPerceptionAbility
 {
   SensitiveAntennae
@@ -259,6 +261,16 @@ public class Character : WorldObject
   protected float timeStandingStill = 0;
   protected float timeMoving = 0;
   protected Dictionary<string, GameObject> traitSpawnedGameObjects;
+  public AscendingDescendingState ascendingDescendingState = AscendingDescendingState.None;
+  public bool ascending
+  {
+    get { return ascendingDescendingState == AscendingDescendingState.Ascending; }
+  }
+  public bool descending
+  {
+    get { return ascendingDescendingState == AscendingDescendingState.Descending; }
+  }
+  public float ascendDescendSpeed = 1f;
   protected List<string> sourceInvulnerabilities;
   public float footstepCooldown = 0.0f;
   public float maxFootstepCooldown = 0.2f;
@@ -298,6 +310,7 @@ public class Character : WorldObject
       Debug.LogError("No physics controller component on Character object: " + gameObject.name);
     }
     WorldObject.ChangeLayersRecursively(transform, currentFloor);
+    transform.position = new Vector3(transform.position.x, transform.position.y, GridManager.GetZOffsetForFloor(gameObject.layer));
   }
 
   protected virtual void Init()
@@ -426,6 +439,7 @@ public class Character : WorldObject
     HandleTile();
     HandleCooldowns();
     HandleConditionallyActivatedTraits();
+    HandleAscendOrDescend();
   }
 
   // physics biz
@@ -633,7 +647,7 @@ public class Character : WorldObject
     transform.position = new Vector3(
       currentTileLocation.position.x + .5f,
       currentTileLocation.position.y + .5f,
-      0f
+      transform.position.z
     );
   }
   protected void Molt()
@@ -720,16 +734,47 @@ public class Character : WorldObject
 
   protected void AscendOneFloor()
   {
-
-    Debug.Log("ascending one floor!");
-    SetCurrentFloor(currentFloor + 1);
+    StartAscentOrDescent(AscendingDescendingState.Ascending);
   }
 
   protected void DescendOneFloor()
   {
-    SetCurrentFloor(currentFloor - 1);
+    StartAscentOrDescent(AscendingDescendingState.Descending);
   }
 
+  public void StartAscentOrDescent(AscendingDescendingState ascendOrDescend)
+  {
+    if (ascendingDescendingState != AscendingDescendingState.None) { return; }
+    ascendingDescendingState = ascendOrDescend;
+    if (descending)
+    {
+      SetCurrentFloor(currentFloor - 1);
+    }
+  }
+
+  public void HandleAscendOrDescend()
+  {
+    if (ascending)
+    {
+      transform.position -= new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
+      if (transform.position.z - GridManager.GetZOffsetForFloor(gameObject.layer + 1) < .01)
+      {
+        transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
+        ascendingDescendingState = AscendingDescendingState.None;
+        SetCurrentFloor(currentFloor + 1);
+      }
+    }
+    else if (descending)
+    {
+      transform.position += new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
+      // Debug.Log("descending distance: " + (GridManager.GetZOffsetForFloor(gameObject.layer) - transform.position.z));
+      if (GridManager.GetZOffsetForFloor(gameObject.layer) - transform.position.z < .01)
+      {
+        transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
+        ascendingDescendingState = AscendingDescendingState.None;
+      }
+    }
+  }
   // determines if input-based movement is allowed
   protected virtual bool CanMove()
   {
@@ -1027,9 +1072,9 @@ public class Character : WorldObject
   {
     currentFloor = newFloorLayer;
     currentTileLocation = CalculateCurrentTileLocation();
-    CenterCharacterOnCurrentTile();
     ChangeLayersRecursively(transform, newFloorLayer);
     HandleTileCollision(GridManager.Instance.GetTileAtLocation(currentTileLocation));
+    CenterCharacterOnCurrentTile();
     po.OnLayerChange();
   }
 
@@ -1087,6 +1132,7 @@ public class Character : WorldObject
     {
       currentTileLocation = nowTileLocation;
     }
+    if (ascending || descending) { return; }
     if (tile.objectTileType == null && tile.groundTileType == null) // Falling logic
     {
       bool canstick = GridManager.Instance.CanStickToAdjacentTile(transform.position, currentFloor);
@@ -1101,12 +1147,12 @@ public class Character : WorldObject
       }
       else
       {
-        transform.position = new Vector3(
-          nowTileLocation.position.x + .5f,
-          nowTileLocation.position.y + .5f,
-          0f
-        );
-        SetCurrentFloor(currentFloor - 1);
+        // transform.position = new Vector3(
+        //   nowTileLocation.position.x + .5f,
+        //   nowTileLocation.position.y + .5f,
+        //   0f
+        // );
+        DescendOneFloor();
       }
       return;
     }
@@ -1128,7 +1174,7 @@ public class Character : WorldObject
         RespawnCharacterAtLastSafeLocation();
       }
     }
-    else
+    else if (ascendingDescendingState != AscendingDescendingState.Ascending)
     {
       flying = false;
       lastSafeTileLocation = currentTileLocation;
