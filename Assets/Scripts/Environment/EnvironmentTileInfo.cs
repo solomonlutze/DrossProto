@@ -62,25 +62,38 @@ public class EnvironmentTileInfo
   // for now, groundTiles should never change floor layer, but, y'know
   public bool ChangesFloorLayer()
   {
-    return (objectTileType && objectTileType.changesFloorLayer_old)
-        || (groundTileType && groundTileType.changesFloorLayer_old);
+    return AscendsOrDescends() != AscendingDescendingState.None;
   }
+
+  public AscendingDescendingState AscendsOrDescends()
+  {
+    if (objectTileType && objectTileType.changesFloorLayer != AscendingDescendingState.None)
+    {
+      return objectTileType.changesFloorLayer;
+    }
+    if (groundTileType && groundTileType.changesFloorLayer != AscendingDescendingState.None)
+    {
+      return groundTileType.changesFloorLayer;
+    }
+    return AscendingDescendingState.None;
+  }
+
   public FloorLayer GetTargetFloorLayer(FloorLayer currentFloor)
   {
     int currentFloorAsInt = (int)currentFloor;
-    int targetFloorLayerAsInt = currentFloorAsInt;
-    if (objectTileType != null && objectTileType.changesFloorLayer_old)
-    {
-      targetFloorLayerAsInt = objectTileType.changesFloorLayerByAmount + currentFloorAsInt;
-    }
-    else if (groundTileType != null && groundTileType.changesFloorLayer_old)
-    {
-      targetFloorLayerAsInt = groundTileType.changesFloorLayerByAmount + currentFloorAsInt;
-    }
-    else
+    int targetFloorLayerAsInt = currentFloorAsInt + (int)AscendsOrDescends();
+    // if (objectTileType != null && objectTileType.changesFloorLayer != AscendingDescendingState.None)
+    // {
+    //   targetFloorLayerAsInt = currentFloorAsInt + (int)objectTileType.changesFloorLayer;
+    // }
+    // else if (groundTileType != null && groundTileType.changesFloorLayer != AscendingDescendingState.None)
+    // {
+    //   targetFloorLayerAsInt = currentFloorAsInt + (int)groundTileType.changesFloorLayer;
+    // }
+    if (targetFloorLayerAsInt == currentFloorAsInt)
     {
       Debug.LogError("tried to get target floor layer from tileInfo that does not change floors?");
-      return FloorLayer.B6;
+      return currentFloor;
     }
     if (targetFloorLayerAsInt < 0 || targetFloorLayerAsInt > (int)FloorLayer.F6)
     {
@@ -209,6 +222,12 @@ public class EnvironmentTileInfo
     return !IsEmpty() && !CanRespawnPlayer() && !dealsDamage;
   }
 
+
+  public bool HasSolidObject()
+  {
+    return (objectTileType != null && objectTileType.colliderType != Tile.ColliderType.None);
+  }
+
   public bool IsEmpty()
   {
     return (groundTileType == null && objectTileType == null);
@@ -241,14 +260,14 @@ public class EnvironmentTileInfo
     {
       return objectResult;
     }
-    return groundTileType.EmitFootstepParticles(character);
+    return groundTileType ? groundTileType.EmitFootstepParticles(character) : 0;
   }
 
   public string GetInteractableText(PlayerController pc)
   {
     if (ChangesFloorLayer())
     {
-      if (GetTargetFloorLayer(pc.currentFloor) > pc.currentFloor)
+      if (AscendsOrDescends() == AscendingDescendingState.Ascending)
       {
         return "ascend";
       }

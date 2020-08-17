@@ -120,6 +120,7 @@ public class CharacterAttributeToIntDictionary : SerializableDictionaryBase<Char
     {
       foreach (CharacterAttribute attribute in (CharacterAttribute[])Enum.GetValues(typeof(CharacterAttribute)))
       {
+        if (attribute.ToString().StartsWith("REMOVE")) { continue; }
         Add(attribute, 0);
       }
     }

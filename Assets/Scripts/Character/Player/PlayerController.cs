@@ -249,7 +249,7 @@ public class PlayerController : Character
           {
             AscendOneFloor();
           }
-          else if (!flying && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
+          else if (!flying)
           {
             Fly();
           }

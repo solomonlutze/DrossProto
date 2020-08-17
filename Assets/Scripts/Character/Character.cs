@@ -44,9 +44,9 @@ public enum CharacterStat
 
 public enum CharacterAttribute
 {
-  // REMOVE_0 = 0,
-  // REMOVE_1 = 1,
-  // REMOVE_2 = 2,
+  REMOVE_0 = 0,
+  REMOVE_1 = 1,
+  REMOVE_2 = 2,
   Burrow = 3,
   Camouflage = 4,
   HazardResistance = 5,
@@ -85,7 +85,12 @@ public enum CharacterMovementAbility
   WaterStride
 }
 
-public enum AscendingDescendingState { Ascending, Descending, None }
+public enum AscendingDescendingState
+{ // negative is up and positive is down because the map is backwards, Do Not @ Me
+  Ascending = -1,
+  Descending = 1,
+  None = 0
+}
 
 public enum CharacterPerceptionAbility
 {
@@ -236,6 +241,7 @@ public class Character : WorldObject
   public SpriteRenderer[] renderers;
 
   public CircleCollider2D circleCollider;
+  public BoxCollider2D boxCollider; // used for calculating collisions w/ tiles while changing floor layer
   public CharacterVisuals characterVisuals;
 
   [Header("Game State Info")]
@@ -289,6 +295,7 @@ public class Character : WorldObject
   {
     orientation = transform.Find("Orientation");
     circleCollider = GetComponent<CircleCollider2D>();
+    boxCollider = GetComponent<BoxCollider2D>();
     if (orientation == null)
     {
       Debug.LogError("No object named 'Orientation' on Character object: " + gameObject.name);
@@ -317,6 +324,7 @@ public class Character : WorldObject
   {
     sourceInvulnerabilities = new List<string>();
     conditionallyActivatedTraitEffects = new List<TraitEffect>();
+    ascendingDescendingState = AscendingDescendingState.None;
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
     if (weaponInstances != null)
     {
@@ -436,6 +444,7 @@ public class Character : WorldObject
   {
     HandleHealth();
     HandleFacingDirection();
+    HandleFalling();
     HandleTile();
     HandleCooldowns();
     HandleConditionallyActivatedTraits();
@@ -746,6 +755,7 @@ public class Character : WorldObject
   {
     if (ascendingDescendingState != AscendingDescendingState.None) { return; }
     ascendingDescendingState = ascendOrDescend;
+    Debug.Log("set ascendingDescendingState to " + ascendingDescendingState);
     if (descending)
     {
       SetCurrentFloor(currentFloor - 1);
@@ -756,6 +766,7 @@ public class Character : WorldObject
   {
     if (ascending)
     {
+      Debug.Log("should be ascending?");
       transform.position -= new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
       if (transform.position.z - GridManager.GetZOffsetForFloor(gameObject.layer + 1) < .01)
       {
@@ -778,6 +789,10 @@ public class Character : WorldObject
   // determines if input-based movement is allowed
   protected virtual bool CanMove()
   {
+    if (ascending && !flying)
+    {
+      return false;
+    }
     if (!activeMovementAbilities.Contains(CharacterMovementAbility.Halteres))
     {
       if (attacking)
@@ -1070,20 +1085,36 @@ public class Character : WorldObject
   }
   public virtual void SetCurrentFloor(FloorLayer newFloorLayer)
   {
+    if (flying)
+    {
+      if (!AllTilesOnTargetFloorEmpty(newFloorLayer))
+      {
+        flying = false;
+        Debug.Log("clearing flying flag");
+        ascendingDescendingState = AscendingDescendingState.Descending;
+        return;
+      }
+    }
+    else if (!AllTilesOnTargetFloorClearOfObjects(newFloorLayer))
+    {
+      CenterCharacterOnCurrentTile();
+    }
     currentFloor = newFloorLayer;
     currentTileLocation = CalculateCurrentTileLocation();
     ChangeLayersRecursively(transform, newFloorLayer);
     HandleTileCollision(GridManager.Instance.GetTileAtLocation(currentTileLocation));
-    CenterCharacterOnCurrentTile();
     po.OnLayerChange();
   }
 
+
   public void UseTile()
   {
+    Debug.Log("using tile");
     EnvironmentTileInfo et = GridManager.Instance.GetTileAtLocation(currentTileLocation);
     if (et.ChangesFloorLayer())
     {
-      SetCurrentFloor(et.GetTargetFloorLayer(currentFloor));
+      Debug.Log("starting ascent or descent? " + et.AscendsOrDescends());
+      StartAscentOrDescent(et.AscendsOrDescends());
     }
   }
 
@@ -1099,6 +1130,7 @@ public class Character : WorldObject
       currentFloor
     );
   }
+
   protected virtual void HandleHealth()
   {
     if (vitals[CharacterVital.CurrentHealth] <= 0)
@@ -1114,6 +1146,69 @@ public class Character : WorldObject
         vitals[CharacterVital.CurrentHealth] / GetMaxHealth()
       );
     }
+  }
+
+  protected HashSet<EnvironmentTileInfo> GetTouchingTiles(FloorLayer layerToConsider)
+  {
+    return new HashSet<EnvironmentTileInfo> {
+      GridManager.Instance.GetTileAtLocation(transform.TransformPoint(boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
+      GridManager.Instance.GetTileAtLocation(transform.TransformPoint(-boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
+      GridManager.Instance.GetTileAtLocation(transform.TransformPoint(boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
+      GridManager.Instance.GetTileAtLocation(transform.TransformPoint(-boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider)
+    };
+  }
+
+  protected virtual bool AllTilesOnTargetFloorEmpty(FloorLayer targetFloor)
+  {
+    // if we're flying, every tile above us needs to be empty.
+
+    HashSet<EnvironmentTileInfo> touchingTiles = GetTouchingTiles(targetFloor);
+    foreach (EnvironmentTileInfo tile in touchingTiles)
+    {
+
+      if (!tile.IsEmpty())
+      {
+        Debug.Log("non-empty tile found at " + tile.tileLocation.position + ", floor " + targetFloor);
+        Debug.Log("floor = " + tile.groundTileType);
+        Debug.Log("object = " + tile.objectTileType);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  protected virtual bool AllTilesOnTargetFloorClearOfObjects(FloorLayer targetFloor)
+  {
+
+    HashSet<EnvironmentTileInfo> touchingTiles = GetTouchingTiles(targetFloor);
+    foreach (EnvironmentTileInfo tile in touchingTiles)
+    {
+      if (tile.HasSolidObject()) { return false; }
+    }
+    return true;
+  }
+
+  protected virtual void HandleFalling() // we have removed sticking!! make it stick yourself!!!
+  {
+    if (
+        activeMovementAbilities.Contains(CharacterMovementAbility.Hover)
+          || sticking
+          || flying
+          || ascending
+          || descending
+        )
+    {
+      return; // abilities prevent falling!
+    }
+    HashSet<EnvironmentTileInfo> touchingTiles = GetTouchingTiles(currentFloor);
+    foreach (EnvironmentTileInfo tile in touchingTiles)
+    {
+      if (tile.objectTileType != null || tile.groundTileType != null)
+      {
+        return; // At least one corner is on a tile
+      }
+    }
+    DescendOneFloor();
   }
   protected virtual void HandleTile()
   {
@@ -1133,29 +1228,7 @@ public class Character : WorldObject
       currentTileLocation = nowTileLocation;
     }
     if (ascending || descending) { return; }
-    if (tile.objectTileType == null && tile.groundTileType == null) // Falling logic
-    {
-      bool canstick = GridManager.Instance.CanStickToAdjacentTile(transform.position, currentFloor);
-      if (
-        (activeMovementAbilities.Contains(CharacterMovementAbility.StickyFeet) && canstick)
-        || activeMovementAbilities.Contains(CharacterMovementAbility.Hover)
-        || sticking
-        || flying
-      )
-      {
-        //Character is flying or sticking to something; do not fall
-      }
-      else
-      {
-        // transform.position = new Vector3(
-        //   nowTileLocation.position.x + .5f,
-        //   nowTileLocation.position.y + .5f,
-        //   0f
-        // );
-        DescendOneFloor();
-      }
-      return;
-    }
+
     if (tile.dealsDamage/* && vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] <= 0*/)
     {
       foreach (EnvironmentalDamage envDamage in tile.environmentalDamageSources)
@@ -1174,8 +1247,9 @@ public class Character : WorldObject
         RespawnCharacterAtLastSafeLocation();
       }
     }
-    else if (ascendingDescendingState != AscendingDescendingState.Ascending)
+    else if (tile.groundTileType != null && ascendingDescendingState != AscendingDescendingState.Ascending)
     {
+      Debug.Log("not ascending, setting flying to false");
       flying = false;
       lastSafeTileLocation = currentTileLocation;
     }
