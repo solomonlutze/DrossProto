@@ -18,4 +18,9 @@ public class CharacterSkillData : ScriptableObject
   {
     yield return null;
   }
+
+  public virtual IEnumerator PerformSkillCycle(Character owner)
+  {
+    yield return null;
+  }
 }

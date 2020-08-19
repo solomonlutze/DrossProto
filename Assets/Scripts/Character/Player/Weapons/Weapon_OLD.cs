@@ -39,8 +39,8 @@ public class Weapon_OLD : MonoBehaviour
 
   public void BeginAttack()
   {
-    if (owner.attacking) { return; }
-    owner.attacking = true;
+    if (owner.usingSkill) { return; }
+    owner.usingSkill = true;
     QueueNextAttack();
     SetWeaponVisible(true);
     // currentAttack = attackAnimations[currentComboLength].attackAnimation;
@@ -60,7 +60,7 @@ public class Weapon_OLD : MonoBehaviour
   // Clears the animation boolean for the current attack, marking it as ended
   public void FinishAttack()
   {
-    if (owner.attacking)
+    if (owner.usingSkill)
     {
       animator.SetBool("queueAttack_" + currentAttack, false);
     }
@@ -112,7 +112,7 @@ public class Weapon_OLD : MonoBehaviour
   public void FinishCombo()
   {
     SetWeaponVisible(false);
-    owner.attacking = false;
+    owner.usingSkill = false;
     currentComboLength = 0;
   }
   // END WIP

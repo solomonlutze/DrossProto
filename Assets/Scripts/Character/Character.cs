@@ -213,6 +213,7 @@ public class Character : WorldObject
 
   [Header("Attack Info")]
   public List<CharacterSkillData> characterSkills;
+  public List<CharacterSkillData> characterSpells;
   public Dictionary<string, Weapon> weaponInstances;
   // public Weapon weaponInstance;
   public CharacterAttackModifiers attackModifiers;
@@ -248,15 +249,14 @@ public class Character : WorldObject
   public Color damageFlashColor = Color.red;
   public Color attackColor = Color.grey;
   public float damageFlashSpeed = 1.0f;
-  public bool attacking = false;
+  public bool usingSkill = false;
   public bool flying = false;
   public float dashTimer = 0.0f;
   public float dashRecoveryTimer = 0.0f;
-  protected bool attackCooldown = false;
   protected bool stunned = false;
   public bool animationPreventsMoving = false;
   public bool sticking = false;
-  public Coroutine attackCoroutine;
+  public Coroutine skillCoroutine;
   protected Coroutine flyCoroutine;
   protected Vector2 movementInput;
   // point in space we would like to face
@@ -471,25 +471,23 @@ public class Character : WorldObject
 
   // called via play input or npc AI
 
-  public void UseAttack(AttackSkillData attack)
+  public void UseSkill(CharacterSkillData skill)
   {
-    if (attack != null)
+    if (skill != null)
     {
-      if (attackCoroutine == null)
-      // if (!attackCooldown)
+      if (skillCoroutine == null)
       {
-        attackCoroutine = StartCoroutine(DoAttack(attack));
+        skillCoroutine = StartCoroutine(DoSkill(skill));
       }
     }
   }
 
-  public IEnumerator DoAttack(AttackSkillData attack)
+  public IEnumerator DoSkill(CharacterSkillData skill)
   {
-    attacking = true;
-    yield return StartCoroutine(attack.PerformAttackCycle(this));
-    attacking = false;
-    attackCooldown = false;
-    attackCoroutine = null;
+    usingSkill = true;
+    yield return StartCoroutine(skill.UseSkill(this));
+    usingSkill = false;
+    skillCoroutine = null;
   }
 
   public static float GetAttackValueModifier(CharacterAttackValueToIntDictionary attackModifiers, CharacterAttackValue value)
@@ -582,7 +580,7 @@ public class Character : WorldObject
   void HandleFacingDirection()
   {
     if (
-      (attacking || animationPreventsMoving || stunned)
+      (usingSkill || animationPreventsMoving || stunned)
       && !activeMovementAbilities.Contains(CharacterMovementAbility.Halteres)
     )
     {
@@ -795,7 +793,7 @@ public class Character : WorldObject
     }
     if (!activeMovementAbilities.Contains(CharacterMovementAbility.Halteres))
     {
-      if (attacking)
+      if (usingSkill)
       {
         return false;
       }

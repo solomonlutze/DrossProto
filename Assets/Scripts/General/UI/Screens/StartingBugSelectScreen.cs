@@ -36,7 +36,6 @@ public class StartingBugSelectScreen : MonoBehaviour
 
   public void HighlightBug(int idx)
   {
-    Debug.Log("highlighting " + idx);
     highlightedBug = idx;
     descriptionText.text = startingBugs[idx].description;
     visuals.SetCharacterVisuals(startingBugs[idx].loadout);
@@ -44,7 +43,6 @@ public class StartingBugSelectScreen : MonoBehaviour
 
   public void UnhighlightBug()
   {
-    Debug.Log("unhighlighting...");
     highlightedBug = -1;
     descriptionText.text = "";
     visuals.ClearCharacterVisuals();

@@ -4,7 +4,7 @@ public class DoneAttackingAiDecision : AiDecision
 {
   public override bool Decide(AiStateController controller)
   {
-    if (controller.attacking)
+    if (controller.usingSkill)
     {
       return false;
     }

@@ -31,6 +31,7 @@ public class PlayerController : Character
   public List<ContextualAction> availableContextualActions;
   private int selectedContextualActionIdx = 0;
   private int selectedSkillIdx = 0;
+  private int selectedSpellIdx = 0;
 
 
   [Header("Trait Info", order = 1)]
@@ -144,7 +145,7 @@ public class PlayerController : Character
   {
     if ((AttackSkillData)characterSkills[selectedSkillIdx] != null) // TODO: handle this more generically!!
     {
-      UseAttack((AttackSkillData)characterSkills[selectedSkillIdx]);
+      UseSkill((AttackSkillData)characterSkills[selectedSkillIdx]);
     }
   }
 
@@ -162,6 +163,30 @@ public class PlayerController : Character
     else
     {
       selectedSkillIdx = 0;
+    }
+  }
+
+  public void UseSelectedSpell()
+  {
+    if (characterSpells.Count > 0 && (SpellSkillData)characterSpells[selectedSpellIdx] != null)
+    {
+      UseSkill((SpellSkillData)characterSpells[selectedSpellIdx]);
+    }
+  }
+  public void AdvanceSelectedSpell()
+  {
+    if (characterSpells.Count > 0)
+    {
+      selectedSpellIdx = selectedSpellIdx + 1;
+      if (selectedSpellIdx >= characterSpells.Count)
+      {
+        selectedSpellIdx = 0;
+      }
+      Debug.Log("selected spell: " + characterSpells[selectedSpellIdx]);
+    }
+    else
+    {
+      selectedSpellIdx = 0;
     }
   }
 
@@ -226,8 +251,13 @@ public class PlayerController : Character
         if (Input.GetKeyDown("e")) { Debug.Log("pressed e"); }
         if (Input.GetButtonDown("Attack"))
         {
-          Debug.Log("attack?");
           UseSelectedSkill();
+          // Attack();
+        }
+        if (Input.GetButtonDown("Spell"))
+        {
+          Debug.Log("spell?");
+          UseSelectedSpell();
           // Attack();
         }
         else if (Input.GetButtonDown("Dash"))
@@ -282,6 +312,11 @@ public class PlayerController : Character
         else if (Input.GetButtonDown("AdvanceSkill"))
         {
           AdvanceSelectedSkill();
+        }
+        else if (Input.GetButtonDown("AdvanceSpell"))
+        {
+          Debug.Log("advance spell??");
+          AdvanceSelectedSpell();
         }
         else if (Input.GetButtonDown("AdvanceSelectedAction"))
         {

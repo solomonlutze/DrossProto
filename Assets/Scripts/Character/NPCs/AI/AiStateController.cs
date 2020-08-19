@@ -234,7 +234,7 @@ public class AiStateController : Character
     // Debug.Log("wait then attack");
     yield return new WaitForSeconds(Random.Range(.4f, 1f));
     // Debug.Log("use attack!!");
-    UseAttack((AttackSkillData)GetSelectedCharacterSkill()); // todo: fix this????
+    UseSkill((AttackSkillData)GetSelectedCharacterSkill()); // todo: fix this????
   }
   protected override void TakeDamage(IDamageSource damageSource)
   {

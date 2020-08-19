@@ -30,10 +30,10 @@ public class AttackSkillData : CharacterSkillData
 
   public override IEnumerator UseSkill(Character owner)
   {
-    yield return PerformAttackCycle(owner);
+    yield return PerformSkillCycle(owner);
   }
 
-  public virtual IEnumerator PerformAttackCycle(Character owner)
+  public override IEnumerator PerformSkillCycle(Character owner)
   {
     yield return owner.StartCoroutine(DoWindup());
     BeforeAttack(owner);

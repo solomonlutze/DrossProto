@@ -8,7 +8,7 @@ public class EvadeAttackAiDecision : AiDecision
     if (
       controller.objectOfInterest != null
       && controller.objectOfInterest.GetComponent<Character>() != null
-      && controller.objectOfInterest.GetComponent<Character>().attacking
+      && controller.objectOfInterest.GetComponent<Character>().usingSkill
       && controller.objectOfInterest.GetComponent<Character>().GetAngleToDirection(controller.transform.position) < assumedEnemyAttackAngle / 2)
     {
       return true;
