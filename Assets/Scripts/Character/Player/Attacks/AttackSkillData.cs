@@ -4,23 +4,26 @@ using System.Collections;
 [System.Serializable]
 public class AttackSkillData : CharacterSkillData
 {
-  public Weapon weaponPrefab; // actual weapon prefab. instantiate this on init
+  public Weapon_OLD weaponPrefab; // actual weapon prefab. instantiate this on init
   // public Weapon weaponInstance; // reference to actual weapon gameobject instance, instantiated from the prefab
   public float windupDuration;
   public float attackDuration;
   public float range; // how far away from the owner the weapon starts
   public float distance; // how far from the spawn point the weapon travels
-  public float cooldown;
+  public float cooldownDuration;
   public int sweepRadiusInDegrees;
 
   public DamageInfo baseDamage;
 
   public override void Init(Character owner)
   {
-    Weapon wi = Instantiate(weaponPrefab, owner.weaponPivot.position + GetInitialPosition(), owner.weaponPivot.rotation, owner.weaponPivot);
-    owner.weaponInstances.Add(name, wi);
-    wi.Init(this);
-    wi.gameObject.SetActive(false);
+    if (weaponPrefab)
+    {
+      Weapon_OLD wi = Instantiate(weaponPrefab, owner.weaponPivotRoot.position + GetInitialPosition(), owner.weaponPivotRoot.rotation, owner.weaponPivotRoot);
+      owner.weaponInstances.Add(name, wi);
+      wi.Init(this);
+      wi.gameObject.SetActive(false);
+    }
   }
 
   public Vector3 GetInitialPosition()
@@ -73,7 +76,7 @@ public class AttackSkillData : CharacterSkillData
 
   public virtual IEnumerator DoCooldown()
   {
-    yield return new WaitForSeconds(cooldown);
+    yield return new WaitForSeconds(cooldownDuration);
   }
 
   public virtual void InterruptAttack(Character owner)

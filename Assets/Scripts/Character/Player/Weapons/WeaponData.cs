@@ -17,7 +17,7 @@ public class WeaponData : ItemData
     get { return InventoryItemType.Weapon; }
     set { }
   }
-  public Weapon_OLD weaponPrefab;
+  public Weapon_SUPEROLD weaponPrefab;
   public Hitbox_OLD hitboxPrefab;
   public Animator animator;
 

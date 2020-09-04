@@ -143,9 +143,9 @@ public class PlayerController : Character
 
   public void UseSelectedSkill()
   {
-    if ((AttackSkillData)characterSkills[selectedSkillIdx] != null) // TODO: handle this more generically!!
+    if (characterSkills[selectedSkillIdx] != null)
     {
-      UseSkill((AttackSkillData)characterSkills[selectedSkillIdx]);
+      UseSkill(characterSkills[selectedSkillIdx]);
     }
   }
 
@@ -168,11 +168,12 @@ public class PlayerController : Character
 
   public void UseSelectedSpell()
   {
-    if (characterSpells.Count > 0 && (SpellSkillData)characterSpells[selectedSpellIdx] != null)
+    if (characterSpells.Count > 0 && characterSpells[selectedSpellIdx] != null)
     {
-      UseSkill((SpellSkillData)characterSpells[selectedSpellIdx]);
+      UseSkill(characterSpells[selectedSpellIdx]);
     }
   }
+
   public void AdvanceSelectedSpell()
   {
     if (characterSpells.Count > 0)
@@ -301,7 +302,6 @@ public class PlayerController : Character
           Debug.Log("activate?");
           if (availableContextualActions.Count > 0)
           {
-            Debug.Log("executing contextual action " + GetSelectedContextualAction().actionName);
             GetSelectedContextualAction().actionToCall();
           }
           else if (inventory.lastPickedUpItems.Count > 0)
@@ -526,7 +526,7 @@ public class PlayerController : Character
     return null;
   }
 
-  public override Weapon GetSelectedWeaponInstance()
+  public override Weapon_OLD GetSelectedWeaponInstance()
   {
     if (characterSkills.Count > selectedSkillIdx)
     {

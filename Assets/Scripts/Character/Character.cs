@@ -214,7 +214,7 @@ public class Character : WorldObject
   [Header("Attack Info")]
   public List<CharacterSkillData> characterSkills;
   public List<CharacterSkillData> characterSpells;
-  public Dictionary<string, Weapon> weaponInstances;
+  public Dictionary<string, Weapon_OLD> weaponInstances;
   // public Weapon weaponInstance;
   public CharacterAttackModifiers attackModifiers;
   public Hitbox_OLD hitboxPrefab;
@@ -233,7 +233,7 @@ public class Character : WorldObject
   [Header("Child Components")]
   public Transform orientation;
 
-  public Transform weaponPivot;
+  public Transform weaponPivotRoot;
   public Transform crosshair;
   // our physics object
   public CustomPhysicsController po;
@@ -328,7 +328,7 @@ public class Character : WorldObject
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
     if (weaponInstances != null)
     {
-      foreach (Weapon w in weaponInstances.Values)
+      foreach (Weapon_OLD w in weaponInstances.Values)
       {
         Destroy(w.gameObject);
       }
@@ -336,7 +336,7 @@ public class Character : WorldObject
     }
     else
     {
-      weaponInstances = new Dictionary<string, Weapon>();
+      weaponInstances = new Dictionary<string, Weapon_OLD>();
     }
     characterSkills = CalculateSkills(traits);
     if (!HasAttackSkill(characterSkills))
@@ -405,7 +405,7 @@ public class Character : WorldObject
     return null;
   }
 
-  public virtual Weapon GetSelectedWeaponInstance()
+  public virtual Weapon_OLD GetSelectedWeaponInstance()
   {
     if (characterSkills.Count > 0)
     {
@@ -432,7 +432,7 @@ public class Character : WorldObject
   {
     foreach (CharacterSkillData skill in skills)
     {
-      if ((AttackSkillData)skill != null)
+      if (skill.isAttack || skill as AttackSkillData != null)
       {
         return true;
       }
@@ -517,8 +517,11 @@ public class Character : WorldObject
   public float GetAttackRange(int skillIdxForAttack = 0)
   {
     string skillName = GetSkillNameFromIndex(skillIdxForAttack);
-    return weaponInstances[skillName].range;
-    // return attack.range + Character.GetAttackValueModifier(mods.attackValueModifiers, CharacterAttackValue.Range);
+    if (weaponInstances.ContainsKey(skillName)) // deprecate this block
+    {
+      return weaponInstances[skillName].range;
+    }
+    return (characterSkills[skillIdxForAttack]).GetEffectiveRange();
   }
 
   public float GetEffectiveAttackRange(int skillIdxForAttack = 0)
@@ -598,6 +601,9 @@ public class Character : WorldObject
     return GetDirectionAngle(orientTowards);
   }
 
+  // Rotate character smoothly towards a particular orientation around the Z axis.
+  // Warning: I don't understand this math. If character rotation seems buggy, this is a
+  // potential culprit.
   Quaternion GetDirectionAngle(Vector3 targetPoint)
   {
     Vector2 target = targetPoint - transform.position;
@@ -857,7 +863,7 @@ public class Character : WorldObject
   {
     // Todo: might wanna change this!
     Color baseColor = Color.white;
-    yield return null;
+    yield break;
     // mainRenderer.color = damageFlashColor;
     // yield return new WaitForSeconds(damageFlashSpeed / 3);
     // mainRenderer.color = baseColor;
@@ -1208,6 +1214,7 @@ public class Character : WorldObject
     }
     DescendOneFloor();
   }
+
   protected virtual void HandleTile()
   {
     EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(CalculateCurrentTileLocation());
@@ -1359,14 +1366,6 @@ public class Character : WorldObject
     {
       footstepCooldown -= Time.deltaTime;
     }
-    // if (vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] > 0)
-    // {
-    //     vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] -= Time.deltaTime;
-    // }
-    // if (vitals[CharacterVital.CurrentDashCooldown] > 0)
-    // {
-    //     vitals[CharacterVital.CurrentDashCooldown] -= Time.deltaTime;
-    // }
   }
 
   public virtual void AddAura(TraitEffect effect)

@@ -6,7 +6,7 @@ using UnityEngine;
 	Should handle rendering/animating the weapon and spawning hitboxes.
 	ANY AND ALL DATA should live on the WeaponData scriptable object - not here.
 */
-public class Weapon_OLD : MonoBehaviour
+public class Weapon_SUPEROLD : MonoBehaviour
 {
 
   public Character owner;

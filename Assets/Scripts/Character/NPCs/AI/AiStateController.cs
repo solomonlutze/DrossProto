@@ -222,7 +222,7 @@ public class AiStateController : Character
 
   public float GetMaxPreferredAttackRange()
   {
-    return GetEffectiveAttackRange() - GetSelectedCharacterSkill().ai_preferredAttackRangeBuffer;
+    return GetAttackRange() - GetSelectedCharacterSkill().ai_preferredAttackRangeBuffer;
   }
   public void WaitThenAttack()
   {

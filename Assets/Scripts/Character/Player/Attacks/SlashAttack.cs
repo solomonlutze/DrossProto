@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections;
 
+// DEPRECATED, probably
 [System.Serializable]
 public class SlashAttack : AttackSkillData
 {
@@ -21,21 +22,21 @@ public class SlashAttack : AttackSkillData
   public override void BeforeAttack(Character owner)
   {
     float startingRot = sweepRadiusInDegrees / 2;
-    owner.weaponPivot.transform.localEulerAngles = new Vector3(0, 0, startingRot);
+    owner.weaponPivotRoot.transform.localEulerAngles = new Vector3(0, 0, startingRot);
     base.BeforeAttack(owner);
   }
 
   public override IEnumerator DoAttack(Character owner)
   {
     float startingRot = sweepRadiusInDegrees / 2;
-    owner.weaponPivot.transform.localEulerAngles = new Vector3(0, 0, startingRot);
+    owner.weaponPivotRoot.transform.localEulerAngles = new Vector3(0, 0, startingRot);
     owner.weaponInstances[name].gameObject.SetActive(true);
     float t = 0;
     while (t < attackDuration)
     {
       float easedT = Utils.EaseOut(t / attackDuration, 3);
       float desiredAngle = startingRot - (easedT * sweepRadiusInDegrees);
-      owner.weaponPivot.transform.localEulerAngles = new Vector3(0, 0, desiredAngle);
+      owner.weaponPivotRoot.transform.localEulerAngles = new Vector3(0, 0, desiredAngle);
       // owner.weaponPivot.transform.localEulerAngles = new Vector3(0, 0, startingRot - (t * sweepRadiusInDegrees / attackDuration));
       t += Time.deltaTime;
       yield return new WaitForFixedUpdate();
