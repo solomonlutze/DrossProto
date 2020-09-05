@@ -22,8 +22,6 @@ public class PlayerController : Character
   private List<GameObject> interactables;
   private Inventory inventory;
 
-  private PassiveTrait passiveTrait1;
-  private PassiveTrait passiveTrait2;
   public Transform cameraFollowTarget;
   public SpawnPoint spawnPoint;
 
@@ -522,16 +520,6 @@ public class PlayerController : Character
     if (characterSkills.Count > selectedSkillIdx)
     {
       return characterSkills[selectedSkillIdx];
-    }
-    return null;
-  }
-
-  public override Weapon_OLD GetSelectedWeaponInstance()
-  {
-    if (characterSkills.Count > selectedSkillIdx)
-    {
-      string skillName = GetSkillNameFromIndex(selectedSkillIdx);
-      return weaponInstances[skillName];
     }
     return null;
   }

@@ -214,15 +214,10 @@ public class Character : WorldObject
   [Header("Attack Info")]
   public List<CharacterSkillData> characterSkills;
   public List<CharacterSkillData> characterSpells;
-  public Dictionary<string, Weapon_OLD> weaponInstances;
   // public Weapon weaponInstance;
   public CharacterAttackModifiers attackModifiers;
-  public Hitbox_OLD hitboxPrefab;
   private bool dashAttackEnabled = true;
-  public AttackSkillData dashCharacterAttack;
   public CharacterAttackModifiers dashAttackModifiers;
-  public Hitbox_OLD dashAttackHitboxPrefab;
-
   [Header("Trait Info", order = 1)]
   public TraitSlotToTraitDictionary traits;
   public CharacterAttributeToIntDictionary attributes;
@@ -326,18 +321,6 @@ public class Character : WorldObject
     conditionallyActivatedTraitEffects = new List<TraitEffect>();
     ascendingDescendingState = AscendingDescendingState.None;
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
-    if (weaponInstances != null)
-    {
-      foreach (Weapon_OLD w in weaponInstances.Values)
-      {
-        Destroy(w.gameObject);
-      }
-      weaponInstances.Clear();
-    }
-    else
-    {
-      weaponInstances = new Dictionary<string, Weapon_OLD>();
-    }
     characterSkills = CalculateSkills(traits);
     if (!HasAttackSkill(characterSkills))
     {
@@ -405,15 +388,6 @@ public class Character : WorldObject
     return null;
   }
 
-  public virtual Weapon_OLD GetSelectedWeaponInstance()
-  {
-    if (characterSkills.Count > 0)
-    {
-      string skillName = GetSkillNameFromIndex(0);
-      return weaponInstances[skillName];
-    }
-    return null;
-  }
   public static List<CharacterSkillData> CalculateSkills(TraitSlotToTraitDictionary traits)
   {
     List<CharacterSkillData> ret = new List<CharacterSkillData>();
@@ -432,7 +406,7 @@ public class Character : WorldObject
   {
     foreach (CharacterSkillData skill in skills)
     {
-      if (skill.isAttack || skill as AttackSkillData != null)
+      if (skill.isAttack)
       {
         return true;
       }
@@ -505,10 +479,6 @@ public class Character : WorldObject
   //   CreateHitbox(defaultCharacterAttack, attackModifiers);
   // }
 
-  public void CreateDashAttackHitbox()
-  {
-    CreateHitbox(dashCharacterAttack, dashAttackModifiers);
-  }
 
   public string GetSkillNameFromIndex(int idx)
   {
@@ -517,39 +487,13 @@ public class Character : WorldObject
   public float GetAttackRange(int skillIdxForAttack = 0)
   {
     string skillName = GetSkillNameFromIndex(skillIdxForAttack);
-    if (weaponInstances.ContainsKey(skillName)) // deprecate this block
-    {
-      return weaponInstances[skillName].range;
-    }
     return (characterSkills[skillIdxForAttack]).GetEffectiveRange();
   }
 
-  public float GetEffectiveAttackRange(int skillIdxForAttack = 0)
-  {
-    string skillName = GetSkillNameFromIndex(skillIdxForAttack);
-    return weaponInstances[skillName].effectiveRange;
-  }
-
-  public float GetRange(int skillIdxForAttack = 0)
-  {
-    string skillName = GetSkillNameFromIndex(skillIdxForAttack);
-    return weaponInstances[skillName].range;
-    // return attack.range + Character.GetAttackValueModifier(mods.attackValueModifiers, CharacterAttackValue.Range);
-  }
   public int GetAttackRadiusInDegrees(int skillIdxForAttack)
   {
-    string skillName = GetSkillNameFromIndex(skillIdxForAttack);
-    return weaponInstances[skillName].sweepRadiusInDegrees;
-  }
-  public void CreateHitbox(AttackSkillData atk, CharacterAttackModifiers mods)
-  {
-    // HitboxData hbi = atk.hitboxData;
-    // if (hbi == null) { Debug.LogError("no attack object defined for " + gameObject.name); }
-    // Vector3 pos = orientation.TransformPoint(Vector3.right * GetAttackRange(atk, mods) / 2);
-    // Hitbox_OLD hb = GameObject.Instantiate(hitboxPrefab, pos, orientation.rotation) as Hitbox_OLD;
-    // hb.gameObject.layer = LayerMask.NameToLayer(currentFloor.ToString());
-    // hb.gameObject.GetComponent<SpriteRenderer>().sortingLayerName = currentFloor.ToString();
-    // hb.Init(orientation, this, hbi, mods, GetAttackRange(atk, mods));
+    Debug.LogError("Something's trying to get attack radius in degrees. Time to implement it?");
+    return 0;
   }
 
   public void ApplyAttackModifier(CharacterAttackModifiers mods, bool forDashAttack)
@@ -734,14 +678,6 @@ public class Character : WorldObject
     else
     {
       EndFly();
-    }
-  }
-
-  protected void DoDashAttack()
-  {
-    if (dashAttackEnabled)
-    {
-      CreateDashAttackHitbox();
     }
   }
 

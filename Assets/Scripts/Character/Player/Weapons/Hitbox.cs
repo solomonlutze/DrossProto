@@ -6,7 +6,6 @@ using UnityEngine;
 public class Hitbox : MonoBehaviour, IDamageSource
 {
   public AttackSkillEffect attackSkillEffect;
-  public AttackSkillData attack_old;
   public Character owner;
 
   protected DamageInfo damageInfo;
@@ -29,10 +28,8 @@ public class Hitbox : MonoBehaviour, IDamageSource
     damageInfo = di;
   }
 
-  public void Init(AttackSkillData atk, Character ch)
+  public void Init(Character ch)
   {
-    attack_old = atk;
-    damageInfo = attack_old.baseDamage;
     owner = ch;
   }
 
@@ -93,7 +90,6 @@ public class Hitbox : MonoBehaviour, IDamageSource
     get
     {
       return damageInfo.invulnerabilityWindow;
-      return attack_old.GetInvulnerabilityWindow();
     }
   }
 

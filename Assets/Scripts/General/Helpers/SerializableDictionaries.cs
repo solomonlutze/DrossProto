@@ -183,18 +183,6 @@ public class CharacterAttributeToIAttributeDataInterfaceDictionary : Serializabl
 [System.Serializable]
 public class LayerToLayerFloorDictionary : SerializableDictionaryBase<FloorLayer, LayerFloor> { }
 
-[System.Serializable]
-public class LymphTypeToLymphTypeSkillsDictionary : SerializableDictionaryBase<LymphType, LymphTypeSkills>
-{
-  public LymphTypeToLymphTypeSkillsDictionary()
-  {
-    foreach (LymphType type in (LymphType[])Enum.GetValues(typeof(LymphType)))
-    {
-      if (type == LymphType.None) { continue; }
-      Add(type, new LymphTypeSkills());
-    }
-  }
-}
 
 [System.Serializable]
 public class LymphTypeToSpriteDictionary : SerializableDictionaryBase<LymphType, Sprite>

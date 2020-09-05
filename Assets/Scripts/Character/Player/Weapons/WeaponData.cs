@@ -17,8 +17,6 @@ public class WeaponData : ItemData
     get { return InventoryItemType.Weapon; }
     set { }
   }
-  public Weapon_SUPEROLD weaponPrefab;
-  public Hitbox_OLD hitboxPrefab;
   public Animator animator;
 
   // Weapon's approximate attack range. used for AI. TODO: better system for AI than this

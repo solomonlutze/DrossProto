@@ -19,13 +19,6 @@ public class AiStateController : Character
 
   [Header("AI Attributes")]
   public float detectionRange = 5f;
-  public float attackRange
-  {
-    get
-    {
-      return GetSelectedWeaponInstance().range + GetAttackValueModifier(attackModifiers.attackValueModifiers, CharacterAttackValue.Range);
-    }
-  }
   public float attackAngleInDegrees = 45f;
   public float maxTargetDistanceFromSpawnPoint = 15;
   [HideInInspector] public float minDistanceFromPathNode;

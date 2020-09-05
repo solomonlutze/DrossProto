@@ -249,70 +249,7 @@ public class Trait : ScriptableObject
 
 #endif
 }
-public abstract class Trait_OLD : ScriptableObject
-{
-  TraitName tn; // do we use this?
-  public string traitName;
-  [TextArea]
-  public string traitDescription;
-  public TraitChangedEnvironmentTile[] environmentTilesToChange;
-  // public CharacterAttackModifiers attackModifiers;
-  public TraitEffect[] passiveTraitEffects;
 
-  abstract public TraitType traitType { get; set; }
-  // Called when the trait is applied to the player (usually on spawn)
-  public void OnTraitAdded(Character owner)
-  {
-    foreach (TraitEffect traitEffect in passiveTraitEffects)
-    {
-      if (traitEffect.activatingCondition != ConditionallyActivatedTraitCondition.None)
-      {
-        owner.conditionallyActivatedTraitEffects.Add(traitEffect);
-        continue;
-      }
-      traitEffect.Apply(owner);
-    }
-  }
-
-  // Called when the trait is removed from the character (usually on death)
-  public void OnTraitRemoved(Character owner)
-  {
-    foreach (TraitEffect traitEffect in passiveTraitEffects)
-    {
-      traitEffect.Expire(owner);
-    }
-  }
-
-  // public void AddAllContextualActions(PlayerController owner)
-  // {
-  //   EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(owner.GetTileLocation());
-  //   for (int i = 0; i < environmentTilesToChange.Length; i++)
-  //   {
-  //     for (int j = 0; j < environmentTilesToChange[i].validTileTagsToSpawnOn.Count; j++)
-  //     {
-  //       if (tile.groundTileTags.Contains(environmentTilesToChange[i].validTileTagsToSpawnOn[j]))
-  //       {
-  //         owner.AddContextualAction('')
-  //       }
-  //     }
-  //   }
-
-  // }
-
-  //   public void ChangeEnvironmentTiles(Character owner)
-  //   {
-  //     for (int i = 0; i < environmentTilesToChange.Length; i++)
-  //     {
-  //       ChangeEnvironmentTile(owner, environmentTilesToChange[i]);
-  //     }
-  //   }
-
-  //   private void ChangeEnvironmentTile(Character owner, TraitChangedEnvironmentTile changedEnvironmentTile)
-  //   {
-  //     if (changedEnvironmentTile == null) { return; }
-  //     GridManager.Instance.ReplaceAdjacentTile(owner.GetTileLocation(), changedEnvironmentTile.tileToSpawn, changedEnvironmentTile.spawnDirection);
-  //   }
-}
 
 // public abstract class TraitMono : MonoBehaviour {
 //  TraitName traitName;
@@ -334,43 +271,3 @@ public class UpcomingLifeTrait
     inventoryItem = ie;
   }
 }
-
-[System.Serializable]
-public class LymphTypeSkills
-{
-  [StringInList(typeof(PropertyDrawerHelpers), "AllActiveTraitNames", new object[] { false })]
-  public string primarySkill;
-
-  [StringInList(typeof(PropertyDrawerHelpers), "AllActiveTraitNames", new object[] { false })]
-  public string secondarySkill;
-
-  public ActiveTrait GetPrimarySkill()
-  {
-    return Resources.Load("Data/TraitData/ActiveTraits/" + primarySkill) as ActiveTrait;
-  }
-  public ActiveTrait GetSecondarySkill()
-  {
-    return Resources.Load("Data/TraitData/ActiveTraits/" + secondarySkill) as ActiveTrait;
-  }
-  // public TraitSlotToTraitDictionary EquippedTraits() {
-  //   TraitSlotToTraitDictionary d = new TraitSlotToTraitDictionary();
-  //   d[TraitSlot.Head] = Resources.Load("Data/TraitData/PassiveTraits/"+head) as PassiveTrait;
-  //   d[TraitSlot.Thorax] = Resources.Load("Data/TraitData/PassiveTraits/"+thorax) as PassiveTrait;
-  //   d[TraitSlot.Abdomen] = Resources.Load("Data/TraitData/PassiveTraits/"+abdomen) as PassiveTrait;
-  //   d[TraitSlot.Legs] = Resources.Load("Data/TraitData/PassiveTraits/"+legs) as PassiveTrait;
-  //   d[TraitSlot.Wings] = Resources.Load("Data/TraitData/PassiveTraits/"+wings) as PassiveTrait;
-  // return d;
-  // }
-}
-// }
-// [System.Serializable]
-// public class UpcomingLifeTraits {
-
-//   public UpcomingLifeTrait[] passiveTraits; // traits that are always active
-//   public UpcomingLifeTrait[] activeTraits; // traits that require activation
-
-//   public UpcomingLifeTraits(int numPassiveTraits, int numActiveTraits) {
-//     activeTraits = new UpcomingLifeTrait[numPassiveTraits];
-//     passiveTraits = new UpcomingLifeTrait[numActiveTraits];
-//   }
-// }
