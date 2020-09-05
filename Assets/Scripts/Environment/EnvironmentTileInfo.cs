@@ -175,37 +175,6 @@ public class EnvironmentTileInfo
     }
     return false;
   }
-  // public bool CharacterCanCrossTile_OLD(List<CharacterMovementAbility> characterMovementAbilities)
-  // {
-  //     if (!CanRespawnPlayer())
-  //     {
-  //         return true;
-  //     }
-  //     foreach ( characterAbility in characterMovementAbilities)
-  //     {
-  //         if (groundTileType != null &&
-  //             groundTileType.movementAbilitiesWhichBypassRespawn.Contains(characterAbility))
-  //         {
-  //             return true;
-  //         }
-  //     }
-  //     return false;
-  // }
-
-  public void TakeDamage(Damage_OLD damage)
-  {
-    if (!objectTileType) { return; }
-    if (damage.IsCorrosive() && objectTileType.corrodable)
-    {
-      corroded = true;
-      GridManager.Instance.MarkTileToDestroyOnPlayerRespawn(this, objectTileType.replacedByWhenCorroded);
-    }
-    if (damage.GetDurabilityDamageLevel() >= objectTileType.tileDurability)
-    {
-      DestroyTile();
-    }
-
-  }
 
   // TODO: this should eventually be based on whether it _will_ respawn player/deal damage
   public bool IsClimbable()

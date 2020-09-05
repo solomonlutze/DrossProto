@@ -22,8 +22,6 @@ public class PlayerController : Character
   private List<GameObject> interactables;
   private Inventory inventory;
 
-  private PassiveTrait passiveTrait1;
-  private PassiveTrait passiveTrait2;
   public Transform cameraFollowTarget;
   public SpawnPoint spawnPoint;
 
@@ -143,9 +141,9 @@ public class PlayerController : Character
 
   public void UseSelectedSkill()
   {
-    if ((AttackSkillData)characterSkills[selectedSkillIdx] != null) // TODO: handle this more generically!!
+    if (characterSkills[selectedSkillIdx] != null)
     {
-      UseSkill((AttackSkillData)characterSkills[selectedSkillIdx]);
+      UseSkill(characterSkills[selectedSkillIdx]);
     }
   }
 
@@ -168,11 +166,12 @@ public class PlayerController : Character
 
   public void UseSelectedSpell()
   {
-    if (characterSpells.Count > 0 && (SpellSkillData)characterSpells[selectedSpellIdx] != null)
+    if (characterSpells.Count > 0 && characterSpells[selectedSpellIdx] != null)
     {
-      UseSkill((SpellSkillData)characterSpells[selectedSpellIdx]);
+      UseSkill(characterSpells[selectedSpellIdx]);
     }
   }
+
   public void AdvanceSelectedSpell()
   {
     if (characterSpells.Count > 0)
@@ -301,7 +300,6 @@ public class PlayerController : Character
           Debug.Log("activate?");
           if (availableContextualActions.Count > 0)
           {
-            Debug.Log("executing contextual action " + GetSelectedContextualAction().actionName);
             GetSelectedContextualAction().actionToCall();
           }
           else if (inventory.lastPickedUpItems.Count > 0)
@@ -522,16 +520,6 @@ public class PlayerController : Character
     if (characterSkills.Count > selectedSkillIdx)
     {
       return characterSkills[selectedSkillIdx];
-    }
-    return null;
-  }
-
-  public override Weapon GetSelectedWeaponInstance()
-  {
-    if (characterSkills.Count > selectedSkillIdx)
-    {
-      string skillName = GetSkillNameFromIndex(selectedSkillIdx);
-      return weaponInstances[skillName];
     }
     return null;
   }

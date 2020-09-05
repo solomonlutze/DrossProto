@@ -25,7 +25,6 @@ public class GameMaster : Singleton<GameMaster>
   private int previousSpawnPoint = 0;
 
   public LymphTypeToSpriteDictionary lymphTypeToSpriteMapping;
-  public LymphTypeToLymphTypeSkillsDictionary lymphTypeToSkillsMapping;
   public Camera mainCamera;
   public Camera camera2D; // god save me
   public bool isPaused = false;

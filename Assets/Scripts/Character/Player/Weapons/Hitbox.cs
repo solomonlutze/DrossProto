@@ -5,9 +5,10 @@ using UnityEngine;
 
 public class Hitbox : MonoBehaviour, IDamageSource
 {
-  public AttackSkillData attack;
-  public Character character;
+  public AttackSkillEffect attackSkillEffect;
+  public Character owner;
 
+  protected DamageInfo damageInfo;
   protected string _sourceString = "";
   public string sourceString
   {
@@ -21,10 +22,15 @@ public class Hitbox : MonoBehaviour, IDamageSource
     }
   }
 
-  public void Init(AttackSkillData atk, Character ch)
+  public void Init(Character ch, DamageInfo di)
   {
-    attack = atk;
-    character = ch;
+    owner = ch;
+    damageInfo = di;
+  }
+
+  public void Init(Character ch)
+  {
+    owner = ch;
   }
 
 
@@ -35,19 +41,20 @@ public class Hitbox : MonoBehaviour, IDamageSource
 
   public bool IsOwnedBy(Character c)
   {
-    return c == character;
+    return c == owner;
   }
 
   public bool IsSameOwnerType(Character c)
   {
-    return character && character.characterType == c.characterType;
+    return owner && owner.characterType == c.characterType;
   }
 
   public int damageAmount
   {
     get
     {
-      return attack.GetDamageAmount(character);
+      return damageInfo.damageAmount;
+      // return attack_old.GetDamageAmount(character);
     }
   }
 
@@ -55,7 +62,8 @@ public class Hitbox : MonoBehaviour, IDamageSource
   {
     get
     {
-      return attack.GetDamageType(character);
+      return damageInfo.damageType;
+      // return attack_old.GetDamageType(character);
     }
   }
 
@@ -63,7 +71,8 @@ public class Hitbox : MonoBehaviour, IDamageSource
   {
     get
     {
-      return attack.GetStun(character);
+      return damageInfo.stun;
+      // return attack_old.GetStun(character);
     }
   }
 
@@ -71,7 +80,8 @@ public class Hitbox : MonoBehaviour, IDamageSource
   {
     get
     {
-      return attack.IgnoresInvulnerability();
+      return damageInfo.ignoreInvulnerability;
+      // return attack_old.IgnoresInvulnerability();
     }
   }
 
@@ -79,20 +89,25 @@ public class Hitbox : MonoBehaviour, IDamageSource
   {
     get
     {
-      return attack.GetInvulnerabilityWindow();
+      return damageInfo.invulnerabilityWindow;
     }
   }
 
   public Vector3 GetKnockbackForCharacter(Character c)
   {
-    return attack.GetKnockback(character, this);
+    Debug.Log("damageInfo: " + damageInfo);
+    Debug.Log("transform: " + transform);
+    Debug.Log("owner: " + owner);
+    return damageInfo.knockback
+      * (transform.position - owner.transform.position);
+    // return attack_old.GetKnockback(character, this);
   }
 
   public bool forcesItemDrop
   {
     get
     {
-      return attack.ForcesItemDrop();
+      return damageInfo.forcesItemDrop;
     }
   }
 

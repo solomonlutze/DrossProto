@@ -21,6 +21,6 @@ public class AnimaSpellData : SpellSkillData
   public override IEnumerator UseSkill(Character owner)
   {
     Debug.Log("casting spell " + name);
-    yield return null;
+    yield break;
   }
 }
