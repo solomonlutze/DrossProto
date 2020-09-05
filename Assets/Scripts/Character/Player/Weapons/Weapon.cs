@@ -61,7 +61,7 @@ public class Weapon : MonoBehaviour
   public void CleanUp()
   {
     owningEffectWeaponInstances.Remove(this);
-    if (objectToSpawn != null && spawnObjectOnDestruction)
+    if (objectToSpawn != null && objectToSpawn.weaponPrefab != null && spawnObjectOnDestruction)
     {
       owner.StartCoroutine(owningEffect.SpawnWeapon(objectToSpawn, transform.position, transform.eulerAngles));
     }

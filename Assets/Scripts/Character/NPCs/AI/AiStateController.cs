@@ -7,6 +7,14 @@ public class AiStateController : Character
   public AiState currentState;
   private bool aiActive;
   public AiState remainState;
+  public bool waitingToAttack = false;
+  public bool attacking
+  {
+    get
+    {
+      return waitingToAttack || usingSkill;
+    }
+  }
   [HideInInspector] public float timeSpentInState;
 
   [Header("AI Attributes")]
@@ -222,20 +230,21 @@ public class AiStateController : Character
 
   public float GetMaxPreferredAttackRange()
   {
+    Debug.Log("max preferred attack range: " + (GetAttackRange() - GetSelectedCharacterSkill().ai_preferredAttackRangeBuffer));
     return GetAttackRange() - GetSelectedCharacterSkill().ai_preferredAttackRangeBuffer;
   }
   public void WaitThenAttack()
   {
-    // Debug.Log("begin attack");
+    waitingToAttack = true;
     StartCoroutine(WaitThenAttackCoroutine());
   }
   public IEnumerator WaitThenAttackCoroutine()
   {
-    // Debug.Log("wait then attack");
-    yield return new WaitForSeconds(Random.Range(.4f, 1f));
-    // Debug.Log("use attack!!");
-    UseSkill((AttackSkillData)GetSelectedCharacterSkill()); // todo: fix this????
+    yield return new WaitForSeconds(Random.Range(0.4f, 1.1f));
+    UseSkill(GetSelectedCharacterSkill()); // todo: fix this????
+    waitingToAttack = false;
   }
+
   protected override void TakeDamage(IDamageSource damageSource)
   {
     if (damageSource.forcesItemDrop)

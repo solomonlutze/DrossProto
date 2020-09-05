@@ -111,7 +111,7 @@ public class Hitbox : MonoBehaviour, IDamageSource
   {
     get
     {
-      return attack_old.ForcesItemDrop();
+      return damageInfo.forcesItemDrop;
     }
   }
 

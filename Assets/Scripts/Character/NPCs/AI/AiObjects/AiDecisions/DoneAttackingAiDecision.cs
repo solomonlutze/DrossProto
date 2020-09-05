@@ -4,10 +4,11 @@ public class DoneAttackingAiDecision : AiDecision
 {
   public override bool Decide(AiStateController controller)
   {
-    if (controller.usingSkill)
+    if (controller.attacking)
     {
       return false;
     }
+    Debug.Log("Done attacking!");
     return true;
   }
 

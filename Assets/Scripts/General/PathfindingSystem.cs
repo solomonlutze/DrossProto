@@ -92,7 +92,6 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     if (foundPath)
     {
       DebugDrawPath(finalPath, .01f);
-      // UnityEngine.Debug.Break();
       if (objectOfInterest != null) { ai.objectOfInterest = objectOfInterest; }
       ai.SetPathToTarget(finalPath);
     }

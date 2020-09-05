@@ -1172,9 +1172,6 @@ public class Character : WorldObject
 
       if (!tile.IsEmpty())
       {
-        Debug.Log("non-empty tile found at " + tile.tileLocation.position + ", floor " + targetFloor);
-        Debug.Log("floor = " + tile.groundTileType);
-        Debug.Log("object = " + tile.objectTileType);
         return false;
       }
     }
@@ -1254,7 +1251,6 @@ public class Character : WorldObject
     }
     else if (tile.groundTileType != null && ascendingDescendingState != AscendingDescendingState.Ascending)
     {
-      Debug.Log("not ascending, setting flying to false");
       flying = false;
       lastSafeTileLocation = currentTileLocation;
     }
