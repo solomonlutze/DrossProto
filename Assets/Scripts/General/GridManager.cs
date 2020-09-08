@@ -181,12 +181,15 @@ public class GridManager : Singleton<GridManager>
     EnvironmentTileInfo info = new EnvironmentTileInfo();
     EnvironmentTile objectTile = objectTilemap.GetTile(v3pos) as EnvironmentTile;
     EnvironmentTile groundTile = groundTilemap.GetTile(v3pos) as EnvironmentTile;
-    Vector3Int worldLoc = Vector3Int.RoundToInt(groundTilemap.CellToWorld(v3pos));
     info.Init(
-      new TileLocation(new Vector2Int(worldLoc.x, worldLoc.y), loc.floorLayer),
+      loc,
       groundTile,
       objectTile
     );
+    if (objectTile != null && objectTile.colliderType == Tile.ColliderType.Grid)
+    {
+      Debug.Log("placing " + objectTile + " tile at tilemap position " + loc.tilemapPosition + ", world position " + loc.worldPosition);
+    }
     worldGrid[loc.floorLayer][loc.tilemapPosition] = info;
     // if (interestObjectsCount < 500)
     // {

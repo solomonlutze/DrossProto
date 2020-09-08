@@ -1149,8 +1149,8 @@ public class Character : WorldObject
   {
     TileLocation currentLoc = CalculateCurrentTileLocation();
     GridManager.Instance.DEBUGHighlightTile(currentLoc);
-    Debug.Log("checking for tile at tilemap position " + currentLoc.tilemapPosition + ", world position" + currentLoc.worldPosition);
-    EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(CalculateCurrentTileLocation());
+    Debug.Log("currently on tile " + GridManager.Instance.GetTileAtLocation(currentLoc).groundTileType + "at tilemap position " + currentLoc.tilemapPosition);
+    EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(currentLoc);
     if (tile == null)
     {
       Debug.LogError("WARNING: no tile found at " + CalculateCurrentTileLocation().ToString());

@@ -20,10 +20,7 @@ public class WorldObject : MonoBehaviour
   public TileLocation GetTileLocation()
   {
     return new TileLocation(
-      new Vector2Int(
-        Mathf.FloorToInt(transform.position.x),
-        Mathf.FloorToInt(transform.position.y)
-      ),
+      transform.position,
       GetFloorLayer()
     );
   }
