@@ -124,12 +124,12 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   List<Node> GetAdjacentNodes(Node originNode, TileLocation targetLocation, AiStateController ai, AiAction initiatingAction)
   {
     List<Node> nodes = new List<Node>();
-    MaybeAddNode(nodes, originNode.loc.position.x + 1, originNode.loc.position.y, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, originNode.loc.position.x - 1, originNode.loc.position.y, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y + 1, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y - 1, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y, originNode.loc.floorLayer + 1, originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y, originNode.loc.floorLayer - 1, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.tilemapPosition.x + 1, originNode.loc.tilemapPosition.y, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.tilemapPosition.x - 1, originNode.loc.tilemapPosition.y, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.tilemapPosition.x, originNode.loc.tilemapPosition.y + 1, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.tilemapPosition.x, originNode.loc.tilemapPosition.y - 1, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.tilemapPosition.x, originNode.loc.tilemapPosition.y, originNode.loc.floorLayer + 1, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, originNode.loc.tilemapPosition.x, originNode.loc.tilemapPosition.y, originNode.loc.floorLayer - 1, originNode, targetLocation, ai, initiatingAction);
     return nodes;
   }
 
@@ -267,7 +267,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
 
     for (; n > 0; --n)
     {
-      res.Add(GridManager.Instance.GetTileAtLocation(x, y, floor));
+      res.Add(GridManager.Instance.GetTileAtTilemapLocation(x, y, floor));
 
       if (difference > 0)
       {
@@ -385,8 +385,8 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     {
       newNode.parent = parent;
       newNode.g = parent.g + g;
-      newNode.h = Mathf.Abs(Mathf.RoundToInt(targetLocation.position.x) - x)
-        + Mathf.Abs(Mathf.RoundToInt(targetLocation.position.y) - y)
+      newNode.h = Mathf.Abs(targetLocation.tilemapPosition.x - x)
+        + Mathf.Abs(targetLocation.tilemapPosition.y - y)
         + Mathf.Abs(targetLocation.floorLayer - floor);
       newNode.f = newNode.g + newNode.h;
     }

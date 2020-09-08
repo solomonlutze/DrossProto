@@ -602,8 +602,8 @@ public class Character : WorldObject
   protected void CenterCharacterOnCurrentTile()
   {
     transform.position = new Vector3(
-      currentTileLocation.position.x + .5f,
-      currentTileLocation.position.y + .5f,
+      currentTileLocation.worldPosition.x + .5f,
+      currentTileLocation.worldPosition.y + .5f,
       transform.position.z
     );
   }
@@ -1063,10 +1063,7 @@ public class Character : WorldObject
   public TileLocation CalculateCurrentTileLocation()
   {
     return new TileLocation(
-      new Vector2Int(
-        Mathf.FloorToInt(transform.position.x),
-        Mathf.FloorToInt(transform.position.y)
-      ),
+      transform.position,
       currentFloor
     );
   }
@@ -1091,10 +1088,10 @@ public class Character : WorldObject
   protected HashSet<EnvironmentTileInfo> GetTouchingTiles(FloorLayer layerToConsider)
   {
     return new HashSet<EnvironmentTileInfo> {
-      GridManager.Instance.GetTileAtLocation(transform.TransformPoint(boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-      GridManager.Instance.GetTileAtLocation(transform.TransformPoint(-boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-      GridManager.Instance.GetTileAtLocation(transform.TransformPoint(boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-      GridManager.Instance.GetTileAtLocation(transform.TransformPoint(-boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider)
+      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
+      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
+      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
+      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider)
     };
   }
 
@@ -1150,6 +1147,9 @@ public class Character : WorldObject
 
   protected virtual void HandleTile()
   {
+    TileLocation currentLoc = CalculateCurrentTileLocation();
+    GridManager.Instance.DEBUGHighlightTile(currentLoc);
+    Debug.Log("checking for tile at tilemap position " + currentLoc.tilemapPosition + ", world position" + currentLoc.worldPosition);
     EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(CalculateCurrentTileLocation());
     if (tile == null)
     {
@@ -1197,7 +1197,7 @@ public class Character : WorldObject
     // skill1.CancelActiveEffects();
     // skill2.CancelActiveEffects();
     transform.position =
-      new Vector3(lastSafeTileLocation.position.x + .5f, lastSafeTileLocation.position.y + .5f, GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
+      new Vector3(lastSafeTileLocation.worldPosition.x + .5f, lastSafeTileLocation.worldPosition.y + .5f, GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
     if (currentFloor != lastSafeTileLocation.floorLayer)
     {
       SetCurrentFloor(lastSafeTileLocation.floorLayer);

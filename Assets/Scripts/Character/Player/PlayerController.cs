@@ -120,10 +120,10 @@ public class PlayerController : Character
         );
       }
     }
-    if (activeMovementAbilities.Contains(CharacterMovementAbility.StickyFeet) && GridManager.Instance.CanClimbAdjacentTile(GetTileLocation()))
-    {
-      AddContextualAction("climb", ClimbAdjacentTile);
-    }
+    // if (activeMovementAbilities.Contains(CharacterMovementAbility.StickyFeet) && GridManager.Instance.CanClimbAdjacentTile(GetTileLocation()))
+    // {
+    //   AddContextualAction("climb", ClimbAdjacentTile);
+    // }
     if (GridManager.Instance.AdjacentTileIsValid(GetTileLocation(), TilemapDirection.Above) && GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
     {
       Debug.Log("adding ascend action");
