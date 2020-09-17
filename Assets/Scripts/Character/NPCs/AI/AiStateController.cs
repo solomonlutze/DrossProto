@@ -51,7 +51,7 @@ public class AiStateController : Character
   {
     base.Awake();
     aiActive = true;
-    minDistanceFromPathNode = .05f;
+    minDistanceFromPathNode = .15f;
     spawnLocation = transform.position;
     Init();
   }
@@ -119,7 +119,7 @@ public class AiStateController : Character
     yield return StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, initiatingAction));
     if (pathToTarget != null)
     {
-      SetWanderDestination(targetLocation.tileCenter, fl);
+      SetWanderDestination(targetLocation.cellCenterPosition, fl);
     }
     else
     {
@@ -196,6 +196,7 @@ public class AiStateController : Character
   public void StartCalculatingPath(TileLocation targetLocation, AiAction initiatingAction, WorldObject potentialObjectOfInterest = null)
   {
     if (isCalculatingPath) { return; }
+    Debug.Log("startCalculatingPath");
     StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, initiatingAction, potentialObjectOfInterest));
   }
 
