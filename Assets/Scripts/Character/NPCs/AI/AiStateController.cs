@@ -18,6 +18,7 @@ public class AiStateController : Character
   [HideInInspector] public float timeSpentInState;
 
   [Header("AI Attributes")]
+  public bool DEBUGStopRecalculatingPath = false;
   public float detectionRange = 5f;
   public float attackAngleInDegrees = 45f;
   public float maxTargetDistanceFromSpawnPoint = 15;
@@ -195,7 +196,7 @@ public class AiStateController : Character
 
   public void StartCalculatingPath(TileLocation targetLocation, AiAction initiatingAction, WorldObject potentialObjectOfInterest = null)
   {
-    if (isCalculatingPath) { return; }
+    if (isCalculatingPath || DEBUGStopRecalculatingPath) { return; }
     Debug.Log("startCalculatingPath");
     StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, initiatingAction, potentialObjectOfInterest));
   }

@@ -54,6 +54,7 @@ public class MoveAiAction : AiAction
         Debug.Log("next node location: " + nextNodeLocation);
         Debug.Log("colliderCenterWorldSpace: " + colliderCenterWorldSpace);
         Debug.Log("distance: " + Vector2.Distance(nextNodeLocation, colliderCenterWorldSpace));
+        Debug.Log("movementInput: " + movementInput);
         GridManager.Instance.DEBUGHighlightTile(new TileLocation(nextNodeLocation, controller.currentFloor));
         if (Vector2.Distance(nextNodeLocation, colliderCenterWorldSpace) < controller.minDistanceFromPathNode)
         {

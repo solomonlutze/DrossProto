@@ -88,7 +88,6 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         }
       }
     }
-    ai.SetIsCalculatingPath(false);
     if (foundPath)
     {
       DebugDrawPath(finalPath, .01f);
@@ -103,6 +102,8 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     {
       ai.SetPathToTarget(null);
     }
+    // yield return new WaitForSeconds(3);
+    ai.SetIsCalculatingPath(false);
     // Each node has a score F, equal to G+H
     // G is cost to get to this node from original node
     // H is ESTIMATED cost from current node to final node

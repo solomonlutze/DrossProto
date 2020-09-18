@@ -35,7 +35,7 @@ public class TileLocation
   {
     get
     {
-      return cellCenterPosition + new Vector3(.5f * GridConstants.X_SPACING, .5f * GridConstants.Y_SPACING, 0f);
+      return cellCenterPosition + new Vector3(.5f * GridConstants.X_SPACING, .25f, 0f);
     }
   }
 
