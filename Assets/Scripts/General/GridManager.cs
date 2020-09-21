@@ -51,36 +51,20 @@ public class TileLocation
     ), fl);
 
   }
+
+  public TileLocation(Vector3 worldPos, FloorLayer fl) // NOTE: This will retain specific info on location within a cell in all float coords!
+  {
+    Initialize(worldPos, fl);
+    // Vector2Int cellPos = GridManager.Instance.levelGrid.WorldToCell(worldPos);
+    // worldPosition = GridManager.Instance.levelGrid.CellToWorld(cellPos); // rounds the position to something consistent
+    // tilemapPosition = new Vector2Int(cellPos.x, cellPos.y);
+    // floorLayer = fl;
+  }
   public static TileLocation FromCubicCoords(Vector3 cubicCoords, FloorLayer fl)
   {
-
-
-
-    // cubeCoords = new Vector3();
-    // cubeCoords.y = -1 * worldPosition.y / GridConstants.Y_SPACING;
-    // // Debug.Log("cubeCoords.y: " + cubeCoords.y);
-    // if ((Mathf.RoundToInt(cubeCoords.y) & 1) == 0)
-    // {
-    //   cubeCoords.x = worldPosition.x / GridConstants.X_SPACING;
-    // }
-    // else
-    // {
-    //   cubeCoords.x = (worldPosition.x - .5f) / GridConstants.X_SPACING;
-    // }
-    // //then to cube coord
-    // float oddY = (float)(Mathf.RoundToInt(cubeCoords.y) & 1);
-    // cubeCoords.x = cubeCoords.x - (cubeCoords.y - oddY) / 2.0f;
-    // cubeCoords.z = cubeCoords.y;
-    // cubeCoords.y = -cubeCoords.x - cubeCoords.z;
-
-
-
     float oddZ = (float)(Mathf.RoundToInt(cubicCoords.z) & 1);
     float gridX = cubicCoords.x + (cubicCoords.z - oddZ) / 2.0f;
     float gridY = cubicCoords.z * -1;
-    // should be actual world Y-coord now
-    Debug.Log("grid Y: " + gridY);
-    // gridX += (Mathf.RoundToInt(gridY) & 1) == 1 ? 0 : .5f;
     if ((Mathf.RoundToInt(gridY) & 1) == 0)
     {
       gridX = gridX * GridConstants.X_SPACING;
@@ -90,10 +74,6 @@ public class TileLocation
       gridX = (gridX + .5f) * GridConstants.X_SPACING;
     }
     gridY = gridY * GridConstants.Y_SPACING;
-    // gridX = gridX * GridConstants.X_SPACING;
-
-    // if ((Mathf.RoundToInt(gridY) & 1) == 0)
-    Debug.Log("y rounded to int = " + Mathf.RoundToInt(gridY));
     return new TileLocation(
       new Vector3(
         gridX,
@@ -101,14 +81,6 @@ public class TileLocation
         (int)GridManager.GetZOffsetForFloor(WorldObject.GetGameObjectLayerFromFloorLayer(fl))),
       fl
     );
-    // else
-    //   return new TileLocation(
-    //       new Vector3(
-    //         gridX + (.5f / GridConstants.X_SPACING),
-    //         -gridY,
-    //         (int)GridManager.GetZOffsetForFloor(WorldObject.GetGameObjectLayerFromFloorLayer(fl))),
-    //       fl
-    //     );
   }
   public TileLocation(Vector2Int pos, FloorLayer fl) // NOTE: This will return the center of each tile in all float coords!;
   {
@@ -119,14 +91,6 @@ public class TileLocation
     ), fl);
   }
 
-  public TileLocation(Vector3 worldPos, FloorLayer fl) // NOTE: This will retain specific info on location within a cell in all float coords!
-  {
-    Initialize(worldPos, fl);
-    // Vector2Int cellPos = GridManager.Instance.levelGrid.WorldToCell(worldPos);
-    // worldPosition = GridManager.Instance.levelGrid.CellToWorld(cellPos); // rounds the position to something consistent
-    // tilemapPosition = new Vector2Int(cellPos.x, cellPos.y);
-    // floorLayer = fl;
-  }
 
   public void Initialize(Vector3 worldPos, FloorLayer fl)
   {

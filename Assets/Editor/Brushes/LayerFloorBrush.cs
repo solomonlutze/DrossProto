@@ -16,10 +16,6 @@ namespace UnityEditor.Tilemaps
     {
       EnvironmentTile tile = null;
 
-      foreach (Vector3Int location in position.allPositionsWithin)
-      {
-        Debug.Log("brushing location " + location);
-      }
       if (cells.Length > 0)
       {
         tile = cells[0].tile as EnvironmentTile;
@@ -32,7 +28,6 @@ namespace UnityEditor.Tilemaps
           Tilemap groundTilemapAbove = layerFloorAbove.groundTilemap;
           foreach (Vector3Int location in position.allPositionsWithin)
           {
-            Debug.Log("brushing location " + location);
             if (groundTilemapAbove.GetTile(location) == null)
             {
               groundTilemapAbove.SetTile(location, tile.autoPlaceTileOnPaint_Above);

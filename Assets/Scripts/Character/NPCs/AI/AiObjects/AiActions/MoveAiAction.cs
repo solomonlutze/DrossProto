@@ -28,7 +28,7 @@ public class MoveAiAction : AiAction
     {
       return;
     }
-    controller.lineToTargetIsClear = PathfindingSystem.Instance.IsPathClearOfHazards_SquareGrid(
+    controller.lineToTargetIsClear = PathfindingSystem.Instance.IsPathClearOfHazards(
       targetWorldLocation.transform.position,
       targetWorldLocation.GetFloorLayer(),
       controller
