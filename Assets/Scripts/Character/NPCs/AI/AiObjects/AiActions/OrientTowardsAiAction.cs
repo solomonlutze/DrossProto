@@ -18,6 +18,6 @@ public class OrientTowardsAiAction : AiAction
     {
       controller.orientTowards = controller.objectOfInterest.transform.position;
     }
-    Debug.DrawLine(controller.transform.position, controller.orientTowards, Color.magenta);
+    // Debug.DrawLine(controller.transform.position, controller.orientTowards, Color.magenta);
   }
 }

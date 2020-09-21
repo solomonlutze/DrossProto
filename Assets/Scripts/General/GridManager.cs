@@ -35,7 +35,7 @@ public class TileLocation
   {
     get
     {
-      return cellCenterPosition + new Vector3(.5f * GridConstants.X_SPACING, .25f, 0f);
+      return cellCenterPosition + new Vector3(0, 0, 0f);
     }
   }
 
@@ -313,10 +313,10 @@ public class GridManager : Singleton<GridManager>
       groundTile,
       objectTile
     );
-    if (objectTile != null && objectTile.colliderType == Tile.ColliderType.Grid)
-    {
-      Debug.Log("placing " + objectTile + " tile at tilemap position " + loc.tilemapCoordinates + ", world position " + loc.worldPosition);
-    }
+    // if (objectTile != null && objectTile.colliderType == Tile.ColliderType.Grid)
+    // {
+    //   Debug.Log("placing " + objectTile + " tile at tilemap position " + loc.tilemapCoordinates + ", world position " + loc.worldPosition);
+    // }
     worldGrid[loc.floorLayer][loc.tilemapCoordinates] = info;
     // if (interestObjectsCount < 500)
     // {
@@ -751,7 +751,7 @@ public class GridManager : Singleton<GridManager>
     {
       tileHighlight.GetComponent<SpriteRenderer>().color = (Color)color;
     }
-    Debug.Log("highlighting tile at " + tileHighlight.transform.position);
+    // Debug.Log("highlighting tile at " + tileHighlight.transform.position);
     WorldObject.ChangeLayersRecursively(tileHighlight.transform, tilePos.floorLayer);
     StartCoroutine(DEBUGHighlightTileCleanup(tileHighlight));
   }

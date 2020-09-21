@@ -91,10 +91,10 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     if (foundPath)
     {
       DebugDrawPath(finalPath, .01f);
-      foreach (Node node in finalPath)
-      {
-        GridManager.Instance.DEBUGHighlightTile(node.loc);
-      }
+      // foreach (Node node in finalPath)
+      // {
+      //   GridManager.Instance.DEBUGHighlightTile(node.loc);
+      // }
       if (objectOfInterest != null) { ai.objectOfInterest = objectOfInterest; }
       ai.SetPathToTarget(finalPath);
     }

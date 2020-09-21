@@ -65,6 +65,12 @@ public class PlayerController : Character
     orientTowards = GameMaster.Instance.camera2D.ScreenToWorldPoint(Input.mousePosition);
     base.Update();
     PopulateContextualActions();
+    // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.Left), Color.red);
+    // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerLeft), Color.yellow);
+    // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerRight), Color.green);
+    // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.Right), Color.cyan);
+    // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.UpperRight), Color.blue);
+    // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.UpperLeft), Color.magenta);
     HandleInput();
   }
 

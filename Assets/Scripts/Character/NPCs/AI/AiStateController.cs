@@ -22,7 +22,7 @@ public class AiStateController : Character
   public float detectionRange = 5f;
   public float attackAngleInDegrees = 45f;
   public float maxTargetDistanceFromSpawnPoint = 15;
-  [HideInInspector] public float minDistanceFromPathNode;
+  public float minDistanceFromPathNode = .15f;
 
   public float minDistanceFromTarget;
 
@@ -52,7 +52,7 @@ public class AiStateController : Character
   {
     base.Awake();
     aiActive = true;
-    minDistanceFromPathNode = .15f;
+    // minDistanceFromPathNode = .15f;
     spawnLocation = transform.position;
     Init();
   }
@@ -173,6 +173,30 @@ public class AiStateController : Character
 
   public void SetPathToTarget(List<Node> newPath)
   {
+    // if (newPath != null && newPath.Count > 1)
+    // {
+
+    //   // Debug.Log("new path first node: " + newPath[0].loc.tilemapCoordinates);
+    //   // Debug.Log("current loc: " + GetTileLocation().tilemapCoordinates);
+    //   // GridManager.Instance.DEBUGHighlightTile(newPath[0].loc);
+    //   // GridManager.Instance.DEBUGHighlightTile(GetTileLocation(), Color.blue);
+    // }
+    // if (pathToTarget != null && pathToTarget.Count > 0 // if we already have a path to the target...
+    // && newPath != null && newPath.Count > 1 && newPath[0].loc == GetTileLocation())
+    // {
+    //   Debug.Log("new path starts with current tile!");
+    // }
+    // if (pathToTarget != null && pathToTarget.Count > 0 // if we already have a path to the target...
+    // && newPath != null && newPath.Count > 1 && newPath[0].loc == GetTileLocation()// and our current tile is the first tile in our new path...
+    // && pathToTarget[0].loc == newPath[1].loc // and our current path's first tile is the SECOND tile in our new path...
+    // )
+    // {
+    //   Debug.Log("We already did the first tile in this path! Removing it!");
+    //   newPath.RemoveAt(0);
+    // }
+
+
+    // we should drop the first tile from our new path
     pathToTarget = newPath;
   }
 
@@ -197,7 +221,7 @@ public class AiStateController : Character
   public void StartCalculatingPath(TileLocation targetLocation, AiAction initiatingAction, WorldObject potentialObjectOfInterest = null)
   {
     if (isCalculatingPath || DEBUGStopRecalculatingPath) { return; }
-    Debug.Log("startCalculatingPath");
+    // Debug.Log("startCalculatingPath");
     StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, initiatingAction, potentialObjectOfInterest));
   }
 
@@ -225,7 +249,6 @@ public class AiStateController : Character
 
   public float GetMaxPreferredAttackRange()
   {
-    Debug.Log("max preferred attack range: " + (GetAttackRange() - GetSelectedCharacterSkill().ai_preferredAttackRangeBuffer));
     return GetAttackRange() - GetSelectedCharacterSkill().ai_preferredAttackRangeBuffer;
   }
   public void WaitThenAttack()
