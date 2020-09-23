@@ -53,19 +53,18 @@ public class MoveAiAction : AiAction
         Debug.DrawLine(nextNodeLocation, colliderCenterWorldSpace, Color.magenta, .1f, true);
 
         // Debug.Log("colliderCenterWorldSpace: " + colliderCenterWorldSpace);
-        Debug.Log("minDistance: " + controller.minDistanceFromPathNode);
-        Debug.Log("distance < minDistance: " + (Vector2.Distance(nextNodeLocation, colliderCenterWorldSpace) < controller.minDistanceFromPathNode));
-        // Debug.Log("movementInput: " + movementInput);
-        Debug.Log("coords from path: " + controller.pathToTarget[0].loc.tilemapCoordinates + "; coords from nextNodeLocation " + new TileLocation(nextNodeLocation, controller.currentFloor).tilemapCoordinates);
-        GridManager.Instance.DEBUGHighlightTile(controller.pathToTarget[0].loc, Color.green);
         if (Vector2.Distance(nextNodeLocation, colliderCenterWorldSpace) < controller.minDistanceFromPathNode)
         {
-
-          Debug.Log("next node " + controller.pathToTarget[0].loc.worldPosition);
-          GridManager.Instance.DEBUGHighlightTile(controller.pathToTarget[0].loc, Color.magenta);
           controller.pathToTarget.RemoveAt(0);
-          Debug.Log("removed! new next node " + controller.pathToTarget[0].loc.worldPosition);
-          GridManager.Instance.DEBUGHighlightTile(controller.pathToTarget[0].loc, Color.cyan);
+          while (controller.pathToTarget.Count > 2 && PathfindingSystem.Instance.IsPathClearOfHazards(
+            controller.pathToTarget[1].loc.cellCenterWorldPosition,
+            targetWorldLocation.GetFloorLayer(),
+            controller
+          ))
+          {
+            Debug.Log("removing node!");
+            controller.pathToTarget.RemoveAt(0);
+          }
         }
       }
     }
