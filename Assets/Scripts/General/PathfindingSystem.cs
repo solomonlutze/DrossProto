@@ -35,7 +35,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     Dictionary<TileLocation, Node> nodeLocationsToNodes = new Dictionary<TileLocation, Node>();
     List<Node> adjacentNodes;
     List<Node> finalPath = new List<Node>();
-    Node startNode = InitNewNode(Mathf.FloorToInt(startPosition.x), Mathf.FloorToInt(startPosition.y), 0, ai.currentFloor, null, targetLocation);
+    Node startNode = InitNewNode(new TileLocation(startPosition, ai.currentFloor), 0, null, targetLocation);
     openNodes.Enqueue(startNode.loc, startNode.f);
     nodeLocationsToNodes[startNode.loc] = startNode;
     timeSpentThisFrame.Start();
@@ -88,10 +88,13 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         }
       }
     }
-    ai.SetIsCalculatingPath(false);
     if (foundPath)
     {
       DebugDrawPath(finalPath, .01f);
+      // foreach (Node node in finalPath)
+      // {
+      //   GridManager.Instance.DEBUGHighlightTile(node.loc);
+      // }
       if (objectOfInterest != null) { ai.objectOfInterest = objectOfInterest; }
       ai.SetPathToTarget(finalPath);
     }
@@ -99,6 +102,8 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     {
       ai.SetPathToTarget(null);
     }
+    // yield return new WaitForSeconds(3);
+    ai.SetIsCalculatingPath(false);
     // Each node has a score F, equal to G+H
     // G is cost to get to this node from original node
     // H is ESTIMATED cost from current node to final node
@@ -117,24 +122,81 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   {
     for (int i = 0; i < path.Count - 1; i++)
     {
-      UnityEngine.Debug.DrawLine(path[i].loc.position3D, path[i + 1].loc.position3D, Color.red, t);
+      UnityEngine.Debug.DrawLine(path[i].loc.worldPosition, path[i + 1].loc.worldPosition, Color.blue, t);
     }
   }
 
   List<Node> GetAdjacentNodes(Node originNode, TileLocation targetLocation, AiStateController ai, AiAction initiatingAction)
   {
     List<Node> nodes = new List<Node>();
-    MaybeAddNode(nodes, originNode.loc.position.x + 1, originNode.loc.position.y, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, originNode.loc.position.x - 1, originNode.loc.position.y, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y + 1, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y - 1, originNode.loc.floorLayer, originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y, originNode.loc.floorLayer + 1, originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, originNode.loc.position.x, originNode.loc.position.y, originNode.loc.floorLayer - 1, originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.UpperRight), originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Right), originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.LowerRight), originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.LowerLeft), originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Left), originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.UpperLeft), originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Above), originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Below), originNode, targetLocation, ai, initiatingAction);
     return nodes;
   }
 
-  public bool IsPathClearOfHazards(Vector3 targetPosition, FloorLayer targetFloor, AiStateController ai)
+
+  public HashSet<EnvironmentTileInfo> GetTilesAlongLine(Vector3 a, Vector3 b, FloorLayer floor, bool drawTiles = false)
   {
+    return GetTilesAlongLine(
+      new TileLocation(a, floor),
+      new TileLocation(b, floor),
+      drawTiles
+    );
+  }
+
+  public HashSet<EnvironmentTileInfo> GetTilesAlongLine(TileLocation a, TileLocation b, bool drawTiles = false)
+  {
+    HashSet<EnvironmentTileInfo> results = new HashSet<EnvironmentTileInfo>();
+    const float LINE_EPSILON = .01f;
+    if (a == b)
+      return results;
+    Vector3 perpendicular = Vector3.Normalize(Vector3.Cross(a.worldPosition - b.worldPosition, Vector3.forward));
+
+    float distance = a.IntDistanceTo(b);
+    float distanceDelta = 1.0f / distance;
+
+    for (int lineIndex = 0; lineIndex < 2; ++lineIndex)
+    {
+      if (lineIndex == 1)
+        perpendicular = -perpendicular;
+
+      TileLocation aLoc = new TileLocation(a.worldPosition + perpendicular * LINE_EPSILON, a.floorLayer);
+      TileLocation bLoc = new TileLocation(b.worldPosition + perpendicular * LINE_EPSILON, b.floorLayer);
+      Vector3 aCoord = new TileLocation(a.worldPosition + perpendicular * LINE_EPSILON, a.floorLayer).cubeCoords;
+      Vector3 bCoord = new TileLocation(b.worldPosition + perpendicular * LINE_EPSILON, b.floorLayer).cubeCoords;
+
+      float xDiff = bCoord.x - aCoord.x;
+      float yDiff = bCoord.y - aCoord.y;
+      float zDiff = bCoord.z - aCoord.z;
+      // UnityEngine.Debug.Log("xDiff: " + xDiff + ",yDiff: " + yDiff + "zDiff: " + zDiff);
+      for (int i = 1; i <= distance; ++i)
+      {
+        float fi = (float)i;
+        TileLocation lerpedWorldPosition = TileLocation.FromCubicCoords(
+            new Vector3(aCoord.x + xDiff * distanceDelta * fi,
+            aCoord.y + yDiff * distanceDelta * fi,
+            aCoord.z + zDiff * distanceDelta * fi),
+            a.floorLayer);
+        if (drawTiles)
+        {
+          GridManager.Instance.DEBUGHighlightTile(lerpedWorldPosition);
+        }
+        results.Add(GridManager.Instance.GetTileAtLocation(lerpedWorldPosition));
+      }
+    }
+
+    return results;
+  }
+
+  public bool IsPathClearOfHazards_SquareGrid(Vector3 targetPosition, FloorLayer targetFloor, AiStateController ai)
+  {
+    return false; // eat shiiiiit
     if (targetFloor != ai.currentFloor)
     {
       return false;
@@ -171,6 +233,245 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     }
     return true;
   }
+  public bool IsPathClearOfHazards(Vector3 targetPosition, FloorLayer targetFloor, Character character)
+  {
+    if (targetFloor != character.currentFloor)
+    {
+      return false;
+    }
+    Vector3[] colliderCorners = new Vector3[]{
+      new Vector3 (character.circleCollider.radius, 0, 0),
+      new Vector3 (-character.circleCollider.radius, 0, 0),
+      new Vector3 (0, character.circleCollider.radius, 0),
+      new Vector3 (0, -character.circleCollider.radius, 0),
+			// new Vector3 (col.bounds.extents.x, col.bounds.extents.y, 0),
+			// new Vector3 (-col.bounds.extents.x, col.bounds.extents.y, 0),
+			// new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),
+			// new Vector3 (-col.bounds.extents.x, -col.bounds.extents.y, 0),
+		};
+    HashSet<EnvironmentTileInfo> tilesAlongPath = new HashSet<EnvironmentTileInfo>();
+    foreach (Vector3 pt in colliderCorners)
+    {
+      tilesAlongPath.UnionWith(GetTilesAlongLine(character.transform.TransformPoint(pt), targetPosition + pt, targetFloor));
+    }
+    foreach (EnvironmentTileInfo eti in tilesAlongPath)
+    {
+      if (eti == null || eti.dealsDamage)
+      {
+        return false;
+      }
+      if (!CanPassOverTile(eti, character))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+  //idk if this is good for anything
+  // public void IsPathClearOfHazards(Vector3 targetPosition, FloorLayer targetFloor, Character character)
+  // {
+  //   if (targetFloor != character.currentFloor)
+  //   {
+  //     return;
+  //   }
+  //   TileLocation originHex = character.GetTileLocation();
+  //   TileLocation destinationHex = new TileLocation(targetPosition, targetFloor);
+  //   TileLocation currentHex = originHex;
+  //   float e = 0;
+  //   Vector2 delta = new Vector2(
+  //     (destinationHex.worldPosition.x - originHex.worldPosition.x),
+  //     (destinationHex.worldPosition.y - originHex.worldPosition.y) / (-GridConstants.Y_SPACING)
+  //   );
+  //   UnityEngine.Debug.DrawLine(
+  //     originHex.worldPosition,
+  //     destinationHex.worldPosition,
+  //     Color.red
+  //   );
+  //   int i = 0;
+  //   while (currentHex.tilemapCoordinates != destinationHex.tilemapCoordinates && i < 30)
+  //   {
+  //     i++;
+  //     if (e >= 4 * delta.x)
+  //     {
+  //       currentHex = GridManager.Instance.GetAdjacentTileLocation(currentHex, TilemapDirection.UpperLeft);
+  //       e = e - 3 * delta.y - 6 * delta.x;
+  //     }
+  //     else
+  //     {
+  //       e = e + 3 * delta.y;
+  //       if (e > 2 * delta.x)
+  //       {
+  //         currentHex = GridManager.Instance.GetAdjacentTileLocation(currentHex, TilemapDirection.UpperRight);
+  //         e = e - 6 * delta.x;
+  //       }
+  //       else
+  //       {
+  //         if (e < -2 * delta.x)
+  //         {
+  //           currentHex = GridManager.Instance.GetAdjacentTileLocation(currentHex, TilemapDirection.LowerRight);
+  //           e = e + 6 * delta.x;
+  //         }
+  //         else
+  //         {
+  //           currentHex = GridManager.Instance.GetAdjacentTileLocation(currentHex, TilemapDirection.Right);
+  //           e = e + 3 * delta.y;
+  //         }
+  //       }
+  //     }
+  //     GridManager.Instance.DEBUGHighlightTile(currentHex);
+  //   }
+  // }
+
+  // Some variables:
+  // hex side length is .5f
+  //
+  // public bool IsPathClearOfHazards(Vector3 targetPosition, FloorLayer targetFloor, Character character)
+  // {
+  //   if (targetFloor != character.currentFloor)
+  //   {
+  //     return false;
+  //   }
+  //   Vector3[] colliderCorners = new Vector3[]{
+  //     new Vector3 (character.circleCollider.radius, 0, 0),
+  //     new Vector3 (-character.circleCollider.radius, 0, 0),
+  //     new Vector3 (0, character.circleCollider.radius, 0),
+  //     new Vector3 (0, -character.circleCollider.radius, 0),
+  // 		// new Vector3 (col.bounds.extents.x, col.bounds.extents.y, 0),
+  // 		// new Vector3 (-col.bounds.extents.x, col.bounds.extents.y, 0),
+  // 		// new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),
+  // 		// new Vector3 (-col.bounds.extents.x, -col.bounds.extents.y, 0),
+  // 	};
+  //   TileLocation originHex = character.GetTileLocation();
+  //   TileLocation destinationHex = new TileLocation(targetPosition, targetFloor);
+  //   TileLocation currentHex = originHex;
+  //   GridManager.Instance.DEBUGHighlightTile(currentHex);
+  //   // UnityEngine.Debug.DrawLine(originHex.worldPosition, destinationHex.worldPosition, Color.green, .2f);
+  //   float e = 0;
+  //   Vector2 delta = new Vector2(
+  //     destinationHex.tilemapPosition.x - originHex.tilemapPosition.x,
+  //     destinationHex.tilemapPosition.y - originHex.tilemapPosition.y
+  //   );
+  //   UnityEngine.Debug.Log("delta: " + delta);
+  //   UnityEngine.Debug.DrawLine(
+  //     originHex.worldPosition,
+  //     destinationHex.worldPosition,
+  //     Color.red
+  //   );
+  //   // float k = Mathf.Sqrt(3) * delta.y / (2 * delta.x);
+  //   float k = delta.y * .87625f / (delta.x); // slope of the line
+  //   float s = 0.87625f / 2; // horizontal distance between two hexes in the same row
+  //   int i = 0; // TODO: delete this
+  //   // int xSign = (int)Mathf.Sign(delta.x);
+  //   // int ySign = (int)Mathf.Sign(delta.y);
+  //   while (currentHex.tilemapPosition != destinationHex.tilemapPosition && i < 50)
+  //   {
+  //     //   i++;
+  //     // UnityEngine.Debug.Log("currentHex tilemap pos: " + currentHex.tilemapPosition);
+  //     if (e >= .5f)
+  //     // if (e >= 1f)
+  //     {
+  //       // UnityEngine.Debug.DrawLine(
+  //       //   currentHex.worldPosition,
+  //       //   new Vector3(currentHex.worldPosition.x, currentHex.worldPosition.y - e, currentHex.worldPosition.z),
+  //       //   Color.red,
+  //       //   .2f
+  //       // );
+  //       UnityEngine.Debug.Log("choosing hex: upper-left");
+  //       currentHex = GridManager.Instance.GetAdjacentTileLocation(currentHex, TilemapDirection.UpperLeft);
+  //       e = e - (k * s) - .75f;
+  //       // e = e - (k * s) - 1.5f;
+  //       // UnityEngine.Debug.Log("e" + i++ + ": " + e);
+  //     }
+  //     else
+  //     {
+  //       // UnityEngine.Debug.DrawLine(
+  //       //   currentHex.worldPosition,
+  //       //   new Vector3(currentHex.worldPosition.x, currentHex.worldPosition.y - e, currentHex.worldPosition.z),
+  //       //   Color.red,
+  //       //   .2f
+  //       // );
+  //       e = e + (k * s);
+  //       // UnityEngine.Debug.Log("e" + i++ + ": " + e);
+  //       if (e > .25f)
+  //       // if (e > .5f)
+  //       {
+  //         // UnityEngine.Debug.DrawLine(
+  //         //   currentHex.worldPosition,
+  //         //   new Vector3(currentHex.worldPosition.x, currentHex.worldPosition.y - e, currentHex.worldPosition.z),
+  //         //   Color.red,
+  //         //   .2f
+  //         // );
+  //         UnityEngine.Debug.Log("choosing hex: upper-right");
+  //         currentHex = GridManager.Instance.GetAdjacentTileLocation(currentHex, TilemapDirection.UpperRight);
+  //         e = e - .75f;
+  //         // e = e - 1.5f;
+  //         //   UnityEngine.Debug.Log("e" + i++ + ": " + e);
+  //         //   UnityEngine.Debug.DrawLine(
+  //         //   currentHex.worldPosition,
+  //         //   new Vector3(currentHex.worldPosition.x, currentHex.worldPosition.y - e, currentHex.worldPosition.z),
+  //         //   Color.red,
+  //         //   .2f
+  //         // );
+  //       }
+  //       else
+  //       {
+  //         if (e < -.25)
+  //         // if (e < -.5)
+  //         {
+  //           // UnityEngine.Debug.Log("getting hex adjacent to " + currentHex.tilemapPosition + "lower right");
+  //           // UnityEngine.Debug.DrawLine(
+  //           //   currentHex.worldPosition,
+  //           //   new Vector3(currentHex.worldPosition.x, currentHex.worldPosition.y - e, currentHex.worldPosition.z),
+  //           //   Color.red,
+  //           //   .2f
+  //           // );
+  //           UnityEngine.Debug.Log("choosing hex: lower-right");
+  //           currentHex = GridManager.Instance.GetAdjacentTileLocation(currentHex, TilemapDirection.LowerRight);
+  //           e = e + .75f;
+  //           // e = e + 1.5f;
+  //         }
+  //         else
+  //         {
+  //           // UnityEngine.Debug.Log("getting hex adjacent to " + currentHex.tilemapPosition + "right");
+  //           // UnityEngine.Debug.DrawLine(
+  //           //   currentHex.worldPosition,
+  //           //   new Vector3(currentHex.worldPosition.x, currentHex.worldPosition.y - e, currentHex.worldPosition.z),
+  //           //   Color.red,
+  //           //   .2f
+  //           // );
+  //           UnityEngine.Debug.Log("choosing hex: right");
+  //           currentHex = GridManager.Instance.GetAdjacentTileLocation(currentHex, TilemapDirection.Right);
+  //           e = e + (k * s);
+  //           // UnityEngine.Debug.Log("e" + i++ + ": " + e);
+  //         }
+  //       }
+  //     }
+  //     // UnityEngine.Debug.Log("Hex advanced to " + currentHex.tilemapPosition);
+  //     // UnityEngine.Debug.Break();
+  //     if (currentHex.x > 20) { break; }
+  //     GridManager.Instance.DEBUGHighlightTile(currentHex);
+  //     // UnityEngine.Debug.Log("current tile:" + currentHex.tilemapPosition);
+  //   }
+  //   // UnityEngine.Debug.Break();
+  //   return false;
+  // }
+
+  // you fuckin name it then
+  // you're so god damn smart
+  public TilemapDirection GetNextHexStepDirectionForClearPathAlgorithm(int i, int j)
+  {
+    switch (i)
+    {
+      case -1:
+        return j > 0 ? TilemapDirection.UpperLeft : TilemapDirection.LowerLeft;
+      case 0:
+        return j > 0 ? TilemapDirection.Right : TilemapDirection.Left;
+      case 1:
+        return j > 0 ? TilemapDirection.UpperRight : TilemapDirection.LowerRight;
+    }
+    return TilemapDirection.None;
+  }
+
 
   // USUALLY returns either 1 (can cross) or -1 (can't cross).
   // MAY return a higher value if the tile deals damage; edit this function to adjust how hard that's weighed
@@ -195,7 +496,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     }
     return cost;
   }
-  private bool CanPassOverTile(EnvironmentTileInfo tile, AiStateController ai)
+  private bool CanPassOverTile(EnvironmentTileInfo tile, Character ai)
   {
     return
         tile != null
@@ -267,7 +568,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
 
     for (; n > 0; --n)
     {
-      res.Add(GridManager.Instance.GetTileAtLocation(x, y, floor));
+      res.Add(GridManager.Instance.GetTileAtTilemapLocation(x, y, floor));
 
       if (difference > 0)
       {
@@ -344,24 +645,23 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     return (targetLayer != null && targetLayer == newFloor);
   }
 
-  void MaybeAddNode(List<Node> nodeList, int x, int y, FloorLayer floor, Node originNode, TileLocation targetLocation, AiStateController ai, AiAction initiatingAction)
+  void MaybeAddNode(List<Node> nodeList, TileLocation possibleNodeLocation, Node originNode, TileLocation targetLocation, AiStateController ai, AiAction initiatingAction)
   {
-    if (!gridManager.layerFloors.ContainsKey(floor)) { return; }
-    LayerFloor layer = gridManager.layerFloors[floor];
+    if (!gridManager.layerFloors.ContainsKey(possibleNodeLocation.floorLayer)) { return; }
+    LayerFloor layer = gridManager.layerFloors[possibleNodeLocation.floorLayer];
     if (layer == null || layer.groundTilemap == null || layer.objectTilemap == null)
     {
       // this floor doesn't exist, so don't worry about it
       return;
     }
-    if (floor != originNode.loc.floorLayer && !ConnectionBetweenNodesOnDifferentFloorsExists(originNode, floor))
+    if (possibleNodeLocation.floorLayer != originNode.loc.floorLayer && !ConnectionBetweenNodesOnDifferentFloorsExists(originNode, possibleNodeLocation.floorLayer))
     {
       return;
     }
-    Vector2Int tilePos = new Vector2Int(x, y);
-    EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(new TileLocation(tilePos, floor));
+    EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(possibleNodeLocation);
     if (eti == null || eti.IsEmpty())
     {
-      MaybeAddNode(nodeList, x, y, floor - 1, InitNewNode(x, y, 0, floor, originNode, targetLocation), targetLocation, ai, initiatingAction);
+      MaybeAddNode(nodeList, GridManager.Instance.GetAdjacentTileLocation(possibleNodeLocation, TilemapDirection.Below), InitNewNode(possibleNodeLocation, 0, originNode, targetLocation), targetLocation, ai, initiatingAction);
       return;
     }
     if (eti.groundTileType == null) { return; }
@@ -371,13 +671,13 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       return;
     }
     // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
-    nodeList.Add(InitNewNode(x, y, costToTravelOverNode, floor, originNode, targetLocation));
+    nodeList.Add(InitNewNode(possibleNodeLocation, costToTravelOverNode, originNode, targetLocation));
   }
 
-  Node InitNewNode(int x, int y, int g, FloorLayer floor, Node parent, TileLocation targetLocation)
+  Node InitNewNode(TileLocation nodeLocation, int g, Node parent, TileLocation targetLocation)
   {
     Node newNode = new Node();
-    newNode.loc = new TileLocation(new Vector2Int(x, y), floor);
+    newNode.loc = nodeLocation;
     newNode.g = 0;
     newNode.h = 0;
     newNode.parent = null;
@@ -385,9 +685,9 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     {
       newNode.parent = parent;
       newNode.g = parent.g + g;
-      newNode.h = Mathf.Abs(Mathf.RoundToInt(targetLocation.position.x) - x)
-        + Mathf.Abs(Mathf.RoundToInt(targetLocation.position.y) - y)
-        + Mathf.Abs(targetLocation.floorLayer - floor);
+      newNode.h = Mathf.RoundToInt(Mathf.Abs(targetLocation.tilemapCoordinates.x - nodeLocation.worldPosition.x)
+        + Mathf.Abs(targetLocation.tilemapCoordinates.y - nodeLocation.worldPosition.y)
+        + Mathf.Abs(targetLocation.floorLayer - nodeLocation.floorLayer));
       newNode.f = newNode.g + newNode.h;
     }
     return newNode;

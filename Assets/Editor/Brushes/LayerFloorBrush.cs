@@ -1,6 +1,9 @@
 using System;
 using UnityEngine.Tilemaps;
 using UnityEngine;
+using UnityEditor;
+using UnityEditor.Tilemaps;
+using UnityEditor.EditorTools;
 using System.Collections;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -12,6 +15,7 @@ namespace UnityEditor.Tilemaps
     public override void BoxFill(GridLayout gridLayout, GameObject brushTarget, BoundsInt position)
     {
       EnvironmentTile tile = null;
+
       if (cells.Length > 0)
       {
         tile = cells[0].tile as EnvironmentTile;
@@ -68,32 +72,71 @@ namespace UnityEditor.Tilemaps
     public override void Pick(GridLayout gridLayout, GameObject brushTarget, BoundsInt position, Vector3Int pickStart)
     {
       LayerFloor parentLayerFloor = brushTarget.GetComponentInParent<LayerFloor>();
+
       if (parentLayerFloor == null)
       {
         base.Pick(gridLayout, brushTarget, position, pickStart);
-        return;
       }
-      Reset();
-      UpdateSizeAndPivot(new Vector3Int(position.size.x, position.size.y, 1), new Vector3Int(pickStart.x, pickStart.y, 0));
-      if (brushTarget == null)
+      else
       {
-        return;
-      }
-      Tilemap groundTilemap = parentLayerFloor.groundTilemap;
-      Tilemap objectTilemap = parentLayerFloor.objectTilemap;
-      Tilemap tilemap;
-      foreach (Vector3Int pos in position.allPositionsWithin)
-      {
-        Vector3Int brushPosition = new Vector3Int(pos.x - position.x, pos.y - position.y, 0);
-        tilemap = groundTilemap;
-        Debug.Log("ground tile: " + groundTilemap.GetTile(pos));
-        Debug.Log("object tile: " + objectTilemap.GetTile(pos));
-        if (objectTilemap.GetTile(pos) != null)
+        Reset();
+        UpdateSizeAndPivot(new Vector3Int(position.size.x, position.size.y, 1), new Vector3Int(pickStart.x, pickStart.y, 0));
+        if (brushTarget != null)
         {
-          tilemap = objectTilemap;
-          Debug.Log("should be grabbing object tile!");
+          Tilemap groundTilemap = parentLayerFloor.groundTilemap;
+          Tilemap objectTilemap = parentLayerFloor.objectTilemap;
+          Tilemap tilemap;
+          foreach (Vector3Int pos in position.allPositionsWithin)
+          {
+            Vector3Int brushPosition = new Vector3Int(pos.x - position.x, pos.y - position.y, 0);
+            tilemap = groundTilemap;
+            if (objectTilemap.GetTile(pos) != null)
+            {
+              tilemap = objectTilemap;
+            }
+            PickCell(pos, brushPosition, tilemap);
+          }
         }
-        PickCell(pos, brushPosition, tilemap);
+      }
+      SelectAppropriateTilemapForBrushTileType();
+    }
+
+    public void SelectAppropriateTilemapForBrushTileType()
+    {
+      if (EditorTools.EditorTools.activeToolType == typeof(EraseTool))
+      {
+        return;
+      }
+      GridBrush brush = GridPaintingState.gridBrush as GridBrush;
+      GridBrush.BrushCell cell = brush.cells.Length > 0 ? brush.cells[0] : null;
+      GameObject tilemapToPaint = GridPaintingState.scenePaintTarget;
+      Tilemap selectedTilemap = tilemapToPaint ? tilemapToPaint.GetComponent<Tilemap>() : null;
+      if (cell != null && selectedTilemap != null)
+      {
+        EnvironmentTile selectedTile = cell.tile as EnvironmentTile;
+        if (selectedTile != null)
+        {
+          // TilemapEditorTool.SetActiveEditorTool(typeof(EraseTool));
+          Tilemap desiredTilemap;
+          if (selectedTile.floorTilemapType == FloorTilemapType.Ground)
+          {
+            desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().groundTilemap;
+          }
+          else
+          {
+            desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().objectTilemap;
+          }
+          if (selectedTilemap != desiredTilemap)
+          {
+            GameObject[] go = new GameObject[] { desiredTilemap.gameObject };
+            Selection.objects = go;
+          }
+        }
+        else
+        {
+          // Debug.Log("selected tile is null! " + selectedTile);
+          // TilemapEditorTool.SetActiveEditorTool(typeof(EraseTool));
+        }
       }
     }
 

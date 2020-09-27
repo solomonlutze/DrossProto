@@ -35,7 +35,7 @@ public class EvadeAiAction : MoveAiAction
 
   bool EvadeDestinationIsViable(AiStateController controller, Vector2 potentialOverridePosition, float enemyAttackAngle)
   {
-    bool lineToTargetIsClear = PathfindingSystem.Instance.IsPathClearOfHazards(
+    bool lineToTargetIsClear = PathfindingSystem.Instance.IsPathClearOfHazards_SquareGrid(
           potentialOverridePosition,
           controller.GetFloorLayer(),
           controller

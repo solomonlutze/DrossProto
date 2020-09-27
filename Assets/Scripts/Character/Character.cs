@@ -602,8 +602,8 @@ public class Character : WorldObject
   protected void CenterCharacterOnCurrentTile()
   {
     transform.position = new Vector3(
-      currentTileLocation.position.x + .5f,
-      currentTileLocation.position.y + .5f,
+      currentTileLocation.worldPosition.x + .5f,
+      currentTileLocation.worldPosition.y + .5f,
       transform.position.z
     );
   }
@@ -1063,10 +1063,7 @@ public class Character : WorldObject
   public TileLocation CalculateCurrentTileLocation()
   {
     return new TileLocation(
-      new Vector2Int(
-        Mathf.FloorToInt(transform.position.x),
-        Mathf.FloorToInt(transform.position.y)
-      ),
+      transform.position,
       currentFloor
     );
   }
@@ -1091,10 +1088,10 @@ public class Character : WorldObject
   protected HashSet<EnvironmentTileInfo> GetTouchingTiles(FloorLayer layerToConsider)
   {
     return new HashSet<EnvironmentTileInfo> {
-      GridManager.Instance.GetTileAtLocation(transform.TransformPoint(boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-      GridManager.Instance.GetTileAtLocation(transform.TransformPoint(-boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-      GridManager.Instance.GetTileAtLocation(transform.TransformPoint(boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-      GridManager.Instance.GetTileAtLocation(transform.TransformPoint(-boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider)
+      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
+      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
+      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
+      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider)
     };
   }
 
@@ -1150,7 +1147,27 @@ public class Character : WorldObject
 
   protected virtual void HandleTile()
   {
-    EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(CalculateCurrentTileLocation());
+    TileLocation currentLoc = CalculateCurrentTileLocation();
+    // GridManager.Instance.DEBUGHighlightTile(currentLoc, Color.red);
+    // GridManager.Instance.DEBUGHighlightTile(new TileLocation(Vector3.zero, currentFloor), Color.blue);
+    // Debug.Log("current tile world position y" + GetTileLocation().worldPosition.y);
+    // Debug.Log("current tile (cube coords int)" + GetTileLocation().CubeCoordsInt());
+    // Debug.Log("current tile position y FROM current tile's cube coords" + TileLocation.FromCubicCoords(GetTileLocation().cubeCoords, currentFloor).worldPosition.y);
+
+    // Debug.Log("odd-y: " + ((Mathf.RoundToInt(GetTileLocation().worldPosition.y) & 1)) + ", off by " + (TileLocation.FromCubicCoords(GetTileLocation().cubeCoords, currentFloor).worldPosition - GetTileLocation().worldPosition));
+    // Debug.Log("y: " + GetTileLocation().worldPosition.y + ", off by " + (TileLocation.FromCubicCoords(GetTileLocation().cubeCoords, currentFloor).worldPosition - GetTileLocation().worldPosition));
+
+    // PathfindingSystem.Instance.IsPathClearOfHazards(Vector3.zero, currentFloor, this);
+
+    // PathfindingSystem.Instance.GetTilesAlongLine(new TileLocation(Vector3.zero, currentFloor), GetTileLocation(), true);
+    // Debug.Log("current tile (offset coords)" + GetTileLocation().tilemapCoordinates);
+    // Debug.Log("current tile (cube)" + GetTileLocation().cubeCoords);
+    // Debug.Log("upper-left should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.UpperLeft).tilemapCoordinates);
+    // Debug.Log("upper-right should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.UpperRight).tilemapCoordinates);
+    // Debug.Log("lower-left should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerLeft).tilemapCoordinates);
+    // Debug.Log("lower-right should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerRight).tilemapCoordinates);
+
+    EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(currentLoc);
     if (tile == null)
     {
       Debug.LogError("WARNING: no tile found at " + CalculateCurrentTileLocation().ToString());
@@ -1197,7 +1214,7 @@ public class Character : WorldObject
     // skill1.CancelActiveEffects();
     // skill2.CancelActiveEffects();
     transform.position =
-      new Vector3(lastSafeTileLocation.position.x + .5f, lastSafeTileLocation.position.y + .5f, GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
+      new Vector3(lastSafeTileLocation.worldPosition.x + .5f, lastSafeTileLocation.worldPosition.y + .5f, GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
     if (currentFloor != lastSafeTileLocation.floorLayer)
     {
       SetCurrentFloor(lastSafeTileLocation.floorLayer);

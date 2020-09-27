@@ -47,13 +47,24 @@ public class MoveAiAction : AiAction
       controller.StartCalculatingPath(targetWorldLocation.GetTileLocation(), this);
       if (controller.pathToTarget != null && controller.pathToTarget.Count > 0)
       {
-        Vector3 nextNodeLocation = new Vector3(controller.pathToTarget[0].loc.position.x + .5f, controller.pathToTarget[0].loc.position.y + .5f, 0);
+        Vector3 nextNodeLocation = new Vector3(controller.pathToTarget[0].loc.cellCenterWorldPosition.x, controller.pathToTarget[0].loc.cellCenterWorldPosition.y, controller.pathToTarget[0].loc.worldPosition.z);
         Vector3 colliderCenterWorldSpace = controller.transform.TransformPoint(controller.circleCollider.offset);
         movementInput = (nextNodeLocation - colliderCenterWorldSpace).normalized;
-        Debug.DrawLine(nextNodeLocation, colliderCenterWorldSpace, Color.red, .25f, true);
-        if (Vector3.Distance(nextNodeLocation, colliderCenterWorldSpace) < controller.minDistanceFromPathNode)
+        Debug.DrawLine(nextNodeLocation, colliderCenterWorldSpace, Color.magenta, .1f, true);
+
+        // Debug.Log("colliderCenterWorldSpace: " + colliderCenterWorldSpace);
+        if (Vector2.Distance(nextNodeLocation, colliderCenterWorldSpace) < controller.minDistanceFromPathNode)
         {
           controller.pathToTarget.RemoveAt(0);
+          while (controller.pathToTarget.Count > 2 && PathfindingSystem.Instance.IsPathClearOfHazards(
+            controller.pathToTarget[1].loc.cellCenterWorldPosition,
+            targetWorldLocation.GetFloorLayer(),
+            controller
+          ))
+          {
+            Debug.Log("removing node!");
+            controller.pathToTarget.RemoveAt(0);
+          }
         }
       }
     }

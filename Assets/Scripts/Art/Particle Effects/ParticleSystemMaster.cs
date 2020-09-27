@@ -9,8 +9,8 @@ public class ParticleSystemMaster : MonoBehaviour
   public Dictionary<FloorLayer, Dictionary<ParticleSystem, ParticleSystem>> particleSystemDataToInstanceMap; // if we see a data that's already in here we reuse
   void Start()
   {
-    EnvironmentTile[] tileData = Resources.LoadAll<EnvironmentTile>("Art/Environment/Tiles/TileData");
-    Debug.Log(tileData.Length);
+    EnvironmentTile[] tileData = Resources.LoadAll<EnvironmentTile>("Art/Environment/Tiles");
+    Debug.Log("tiles loaded: " + tileData.Length);
     // EnvironmentTile[] tileData = dataObjects as EnvironmentTile[];
     // EnvironmentTile[] tileData = Resources.LoadAll("Art/Environment/Tiles") as EnvironmentTile[]
     // UnityEngine.ScriptableObject[] cast = dataObjects as ScriptableObject[];
@@ -53,6 +53,7 @@ public class ParticleSystemMaster : MonoBehaviour
 
   public ParticleSystem GetParticleSystemForCharacterAndTile(Character character, EnvironmentTile tile)
   {
+    Debug.Log("floor: " + character.currentFloor + ", keys: " + particleSystemMap[character.currentFloor].Keys);
     return particleSystemMap[character.currentFloor][tile];
   }
   public void EmitFootstep(Character c, EnvironmentTile tile, ParticleSystem.EmitParams emitParams, int count)

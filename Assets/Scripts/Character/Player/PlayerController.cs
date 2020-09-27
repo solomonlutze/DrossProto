@@ -65,6 +65,12 @@ public class PlayerController : Character
     orientTowards = GameMaster.Instance.camera2D.ScreenToWorldPoint(Input.mousePosition);
     base.Update();
     PopulateContextualActions();
+    // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.Left), Color.red);
+    // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerLeft), Color.yellow);
+    // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerRight), Color.green);
+    // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.Right), Color.cyan);
+    // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.UpperRight), Color.blue);
+    // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.UpperLeft), Color.magenta);
     HandleInput();
   }
 
@@ -120,10 +126,10 @@ public class PlayerController : Character
         );
       }
     }
-    if (activeMovementAbilities.Contains(CharacterMovementAbility.StickyFeet) && GridManager.Instance.CanClimbAdjacentTile(GetTileLocation()))
-    {
-      AddContextualAction("climb", ClimbAdjacentTile);
-    }
+    // if (activeMovementAbilities.Contains(CharacterMovementAbility.StickyFeet) && GridManager.Instance.CanClimbAdjacentTile(GetTileLocation()))
+    // {
+    //   AddContextualAction("climb", ClimbAdjacentTile);
+    // }
     if (GridManager.Instance.AdjacentTileIsValid(GetTileLocation(), TilemapDirection.Above) && GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
     {
       Debug.Log("adding ascend action");
