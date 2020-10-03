@@ -141,7 +141,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   }
 
 
-  public HashSet<EnvironmentTileInfo> GetTilesAlongLine(Vector3 a, Vector3 b, FloorLayer floor, bool drawTiles = false)
+  public static HashSet<TileLocation> GetTilesAlongLine(Vector3 a, Vector3 b, FloorLayer floor, bool drawTiles = false)
   {
     return GetTilesAlongLine(
       new TileLocation(a, floor),
@@ -150,9 +150,9 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     );
   }
 
-  public HashSet<EnvironmentTileInfo> GetTilesAlongLine(TileLocation a, TileLocation b, bool drawTiles = false)
+  public static HashSet<TileLocation> GetTilesAlongLine(TileLocation a, TileLocation b, bool drawTiles = false)
   {
-    HashSet<EnvironmentTileInfo> results = new HashSet<EnvironmentTileInfo>();
+    HashSet<TileLocation> results = new HashSet<TileLocation>();
     const float LINE_EPSILON = .01f;
     if (a == b)
       return results;
@@ -187,13 +187,58 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         {
           GridManager.Instance.DEBUGHighlightTile(lerpedWorldPosition);
         }
-        results.Add(GridManager.Instance.GetTileAtLocation(lerpedWorldPosition));
+        results.Add(lerpedWorldPosition);
       }
     }
 
     return results;
   }
 
+
+  // public HashSet<Vector2Int> GetTilesCoordsAlongLine(Vector2Int a, Vector2Int b, bool drawTiles = false)
+  // {
+  //   HashSet<Vector2Int> results = new HashSet<Vector2Int>();
+  //   const float LINE_EPSILON = .01f;
+  //   if (a == b)
+  //     return results;
+  //   float slope = (b.y - a.y) / (b.x - a.x);
+  //   float perpendicular = -1 / slope; // right?
+
+  //   float distance = Vector2.Distance(a, b);
+  //   float distanceDelta = 1.0f / distance;
+
+  //   for (int lineIndex = 0; lineIndex < 2; ++lineIndex)
+  //   {
+  //     if (lineIndex == 1)
+  //       perpendicular = -perpendicular;
+
+  //     TileLocation aLoc = new TileLocation(a.worldPosition + perpendicular * LINE_EPSILON, a.floorLayer);
+  //     TileLocation bLoc = new TileLocation(b.worldPosition + perpendicular * LINE_EPSILON, b.floorLayer);
+  //     Vector3 aCoord = new TileLocation(a.worldPosition + perpendicular * LINE_EPSILON, a.floorLayer).cubeCoords;
+  //     Vector3 bCoord = new TileLocation(b.worldPosition + perpendicular * LINE_EPSILON, b.floorLayer).cubeCoords;
+
+  //     float xDiff = bCoord.x - aCoord.x;
+  //     float yDiff = bCoord.y - aCoord.y;
+  //     float zDiff = bCoord.z - aCoord.z;
+  //     // UnityEngine.Debug.Log("xDiff: " + xDiff + ",yDiff: " + yDiff + "zDiff: " + zDiff);
+  //     for (int i = 1; i <= distance; ++i)
+  //     {
+  //       float fi = (float)i;
+  //       TileLocation lerpedWorldPosition = TileLocation.FromCubicCoords(
+  //           new Vector3(aCoord.x + xDiff * distanceDelta * fi,
+  //           aCoord.y + yDiff * distanceDelta * fi,
+  //           aCoord.z + zDiff * distanceDelta * fi),
+  //           a.floorLayer);
+  //       if (drawTiles)
+  //       {
+  //         GridManager.Instance.DEBUGHighlightTile(lerpedWorldPosition);
+  //       }
+  //       results.Add(GridManager.Instance.GetTileAtLocation(lerpedWorldPosition));
+  //     }
+  //   }
+
+  //   return results;
+  // }
   public bool IsPathClearOfHazards_SquareGrid(Vector3 targetPosition, FloorLayer targetFloor, AiStateController ai)
   {
     return false; // eat shiiiiit
@@ -249,13 +294,14 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
 			// new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),
 			// new Vector3 (-col.bounds.extents.x, -col.bounds.extents.y, 0),
 		};
-    HashSet<EnvironmentTileInfo> tilesAlongPath = new HashSet<EnvironmentTileInfo>();
+    HashSet<TileLocation> tilesAlongPath = new HashSet<TileLocation>();
     foreach (Vector3 pt in colliderCorners)
     {
       tilesAlongPath.UnionWith(GetTilesAlongLine(character.transform.TransformPoint(pt), targetPosition + pt, targetFloor));
     }
-    foreach (EnvironmentTileInfo eti in tilesAlongPath)
+    foreach (TileLocation tileLocation in tilesAlongPath)
     {
+      EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(tileLocation);
       if (eti == null || eti.dealsDamage)
       {
         return false;
