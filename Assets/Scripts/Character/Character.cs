@@ -21,6 +21,7 @@ public enum CharacterVital
   CurrentHealth,
   CurrentEnvironmentalDamageCooldown,
   RemainingStamina,
+  CurrentCarapace, // Carapace might be "balance" sometime
   CurrentMoltCount
 }
 
@@ -773,9 +774,29 @@ public class Character : WorldObject
     {
       return;
     }
+    float damageToCarapace = damageAfterResistances * Constants.CARAPACE_DAMAGE_REDUCTION;
+    float damageToHealth = damageAfterResistances - damageToCarapace;
+    vitals[CharacterVital.CurrentCarapace] = GetCharacterVital(CharacterVital.CurrentCarapace) - damageToCarapace; // carapace takes brunt of damage
+    if (GetCharacterVital(CharacterVital.CurrentCarapace) < 0)
+    {
+      // set to 0
+      damageToHealth += (GetCharacterVital(CharacterVital.CurrentCarapace) * -1);
+      vitals[CharacterVital.CurrentCarapace] = 0;
+      if (stunned)
+      {
+        damageToHealth *= Constants.STUN_DAMAGE_MULTIPLIER;
+      }
+      else
+      {
+        StartCoroutine(ApplyStun(Constants.CARAPACE_BREAK_STUN_DURATION));
+      }
+      // remaining damage goes to health
+      // if stunned, remaining damage is doubled
+      // otherwise, we are stunned
+    }
     InterruptAnimation();
-    AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances));
-    CalculateAndApplyStun(damageSource.stunMagnitude);
+    AdjustCurrentHealth(Mathf.Floor(-damageToHealth));
+    // CalculateAndApplyStun(damageSource.stunMagnitude);
     StartCoroutine(ApplyInvulnerability(damageSource));
     Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
     if (knockback != Vector3.zero)
