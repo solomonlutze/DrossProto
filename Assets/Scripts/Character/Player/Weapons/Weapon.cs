@@ -48,6 +48,7 @@ public class Weapon : MonoBehaviour
     {
       hitbox.Init(effect.owner, effect.baseDamage);
     }
+    WorldObject.ChangeLayersRecursively(gameObject.transform, effect.owner.currentFloor);
   }
   public IEnumerator PerformWeaponActions()
   {

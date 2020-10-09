@@ -40,7 +40,9 @@ public enum CharacterStat
   DashAcceleration = 6,
   DashDuration = 7,
   DashRecoveryDuration = 8,
-  RotationSpeed = 9
+  RotationSpeed = 9,
+  Carapace = 10,
+  MaxCarapaceLostPerMolt = 11,
 }
 
 public enum CharacterAttribute
@@ -247,9 +249,11 @@ public class Character : WorldObject
   public float damageFlashSpeed = 1.0f;
   public bool usingSkill = false;
   public bool flying = false;
+  public bool blocking = false;
   public float dashTimer = 0.0f;
   public float dashRecoveryTimer = 0.0f;
   protected bool stunned = false;
+  public bool carapaceBroken = false;
   public bool animationPreventsMoving = false;
   public bool sticking = false;
   public Coroutine skillCoroutine;
@@ -349,6 +353,7 @@ public class Character : WorldObject
     // statModifications = new StatToActiveStatModificationsDictionary();
     vitals[CharacterVital.CurrentHealth] = GetCurrentMaxHealth();
     vitals[CharacterVital.RemainingStamina] = GetMaxStamina();
+    vitals[CharacterVital.CurrentCarapace] = GetMaxCarapace();
     // vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
     // vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
   }
@@ -448,12 +453,12 @@ public class Character : WorldObject
 
   public void UseSkill(CharacterSkillData skill)
   {
-    if (skill != null)
+    if (skill != null && !usingSkill)
     {
-      if (skillCoroutine == null)
-      {
-        skillCoroutine = StartCoroutine(DoSkill(skill));
-      }
+      // if (skillCoroutine == null)
+      // {
+      skillCoroutine = StartCoroutine(DoSkill(skill));
+      // }
     }
   }
 
@@ -463,6 +468,13 @@ public class Character : WorldObject
     yield return StartCoroutine(skill.UseSkill(this));
     usingSkill = false;
     skillCoroutine = null;
+  }
+
+
+  public void SetBlocking(bool blockingFlag)
+  {
+    blocking = blockingFlag;
+    Debug.Log("Blocking: " + blocking);
   }
 
   public static float GetAttackValueModifier(CharacterAttackValueToIntDictionary attackModifiers, CharacterAttackValue value)
@@ -528,7 +540,7 @@ public class Character : WorldObject
   void HandleFacingDirection()
   {
     if (
-      (usingSkill || animationPreventsMoving || stunned)
+      (usingSkill || animationPreventsMoving || stunned || carapaceBroken)
       && !activeMovementAbilities.Contains(CharacterMovementAbility.Halteres)
     )
     {
@@ -617,6 +629,10 @@ public class Character : WorldObject
   }
   // Traits activated on dash are handled in HandleConditionallyActivatedTraits()
 
+  public bool IsDashingOrRecovering()
+  {
+    return IsDashing() || IsRecoveringFromDash();
+  }
   public bool IsDashing()
   {
     return dashTimer > 0;
@@ -745,7 +761,7 @@ public class Character : WorldObject
         return false;
       }
     }
-    if (stunned)
+    if (stunned || carapaceBroken)
     {
       return false;
     }
@@ -754,6 +770,22 @@ public class Character : WorldObject
       return false;
     }
     return true;
+  }
+
+  // can block, cast a spell, or attack
+  protected virtual bool CanAct()
+  {
+    if (
+      stunned
+      || carapaceBroken
+      || IsDashingOrRecovering()
+      || usingSkill
+    )
+    {
+      return false;
+    }
+    return true;
+
   }
 
   // DAMAGE FUNCTIONS
@@ -774,29 +806,28 @@ public class Character : WorldObject
     {
       return;
     }
-    float damageToCarapace = damageAfterResistances * Constants.CARAPACE_DAMAGE_REDUCTION;
-    float damageToHealth = damageAfterResistances - damageToCarapace;
-    vitals[CharacterVital.CurrentCarapace] = GetCharacterVital(CharacterVital.CurrentCarapace) - damageToCarapace; // carapace takes brunt of damage
-    if (GetCharacterVital(CharacterVital.CurrentCarapace) < 0)
+    float damageToHealth = damageAfterResistances;
+    if (carapaceBroken) // full damage to health and then some!!
     {
-      // set to 0
-      damageToHealth += (GetCharacterVital(CharacterVital.CurrentCarapace) * -1);
-      vitals[CharacterVital.CurrentCarapace] = 0;
-      if (stunned)
-      {
-        damageToHealth *= Constants.STUN_DAMAGE_MULTIPLIER;
-      }
-      else
-      {
-        StartCoroutine(ApplyStun(Constants.CARAPACE_BREAK_STUN_DURATION));
-      }
-      // remaining damage goes to health
-      // if stunned, remaining damage is doubled
-      // otherwise, we are stunned
+      damageToHealth *= Constants.STUN_DAMAGE_MULTIPLIER;
+      Debug.Log("guard broken! damage to health is now " + damageToHealth);
     }
+    else if (blocking)
+    {
+      float damageToCarapace = damageAfterResistances * Constants.CARAPACE_DAMAGE_REDUCTION;
+      damageToHealth = damageAfterResistances - damageToCarapace;
+      vitals[CharacterVital.CurrentCarapace] = GetCharacterVital(CharacterVital.CurrentCarapace) - damageToCarapace; // carapace takes brunt of damage
+      if (GetCharacterVital(CharacterVital.CurrentCarapace) < 0)
+      {
+        // set carapace to 0
+        damageToHealth += (GetCharacterVital(CharacterVital.CurrentCarapace) * -1);
+        vitals[CharacterVital.CurrentCarapace] = 0;
+        StartCoroutine(ApplyCarapaceBreak(Constants.CARAPACE_BREAK_STUN_DURATION)); // don't want to reapply if already stunned, but can't block if stunned
+      }
+    }
+
     InterruptAnimation();
     AdjustCurrentHealth(Mathf.Floor(-damageToHealth));
-    // CalculateAndApplyStun(damageSource.stunMagnitude);
     StartCoroutine(ApplyInvulnerability(damageSource));
     Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
     if (knockback != Vector3.zero)
@@ -869,6 +900,17 @@ public class Character : WorldObject
     stunned = false;
   }
 
+  // same as stun, basically
+
+  IEnumerator ApplyCarapaceBreak(float carapaceBreakDuration)
+  {
+    carapaceBroken = true;
+    Debug.Log("Carapace broken!!");
+    yield return new WaitForSeconds(carapaceBreakDuration);
+    carapaceBroken = false;
+    Debug.Log("Carapace restored!!");
+  }
+
   // End current attack/attack animation/combo and reset us to idle.
   // Used to keep us from finishing our attack after getting knocked across the screen.
   // TODO: it should be possible to "tank" some attacks and finish attacking
@@ -917,6 +959,16 @@ public class Character : WorldObject
     return defaultCharacterData.defaultStats[CharacterStat.Stamina];
   }
 
+  public float GetMaxCarapace()
+  {
+    return defaultCharacterData.defaultStats[CharacterStat.Carapace];
+  }
+
+  public float GetCurrentMaxCarapace()
+  {
+    return GetMaxCarapace()
+        - (GetMaxCarapaceLostPerMolt() * GetCharacterVital(CharacterVital.CurrentMoltCount));
+  }
   public float GetStaminaRecoverySpeed()
   {
     return 3;
@@ -931,6 +983,10 @@ public class Character : WorldObject
     return defaultCharacterData.defaultStats[CharacterStat.MaxHealthLostPerMolt];
   }
 
+  public float GetMaxCarapaceLostPerMolt()
+  {
+    return defaultCharacterData.defaultStats[CharacterStat.MaxCarapaceLostPerMolt];
+  }
   public bool GetCanFlyUp()
   {
     return defaultCharacterData

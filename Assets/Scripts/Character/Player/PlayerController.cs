@@ -250,67 +250,81 @@ public class PlayerController : Character
   {
     switch (GameMaster.Instance.GetGameStatus())
     {
+      // holding down block should cause us to block.
+      // taking _any other action_ or releasing the key should cancel the block.
       case (Constants.GameState.Play):
         // Debug.Log("handling player input");
-        if (Input.GetButtonDown("Activate")) { Debug.Log("pressed activate"); }
-        if (Input.GetKeyDown("e")) { Debug.Log("pressed e"); }
-        if (Input.GetButtonDown("Attack"))
+        bool shouldBlock = false;
+        if (CanAct())
         {
-          UseSelectedSkill();
-          // Attack();
-        }
-        if (Input.GetButtonDown("Spell"))
-        {
-          Debug.Log("spell?");
-          UseSelectedSpell();
-          // Attack();
-        }
-        else if (Input.GetButtonDown("Dash"))
-        {
-          return; // TODO: DELETE THIS
-          // Debug.Log("dash?");
-          if (CanDash())
+
+          if (Input.GetButtonDown("Attack"))
           {
-            Dash();
+            UseSelectedSkill();
+            // Attack();
           }
-        }
-        else if (Input.GetButtonDown("Ascend"))
-        {
-          if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
+          else if (Input.GetButtonDown("Spell"))
           {
-            FlyUp();
+            Debug.Log("spell?");
+            UseSelectedSpell();
+            // Attack();
           }
-          else if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
+          else if (Input.GetButtonDown("Dash"))
           {
-            AscendOneFloor();
+            return; // TODO: DELETE THIS
+                    // Debug.Log("dash?");
+            if (CanDash())
+            {
+              Dash();
+            }
           }
-          else if (!flying)
+          else if (Input.GetButton("Block"))
           {
-            Fly();
+            shouldBlock = true;
           }
-        }
-        else if (Input.GetButtonDown("Descend"))
-        {
-          Debug.Log("descend?");
-          if (flying)
+          else if (Input.GetButtonDown("Ascend"))
           {
-            FlyDown();
+            if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
+            {
+              FlyUp();
+            }
+            else if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
+            {
+              AscendOneFloor();
+            }
+            else if (!flying)
+            {
+              Fly();
+            }
           }
-          else
+          else if (Input.GetButtonDown("Descend"))
           {
-            // DescendOneFloor(); // maybe descend??
+            Debug.Log("descend?");
+            if (flying)
+            {
+              FlyDown();
+            }
+            else
+            {
+              // DescendOneFloor(); // maybe descend??
+            }
           }
-        }
-        else if (Input.GetButtonDown("Activate"))
-        {
-          Debug.Log("activate?");
-          if (availableContextualActions.Count > 0)
+          else if (Input.GetButtonDown("Activate"))
           {
-            GetSelectedContextualAction().actionToCall();
+            Debug.Log("activate?");
+            if (availableContextualActions.Count > 0)
+            {
+              GetSelectedContextualAction().actionToCall();
+            }
+            else if (inventory.lastPickedUpItems.Count > 0)
+            {
+              inventory.ClearPickedUpItem();
+            }
           }
-          else if (inventory.lastPickedUpItems.Count > 0)
+          else if (Input.GetButtonDown("Molt"))
           {
-            inventory.ClearPickedUpItem();
+            return; // TODO: DELETE THIS
+            Molt();
           }
         }
         else if (Input.GetButtonDown("AdvanceSkill"))
@@ -325,11 +339,6 @@ public class PlayerController : Character
         else if (Input.GetButtonDown("AdvanceSelectedAction"))
         {
           AdvanceSelectedContextualAction();
-        }
-        else if (Input.GetButtonDown("Molt"))
-        {
-          return; // TODO: DELETE THIS
-          Molt();
         }
         // else if (Input.GetButtonDown("Skill1"))
         // {
@@ -373,10 +382,11 @@ public class PlayerController : Character
         //     skill2.OnActivateTraitReleased();
         //   }
         // }
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-          SetCurrentFloor(currentFloor == FloorLayer.F1 ? FloorLayer.F2 : FloorLayer.F1);
-        }
+        // if (Input.GetKeyDown(KeyCode.P))
+        // {
+        //   SetCurrentFloor(currentFloor == FloorLayer.F1 ? FloorLayer.F2 : FloorLayer.F1);
+        // }
+        SetBlocking(shouldBlock);
         break;
       case (Constants.GameState.Menu):
         break;
