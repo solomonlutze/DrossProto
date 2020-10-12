@@ -4,7 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class CharacterHUD : MonoBehaviour
+// Handles UI info to be displayed near the player character, such as contextual actions
+// for general HUD please see PlayerHUD
+public class PlayerCharacterHUD : MonoBehaviour
 {
   public GameObject contextualActionObject;
   public TextMeshProUGUI selectedContextualActionText;
@@ -24,19 +26,6 @@ public class CharacterHUD : MonoBehaviour
   private Coroutine staminaRecoveryFlashCoroutine;
   // END STAMINA
 
-  // CARAPACE
-  public CanvasGroup carapaceBarContainer;
-  public RectTransform carapaceBarController;
-  public Image carapaceBarContentsSprite;
-  public Image carapaceBarEmptySprite;
-
-  public float carapaceBarFadeTime = .5f;
-  public Color lowCarapaceColor;
-  public Color brokenCarapaceColor;
-  public Color defaultCarapaceColor;
-  private Coroutine carapaceBrokenFlashCoroutine;
-
-  // END CARAPACE
   private PlayerController pc;
   void Start()
   {
@@ -51,7 +40,6 @@ public class CharacterHUD : MonoBehaviour
     {
       HandleContextualActions();
       HandleStaminaBar();
-      HandleCarapaceBar();
     }
   }
 
@@ -77,43 +65,6 @@ public class CharacterHUD : MonoBehaviour
         nextContextualActionObject.SetActive(false);
       }
     }
-  }
-
-  void HandleCarapaceBar()
-  {
-    float currentCarapace = Mathf.Max(pc.GetCharacterVital(CharacterVital.CurrentCarapace), 0);
-    float maxCarapace = pc.GetCurrentMaxCarapace();
-    if (!pc.blocking && !pc.carapaceBroken)
-    {
-      carapaceBarContainer.alpha -= Time.deltaTime / carapaceBarFadeTime;
-      carapaceBarContainer.alpha = Mathf.Max(0, carapaceBarContainer.alpha);
-      return;
-    }
-    if (currentCarapace / maxCarapace < .3)
-    {
-      carapaceBarContentsSprite.color = lowCarapaceColor;
-    }
-    carapaceBarContainer.alpha += Time.deltaTime / carapaceBarFadeTime;
-    carapaceBarContainer.alpha = Mathf.Min(1, carapaceBarContainer.alpha);
-    carapaceBarController.localScale = new Vector3(currentCarapace / maxCarapace, carapaceBarController.localScale.y, 0);
-    if (pc.carapaceBroken)
-    {
-      if (carapaceBrokenFlashCoroutine == null)
-      {
-        carapaceBrokenFlashCoroutine = StartCoroutine(CarapaceBrokenFlash());
-      }
-    }
-  }
-
-  public IEnumerator CarapaceBrokenFlash()
-  {
-    while (pc.carapaceBroken)
-    {
-      carapaceBarEmptySprite.color = carapaceBarEmptySprite.color == brokenCarapaceColor ? lowCarapaceColor : brokenCarapaceColor;
-      yield return new WaitForSeconds(.2f);
-    }
-    carapaceBarEmptySprite.color = Color.clear;
-    carapaceBrokenFlashCoroutine = null;
   }
 
   void HandleStaminaBar()
