@@ -57,18 +57,18 @@ public class CarapaceBar : MonoBehaviour
   {
     float currentCarapace = Mathf.Max(character.GetCharacterVital(CharacterVital.CurrentCarapace), 0);
     float maxCarapace = character.GetCurrentMaxCarapace();
-    // if (!character.blocking && !character.carapaceBroken)
-    // {
-    //   carapaceBarContainer.alpha -= Time.deltaTime / carapaceBarFadeTime;
-    //   carapaceBarContainer.alpha = Mathf.Max(0, carapaceBarContainer.alpha);
-    //   return;
-    // }
+    if (!character.blocking && !character.carapaceBroken)
+    {
+      carapaceBarContainer.alpha -= Time.deltaTime / carapaceBarFadeTime;
+      carapaceBarContainer.alpha = Mathf.Max(.75f, carapaceBarContainer.alpha);
+      return;
+    }
     // if (currentCarapace / maxCarapace < .3)
     // {
     //   carapaceBarContentsSprite.color = lowCarapaceColor;
     // }
-    // carapaceBarContainer.alpha += Time.deltaTime / carapaceBarFadeTime;
-    // carapaceBarContainer.alpha = Mathf.Min(1, carapaceBarContainer.alpha);
+    carapaceBarContainer.alpha += Time.deltaTime / carapaceBarFadeTime;
+    carapaceBarContainer.alpha = Mathf.Min(1, carapaceBarContainer.alpha);
     carapaceBarContentsFill.localScale = new Vector3(currentCarapace / maxCarapace, carapaceBarContentsFill.localScale.y, 0);
     if (character.carapaceBroken)
     {
