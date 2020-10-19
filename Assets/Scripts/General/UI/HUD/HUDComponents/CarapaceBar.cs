@@ -63,10 +63,6 @@ public class CarapaceBar : MonoBehaviour
       carapaceBarContainer.alpha = Mathf.Max(.75f, carapaceBarContainer.alpha);
       return;
     }
-    // if (currentCarapace / maxCarapace < .3)
-    // {
-    //   carapaceBarContentsSprite.color = lowCarapaceColor;
-    // }
     carapaceBarContainer.alpha += Time.deltaTime / carapaceBarFadeTime;
     carapaceBarContainer.alpha = Mathf.Min(1, carapaceBarContainer.alpha);
     carapaceBarContentsFill.localScale = new Vector3(currentCarapace / maxCarapace, carapaceBarContentsFill.localScale.y, 0);

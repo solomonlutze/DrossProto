@@ -59,29 +59,10 @@ public class CustomPhysicsController : MonoBehaviour
     owningCharacter = GetComponent<Character>();
     if (owningCharacter != null)
     {
-      // moveAcceleration = owningCharacter.GetStat(CharacterStat.MoveAcceleration);
       orientation = owningCharacter.orientation;
     }
   }
 
-  void Update()
-  {
-    if (owningCharacter != null)
-    {
-      if (owningCharacter.flying)
-      {
-        moveAcceleration = owningCharacter.GetStat(CharacterStat.FlightAcceleration);
-      }
-      if (owningCharacter.IsDashing())
-      {
-        moveAcceleration = owningCharacter.GetStat(CharacterStat.DashAcceleration);
-      }
-      else
-      {
-        moveAcceleration = owningCharacter.GetStat(CharacterStat.MoveAcceleration);
-      }
-    }
-  }
   public void OnLayerChange()
   {
     contactFilter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
@@ -91,11 +72,12 @@ public class CustomPhysicsController : MonoBehaviour
     }
   }
 
-  // TODO: if we use this for other projects, we should implement CalculateMovementWithGravity
   void FixedUpdate()
   {
-    CalculateMovementTopDown(); // Y is a regular axis input; there is no gravity
-                                // CalculateMovementWithGravity(); // Y input is for jumping; gravity applies.
+    if (owningCharacter != null)
+    {
+      CalculateMovementTopDown(); // Y is a regular axis input; there is no gravity
+    }
   }
 
   // Called by character class to indicate desired movement.
@@ -149,6 +131,7 @@ public class CustomPhysicsController : MonoBehaviour
 
   void CalculateMovementTopDown()
   {
+    moveAcceleration = owningCharacter.GetMoveAcceleration();
     Vector2 orientedAnimationInput = Vector2.zero;
     if (orientation != null) { orientedAnimationInput = orientation.rotation * animationInput; }
     maxVelocity = moveAcceleration - drag * Time.deltaTime;

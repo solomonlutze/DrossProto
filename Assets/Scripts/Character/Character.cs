@@ -43,6 +43,8 @@ public enum CharacterStat
   RotationSpeed = 9,
   Carapace = 10,
   MaxCarapaceLostPerMolt = 11,
+  BlockingMoveAcceleration = 12,
+  BlockingRotationSpeed = 13
 }
 
 public enum CharacterAttribute
@@ -973,8 +975,33 @@ public class Character : WorldObject
   {
     return 3;
   }
+
+  public float GetMoveAcceleration()
+  {
+    if (flying)
+    {
+      return GetStat(CharacterStat.FlightAcceleration);
+    }
+    if (blocking)
+    {
+      return GetStat(CharacterStat.BlockingMoveAcceleration);
+    }
+    else if (IsDashing())
+    {
+      return GetStat(CharacterStat.DashAcceleration);
+    }
+    else
+    {
+      return GetStat(CharacterStat.MoveAcceleration);
+    }
+  }
+
   public float GetRotationSpeed()
   {
+    if (blocking)
+    {
+      return defaultCharacterData.defaultStats[CharacterStat.BlockingRotationSpeed];
+    }
     return defaultCharacterData.defaultStats[CharacterStat.RotationSpeed];
   }
 
