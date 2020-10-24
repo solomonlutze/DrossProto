@@ -261,22 +261,15 @@ public class PlayerController : Character
           if (Input.GetButtonDown("Attack"))
           {
             UseSelectedSkill();
+            return;
             // Attack();
           }
           else if (Input.GetButtonDown("Spell"))
           {
             Debug.Log("spell?");
             UseSelectedSpell();
+            return;
             // Attack();
-          }
-          else if (Input.GetButtonDown("Dash"))
-          {
-            return; // TODO: DELETE THIS
-                    // Debug.Log("dash?");
-            if (CanDash())
-            {
-              Dash();
-            }
           }
           else if (Input.GetButton("Block"))
           {
@@ -287,14 +280,17 @@ public class PlayerController : Character
             if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
             {
               FlyUp();
+              return;
             }
             else if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
             {
               AscendOneFloor();
+              return;
             }
             else if (!flying)
             {
               Fly();
+              return;
             }
           }
           else if (Input.GetButtonDown("Descend"))
@@ -303,6 +299,7 @@ public class PlayerController : Character
             if (flying)
             {
               FlyDown();
+              return;
             }
             else
             {
@@ -315,30 +312,46 @@ public class PlayerController : Character
             if (availableContextualActions.Count > 0)
             {
               GetSelectedContextualAction().actionToCall();
+              return;
             }
             else if (inventory.lastPickedUpItems.Count > 0)
             {
               inventory.ClearPickedUpItem();
+              return;
             }
           }
           else if (Input.GetButtonDown("Molt"))
           {
             return; // TODO: DELETE THIS
             Molt();
+            return;
           }
+        }
+        if (Input.GetButtonDown("Dash"))
+        {
+          Debug.Log("pressing dash");
+          if (CanDash())
+          {
+            Debug.Log("doing dash");
+            Dash();
+          }
+          return;
         }
         else if (Input.GetButtonDown("AdvanceSkill"))
         {
           AdvanceSelectedSkill();
+          return;
         }
         else if (Input.GetButtonDown("AdvanceSpell"))
         {
           Debug.Log("advance spell??");
           AdvanceSelectedSpell();
+          return;
         }
         else if (Input.GetButtonDown("AdvanceSelectedAction"))
         {
           AdvanceSelectedContextualAction();
+          return;
         }
         // else if (Input.GetButtonDown("Skill1"))
         // {

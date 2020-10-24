@@ -37,7 +37,7 @@ public enum CharacterStat
   MoveAcceleration = 3,
   FlightAcceleration = 4,
   Stamina = 5,
-  DashAcceleration = 6,
+  DashDistance = 6,
   DashDuration = 7,
   DashRecoveryDuration = 8,
   RotationSpeed = 9,
@@ -252,7 +252,9 @@ public class Character : WorldObject
   public bool usingSkill = false;
   public bool flying = false;
   public bool blocking = false;
-  public float dashTimer = 0.0f;
+  public bool dashing = false;
+  public float dashProgress = 0.0f;
+  public float easedDashProgressIncrement = 0.0f;
   public float dashRecoveryTimer = 0.0f;
   protected bool stunned = false;
   public bool carapaceBroken = false;
@@ -436,6 +438,7 @@ public class Character : WorldObject
   // physics biz
   protected virtual void FixedUpdate()
   {
+    HandleDashCooldown(); // it's different ok
     CalculateMovement();
   }
 
@@ -597,14 +600,14 @@ public class Character : WorldObject
         timeMoving += Time.deltaTime;
         timeStandingStill = 0f;
       }
-      if (IsDashing())
-      {
-        po.SetMovementInput(orientation.rotation * new Vector3(1, 0, 0));
-      }
-      else
-      {
-        po.SetMovementInput(new Vector2(movementInput.x, movementInput.y));
-      }
+    }
+    if (IsDashing())
+    {
+      po.SetMovementInput(orientation.rotation * new Vector3(1, 0, 0));
+    }
+    else if (CanMove())
+    {
+      po.SetMovementInput(new Vector2(movementInput.x, movementInput.y));
     }
     else
     {
@@ -637,7 +640,7 @@ public class Character : WorldObject
   }
   public bool IsDashing()
   {
-    return dashTimer > 0;
+    return dashing;
   }
 
   public bool IsRecoveringFromDash()
@@ -645,24 +648,47 @@ public class Character : WorldObject
     return dashRecoveryTimer > 0;
   }
 
-  protected bool CanDash()
-  {
-    return GetCharacterVital(CharacterVital.RemainingStamina) > 0 && dashTimer <= 0 && dashRecoveryTimer <= 0 && !flying && CanMove();
-  }
+  // protected bool CanDash()
+  // {
+  //   Debug.Log("GetCharacterVital(CharacterVital.RemainingStamina)" + GetCharacterVital(CharacterVital.RemainingStamina));
+  //   Debug.Log("dashProgress " + dashProgress);
+  //   Debug.Log("flying " + flying);
+  //   Debug.Log("CanMove(overrideDashCheck: true) " + CanMove(overrideDashCheck: true));
+  //   return GetCharacterVital(CharacterVital.RemainingStamina) > 0 && dashProgress <= 0 && !flying && CanMove(overrideDashCheck: true);
+  // }
 
   protected void Dash()
   {
     BeginDash();
   }
-
+  private Vector3 dashStartPoint;
   protected void BeginDash()
   {
+    dashing = true;
+    // dashStartPoint = transform.position;
     vitals[CharacterVital.RemainingStamina] -= GetDashStaminaCost();
-    dashTimer = GetStat(CharacterStat.DashDuration);
+  }
+
+  public float GetEasedDashProgress()
+  {
+    return Easing.Quadratic.Out(dashProgress / GetStat(CharacterStat.DashDuration));
+  }
+
+  public float GetEasedDashProgressIncrement()
+  {
+    return easedDashProgressIncrement;
   }
 
   protected void EndDash()
   {
+    // Vector3 distanceV = orientation.rotation * Vector3.right * GetStat(CharacterStat.DashAcceleration) - (orientation.rotation * Vector3.right * GetStat(CharacterStat.DashAcceleration)) * GetStat(CharacterStat.DashDuration);
+
+    // Debug.Log("Done dashing - distance was " + Vector3.Distance(dashStartPoint, transform.position));
+    // Debug.Log("Estimated dash distance is " + distanceV.magnitude);
+
+    dashing = false;
+    easedDashProgressIncrement = 0;
+    dashProgress = 0;
     dashRecoveryTimer = GetStat(CharacterStat.DashRecoveryDuration);
   }
 
@@ -745,29 +771,35 @@ public class Character : WorldObject
       }
     }
   }
-  // determines if input-based movement is allowed
+
+  // Can use move UDLR on current floor
   protected virtual bool CanMove()
   {
-    if (ascending && !flying)
+    if ((ascending && !flying)
+      || stunned
+      || carapaceBroken
+      || IsDashingOrRecovering()
+      || usingSkill
+      || animationPreventsMoving
+    )
     {
       return false;
     }
-    if (!activeMovementAbilities.Contains(CharacterMovementAbility.Halteres))
-    {
-      if (usingSkill)
-      {
-        return false;
-      }
-      if (animationPreventsMoving)
-      {
-        return false;
-      }
-    }
-    if (stunned || carapaceBroken)
-    {
-      return false;
-    }
-    if (IsRecoveringFromDash())
+    return true;
+  }
+
+  // can begin a dash
+  protected virtual bool CanDash()
+  {
+    if (
+      (ascending && !flying)
+      || stunned
+      || carapaceBroken
+      || IsDashing()
+      || usingSkill
+      || animationPreventsMoving // I guess?
+      || GetCharacterVital(CharacterVital.RemainingStamina) < 0
+    )
     {
       return false;
     }
@@ -778,16 +810,17 @@ public class Character : WorldObject
   protected virtual bool CanAct()
   {
     if (
-      stunned
+      (ascending && !flying)
+      || stunned
       || carapaceBroken
-      || IsDashingOrRecovering()
+      || IsDashing()
       || usingSkill
+      || animationPreventsMoving // I guess?
     )
     {
       return false;
     }
     return true;
-
   }
 
   // DAMAGE FUNCTIONS
@@ -988,7 +1021,8 @@ public class Character : WorldObject
     }
     else if (IsDashing())
     {
-      return GetStat(CharacterStat.DashAcceleration);
+      return 0; // ?
+      // return GetStat(CharacterStat.DashAcceleration);
     }
     else
     {
@@ -1398,14 +1432,6 @@ public class Character : WorldObject
         EndFly();
       }
     }
-    else if (IsDashing())
-    {
-      dashTimer -= Time.deltaTime;
-      if (!IsDashing())
-      {
-        EndDash();
-      }
-    }
     else if (IsRecoveringFromDash())
     {
       dashRecoveryTimer -= Time.deltaTime;
@@ -1418,6 +1444,26 @@ public class Character : WorldObject
     if (footstepCooldown > 0)
     {
       footstepCooldown -= Time.deltaTime;
+    }
+  }
+  float totalDashDistance = 0;
+  public void HandleDashCooldown()
+  {
+    //Consumed by physics so needs to happen in fixedupdate. Might still suck?
+    if (IsDashing())
+    {
+      float oldEasedDashProgress = GetEasedDashProgress();
+      dashProgress += Time.deltaTime;
+      float newEasedDashProgress = GetEasedDashProgress();
+      if (dashProgress >= GetStat(CharacterStat.DashDuration))
+      {
+        dashProgress = GetStat(CharacterStat.DashDuration);
+        newEasedDashProgress = GetEasedDashProgress();
+        EndDash();
+      }
+      Debug.Log("easedDashProgressIncrement " + easedDashProgressIncrement);
+      easedDashProgressIncrement = (newEasedDashProgress - oldEasedDashProgress) * GetStat(CharacterStat.DashDistance); // kill me a little
+      totalDashDistance += easedDashProgressIncrement;
     }
   }
 
