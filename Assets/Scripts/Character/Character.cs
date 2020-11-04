@@ -404,9 +404,9 @@ public class Character : WorldObject
     foreach (Trait trait in traits.Values)
     {
       if (trait == null) { continue; }
-      if (trait.skillData != null)
+      if (trait.skillData_old != null)
       {
-        ret.Add(trait.skillData);
+        ret.Add(trait.skillData_old);
       }
     }
     return ret;
@@ -456,6 +456,17 @@ public class Character : WorldObject
 
   // called via play input or npc AI
 
+  public CharacterSkillData GetSkillEffectForAttackType(AttackType attackType)
+  {
+    switch (attackType)
+    {
+      case AttackType.Blocking:
+        return traits[TraitSlot.Wings].skill;
+      case AttackType.Basic:
+      default:
+        return traits[TraitSlot.Head].skill;
+    }
+  }
   public void UseSkill(CharacterSkillData skill)
   {
     if (skill != null && !usingSkill)

@@ -257,9 +257,17 @@ public class PlayerController : Character
         bool shouldBlock = false;
         if (CanAct())
         {
-
+          if (Input.GetButton("Block"))
+          {
+            shouldBlock = true;
+          }
           if (Input.GetButtonDown("Attack"))
           {
+            if (shouldBlock)
+            {
+              UseSkill(GetSkillEffectForAttackType(AttackType.Blocking));
+              return;
+            }
             UseSelectedSkill();
             return;
             // Attack();
@@ -270,10 +278,6 @@ public class PlayerController : Character
             UseSelectedSpell();
             return;
             // Attack();
-          }
-          else if (Input.GetButton("Block"))
-          {
-            shouldBlock = true;
           }
           else if (Input.GetButtonDown("Ascend"))
           {

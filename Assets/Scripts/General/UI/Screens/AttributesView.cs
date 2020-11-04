@@ -156,7 +156,7 @@ public class AttributesView : MonoBehaviour
         }
         attributeInfoGameObjects[attribute].GetComponent<AttributeInfo>().HighlightDelta(proposedAttributeAdd - proposedAttributeRemove);
       }
-      InitSkillData(add.skillData, remove.skillData);
+      InitSkillData(add.skillData_old, remove.skillData_old);
     }
   }
 

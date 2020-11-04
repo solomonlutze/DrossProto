@@ -3,6 +3,16 @@ using System.Collections;
 using UnityEditor;
 using System.Collections.Generic;
 
+public enum AttackType
+{
+  Basic,
+  Dash,
+  Blocking,
+
+  Charge,
+  Critical
+}
+
 [System.Serializable]
 public class WeaponSpawn
 {
