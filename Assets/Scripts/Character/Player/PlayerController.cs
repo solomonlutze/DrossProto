@@ -255,31 +255,30 @@ public class PlayerController : Character
       case (Constants.GameState.Play):
         // Debug.Log("handling player input");
         bool shouldBlock = false;
-        if (CanAct())
+        if ((CanBlock() && Input.GetButton("Block")) /*|| using block attack?*/)
         {
-          if (Input.GetButton("Block"))
+          shouldBlock = true;
+        }
+        if (CanAttack() && Input.GetButtonDown("Attack"))
+        {
+          if (shouldBlock)
           {
-            shouldBlock = true;
-          }
-          if (Input.GetButtonDown("Attack"))
-          {
-            if (shouldBlock)
-            {
-              UseSkill(GetSkillEffectForAttackType(AttackType.Blocking));
-              return;
-            }
-            UseSelectedSkill();
+            UseSkill(GetSkillEffectForAttackType(AttackType.Blocking));
             return;
-            // Attack();
           }
-          else if (Input.GetButtonDown("Spell"))
+          if (IsDashingOrRecovering())
           {
-            Debug.Log("spell?");
-            UseSelectedSpell();
+            // set shouldDashAttack
+            Debug.Log("Dash attack!");
+            QueueDashAttack();
             return;
-            // Attack();
           }
-          else if (Input.GetButtonDown("Ascend"))
+          UseSelectedSkill();
+          return;
+        }
+        else if (CanMove())
+        {
+          if (Input.GetButtonDown("Ascend"))
           {
             if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
             {
@@ -310,27 +309,83 @@ public class PlayerController : Character
               // DescendOneFloor(); // maybe descend??
             }
           }
-          else if (Input.GetButtonDown("Activate"))
-          {
-            Debug.Log("activate?");
-            if (availableContextualActions.Count > 0)
-            {
-              GetSelectedContextualAction().actionToCall();
-              return;
-            }
-            else if (inventory.lastPickedUpItems.Count > 0)
-            {
-              inventory.ClearPickedUpItem();
-              return;
-            }
-          }
-          else if (Input.GetButtonDown("Molt"))
-          {
-            return; // TODO: DELETE THIS
-            Molt();
-            return;
-          }
         }
+        // if (CanAct())
+        // {
+        //   if (Input.GetButton("Block"))x
+        //   {
+        //     shouldBlock = true;
+        //   }
+        //   if (Input.GetButtonDown("Attack"))
+        //   {
+        //     if (shouldBlock)
+        //     {
+        //       UseSkill(GetSkillEffectForAttackType(AttackType.Blocking));
+        //       return;
+        //     }
+        //     UseSelectedSkill();
+        //     return;
+        //     // Attack();
+        //   }
+        //   else if (Input.GetButtonDown("Spell"))
+        //   {
+        //     Debug.Log("spell?");
+        //     UseSelectedSpell();
+        //     return;
+        //     // Attack();
+        //   }
+        //   else if (Input.GetButtonDown("Ascend"))
+        //   {
+        //     if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
+        //     {
+        //       FlyUp();
+        //       return;
+        //     }
+        //     else if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
+        //     {
+        //       AscendOneFloor();
+        //       return;
+        //     }
+        //     else if (!flying)
+        //     {
+        //       Fly();
+        //       return;
+        //     }
+        //   }
+        //   else if (Input.GetButtonDown("Descend"))
+        //   {
+        //     Debug.Log("descend?");
+        //     if (flying)
+        //     {
+        //       FlyDown();
+        //       return;
+        //     }
+        //     else
+        //     {
+        //       // DescendOneFloor(); // maybe descend??
+        //     }
+        //   }
+        //   else if (Input.GetButtonDown("Activate"))
+        //   {
+        //     Debug.Log("activate?");
+        //     if (availableContextualActions.Count > 0)
+        //     {
+        //       GetSelectedContextualAction().actionToCall();
+        //       return;
+        //     }
+        //     else if (inventory.lastPickedUpItems.Count > 0)
+        //     {
+        //       inventory.ClearPickedUpItem();
+        //       return;
+        //     }
+        //   }
+        //   else if (Input.GetButtonDown("Molt"))
+        //   {
+        //     return; // TODO: DELETE THIS
+        //     Molt();
+        //     return;
+        //   }
+        // }
         if (Input.GetButtonDown("Dash"))
         {
           Debug.Log("pressing dash");

@@ -5,80 +5,68 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-// Base weapon behavior and info.
-// Any weapon can specify any animation and will play it when an attack happens.
-// Animation system decides when to spawn hitboxes, and which ones to spawn.
-// animation system also dictates flow of attacks and combos, as well as what an attack visually looks like.
-public class WeaponData : ItemData
+[System.Serializable]
+public class Moveset
 {
+    public AttackTypeToSkillEffectDictionary attacks;
 
-  public override InventoryItemType type
-  {
-    get { return InventoryItemType.Weapon; }
-    set { }
-  }
-  public Animator animator;
-
-  // Weapon's approximate attack range. used for AI. TODO: better system for AI than this
-  public float range;
-
-  // angle within which this weapon can usefully attack. used for AI. TODO: better system for AI than this
-  public float attackAngle;
-
-  public AttackAnimation[] attackAnimations;
-  [SerializeField]
-  private List<string> attackAnimationNames = new List<string>();
-
-  // the length of time in which you can queue your next attack
-  // TODO: this should possibly be attack-specific?
-  public float attackQueueWindow = .25f;
-
-  // Base damage info, modified by individual hitboxes.
-  public DamageData_OLD baseDamage;
-
-  public Transform spawnTransform;
-  // Set properties of the base damage object this weapon uses.
-  // Hitboxes will modify these damage objects.
-
-  // Set attacking on the animator, and specify which attack animation to use
-  // with queueAttack_<animationName>
-
-  void OnValidate()
-  {
-    //Mostly handle attackanimation stuff
-    // ensure attackAnimationNames and attackAnimations are always the same length
-    // ensure attackAnimationNames[i] == attackAnimations[i].attackAnimation
-    // if it doesn't, set attackAnimationNames[i] = attackAnimations[i].attackAnimation
-
-
-    while (attackAnimationNames.Count < attackAnimations.Length)
+    public Moveset()
     {
-      string nextAttackAnimation = attackAnimations[attackAnimationNames.Count].attackAnimation;
-      attackAnimationNames.Add(nextAttackAnimation);
+        attacks = new AttackTypeToSkillEffectDictionary();
     }
-    while (attackAnimationNames.Count > attackAnimations.Length)
+
+    public Moveset(TraitSlotToTraitDictionary traits)
     {
-      attackAnimationNames.RemoveAt(attackAnimationNames.Count - 1);
+        attacks = new AttackTypeToSkillEffectDictionary();
+        foreach (TraitSlot slot in traits.Keys)
+        {
+            attacks[Character.GetAttackTypeForTraitSlot(slot)] = traits[slot].moveset.attacks[Character.GetAttackTypeForTraitSlot(slot)];
+        }
     }
-    for (int i = 0; i < attackAnimationNames.Count; i++)
+}
+
+public class WeaponData : ScriptableObject
+{
+    public Weapon weaponObject;
+    public AttackTypeToSkillEffectDictionary attacks;
+
+    public WeaponData()
     {
-      if (attackAnimationNames[i] != attackAnimations[i].attackAnimation)
-      {
-        attackAnimations[i].ResetDefaults();
-        attackAnimationNames[i] = attackAnimations[i].attackAnimation;
-      }
+        attacks = new AttackTypeToSkillEffectDictionary();
     }
-  }
 
 #if UNITY_EDITOR
-  // The following is a helper that adds a menu item to create an TraitItem Asset
-  [MenuItem("Assets/Create/Item/Weapon")]
-  public static void CreateWeaponItem()
-  {
-    string path = EditorUtility.SaveFilePanelInProject("Save Weapon Data", "New Weapon Data", "Asset", "Save Weapon Data", "Assets/resources/Data/ItemData/Weapon");
-    if (path == "")
-      return;
-    AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<WeaponData>(), path);
-  }
+    [MenuItem("Assets/Create/Weapon")]
+    public static void CreateWeaponData()
+    {
+        string path = EditorUtility.SaveFilePanelInProject("SaveWeapon", "NewWeapon", "Asset", "SaveWeapon", "Assets/resources/Data/CharacterData/WeaponData");
+        if (path == "")
+            return;
+        WeaponData weaponInstance = ScriptableObject.CreateInstance<WeaponData>();
+        AttackSkillEffect basicSkillInstance = ScriptableObject.CreateInstance<AttackSkillEffect>();
+        weaponInstance.attacks[AttackType.Basic] = basicSkillInstance;
+
+        AttackSkillEffect dashSkillInstance = ScriptableObject.CreateInstance<AttackSkillEffect>();
+        weaponInstance.attacks[AttackType.Dash] = dashSkillInstance;
+
+        AttackSkillEffect blockingSkillInstance = ScriptableObject.CreateInstance<AttackSkillEffect>();
+        weaponInstance.attacks[AttackType.Blocking] = blockingSkillInstance;
+
+        AttackSkillEffect chargeSkillInstance = ScriptableObject.CreateInstance<AttackSkillEffect>();
+        weaponInstance.attacks[AttackType.Charge] = chargeSkillInstance;
+
+        AttackSkillEffect criticalSkillInstance = ScriptableObject.CreateInstance<AttackSkillEffect>();
+        weaponInstance.attacks[AttackType.Critical] = criticalSkillInstance;
+
+        AssetDatabase.CreateAsset(weaponInstance, path);
+        int index = path.IndexOf(".");
+        if (index > 0)
+            path = path.Substring(0, index);
+        AssetDatabase.CreateAsset(basicSkillInstance, path + "BasicSkillEffect.Asset");
+        AssetDatabase.CreateAsset(dashSkillInstance, path + "DashSkillEffect.Asset");
+        AssetDatabase.CreateAsset(blockingSkillInstance, path + "BlockingSkillEffect.Asset");
+        AssetDatabase.CreateAsset(chargeSkillInstance, path + "ChargeSkillEffect.Asset");
+        AssetDatabase.CreateAsset(criticalSkillInstance, path + "CriticalSkillEffect.Asset");
+    }
 #endif
 }
