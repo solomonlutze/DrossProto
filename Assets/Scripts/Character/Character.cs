@@ -339,10 +339,10 @@ public class Character : WorldObject
     {
       characterSkills.Insert(0, defaultCharacterData.defaultCharacterAttack);
     }
-    for (int i = 0; i < characterSkills.Count; i++)
-    {
-      characterSkills[i].Init(this);
-    }
+    // for (int i = 0; i < characterSkills.Count; i++)
+    // {
+    //   characterSkills[i].Init(this);
+    // }
     moveset = new Moveset(traits);
     attributes = CalculateAttributes(traits);
     InitializeFromCharacterData();

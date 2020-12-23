@@ -25,8 +25,12 @@ public class CharacterSkillData : ScriptableObject
   public SkillDelay warmup;
   public SkillEffect[] skillEffects;
   public SkillDelay cooldown;
-  public virtual void Init(Character owner)
+
+  public virtual void Init(Weapon weapon)
   {
+    skillEffects = new SkillEffect[] {
+      new AttackSkillEffect(weapon)
+    };
   }
 
   public virtual IEnumerator UseSkill(Character owner)

@@ -62,11 +62,11 @@ public class WeaponData : ScriptableObject
     int index = path.IndexOf(".");
     if (index > 0)
       path = path.Substring(0, index);
-    AssetDatabase.CreateAsset(basicSkillInstance, path + "BasicSkillEffect.Asset");
-    AssetDatabase.CreateAsset(dashSkillInstance, path + "DashSkillEffect.Asset");
-    AssetDatabase.CreateAsset(blockingSkillInstance, path + "BlockingSkillEffect.Asset");
-    AssetDatabase.CreateAsset(chargeSkillInstance, path + "ChargeSkillEffect.Asset");
-    AssetDatabase.CreateAsset(criticalSkillInstance, path + "CriticalSkillEffect.Asset");
+    AssetDatabase.CreateAsset(basicSkillInstance, path + "BasicSkillSkillData.Asset");
+    AssetDatabase.CreateAsset(dashSkillInstance, path + "DashSkillSkillData.Asset");
+    AssetDatabase.CreateAsset(blockingSkillInstance, path + "BlockingSkillSkillData.Asset");
+    AssetDatabase.CreateAsset(chargeSkillInstance, path + "ChargeSkillSkillData.Asset");
+    AssetDatabase.CreateAsset(criticalSkillInstance, path + "CriticalSkillSkillData.Asset");
   }
 #endif
 }
