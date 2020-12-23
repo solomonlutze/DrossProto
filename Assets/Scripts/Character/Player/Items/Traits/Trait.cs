@@ -181,7 +181,7 @@ public class Trait : ScriptableObject
     public GameObject owningBugPrefab;
     public LymphType lymphType;
     public CharacterSkillData skill; // When this gets used depends on what body part this is equipped to!
-    public Moveset moveset;
+    public WeaponData weaponData;
     public Sprite visual1;
 
     public Sprite visual2;

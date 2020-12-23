@@ -18,7 +18,6 @@ using Object = UnityEngine.Object;
 [CustomPropertyDrawer(typeof(ScriptableObject), true)]
 public class ExtendedScriptableObjectDrawer : PropertyDrawer
 {
-
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
         float totalHeight = EditorGUIUtility.singleLineHeight;
