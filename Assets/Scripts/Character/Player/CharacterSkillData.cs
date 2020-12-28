@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using ScriptableObjectArchitecture;
 
 [System.Serializable]
 public class SkillDelay
@@ -26,10 +27,10 @@ public class CharacterSkillData : ScriptableObject
   public AttackSkillEffect[] skillEffects; // NOTE: Gotta fix this if we want vanilla skillEffects for anything!
   public SkillDelay cooldown;
 
-  public virtual void Init(WeaponData weaponData)
+  public virtual void Init(WeaponVariable weapon)
   {
     skillEffects = new AttackSkillEffect[] {
-      new AttackSkillEffect(weaponData)
+      new AttackSkillEffect(weapon)
     };
   }
 
