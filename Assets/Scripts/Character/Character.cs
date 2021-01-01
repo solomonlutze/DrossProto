@@ -250,6 +250,7 @@ public class Character : WorldObject
   [Header("Game State Info")]
   public Color damageFlashColor = Color.red;
   public Color attackColor = Color.grey;
+  public Character critTarget = null;
   public float damageFlashSpeed = 1.0f;
   public bool usingSkill = false;
   public bool flying = false;

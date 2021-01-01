@@ -263,6 +263,11 @@ public class PlayerController : Character
         {
           if (Input.GetButtonDown("Attack"))
           {
+            if (critTarget != null)
+            {
+              UseSkill(GetSkillDataForAttackType(AttackType.Critical));
+              return;
+            }
             if (shouldBlock)
             {
               UseSkill(GetSkillDataForAttackType(AttackType.Blocking));
@@ -284,6 +289,7 @@ public class PlayerController : Character
             Debug.Log("attack button up?");
             if (chargeAttackTime < GetSkillDataForAttackType(AttackType.Charge).warmup.duration)
             {
+              chargeAttackTime = 0;
               UseSkill(GetSkillDataForAttackType(AttackType.Basic));
             }
           }

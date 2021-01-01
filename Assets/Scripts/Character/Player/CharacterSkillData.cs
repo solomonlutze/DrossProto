@@ -9,7 +9,6 @@ public class SkillDelay
 {
   public float duration;
   public float moveSpeedMultiplier = 0f;
-
   public float rotationSpeedMultiplier = 0f;
 }
 

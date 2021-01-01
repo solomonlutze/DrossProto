@@ -68,10 +68,8 @@ public class AttackSkillEffect : SkillEffect
     // Transform weaponParent = new 
     // owner.weaponPivot.eulerAngles = new Vector3(0, 0, rotationOffset); // shrug?
     List<Weapon> weaponInstances = new List<Weapon>();
-    Debug.Log("activating skill effect");
     foreach (AttackSpawn weaponSpawn in weaponSpawns)
     {
-      Debug.Log("spawning" + weaponSpawn.weaponObject);
       yield return SpawnWeapon(weaponSpawn, owner, weaponInstances);
     }
     while (weaponInstances.Count > 0)
