@@ -85,6 +85,13 @@ public class Hitbox : MonoBehaviour, IDamageSource
         }
     }
 
+    public bool isNonlethal
+    {
+        get
+        {
+            return damageInfo.isNonlethal;
+        }
+    }
     public float invulnerabilityWindow
     {
         get
