@@ -92,6 +92,15 @@ public class Hitbox : MonoBehaviour, IDamageSource
             return damageInfo.isNonlethal;
         }
     }
+
+    public bool isCritAttack
+    {
+        get
+        {
+            return damageInfo.isCritAttack;
+        }
+    }
+    
     public float invulnerabilityWindow
     {
         get

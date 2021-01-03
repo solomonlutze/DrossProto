@@ -11,11 +11,11 @@ public interface IDamageSource
     float CalculateDamageAfterResistances(Character c);
     float invulnerabilityWindow { get; }
     bool isNonlethal { get; }
+    bool isCritAttack { get; }
     int damageAmount { get; }
     DamageType damageType { get; }
     float stunMagnitude { get; }
     bool ignoresInvulnerability { get; }
-
     bool forcesItemDrop { get; }
 
 }

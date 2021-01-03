@@ -30,7 +30,6 @@ public class CritTrigger : MonoBehaviour
 
   void OnTriggerEnter2D(Collider2D other)
   {
-    Debug.Log("on trigger enter " + other);
     Character c = other.gameObject.GetComponentInParent<Character>();
     if (c != null && c.characterType != owner.characterType && !enemiesInRange.Contains(c))
     {
