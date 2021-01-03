@@ -10,10 +10,6 @@ public class CharacterDataEditor : Editor
     this.serializedObject.Update();
 
     CharacterData data = target as CharacterData;
-    foreach (CharacterStat stat in data.defaultStats.Keys)
-    {
-      Debug.Log("stat: " + stat);
-    }
     DrawDefaultInspector();
     // DrawTraitSelect();
     if (GUILayout.Button("Refresh attribute datas"))

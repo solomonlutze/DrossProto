@@ -62,7 +62,10 @@ public class PlayerController : Character
   // TODO: setting orientTowards can prolly be its own function
   override protected void Update()
   {
-    orientTowards = GameMaster.Instance.camera2D.ScreenToWorldPoint(Input.mousePosition);
+    if (!InCrit())
+    {
+      orientTowards = GameMaster.Instance.camera2D.ScreenToWorldPoint(Input.mousePosition);
+    }
     base.Update();
     PopulateContextualActions();
     // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.Left), Color.red);
@@ -250,86 +253,186 @@ public class PlayerController : Character
   {
     switch (GameMaster.Instance.GetGameStatus())
     {
+      // holding down block should cause us to block.
+      // taking _any other action_ or releasing the key should cancel the block.
       case (Constants.GameState.Play):
         // Debug.Log("handling player input");
-        if (Input.GetButtonDown("Activate")) { Debug.Log("pressed activate"); }
-        if (Input.GetKeyDown("e")) { Debug.Log("pressed e"); }
-        if (Input.GetButtonDown("Attack"))
+        bool shouldBlock = false;
+        if ((CanBlock() && Input.GetButton("Block")) /*|| using block attack?*/)
         {
-          UseSelectedSkill();
-          // Attack();
+          shouldBlock = true;
         }
-        if (Input.GetButtonDown("Spell"))
+        if (CanAttack())
         {
-          Debug.Log("spell?");
-          UseSelectedSpell();
-          // Attack();
+          if (Input.GetButtonDown("Attack"))
+          {
+            if (critTarget != null)
+            {
+              Debug.Log("using crit?");
+              StartCoroutine(UseCritAttack());
+              return;
+            }
+            if (shouldBlock)
+            {
+              UseSkill(GetSkillDataForAttackType(AttackType.Blocking));
+              return;
+            }
+            if (IsDashingOrRecovering())
+            {
+              // set shouldDashAttack
+              Debug.Log("Dash attack!");
+              QueueDashAttack();
+              return;
+            }
+            chargeAttackTime += Time.deltaTime; // incrementing this further is handled in HandleCooldowns
+                                                // UseSkill(GetSkillEffectForAttackType(AttackType.Basic));
+            return;
+          }
+          if (Input.GetButtonUp("Attack"))
+          {
+            Debug.Log("attack button up?");
+            if (chargeAttackTime < GetSkillDataForAttackType(AttackType.Charge).warmup.duration)
+            {
+              chargeAttackTime = 0;
+              UseSkill(GetSkillDataForAttackType(AttackType.Basic));
+            }
+          }
         }
-        else if (Input.GetButtonDown("Dash"))
+        else if (CanMove())
         {
-          return; // TODO: DELETE THIS
-          // Debug.Log("dash?");
+          if (Input.GetButtonDown("Ascend"))
+          {
+            if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
+            {
+              FlyUp();
+              return;
+            }
+            else if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
+            {
+              AscendOneFloor();
+              return;
+            }
+            else if (!flying)
+            {
+              Fly();
+              return;
+            }
+          }
+          else if (Input.GetButtonDown("Descend"))
+          {
+            Debug.Log("descend?");
+            if (flying)
+            {
+              FlyDown();
+              return;
+            }
+            else
+            {
+              // DescendOneFloor(); // maybe descend??
+            }
+          }
+        }
+        // if (CanAct())
+        // {
+        //   if (Input.GetButton("Block"))x
+        //   {
+        //     shouldBlock = true;
+        //   }
+        //   if (Input.GetButtonDown("Attack"))
+        //   {
+        //     if (shouldBlock)
+        //     {
+        //       UseSkill(GetSkillEffectForAttackType(AttackType.Blocking));
+        //       return;
+        //     }
+        //     UseSelectedSkill();
+        //     return;
+        //     // Attack();
+        //   }
+        //   else if (Input.GetButtonDown("Spell"))
+        //   {
+        //     Debug.Log("spell?");
+        //     UseSelectedSpell();
+        //     return;
+        //     // Attack();
+        //   }
+        //   else if (Input.GetButtonDown("Ascend"))
+        //   {
+        //     if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
+        //     {
+        //       FlyUp();
+        //       return;
+        //     }
+        //     else if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
+        //     {
+        //       AscendOneFloor();
+        //       return;
+        //     }
+        //     else if (!flying)
+        //     {
+        //       Fly();
+        //       return;
+        //     }
+        //   }
+        //   else if (Input.GetButtonDown("Descend"))
+        //   {
+        //     Debug.Log("descend?");
+        //     if (flying)
+        //     {
+        //       FlyDown();
+        //       return;
+        //     }
+        //     else
+        //     {
+        //       // DescendOneFloor(); // maybe descend??
+        //     }
+        //   }
+        //   else if (Input.GetButtonDown("Activate"))
+        //   {
+        //     Debug.Log("activate?");
+        //     if (availableContextualActions.Count > 0)
+        //     {
+        //       GetSelectedContextualAction().actionToCall();
+        //       return;
+        //     }
+        //     else if (inventory.lastPickedUpItems.Count > 0)
+        //     {
+        //       inventory.ClearPickedUpItem();
+        //       return;
+        //     }
+        //   }
+        //   else if (Input.GetButtonDown("Molt"))
+        //   {
+        //     return; // TODO: DELETE THIS
+        //     Molt();
+        //     return;
+        //   }
+        // }
+        if (Input.GetButtonDown("Dash"))
+        {
+          Debug.Log("pressing dash");
           if (CanDash())
           {
+            Debug.Log("doing dash");
             Dash();
           }
-        }
-        else if (Input.GetButtonDown("Ascend"))
-        {
-          if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
-          {
-            FlyUp();
-          }
-          else if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
-          {
-            AscendOneFloor();
-          }
-          else if (!flying)
-          {
-            Fly();
-          }
-        }
-        else if (Input.GetButtonDown("Descend"))
-        {
-          Debug.Log("descend?");
-          if (flying)
-          {
-            FlyDown();
-          }
-          else
-          {
-            // DescendOneFloor(); // maybe descend??
-          }
-        }
-        else if (Input.GetButtonDown("Activate"))
-        {
-          Debug.Log("activate?");
-          if (availableContextualActions.Count > 0)
-          {
-            GetSelectedContextualAction().actionToCall();
-          }
-          else if (inventory.lastPickedUpItems.Count > 0)
-          {
-            inventory.ClearPickedUpItem();
-          }
+          return;
         }
         else if (Input.GetButtonDown("AdvanceSkill"))
         {
           AdvanceSelectedSkill();
+          return;
         }
         else if (Input.GetButtonDown("AdvanceSpell"))
         {
           Debug.Log("advance spell??");
           AdvanceSelectedSpell();
+          return;
         }
         else if (Input.GetButtonDown("AdvanceSelectedAction"))
         {
           AdvanceSelectedContextualAction();
-        }
-        else if (Input.GetButtonDown("Molt"))
-        {
-          return; // TODO: DELETE THIS
-          Molt();
+          return;
         }
         // else if (Input.GetButtonDown("Skill1"))
         // {
@@ -373,10 +476,11 @@ public class PlayerController : Character
         //     skill2.OnActivateTraitReleased();
         //   }
         // }
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-          SetCurrentFloor(currentFloor == FloorLayer.F1 ? FloorLayer.F2 : FloorLayer.F1);
-        }
+        // if (Input.GetKeyDown(KeyCode.P))
+        // {
+        //   SetCurrentFloor(currentFloor == FloorLayer.F1 ? FloorLayer.F2 : FloorLayer.F1);
+        // }
+        SetBlocking(shouldBlock);
         break;
       case (Constants.GameState.Menu):
         break;

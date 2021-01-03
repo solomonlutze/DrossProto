@@ -151,6 +151,7 @@ public class CharacterVitalToFloatDictionary : SerializableDictionaryBase<Charac
     Add(CharacterVital.CurrentHealth, 0);
     Add(CharacterVital.CurrentMoltCount, 0);
     Add(CharacterVital.RemainingStamina, 0);
+    Add(CharacterVital.CurrentCarapace, 0);
     // Add(CharacterVital.CurrentDashCooldown, 0f);
   }
 }
@@ -206,6 +207,46 @@ public class CharacterAttackValueToIntDictionary : SerializableDictionaryBase<Ch
     foreach (CharacterAttackValue attackValue in (CharacterAttackValue[])Enum.GetValues(typeof(CharacterAttackValue)))
     {
       Add(attackValue, 0);
+    }
+  }
+}
+
+
+
+[System.Serializable]
+public class AttackTypeToCharacterSkillDataDictionary : SerializableDictionaryBase<AttackType, CharacterSkillData>
+{
+
+  public AttackTypeToCharacterSkillDataDictionary()
+  {
+    foreach (AttackType type in (AttackType[])Enum.GetValues(typeof(AttackType)))
+    {
+      Add(type, null);
+    }
+  }
+}
+
+// [System.Serializable]
+// public class AttackTypeToSkillEffectDictionary : SerializableDictionaryBase<AttackType, SkillEffect>
+// {
+
+//   public AttackTypeToSkillEffectDictionary()
+//   {
+//     foreach (AttackType type in (AttackType[])Enum.GetValues(typeof(AttackType)))
+//     {
+//       Add(type, null);
+//     }
+//   }
+// }
+[System.Serializable]
+public class AttackTypeToWeaponDataDictionary : SerializableDictionaryBase<AttackType, WeaponData>
+{
+
+  public AttackTypeToWeaponDataDictionary()
+  {
+    foreach (AttackType type in (AttackType[])Enum.GetValues(typeof(AttackType)))
+    {
+      Add(type, null);
     }
   }
 }

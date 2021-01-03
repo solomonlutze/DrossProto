@@ -18,7 +18,7 @@ public class CustomPhysicsController : MonoBehaviour
   public Vector2 velocity;
 
   // the max number of units the object can move each second
-  public float maxVelocity;
+  // public float maxVelocity;
 
   // acceleration applied per frame of input. Defined by controller object, if attached.
   private float moveAcceleration;
@@ -59,29 +59,10 @@ public class CustomPhysicsController : MonoBehaviour
     owningCharacter = GetComponent<Character>();
     if (owningCharacter != null)
     {
-      // moveAcceleration = owningCharacter.GetStat(CharacterStat.MoveAcceleration);
       orientation = owningCharacter.orientation;
     }
   }
 
-  void Update()
-  {
-    if (owningCharacter != null)
-    {
-      if (owningCharacter.flying)
-      {
-        moveAcceleration = owningCharacter.GetStat(CharacterStat.FlightAcceleration);
-      }
-      if (owningCharacter.IsDashing())
-      {
-        moveAcceleration = owningCharacter.GetStat(CharacterStat.DashAcceleration);
-      }
-      else
-      {
-        moveAcceleration = owningCharacter.GetStat(CharacterStat.MoveAcceleration);
-      }
-    }
-  }
   public void OnLayerChange()
   {
     contactFilter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
@@ -91,11 +72,12 @@ public class CustomPhysicsController : MonoBehaviour
     }
   }
 
-  // TODO: if we use this for other projects, we should implement CalculateMovementWithGravity
   void FixedUpdate()
   {
-    CalculateMovementTopDown(); // Y is a regular axis input; there is no gravity
-                                // CalculateMovementWithGravity(); // Y input is for jumping; gravity applies.
+    if (owningCharacter != null)
+    {
+      CalculateMovementTopDown(); // Y is a regular axis input; there is no gravity
+    }
   }
 
   // Called by character class to indicate desired movement.
@@ -147,26 +129,56 @@ public class CustomPhysicsController : MonoBehaviour
   // TODO: drag seems a little fishy here? it works, but should it be included in desiredMovement?
   // may be worth separating it out for clarity.
 
+
+  //How dashing works
+  // instead of having dashAcceleration we have dashDistance
+  // dashingMoveDelta should be smoothed across the duration of the dash
+  // then it should be multiplied by the character orientation for desired movement
+
   void CalculateMovementTopDown()
   {
-    Vector2 orientedAnimationInput = Vector2.zero;
-    if (orientation != null) { orientedAnimationInput = orientation.rotation * animationInput; }
-    maxVelocity = moveAcceleration - drag * Time.deltaTime;
-    Vector2 desiredMovement = ((movementInput.normalized * moveAcceleration + orientedAnimationInput) - (drag * velocity)) * Time.deltaTime;
-    Vector2 xMove = new Vector2(velocity.x + desiredMovement.x, 0);
-    if (!ignoreCollisionPhysics)
+    moveAcceleration = owningCharacter.GetMoveAcceleration();
+
+    // maxVelocity = moveAcceleration - drag * Time.deltaTime;
+    Vector2 desiredMovement;
+    if (owningCharacter.IsDashing()) // Ignore velocity + drag; move manually
     {
-      xMove = CalculateCollisionForAxis(xMove);
+      desiredMovement = (movementInput.normalized * owningCharacter.GetEasedDashProgressIncrement());
+      Vector2 xMove = new Vector2(desiredMovement.x, 0);
+      if (!ignoreCollisionPhysics)
+      {
+        xMove = CalculateCollisionForAxis(xMove);
+      }
+      desiredMovement.x = xMove.x;
+      Vector2 yMove = new Vector2(0, desiredMovement.y);
+      if (!ignoreCollisionPhysics)
+      {
+        yMove = CalculateCollisionForAxis(yMove);
+      }
+      desiredMovement.y = yMove.y;
+      transform.position += new Vector3(desiredMovement.x, desiredMovement.y, 0);
+      // desiredMovement = ((movementInput.normalized * moveAcceleration + orientedAnimationInput)) * Time.deltaTime;
     }
-    velocity.x = xMove.x;
-    Vector2 yMove = new Vector2(0, velocity.y + desiredMovement.y);
-    if (!ignoreCollisionPhysics)
+    else
     {
-      yMove = CalculateCollisionForAxis(yMove);
+      Vector2 orientedAnimationInput = Vector2.zero;
+      if (orientation != null) { orientedAnimationInput = orientation.rotation * animationInput; }
+      desiredMovement = ((movementInput.normalized * moveAcceleration + orientedAnimationInput) - (drag * velocity)) * Time.deltaTime;
+      Vector2 xMove = new Vector2(velocity.x + desiredMovement.x, 0);
+      if (!ignoreCollisionPhysics)
+      {
+        xMove = CalculateCollisionForAxis(xMove);
+      }
+      velocity.x = xMove.x;
+      Vector2 yMove = new Vector2(0, velocity.y + desiredMovement.y);
+      if (!ignoreCollisionPhysics)
+      {
+        yMove = CalculateCollisionForAxis(yMove);
+      }
+      velocity.y = yMove.y;
+      if (velocity.magnitude < velocityMin) { velocity = Vector2.zero; }
+      transform.position += new Vector3(velocity.x, velocity.y, 0);
     }
-    velocity.y = yMove.y;
-    if (velocity.magnitude < velocityMin) { velocity = Vector2.zero; }
-    transform.position += new Vector3(velocity.x, velocity.y, 0);
   }
 
   // Returns the distance we're allowed to move along an axis, x or y.

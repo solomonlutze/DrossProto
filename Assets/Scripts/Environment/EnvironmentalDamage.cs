@@ -74,6 +74,22 @@ public class EnvironmentalDamage : IDamageSource
     }
   }
 
+  public bool isNonlethal 
+  {
+    get 
+    {
+      return tileType.environmentalDamageInfo.isNonlethal;
+    }
+  }
+
+  public bool isCritAttack 
+  {
+    get 
+    {
+      return tileType.environmentalDamageInfo.isCritAttack;
+    }
+  }
+
   public bool ignoresInvulnerability
   {
     get

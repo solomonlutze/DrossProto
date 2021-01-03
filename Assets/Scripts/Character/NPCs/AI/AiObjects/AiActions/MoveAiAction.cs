@@ -51,8 +51,6 @@ public class MoveAiAction : AiAction
         Vector3 colliderCenterWorldSpace = controller.transform.TransformPoint(controller.circleCollider.offset);
         movementInput = (nextNodeLocation - colliderCenterWorldSpace).normalized;
         Debug.DrawLine(nextNodeLocation, colliderCenterWorldSpace, Color.magenta, .1f, true);
-
-        // Debug.Log("colliderCenterWorldSpace: " + colliderCenterWorldSpace);
         if (Vector2.Distance(nextNodeLocation, colliderCenterWorldSpace) < controller.minDistanceFromPathNode)
         {
           controller.pathToTarget.RemoveAt(0);
@@ -62,7 +60,6 @@ public class MoveAiAction : AiAction
             controller
           ))
           {
-            Debug.Log("removing node!");
             controller.pathToTarget.RemoveAt(0);
           }
         }

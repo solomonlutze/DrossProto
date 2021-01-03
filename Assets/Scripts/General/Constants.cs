@@ -5,6 +5,9 @@ public static class Constants
 {
   public enum GameState { Play, Dead, Dialogue, Menu, ChooseBug, Pause }
   public const float DEFAULT_DETECTION_RANGE = 20f;
+  public const float CARAPACE_DAMAGE_REDUCTION = .9f;
+  public const float CARAPACE_BREAK_STUN_DURATION = 5.0f;
+  public const float STUN_DAMAGE_MULTIPLIER = 3.0f;
   public static int numberOfFloorLayers = Enum.GetNames(typeof(FloorLayer)).Length;
 
   public static Dictionary<CharacterAttackValue, float> CharacterAttackAdjustmentIncrements

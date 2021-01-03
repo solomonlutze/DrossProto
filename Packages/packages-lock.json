@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.danieleverland.scriptableobjectarchitecture": {
+      "version": "https://github.com/DanielEverland/ScriptableObject-Architecture.git#release/stable",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "5dc57a5954a1c876e135d404296601828e3866d6"
+    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,
@@ -64,7 +71,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.vscode": {
-      "version": "1.2.1",
+      "version": "1.2.3",
       "depth": 0,
       "source": "registry",
       "dependencies": {},

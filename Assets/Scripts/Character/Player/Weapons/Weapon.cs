@@ -1,69 +1,47 @@
 using UnityEngine;
+using UnityEditor;
 using System.Collections;
 using System.Collections.Generic;
 
-[System.Serializable]
-public class WeaponAction
-{
-  public WeaponActionType type;
-  public float magnitude;
-}
-
-[System.Serializable]
-public class WeaponActionGroup
-{
-  public float duration;
-  public WeaponAction[] weaponActions;
-}
-
-public enum WeaponActionType
-{
-  Move,
-  Wait,
-  RotateRelative,
-  MarkDone
-}
-
+// in-world physical weapon object. This is what controls weapon movement during attacks.
 public class Weapon : MonoBehaviour
 {
-  public Character owner;
-  public AttackSkillEffect owningEffect;
-  public Hitbox[] hitboxes;
-  public WeaponActionGroup[] weaponActionGroups;
-  public List<Weapon> owningEffectWeaponInstances;
-  public bool destroyOnContact;
-  public WeaponSpawn objectToSpawn;
-  public bool spawnObjectOnContact;
-  public bool spawnObjectOnDestruction;
+  public Hitbox[] defaultHitboxes;
+  Character owner;
+  AttackSkillEffect owningEffect;
+  List<Weapon> owningEffectActiveWeapons;
+  Attack attack;
 
-  public void Init(AttackSkillEffect effect, List<Weapon> weaponInstances)
+  public void Init(Attack atk, AttackSkillEffect effect, Character c, List<Weapon> activeWeaponObjects)
   {
-    owner = effect.owner;
+    attack = atk;
+    owner = c;
     owningEffect = effect;
-    owningEffectWeaponInstances = weaponInstances;
-    owningEffectWeaponInstances.Add(this);
-    hitboxes = GetComponentsInChildren<Hitbox>();
+    owningEffectActiveWeapons = activeWeaponObjects;
+    owningEffectActiveWeapons.Add(this);
+    defaultHitboxes = GetComponentsInChildren<Hitbox>();
 
-    foreach (Hitbox hitbox in hitboxes)
+    foreach (Hitbox hitbox in defaultHitboxes)
     {
-      hitbox.Init(effect.owner, effect.baseDamage);
+      hitbox.Init(owner, effect.baseDamage);
     }
+    WorldObject.ChangeLayersRecursively(gameObject.transform, owner.currentFloor);
   }
   public IEnumerator PerformWeaponActions()
   {
-    for (int i = 0; i < weaponActionGroups.Length; i++)
+    for (int i = 0; i < attack.weaponActionGroups.Length; i++)
     {
-      yield return ExecuteWeaponActionGroup(weaponActionGroups[i], i == weaponActionGroups.Length - 1);
+      yield return ExecuteWeaponActionGroup(attack.weaponActionGroups[i], i == attack.weaponActionGroups.Length - 1);
     }
     CleanUp();
   }
 
   public void CleanUp()
   {
-    owningEffectWeaponInstances.Remove(this);
-    if (objectToSpawn != null && objectToSpawn.weaponPrefab != null && spawnObjectOnDestruction)
+    owningEffectActiveWeapons.Remove(this);
+    if (attack.objectToSpawn != null && attack.objectToSpawn.attackData != null && attack.spawnObjectOnDestruction)
     {
-      owner.StartCoroutine(owningEffect.SpawnWeapon(objectToSpawn, transform.position, transform.eulerAngles));
+      owner.StartCoroutine(owningEffect.SpawnWeapon(attack.objectToSpawn, owner, owningEffectActiveWeapons));
     }
     Destroy(this.gameObject);
   }
@@ -124,7 +102,7 @@ public class Weapon : MonoBehaviour
 
   public void MarkDoneWeaponAction(WeaponAction action, float increment)
   {
-    owningEffectWeaponInstances.Remove(this); // stops this weapon from marking the attack complete
+    owningEffectActiveWeapons.Remove(this); // stops this weapon from marking the attack complete
   }
 
   // Return the overall effective weapon range for this weapon and any of its spawned objects
@@ -134,7 +112,7 @@ public class Weapon : MonoBehaviour
   {
     float ownRange = rangeSoFar;
     float cur = rangeSoFar;
-    foreach (WeaponActionGroup actionGroup in weaponActionGroups)
+    foreach (WeaponActionGroup actionGroup in attack.weaponActionGroups)
     {
       foreach (WeaponAction action in actionGroup.weaponActions)
       {
@@ -146,26 +124,26 @@ public class Weapon : MonoBehaviour
       }
     }
     float childRange = 0;
-    if (objectToSpawn != null && objectToSpawn.weaponPrefab != null && spawnObjectOnDestruction)
+    if (attack.objectToSpawn != null && attack.objectToSpawn.attackData != null && attack.spawnObjectOnDestruction)
     {
-      childRange = objectToSpawn.weaponPrefab.GetCumulativeEffectiveWeaponRange();
+      childRange = attack.objectToSpawn.weaponObject.GetCumulativeEffectiveWeaponRange();
     }
     return ownRange + childRange;
   }
 
   public void OnContact(Collider2D col)
   {
-    if (objectToSpawn != null && spawnObjectOnContact)
+    if (attack.objectToSpawn != null && attack.spawnObjectOnContact)
     {
-      Quaternion rotationAngle = Quaternion.AngleAxis(transform.eulerAngles.z + objectToSpawn.rotationOffset, Vector3.forward);
-      GameObject go = Instantiate(objectToSpawn.weaponPrefab.gameObject, transform.position + new Vector3(objectToSpawn.range, 0, 0), rotationAngle);
+      Quaternion rotationAngle = Quaternion.AngleAxis(transform.eulerAngles.z + attack.objectToSpawn.rotationOffset, Vector3.forward);
+      GameObject go = Instantiate(attack.objectToSpawn.weaponObject.gameObject, transform.position + new Vector3(attack.objectToSpawn.range, 0, 0), rotationAngle);
       Weapon weapon = go.GetComponent<Weapon>();
       if (weapon != null)
       {
-        go.GetComponent<Weapon>().Init(owningEffect, owningEffectWeaponInstances);
+        go.GetComponent<Weapon>().Init(attack.objectToSpawn.attackData, owningEffect, owner, owningEffectActiveWeapons);
       }
     }
-    if (destroyOnContact)
+    if (attack.destroyOnContact)
     {
       CleanUp();
     }

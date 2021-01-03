@@ -54,6 +54,7 @@ public class AiStateController : Character
     aiActive = true;
     // minDistanceFromPathNode = .15f;
     spawnLocation = transform.position;
+    blocking = true; // TODO: DELETE THIS
     Init();
   }
   protected override void Update()

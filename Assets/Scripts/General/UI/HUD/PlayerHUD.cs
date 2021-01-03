@@ -6,6 +6,8 @@ using TMPro;
 public class PlayerHUD : MonoBehaviour
 {
   //TODO: Use TextMeshProUGUI instead of STM
+  public HealthBar healthBar;
+  public CarapaceBar carapaceBar;
   private SuperTextMesh healthFieldText;
   private SuperTextMesh healthValueText;
   private SuperTextMesh maxHealthValueText;
@@ -38,6 +40,8 @@ public class PlayerHUD : MonoBehaviour
     PlayerController playerController = GameMaster.Instance.GetPlayerController();
     if (playerController != null)
     {
+      healthBar.character = playerController; //todo: anywhere but update please!
+      carapaceBar.character = playerController;
       healthFieldText.text = "Health: ";
       healthValueText.text = Mathf.Max(Mathf.RoundToInt(playerController.GetCharacterVital(CharacterVital.CurrentHealth)), 0).ToString();
       maxHealthValueText.text = Mathf.Round(playerController.GetMaxHealth()).ToString();

@@ -10,6 +10,7 @@ public class SmoothFollow : MonoBehaviour
     public Camera c;
 
     public Vector3 offset;
+    public Vector3 critOffset;
     void Start()
     {
         c = GetComponent<Camera>();
@@ -26,8 +27,8 @@ public class SmoothFollow : MonoBehaviour
             // Debug.Log("point: " + point);
             // Debug.Log("delta: " + delta);
             // Debug.Log("destination: " + destination);
-
-            transform.position = Vector3.SmoothDamp(transform.position, target.transform.position + offset, ref velocity, dampTime);
+            Vector3 calculatedOffset = (offset + (GameMaster.Instance.GetPlayerController().InCrit() ? critOffset : Vector3.zero));
+            transform.position = Vector3.SmoothDamp(transform.position, target.transform.position + calculatedOffset, ref velocity, dampTime);
         }
 
     }

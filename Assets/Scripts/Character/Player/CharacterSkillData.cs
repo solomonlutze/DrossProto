@@ -2,13 +2,13 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using ScriptableObjectArchitecture;
 
 [System.Serializable]
 public class SkillDelay
 {
   public float duration;
   public float moveSpeedMultiplier = 0f;
-
   public float rotationSpeedMultiplier = 0f;
 }
 
@@ -23,17 +23,26 @@ public class CharacterSkillData : ScriptableObject
   public float ai_preferredMinRange; // closer than this and we'd like to back up
   public float ai_preferredAttackRangeBuffer; // weapon effectiveRange minus range buffer = ideal attack spot
   public SkillDelay warmup;
-  public SkillEffect[] skillEffects;
+  public AttackSkillEffect[] skillEffects; // NOTE: Gotta fix this if we want vanilla skillEffects for anything!
   public SkillDelay cooldown;
-  public virtual void Init(Character owner)
+
+  public virtual void Init(WeaponVariable weapon)
   {
+    skillEffects = new AttackSkillEffect[] {
+      new AttackSkillEffect(weapon)
+    };
   }
 
-  public virtual IEnumerator UseSkill(Character owner)
+  public virtual IEnumerator UseSkill(Character owner, bool skipWarmup = false)
   {
-    yield return new WaitForSeconds(warmup.duration);
+    if (!skipWarmup)
+    {
+      yield return new WaitForSeconds(warmup.duration);
+    }
+    Debug.Log("using skill data " + name);
     foreach (SkillEffect effect in skillEffects)
     {
+      Debug.Log("activating skill effect?" + name);
       yield return effect.ActivateSkillEffect(owner);
     }
     yield return new WaitForSeconds(cooldown.duration);
