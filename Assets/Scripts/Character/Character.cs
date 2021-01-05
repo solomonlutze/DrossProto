@@ -467,11 +467,9 @@ public class Character : WorldObject
 
     public CharacterSkillData GetSkillDataForAttackType(AttackType attackType)
     {
-        Debug.Log("get skill effect for attack type " + attackType);
         switch (attackType)
         {
             case AttackType.Basic:
-                Debug.Log("getting attack" + moveset.attacks[AttackType.Basic]);
                 return moveset.attacks[AttackType.Basic];
             case AttackType.Charge:
                 return moveset.attacks[AttackType.Charge];
@@ -572,10 +570,9 @@ public class Character : WorldObject
     {
         return characterSkills[idx].name;
     }
-    public float GetAttackRange(int skillIdxForAttack = 0)
+    public float GetAttackRange()
     {
-        string skillName = GetSkillNameFromIndex(skillIdxForAttack);
-        return (characterSkills[skillIdxForAttack]).GetEffectiveRange();
+        return GetSelectedCharacterSkill().GetEffectiveRange();
     }
 
     public int GetAttackRadiusInDegrees(int skillIdxForAttack)

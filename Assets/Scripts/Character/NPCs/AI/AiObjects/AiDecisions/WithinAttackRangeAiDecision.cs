@@ -2,19 +2,20 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "PluggableAi/Decisions/WithinAttackRange")]
 public class WithinAttackRangeAiDecision : AiDecision
 {
-  public override bool Decide(AiStateController controller)
-  {
-    // Debug.Log("correct distance: " + (Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetMaxPreferredAttackRange()));
-    // Debug.Log("correct angle: " + (controller.GetAngleToTarget() < controller.attackAngleInDegrees));
-    if (
-      controller.objectOfInterest != null
-      && Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetMaxPreferredAttackRange()
-      && controller.GetAngleToTarget() < controller.attackAngleInDegrees)
+    public override bool Decide(AiStateController controller)
     {
-      controller.WaitThenAttack();
-      return true;
+        // Debug.Log("correct distance: " + (Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetMaxPreferredAttackRange()));
+        // Debug.Log("correct angle: " + (controller.GetAngleToTarget() < controller.attackAngleInDegrees));
+        Debug.Log("max preferred attack range: " + controller.GetMaxPreferredAttackRange());
+        if (
+          controller.objectOfInterest != null
+          && Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetMaxPreferredAttackRange()
+          && controller.GetAngleToTarget() < controller.attackAngleInDegrees)
+        {
+            controller.WaitThenAttack();
+            return true;
+        }
+        return false;
     }
-    return false;
-  }
 
 }

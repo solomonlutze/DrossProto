@@ -6,112 +6,129 @@ using ScriptableObjectArchitecture;
 
 public enum AttackType
 {
-  Basic,
-  Dash,
-  Blocking,
+    Basic,
+    Dash,
+    Blocking,
 
-  Charge,
-  Critical
+    Charge,
+    Critical
 }
 
 [System.Serializable]
 public class AttackSpawn
 {
-  public float delay;
-  public Attack attackData;
+    public float delay;
+    public Attack attackData;
 
-  public WeaponVariable owningWeaponDataWeapon;
+    public WeaponVariable owningWeaponDataWeapon;
 
-  [Tooltip("If not populated, weaponObject is object of parent Weapon data")]
-  public Weapon weaponObjectOverride;
+    [Tooltip("If not populated, weaponObject is object of parent Weapon data")]
+    public Weapon weaponObjectOverride;
 
-  [HideInInspector]
-  public Weapon weaponObject
-  {
-    get
+    [HideInInspector]
+    public Weapon weaponObject
     {
-      if (weaponObjectOverride != null)
-      {
-        return weaponObjectOverride;
-      }
-      return owningWeaponDataWeapon.Value;
+        get
+        {
+            if (weaponObjectOverride != null)
+            {
+                return weaponObjectOverride;
+            }
+            return owningWeaponDataWeapon.Value;
+        }
     }
-  }
-  public float range;
-  public float rotationOffset;
-  public AttackSpawn()
-  {
+    public float range;
 
-  }
-  public AttackSpawn(WeaponVariable weapon)
-  {
-    owningWeaponDataWeapon = weapon;
-  }
+    //TODO: Account for multiple hitboxes and non-box collider hitboxes!!
+    public float weaponSize
+    {
+        get
+        {
+            if (weaponObject != null && weaponObject.GetComponentsInChildren<Hitbox>().Length > 0)
+            {
+                if (weaponObject.GetComponentsInChildren<Hitbox>()[0].gameObject.GetComponent<BoxCollider2D>() != null)
+                {
+                    return weaponObject.GetComponentsInChildren<Hitbox>()[0].gameObject.GetComponent<BoxCollider2D>().bounds.size.x;
+                }
+            }
+            return 0f;
+        }
+    }
+    public float rotationOffset;
+    public AttackSpawn()
+    {
+
+    }
+    public AttackSpawn(WeaponVariable weapon)
+    {
+        owningWeaponDataWeapon = weapon;
+    }
 }
 // A single skill effect that spawns a single weapon
 [System.Serializable]
 public class AttackSkillEffect : SkillEffect
 {
 
-  public AttackSpawn[] weaponSpawns;
-  public DamageInfo baseDamage;
+    public AttackSpawn[] weaponSpawns;
+    public DamageInfo baseDamage;
 
-  public AttackSkillEffect(WeaponVariable weapon)
-  {
-    weaponSpawns = new AttackSpawn[] {
+    public AttackSkillEffect(WeaponVariable weapon)
+    {
+        weaponSpawns = new AttackSpawn[] {
         new AttackSpawn(weapon)
       };
-  }
-
-  public override IEnumerator ActivateSkillEffect(Character owner)
-  {
-    // Transform weaponParent = new 
-    // owner.weaponPivot.eulerAngles = new Vector3(0, 0, rotationOffset); // shrug?
-    List<Weapon> weaponInstances = new List<Weapon>();
-    foreach (AttackSpawn weaponSpawn in weaponSpawns)
-    {
-      yield return SpawnWeapon(weaponSpawn, owner, weaponInstances);
     }
-    while (weaponInstances.Count > 0)
+
+    public override IEnumerator ActivateSkillEffect(Character owner)
     {
-      yield return null;
+        // Transform weaponParent = new 
+        // owner.weaponPivot.eulerAngles = new Vector3(0, 0, rotationOffset); // shrug?
+        List<Weapon> weaponInstances = new List<Weapon>();
+        foreach (AttackSpawn weaponSpawn in weaponSpawns)
+        {
+            yield return SpawnWeapon(weaponSpawn, owner, weaponInstances);
+        }
+        while (weaponInstances.Count > 0)
+        {
+            yield return null;
+        }
     }
-  }
 
-  public IEnumerator SpawnWeapon(AttackSpawn weaponSpawn, Character owner, List<Weapon> weaponInstances)
-  {
-    yield return new WaitForSeconds(weaponSpawn.delay);
-    Quaternion rotationAngle = Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset, Vector3.forward);
-    Debug.Log("rotationAngle: " + rotationAngle);
-    Weapon weaponInstance = GameObject.Instantiate(
-      weaponSpawn.weaponObject,
-      owner.weaponPivotRoot.position + (rotationAngle * new Vector3(weaponSpawn.range, 0, 0)),
-      // Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset, Vector3.forward)
-      rotationAngle
-    );
-    weaponInstance.Init(weaponSpawn.attackData, this, owner, weaponInstances); // weaponInstance.transform.parent = null; // we want to instantiate relative to the weaponPivot and then immediately leave the hierarchy
-    owner.StartCoroutine(weaponInstance.PerformWeaponActions());
-  }
-
-  public override float GetEffectiveRange()
-  {
-    List<float> weaponRanges = new List<float>();
-    foreach (AttackSpawn weapon in weaponSpawns)
+    public IEnumerator SpawnWeapon(AttackSpawn weaponSpawn, Character owner, List<Weapon> weaponInstances)
     {
-      weaponRanges.Add(weapon.range + weapon.weaponObject.GetCumulativeEffectiveWeaponRange());
+        yield return new WaitForSeconds(weaponSpawn.delay);
+        Quaternion rotationAngle = Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset, Vector3.forward);
+        Debug.Log("rotationAngle: " + rotationAngle);
+        Weapon weaponInstance = GameObject.Instantiate(
+          weaponSpawn.weaponObject,
+          owner.weaponPivotRoot.position + (rotationAngle * new Vector3(weaponSpawn.range, 0, 0)),
+          // Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset, Vector3.forward)
+          rotationAngle
+        );
+        weaponInstance.Init(weaponSpawn.attackData, this, owner, weaponInstances); // weaponInstance.transform.parent = null; // we want to instantiate relative to the weaponPivot and then immediately leave the hierarchy
+        owner.StartCoroutine(weaponInstance.PerformWeaponActions());
     }
-    return Mathf.Max(weaponRanges.ToArray());
-  }
 
-  // #if UNITY_EDITOR
-  //     [MenuItem("Assets/Create/Skills/AttackSkillEffect")]
-  //     public static void CreateAttackSkillEffect()
-  //     {
-  //         string path = EditorUtility.SaveFilePanelInProject("Save Attack Skill Effect", "New Attack Skill Effect", "Asset", "Save Attack Skill Effect", "Assets/resources/Data/CharacterData/Skills/AttackSkillEffects");
-  //         if (path == "")
-  //             return;
-  //         AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<AttackSkillEffect>(), path);
-  //     }
-  // #endif
+    public override float GetEffectiveRange()
+    {
+        List<float> weaponRanges = new List<float>();
+        foreach (AttackSpawn weapon in weaponSpawns)
+        {
+            Debug.Log("weapon size: " + weapon.weaponSize);
+            weaponRanges.Add(weapon.range + weapon.weaponSize + weapon.weaponObject.GetCumulativeEffectiveWeaponRange());
+        }
+        return Mathf.Max(weaponRanges.ToArray());
+    }
+
+    // #if UNITY_EDITOR
+    //     [MenuItem("Assets/Create/Skills/AttackSkillEffect")]
+    //     public static void CreateAttackSkillEffect()
+    //     {
+    //         string path = EditorUtility.SaveFilePanelInProject("Save Attack Skill Effect", "New Attack Skill Effect", "Asset", "Save Attack Skill Effect", "Assets/resources/Data/CharacterData/Skills/AttackSkillEffects");
+    //         if (path == "")
+    //             return;
+    //         AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<AttackSkillEffect>(), path);
+    //     }
+    // #endif
 }
 
