@@ -265,6 +265,29 @@ public class GridManager : Singleton<GridManager>
       // }
     }
   }
+  private float opacity = 1;
+  public void Update()
+  {
+    if (GameMaster.Instance.GetPlayerController() != null)
+    {
+      TileLocation charLoc = GameMaster.Instance.GetPlayerController().GetTileLocation();
+      LayerFloor layerFloor = layerFloors[charLoc.floorLayer];
+      int z = (int)GridManager.GetZOffsetForFloor(WorldObject.GetGameObjectLayerFromFloorLayer(charLoc.floorLayer));
+
+      for (int x = charLoc.tilemapCoordinates.x - 10; x <= charLoc.tilemapCoordinates.x + 10; x++)
+      {
+        for (int y = charLoc.tilemapCoordinates.y - 10; y <= charLoc.tilemapCoordinates.y + 10; y++)
+        {
+          // Debug.Log("x: " + x);
+          // Debug.Log("y: " + y);
+          if (layerFloor.groundTilemap.GetTile(new Vector3Int(x, y, 0)).name != "waffle") { return; }
+          layerFloor.groundTilemap.SetColor(new Vector3Int(x, y, 0), new Color(1, 0, 0, opacity));
+        }
+        opacity = Mathf.PingPong(Time.time, 1f);
+        // Debug.Log("opacity: " + opacity);
+      }
+    }
+  }
 
   public EnvironmentTileInfo ConstructAndSetEnvironmentTileInfo(TileLocation loc, Tilemap groundTilemap, Tilemap objectTilemap)
   {
