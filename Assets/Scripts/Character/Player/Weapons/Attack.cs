@@ -168,4 +168,28 @@ public class Attack
     //         CleanUp();
     //     }
     // }
+    public float GetCumulativeEffectiveWeaponRange()
+    {
+        float ownRange = 0;
+        float cur = ownRange;
+        foreach (WeaponActionGroup actionGroup in weaponActionGroups)
+        {
+            foreach (WeaponAction action in actionGroup.weaponActions)
+            {
+                if (action.type == WeaponActionType.Move)
+                {
+                    Debug.Log("found move with magnitude: " + action.magnitude);
+                    cur += action.magnitude;
+                    ownRange = Mathf.Max(cur, ownRange);
+                }
+            }
+        }
+        float childRange = 0;
+        if (objectToSpawn != null && objectToSpawn.attackData != null && spawnObjectOnDestruction)
+        {
+            childRange = objectToSpawn.weaponSize + objectToSpawn.attackData.GetCumulativeEffectiveWeaponRange();
+        }
+        Debug.Log("updated ownRange: " + ownRange);
+        return ownRange + childRange;
+    }
 }

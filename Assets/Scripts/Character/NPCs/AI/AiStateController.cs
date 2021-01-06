@@ -24,6 +24,12 @@ public class AiStateController : Character
     public float maxTargetDistanceFromSpawnPoint = 15;
     public float minDistanceFromPathNode = .15f;
 
+    [Tooltip("minDistanceToAttackBuffer * attack range = min distance at which we back up")]
+    public float minDistanceToAttackBuffer = .10f;
+
+    [Tooltip("attack range - (preferredAttackRangeBuffer * attack range) = max distance at which we will attack")]
+    public float preferredAttackRangeBuffer = .10f;
+
     public float minDistanceFromTarget;
 
     [HideInInspector] public Vector2 spawnLocation;
@@ -245,12 +251,13 @@ public class AiStateController : Character
     }
     public float GetMinPreferredAttackRange()
     {
-        return GetSelectedCharacterSkill().ai_preferredMinRange;
+        return GetAttackRange() * minDistanceToAttackBuffer;
     }
 
     public float GetMaxPreferredAttackRange()
     {
-        return GetAttackRange() - GetSelectedCharacterSkill().ai_preferredAttackRangeBuffer;
+        float attackRange = GetAttackRange();
+        return attackRange - attackRange * preferredAttackRangeBuffer;
     }
     public void WaitThenAttack()
     {

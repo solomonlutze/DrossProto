@@ -4,10 +4,10 @@ using UnityEngine;
 public class AggroAiAction : MoveAiAction
 {
 
+    public float basicAttackWeight = 1.0f;
+    public float powerAttackWeight = 1.0f;
     public override bool OnEntry(AiStateController controller)
     {
-        float basicAttackWeight = 1f;
-        float powerAttackWeight = 1f;
         float attackRoll = Random.Range(0f, basicAttackWeight + powerAttackWeight);
         if (attackRoll < basicAttackWeight)
         {

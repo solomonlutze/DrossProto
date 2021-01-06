@@ -6,6 +6,8 @@ using System.Collections.Generic;
 // in-world physical weapon object. This is what controls weapon movement during attacks.
 public class Weapon : MonoBehaviour
 {
+    [Tooltip("Used to determine weapon range. Use the primary transform of the weapon with the largest X size.")]
+    public Transform weaponBody;
     public Hitbox[] defaultHitboxes;
     Character owner;
     AttackSkillEffect owningEffect;
@@ -108,28 +110,32 @@ public class Weapon : MonoBehaviour
     // Return the overall effective weapon range for this weapon and any of its spawned objects
     // do you ever write code and just go "hm actually testing this will be awful so let's just...
     // ...hope it works"
-    public float GetCumulativeEffectiveWeaponRange(float rangeSoFar = 0)
-    {
-        float ownRange = rangeSoFar;
-        float cur = rangeSoFar;
-        foreach (WeaponActionGroup actionGroup in attack.weaponActionGroups)
-        {
-            foreach (WeaponAction action in actionGroup.weaponActions)
-            {
-                if (action.type == WeaponActionType.Move)
-                {
-                    cur += action.magnitude;
-                    ownRange = Mathf.Max(cur, ownRange);
-                }
-            }
-        }
-        float childRange = 0;
-        if (attack.objectToSpawn != null && attack.objectToSpawn.attackData != null && attack.spawnObjectOnDestruction)
-        {
-            childRange = attack.objectToSpawn.weaponSize + attack.objectToSpawn.weaponObject.GetCumulativeEffectiveWeaponRange();
-        }
-        return ownRange + childRange;
-    }
+    // public float GetCumulativeEffectiveWeaponRange(float rangeSoFar = 0)
+    // {
+    //     float ownRange = rangeSoFar;
+    //     float cur = rangeSoFar;
+    //     Debug.Log("rangeSoFar: " + rangeSoFar);
+    //     Debug.Log("rangeSoFar: " + rangeSoFar);
+    //     foreach (WeaponActionGroup actionGroup in attack.weaponActionGroups)
+    //     {
+    //         foreach (WeaponAction action in actionGroup.weaponActions)
+    //         {
+    //             if (action.type == WeaponActionType.Move)
+    //             {
+    //                 Debug.Log("found move with magnitude: " + action.magnitude);
+    //                 cur += action.magnitude;
+    //                 ownRange = Mathf.Max(cur, ownRange);
+    //             }
+    //         }
+    //     }
+    //     float childRange = 0;
+    //     if (attack.objectToSpawn != null && attack.objectToSpawn.attackData != null && attack.spawnObjectOnDestruction)
+    //     {
+    //         childRange = attack.objectToSpawn.weaponSize + attack.objectToSpawn.weaponObject.GetCumulativeEffectiveWeaponRange();
+    //     }
+    //     Debug.Log("updated ownRange: " + ownRange);
+    //     return ownRange + childRange;
+    // }
 
     public void OnContact(Collider2D col)
     {

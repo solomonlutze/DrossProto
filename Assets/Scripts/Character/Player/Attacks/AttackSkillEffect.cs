@@ -44,12 +44,9 @@ public class AttackSpawn
     {
         get
         {
-            if (weaponObject != null && weaponObject.GetComponentsInChildren<Hitbox>().Length > 0)
+            if (weaponObject?.weaponBody != null)
             {
-                if (weaponObject.GetComponentsInChildren<Hitbox>()[0].gameObject.GetComponent<BoxCollider2D>() != null)
-                {
-                    return weaponObject.GetComponentsInChildren<Hitbox>()[0].gameObject.GetComponent<BoxCollider2D>().bounds.size.x;
-                }
+                return weaponObject.weaponBody.localScale.x;
             }
             return 0f;
         }
@@ -98,7 +95,6 @@ public class AttackSkillEffect : SkillEffect
     {
         yield return new WaitForSeconds(weaponSpawn.delay);
         Quaternion rotationAngle = Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset, Vector3.forward);
-        Debug.Log("rotationAngle: " + rotationAngle);
         Weapon weaponInstance = GameObject.Instantiate(
           weaponSpawn.weaponObject,
           owner.weaponPivotRoot.position + (rotationAngle * new Vector3(weaponSpawn.range, 0, 0)),
@@ -112,10 +108,10 @@ public class AttackSkillEffect : SkillEffect
     public override float GetEffectiveRange()
     {
         List<float> weaponRanges = new List<float>();
-        foreach (AttackSpawn weapon in weaponSpawns)
+        foreach (AttackSpawn attackSpawn in weaponSpawns)
         {
-            Debug.Log("weapon size: " + weapon.weaponSize);
-            weaponRanges.Add(weapon.range + weapon.weaponSize + weapon.weaponObject.GetCumulativeEffectiveWeaponRange());
+            Debug.Log("weapon size: " + attackSpawn.weaponSize);
+            weaponRanges.Add(attackSpawn.range + attackSpawn.weaponSize + attackSpawn.attackData.GetCumulativeEffectiveWeaponRange());
         }
         return Mathf.Max(weaponRanges.ToArray());
     }
