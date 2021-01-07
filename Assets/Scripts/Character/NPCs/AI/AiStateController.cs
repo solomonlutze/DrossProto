@@ -255,6 +255,11 @@ public class AiStateController : Character
   {
     return GetAttackRange() * minDistanceToAttackBuffer;
   }
+  public float GetMaxPreferredAttackRange(AttackType attackType)
+  {
+    float attackRange = GetSkillDataForAttackType(attackType).GetEffectiveRange();
+    return attackRange - attackRange * preferredAttackRangeBuffer;
+  }
 
   public float GetMaxPreferredAttackRange()
   {
