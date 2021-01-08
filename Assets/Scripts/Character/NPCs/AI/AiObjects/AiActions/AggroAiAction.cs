@@ -8,6 +8,7 @@ public class AggroAiAction : MoveAiAction
     public float powerAttackWeight = 1.0f;
     public override bool OnEntry(AiStateController controller)
     {
+        base.OnEntry(controller);
         float attackRoll = Random.Range(0f, basicAttackWeight + powerAttackWeight);
         if (attackRoll < basicAttackWeight)
         {
