@@ -2,15 +2,15 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "PluggableAi/Decisions/TargetIsReachable")]
 public class TargetIsReachableAiDecision : AiDecision
 {
-    public override bool Decide(AiStateController controller)
+  public override bool Decide(AiStateController controller)
+  {
+
+    if (controller.CanReachObjectOfInterest() && controller.ObjectOfInterestWithinRangeOfSpawnPoint())
     {
-        Debug.Log("targetIsReachable decision");
-        if (controller.CanReachObjectOfInterest() && controller.ObjectOfInterestWithinRangeOfSpawnPoint())
-        {
-            return true;
-        }
-        controller.objectOfInterest = null;
-        return false;
+      return true;
     }
+    controller.objectOfInterest = null;
+    return false;
+  }
 
 }

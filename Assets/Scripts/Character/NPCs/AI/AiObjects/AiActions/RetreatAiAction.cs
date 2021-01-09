@@ -15,6 +15,7 @@ public class RetreatAiAction : MoveAiAction
 
   public override bool OnEntry(AiStateController controller)
   {
+    base.OnEntry(controller);
     Vector2 potentialOverrideDestination;
     float minRangeBuffer = .5f;
     Vector3 heading = controller.transform.position - controller.objectOfInterest.transform.position;

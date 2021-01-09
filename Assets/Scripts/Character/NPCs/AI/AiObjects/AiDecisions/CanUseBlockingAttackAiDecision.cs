@@ -1,20 +1,10 @@
 using UnityEngine;
-[CreateAssetMenu(menuName = "PluggableAi/Decisions/CanUseBlockingAttackAiDecision")]
-public class CanUseBlockingAttackAiDecision : AiDecision
+[CreateAssetMenu(menuName = "PluggableAi/Decisions/IsBlocking")]
+public class IsBlockingAiDecision : AiDecision
 {
-    public override bool Decide(AiStateController controller)
-    {
-        if (
-          controller.blocking
-          && controller.objectOfInterest != null
-          && Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetMaxPreferredAttackRange(AttackType.Blocking)
-          && controller.GetAngleToTarget() < controller.attackAngleInDegrees)
-        {
-            controller.selectedAttackType = AttackType.Blocking;
-            controller.WaitThenAttack();
-            return true;
-        }
-        return false;
-    }
+  public override bool Decide(AiStateController controller)
+  {
+    return controller.blocking;
+  }
 
 }

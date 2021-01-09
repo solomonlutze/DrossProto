@@ -39,10 +39,8 @@ public class CharacterSkillData : ScriptableObject
     {
       yield return new WaitForSeconds(warmup.duration);
     }
-    Debug.Log("using skill data " + name);
     foreach (SkillEffect effect in skillEffects)
     {
-      Debug.Log("activating skill effect?" + name);
       yield return effect.ActivateSkillEffect(owner);
     }
     yield return new WaitForSeconds(cooldown.duration);

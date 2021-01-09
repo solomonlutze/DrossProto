@@ -23,13 +23,22 @@ public class BlockAiAction : AiAction
         controller.blockTimer = Random.Range(minNonBlockTime, maxNonBlockTime);
       }
     }
-    
+
   }
 
 
   public override bool OnEntry(AiStateController controller)
   {
-    controller.blockTimer = Random.Range(minBlockTime, maxBlockTime);
+    if (Random.value < .5f)
+    {
+      controller.blocking = true;
+      controller.blockTimer = Random.Range(minBlockTime, maxBlockTime);
+    }
+    else
+    {
+      controller.blocking = false;
+      controller.blockTimer = Random.Range(minNonBlockTime, maxNonBlockTime);
+    }
     return true;
   }
 }
