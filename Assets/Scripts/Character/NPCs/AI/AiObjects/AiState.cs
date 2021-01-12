@@ -44,16 +44,22 @@ public class AiState : ScriptableObject
 
   public bool OnEntry(AiStateController controller)
   {
-    Debug.Log("state onEntry");
     foreach (AiAction action in actions)
     {
-      Debug.Log("calling onEntry for action " + action);
       if (!action.OnEntry(controller))
       {
         return false;
       }
     }
     return true;
+  }
 
+
+  public void OnExit(AiStateController controller)
+  {
+    foreach (AiAction action in actions)
+    {
+      action.OnExit(controller);
+    }
   }
 }

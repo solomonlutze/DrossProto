@@ -83,6 +83,7 @@ public class AiStateController : Character
     if (nextState != remainState)
     {
       timeSpentInState = 0f;
+      currentState.OnExit(this);
       currentState = nextState;
       //TODO: should we fall back if onEntry fails?
       currentState.OnEntry(this);
@@ -273,7 +274,14 @@ public class AiStateController : Character
     blocking = selectedAttackType == AttackType.Blocking; // block if using block attack, force unblock otherwise
     yield return new WaitForSeconds(Random.Range(0.4f, 1.1f));
     Debug.Log("using skill " + GetSelectedCharacterSkill());
-    UseSkill(GetSelectedCharacterSkill()); // todo: fix this????
+    if (selectedAttackType == AttackType.Critical)
+    {
+      StartCoroutine(UseCritAttack());
+    }
+    else
+    {
+      UseSkill(GetSelectedCharacterSkill()); // todo: fix this????
+    }
     waitingToAttack = false;
   }
 

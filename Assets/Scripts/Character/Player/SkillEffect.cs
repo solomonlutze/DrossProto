@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEditor;
 
 [System.Serializable]
@@ -34,5 +35,10 @@ public class SkillEffect
   public virtual float GetEffectiveRange()
   {
     return 0f;
+  }
+
+  public virtual List<SkillRangeInfo> CalculateRangeInfos()
+  {
+    return new List<SkillRangeInfo>();
   }
 }

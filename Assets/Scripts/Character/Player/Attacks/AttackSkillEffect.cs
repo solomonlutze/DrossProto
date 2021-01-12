@@ -115,6 +115,17 @@ public class AttackSkillEffect : SkillEffect
     return Mathf.Max(weaponRanges.ToArray());
   }
 
+  public override List<SkillRangeInfo> CalculateRangeInfos()
+  {
+    List<SkillRangeInfo> infos = new List<SkillRangeInfo>();
+    for (int i = 0; i < weaponSpawns.Length; i++)
+    {
+      SkillRangeInfo info = new SkillRangeInfo(weaponSpawns[i]);
+      infos.Add(weaponSpawns[i].attackData.GetAttackRangeInfo(ref info, info.maxRange, info.maxAngle));
+    }
+    return infos;
+  }
+
   // #if UNITY_EDITOR
   //     [MenuItem("Assets/Create/Skills/AttackSkillEffect")]
   //     public static void CreateAttackSkillEffect()

@@ -190,4 +190,33 @@ public class Attack
     }
     return ownRange + childRange;
   }
+
+  public SkillRangeInfo GetAttackRangeInfo(ref SkillRangeInfo info, float initialRange, float initialAngle)
+  {
+    float currentRange = initialRange;
+    float currentAngle = initialAngle;
+    foreach (WeaponActionGroup actionGroup in weaponActionGroups)
+    {
+      foreach (WeaponAction action in actionGroup.weaponActions)
+      {
+        if (action.type == WeaponActionType.Move)
+        {
+          currentRange += action.magnitude;
+          info.minRange = Mathf.Min(currentRange, info.minRange);
+          info.maxRange = Mathf.Max(currentRange, info.maxRange);
+        }
+        else if (action.type == WeaponActionType.RotateRelative)
+        {
+          currentAngle += action.magnitude;
+          info.minAngle = Mathf.Min(currentAngle, info.minAngle);
+          info.maxAngle = Mathf.Max(currentAngle, info.maxAngle);
+        }
+      }
+    }
+    if (objectToSpawn != null && objectToSpawn.attackData != null && spawnObjectOnDestruction)
+    {
+      objectToSpawn.attackData.GetAttackRangeInfo(ref info, objectToSpawn.weaponSize + currentRange, currentAngle);
+    }
+    return info;
+  }
 }
