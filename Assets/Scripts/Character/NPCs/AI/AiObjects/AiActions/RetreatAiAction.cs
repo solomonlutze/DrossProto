@@ -17,10 +17,9 @@ public class RetreatAiAction : MoveAiAction
   {
     base.OnEntry(controller);
     Vector2 potentialOverrideDestination;
-    float minRangeBuffer = .5f;
     Vector3 heading = controller.transform.position - controller.objectOfInterest.transform.position;
     Vector3 normalizedHeading = heading / heading.magnitude;
-    potentialOverrideDestination = normalizedHeading * (controller.GetMinPreferredAttackRange() + minRangeBuffer) + controller.transform.position;
+    potentialOverrideDestination = normalizedHeading * (controller.GetMinPreferredAttackRange()) + controller.transform.position;
     if (RetreatDestinationIsViable(controller, potentialOverrideDestination))
     {
       controller.SetOverrideDestination(potentialOverrideDestination, controller.currentFloor);

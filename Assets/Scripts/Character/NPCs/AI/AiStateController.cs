@@ -30,6 +30,12 @@ public class AiStateController : Character
   [Tooltip("attack range - (preferredAttackRangeBuffer * attack range) = max distance at which we will attack")]
   public float preferredAttackRangeBuffer = .10f;
 
+  [Tooltip("smallest, in degrees, an attack angle is allowed to be")]
+  public float minimumAttackAngle = 5f;
+
+  [Tooltip("attackAngle - (attackAngle * attackAngleBuffer) = max angle at which we will attack")]
+  public float attackAngleBuffer = .1f;
+
   public float minDistanceFromTarget;
   public float blockTimer = 0;
 
@@ -179,29 +185,6 @@ public class AiStateController : Character
 
   public void SetPathToTarget(List<Node> newPath)
   {
-    // if (newPath != null && newPath.Count > 1)
-    // {
-
-    //   // Debug.Log("new path first node: " + newPath[0].loc.tilemapCoordinates);
-    //   // Debug.Log("current loc: " + GetTileLocation().tilemapCoordinates);
-    //   // GridManager.Instance.DEBUGHighlightTile(newPath[0].loc);
-    //   // GridManager.Instance.DEBUGHighlightTile(GetTileLocation(), Color.blue);
-    // }
-    // if (pathToTarget != null && pathToTarget.Count > 0 // if we already have a path to the target...
-    // && newPath != null && newPath.Count > 1 && newPath[0].loc == GetTileLocation())
-    // {
-    //   Debug.Log("new path starts with current tile!");
-    // }
-    // if (pathToTarget != null && pathToTarget.Count > 0 // if we already have a path to the target...
-    // && newPath != null && newPath.Count > 1 && newPath[0].loc == GetTileLocation()// and our current tile is the first tile in our new path...
-    // && pathToTarget[0].loc == newPath[1].loc // and our current path's first tile is the SECOND tile in our new path...
-    // )
-    // {
-    //   Debug.Log("We already did the first tile in this path! Removing it!");
-    //   newPath.RemoveAt(0);
-    // }
-
-
     // we should drop the first tile from our new path
     pathToTarget = newPath;
   }
@@ -227,7 +210,6 @@ public class AiStateController : Character
   public void StartCalculatingPath(TileLocation targetLocation, MoveAiAction initiatingAction, WorldObject potentialObjectOfInterest = null)
   {
     if (isCalculatingPath || DEBUGStopRecalculatingPath) { return; }
-    // Debug.Log("startCalculatingPath");
     StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, initiatingAction, potentialObjectOfInterest));
   }
 
@@ -249,20 +231,86 @@ public class AiStateController : Character
       && maxTargetDistanceFromSpawnPoint * maxTargetDistanceFromSpawnPoint > ((Vector2)objectOfInterest.transform.position - spawnLocation).sqrMagnitude;
   }
 
+  // public float GetMinPreferredAttackRange()
+  // {
+  //   return GetAttackRange() * minDistanceToAttackBuffer;
+  // }
+  // public float GetMaxPreferredAttackRange(AttackType attackType)
+  // {
+  //   float attackRange = GetSkillDataForAttackType(attackType).GetEffectiveRange();
+  //   return attackRange - attackRange * preferredAttackRangeBuffer;
+  // }
+
+  // public float GetMaxPreferredAttackRange()
+  // {
+  //   float attackRange = GetAttackRange();
+  //   return attackRange - attackRange * preferredAttackRangeBuffer;
+  // }
+
   public float GetMinPreferredAttackRange()
   {
-    return GetAttackRange() * minDistanceToAttackBuffer;
-  }
-  public float GetMaxPreferredAttackRange(AttackType attackType)
-  {
-    float attackRange = GetSkillDataForAttackType(attackType).GetEffectiveRange();
-    return attackRange - attackRange * preferredAttackRangeBuffer;
+    float overallMin = 1000f;
+    foreach (SkillRangeInfo range in GetAttackRangeInfo())
+    {
+      float min = range.minRange;
+      min += (range.maxRange - min) * minDistanceToAttackBuffer;
+      overallMin = Mathf.Min(min, overallMin);
+    }
+    return overallMin;
   }
 
-  public float GetMaxPreferredAttackRange()
+  public bool TooCloseToTarget(WorldObject target)
   {
-    float attackRange = GetAttackRange();
-    return attackRange - attackRange * preferredAttackRangeBuffer;
+    foreach (SkillRangeInfo range in GetAttackRangeInfo())
+    {
+      float min = range.minRange;
+      min += (range.maxRange - min) * minDistanceToAttackBuffer;
+      if ((transform.position - target.transform.position).sqrMagnitude < min * min
+      )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+  public bool WithinAttackRange(WorldObject target)
+  {
+    foreach (SkillRangeInfo range in GetAttackRangeInfo())
+    {
+      float min = range.minRange;
+      float max = range.maxRange;
+      max -= (max - min) * preferredAttackRangeBuffer;
+      min += (max - min) * minDistanceToAttackBuffer;
+      if ((transform.position - target.transform.position).sqrMagnitude <= max * max
+        && (transform.position - target.transform.position).sqrMagnitude >= min * min
+      )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public bool WithinAttackAngle()
+  {
+    foreach (SkillRangeInfo range in GetAttackRangeInfo())
+    {
+      float min = range.minAngle;
+      float max = range.maxAngle;
+      if (max - min < minimumAttackAngle)
+      {
+        float d = minimumAttackAngle - (max - min);
+        min -= d / 2;
+        max += d / 2;
+      }
+      if (GetAngleToTarget() >= min && GetAngleToTarget() <= max)
+      {
+        return true;
+      }
+    }
+    return false;
   }
   public void WaitThenAttack()
   {
@@ -273,7 +321,6 @@ public class AiStateController : Character
   {
     blocking = selectedAttackType == AttackType.Blocking; // block if using block attack, force unblock otherwise
     yield return new WaitForSeconds(Random.Range(0.4f, 1.1f));
-    Debug.Log("using skill " + GetSelectedCharacterSkill());
     if (selectedAttackType == AttackType.Critical)
     {
       StartCoroutine(UseCritAttack());

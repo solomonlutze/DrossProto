@@ -2,16 +2,17 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "PluggableAi/Decisions/TooCloseToTarget")]
 public class TooCloseToTargetAiDecision : AiDecision
 {
-    public override bool Decide(AiStateController controller)
-    {
-        if (
-          controller.objectOfInterest != null
-          && Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetMinPreferredAttackRange()
+  public override bool Decide(AiStateController controller)
+  {
+    if (
+      controller.objectOfInterest != null
+      && controller.TooCloseToTarget(controller.objectOfInterest)
         )
-        {
-            return true;
-        }
-        return false;
+    {
+      Debug.Log("Too close to target!");
+      return true;
     }
+    return false;
+  }
 
 }

@@ -580,6 +580,16 @@ public class Character : WorldObject
     return GetSelectedCharacterSkill().GetEffectiveRange();
   }
 
+  public SkillRangeInfo[] GetAttackRangeInfo(AttackType attack)
+  {
+    return GetSkillDataForAttackType(attack).skillRangeInfo;
+  }
+
+  public SkillRangeInfo[] GetAttackRangeInfo()
+  {
+    return GetSelectedCharacterSkill().skillRangeInfo;
+  }
+
   public int GetAttackRadiusInDegrees(int skillIdxForAttack)
   {
     Debug.LogError("Something's trying to get attack radius in degrees. Time to implement it?");
@@ -625,7 +635,9 @@ public class Character : WorldObject
       return;
     }
     Quaternion targetDirection = GetTargetDirection();
-    orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
+    // orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
+    orientation.rotation = Quaternion.RotateTowards(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
+    // Debug.Log("rotation: " + orientation.rotation.eulerAngles + ", targetDirection: " + targetDirection.eulerAngles);
   }
 
   // Rotate character smoothly towards a particular orientation around the Z axis.
