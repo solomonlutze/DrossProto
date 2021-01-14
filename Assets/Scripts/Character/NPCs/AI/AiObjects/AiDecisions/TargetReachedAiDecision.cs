@@ -10,7 +10,6 @@ public class TargetReachedAiDecision : AiDecision
     {
       if (Vector3.Distance(controller.overrideDestination.transform.position, controller.transform.position) < minDistanceFromTarget)
       {
-        Debug.Log("target reached - unsetting override destination");
         controller.overrideDestination = null;
         return true;
       }
@@ -19,7 +18,6 @@ public class TargetReachedAiDecision : AiDecision
     {
       if (Vector3.Distance(controller.wanderDestination.transform.position, controller.transform.position) < minDistanceFromTarget)
       {
-        Debug.Log("target reached - unsetting wander destination");
         controller.wanderDestination = null;
         return true;
       }

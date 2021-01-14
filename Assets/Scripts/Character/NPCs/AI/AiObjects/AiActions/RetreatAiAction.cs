@@ -30,7 +30,7 @@ public class RetreatAiAction : MoveAiAction
 
   bool RetreatDestinationIsViable(AiStateController controller, Vector2 potentialOverridePosition)
   {
-    bool lineToTargetIsClear = PathfindingSystem.Instance.IsPathClearOfHazards_SquareGrid(
+    bool lineToTargetIsClear = PathfindingSystem.Instance.IsPathClearOfHazards(
           potentialOverridePosition,
           controller.GetFloorLayer(),
           controller

@@ -9,7 +9,6 @@ public class TooCloseToTargetAiDecision : AiDecision
       && controller.TooCloseToTarget(controller.objectOfInterest)
         )
     {
-      Debug.Log("Too close to target!");
       return true;
     }
     return false;
