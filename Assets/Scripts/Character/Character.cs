@@ -738,15 +738,6 @@ public class Character : WorldObject
     return chargeAttackTime > 0;
   }
 
-  // protected bool CanDash()
-  // {
-  //   Debug.Log("GetCharacterVital(CharacterVital.RemainingStamina)" + GetCharacterVital(CharacterVital.RemainingStamina));
-  //   Debug.Log("dashProgress " + dashProgress);
-  //   Debug.Log("flying " + flying);
-  //   Debug.Log("CanMove(overrideDashCheck: true) " + CanMove(overrideDashCheck: true));
-  //   return GetCharacterVital(CharacterVital.RemainingStamina) > 0 && dashProgress <= 0 && !flying && CanMove(overrideDashCheck: true);
-  // }
-
   protected void Dash()
   {
     BeginDash();

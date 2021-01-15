@@ -26,7 +26,6 @@ public class BlockAiAction : AiAction
 
   }
 
-
   public override bool OnEntry(AiStateController controller)
   {
     if (Random.value < .5f)
@@ -40,5 +39,10 @@ public class BlockAiAction : AiAction
       controller.blockTimer = Random.Range(minNonBlockTime, maxNonBlockTime);
     }
     return true;
+  }
+
+  public override void OnExit(AiStateController controller)
+  {
+    controller.blocking = false;
   }
 }
