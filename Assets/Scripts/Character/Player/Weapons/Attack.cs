@@ -210,16 +210,6 @@ public class Attack
           currentAngle += action.magnitude;
           info.minAngle = Mathf.Min(currentAngle, info.minAngle);
           info.maxAngle = Mathf.Max(currentAngle, info.maxAngle);
-          if (info.maxAngle > 360)
-          {
-            info.minAngle -= 360f;
-            info.maxAngle -= 360f;
-          }
-          else if (info.minAngle < -360)
-          {
-            info.minAngle += 360f;
-            info.maxAngle += 360f;
-          }
         }
       }
     }

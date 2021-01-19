@@ -25,7 +25,6 @@ public class CarapaceBar : MonoBehaviour
   {
     get
     {
-      Debug.Log("carapaceBarEmpty " + carapaceBarEmpty);
       return carapaceBarEmpty == null ? null : carapaceBarEmpty.GetComponent<Image>();
     }
   }

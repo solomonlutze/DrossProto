@@ -10,7 +10,8 @@ public class WithinAttackRangeAiDecision : AiDecision
       controller.objectOfInterest != null
       && controller.WithinAttackRange(controller.objectOfInterest)
       // && Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetMaxPreferredAttackRange()
-      && controller.WithinAttackAngle())
+      && controller.WithinAttackAngle()
+      && !controller.dashing)
     {
       controller.WaitThenAttack();
       return true;

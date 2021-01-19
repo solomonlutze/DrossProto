@@ -297,22 +297,44 @@ public class AiStateController : Character
   {
     foreach (SkillRangeInfo range in GetAttackRangeInfo())
     {
+      // if (selectedAttackType == AttackType.Critical)
+      // {
+      //   return true; // we auto-line up for crits 
+      // }
       float min = range.minAngle;
       float max = range.maxAngle;
-      if (max - min < minimumAttackAngle)
+      if (Mathf.Abs(max - min) < minimumAttackAngle)
       {
         float d = minimumAttackAngle - (max - min);
         min -= d / 2;
         max += d / 2;
       }
-      if (GetAngleToTarget() >= min && GetAngleToTarget() <= max)
+      // —if abs(max - min) > 360, return true
+
+      // —elif max > 180
+      // —- true if angle between (min and 180) or (-180 and (max - 360)) 
+
+      // —elif min < -180
+      // —- true if angle between ((min + 360) and 180) or (-180 and max) 
+
+      // —else true if angle between min and max
+      // remember: angle to target always >= -180 and <= 180
+      if (Mathf.Abs(max - min) > 360f)
+      {
+        return true; // full circle swings are always in angle
+      }
+      else if (max > 180f)
+      {
+        return GetAngleToTarget() >= min || max - 360 > GetAngleToTarget();
+      }
+      else if (min < -180f)
+      {
+        return GetAngleToTarget() >= min + 360 || max > GetAngleToTarget();
+      }
+      else if (GetAngleToTarget() >= min && GetAngleToTarget() <= max)
       {
         return true;
       }
-    }
-    if (selectedAttackType == AttackType.Critical)
-    {
-      Debug.Log("withinATtackAngle false");
     }
     return false;
   }
