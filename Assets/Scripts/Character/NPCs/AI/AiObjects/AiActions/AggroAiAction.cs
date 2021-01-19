@@ -35,7 +35,7 @@ public class AggroAiAction : MoveAiAction
       controller.selectedAttackType = AttackType.Critical;
     }
     Debug.Log("selected attack " + controller.selectedAttackType);
-    Debug.Break();
+    // Debug.Break();
     return true;
   }
 

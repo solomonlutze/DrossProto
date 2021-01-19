@@ -156,7 +156,8 @@ public class CustomPhysicsController : MonoBehaviour
         yMove = CalculateCollisionForAxis(yMove);
       }
       desiredMovement.y = yMove.y;
-      transform.position += new Vector3(desiredMovement.x, desiredMovement.y, 0);
+      rb.MovePosition(rb.position + desiredMovement);
+      // transform.position += new Vector3(desiredMovement.x, desiredMovement.y, 0);
       // desiredMovement = ((movementInput.normalized * moveAcceleration + orientedAnimationInput)) * Time.deltaTime;
     }
     else
@@ -177,7 +178,8 @@ public class CustomPhysicsController : MonoBehaviour
       }
       velocity.y = yMove.y;
       if (velocity.magnitude < velocityMin) { velocity = Vector2.zero; }
-      transform.position += new Vector3(velocity.x, velocity.y, 0);
+      // transform.position += new Vector3(velocity.x, velocity.y, 0);
+      rb.MovePosition(rb.position + velocity);
     }
   }
 
