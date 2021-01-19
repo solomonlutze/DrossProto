@@ -525,7 +525,7 @@ public class Character : WorldObject
 
   public IEnumerator UseCritAttack()
   {
-    Debug.Log("inside useCritAttack");
+    // Debug.Log("inside useCritAttack");
     Character victim = critTarget;
     victim.SetIsCritVictimOf(this);
     usingCrit = true;
@@ -982,7 +982,7 @@ public class Character : WorldObject
     }
     characterVisuals.DamageFlash(damageFlashColor);
     InterruptAnimation();
-    Debug.Log("taking " + damageToHealth + " damage");
+    // Debug.Log("taking " + damageToHealth + " damage");
     AdjustCurrentHealth(Mathf.Floor(-damageToHealth), damageSource.isNonlethal);
     StartCoroutine(ApplyInvulnerability(damageSource));
     Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
@@ -1061,10 +1061,10 @@ public class Character : WorldObject
   IEnumerator ApplyCarapaceBreak(float carapaceBreakDuration)
   {
     carapaceBroken = true;
-    Debug.Log("Carapace broken!!");
+    // Debug.Log("Carapace broken!!");
     yield return new WaitForSeconds(carapaceBreakDuration);
     carapaceBroken = false;
-    Debug.Log("Carapace restored!!");
+    // Debug.Log("Carapace restored!!");
   }
 
   // End current attack/attack animation/combo and reset us to idle.
@@ -1270,7 +1270,7 @@ public class Character : WorldObject
   //VITALS GETTERS/SETTERS
   public void AdjustCurrentHealth(float adjustment, bool isNonlethal = false)
   {
-    Debug.Log("Adjusting current health - nonlethal: " + isNonlethal);
+    // Debug.Log("Adjusting current health - nonlethal: " + isNonlethal);
     vitals[CharacterVital.CurrentHealth] =
       Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, isNonlethal ? 1 : 0, GetCurrentMaxHealth());
   }
@@ -1309,7 +1309,7 @@ public class Character : WorldObject
 
   public void UseTile()
   {
-    Debug.Log("using tile");
+    // Debug.Log("using tile");
     EnvironmentTileInfo et = GridManager.Instance.GetTileAtLocation(currentTileLocation);
     if (et.ChangesFloorLayer())
     {
