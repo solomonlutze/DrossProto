@@ -917,6 +917,7 @@ public class Character : WorldObject
       || stunned
       || carapaceBroken
       || IsDashingOrRecovering()
+      || IsInKnockback()
       || usingSkill
       || animationPreventsMoving
     )
@@ -934,6 +935,7 @@ public class Character : WorldObject
       || stunned
       || carapaceBroken
       || IsDashing()
+      || IsInKnockback()
       || usingSkill
       || animationPreventsMoving // I guess?
       || GetCharacterVital(CharacterVital.RemainingStamina) < 0
@@ -952,6 +954,7 @@ public class Character : WorldObject
       || stunned
       || carapaceBroken
       || IsDashing()
+      || IsInKnockback()
       || usingSkill
       || animationPreventsMoving // I guess?
     )
@@ -969,6 +972,7 @@ public class Character : WorldObject
       || descending
       || stunned
       || carapaceBroken
+      || IsInKnockback()
       || usingSkill
       || animationPreventsMoving // I guess?
     )
