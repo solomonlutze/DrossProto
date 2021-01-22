@@ -32,7 +32,7 @@ public class GameMaster : Singleton<GameMaster>
   // Use this for initialization
   void Start()
   {
-    Debug.unityLogger.logEnabled = false;
+    // Debug.unityLogger.logEnabled = false;
     pathfinding = GetComponent<PathfindingSystem>();
     SetGameStatus(startingGameStatus);
     switch (GetGameStatus())

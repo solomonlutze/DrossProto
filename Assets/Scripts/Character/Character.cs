@@ -262,6 +262,7 @@ public class Character : WorldObject
   public float easedDashProgressIncrement = 0.0f;
   public bool inKnockback = false;
   public float knockbackAmount = 0.0f;
+  public Vector2 knockbackHeading = Vector3.zero;
   public float knockbackProgress = 0.0f;
   public float easedKnockbackProgressIncrement = 0.0f;
   public float dashRecoveryTimer = 0.0f;
@@ -452,6 +453,7 @@ public class Character : WorldObject
   protected virtual void FixedUpdate()
   {
     HandleDashCooldown(); // it's different ok
+    HandleKnockbackCooldown(); // it's different ok
     CalculateMovement();
   }
 
@@ -690,7 +692,11 @@ public class Character : WorldObject
         timeStandingStill = 0f;
       }
     }
-    if (IsDashing())
+    if (IsInKnockback())
+    {
+      po.SetMovementInput(knockbackHeading);
+    }
+    else if (IsDashing())
     {
       po.SetMovementInput(orientation.rotation * new Vector3(1, 0, 0));
     }
@@ -731,7 +737,14 @@ public class Character : WorldObject
   {
     return dashing;
   }
-
+  public bool IsInKnockback()
+  {
+    return knockbackAmount > 0;
+  }
+  public bool IsDashingOrInKnockback()
+  {
+    return IsDashing() || IsInKnockback();
+  }
   public bool IsRecoveringFromDash()
   {
     return dashRecoveryTimer > 0;
@@ -773,30 +786,48 @@ public class Character : WorldObject
     dashRecoveryTimer = GetStat(CharacterStat.DashRecoveryDuration);
   }
 
-  public void Knockback()
+  protected void BeginKnockback(Vector3 knockbackMagnitude)
   {
-    BeginKnockback();
-  }
-
-  protected void BeginKnockback()
-  {
-    inKnockback = true;
+    EndDash();
+    knockbackAmount = knockbackMagnitude.magnitude;
+    knockbackHeading = knockbackMagnitude.normalized;
   }
   public float GetEasedKnockbackProgress()
   {
-    return Easing.Quadratic.Out(knockbackProgress / knockbackAmount);
+    return Easing.Quadratic.Out(knockbackProgress / GetKnockbackDuration());
+  }
+
+  public float GetKnockbackDuration()
+  {
+    return defaultCharacterData.knockbackRate * knockbackAmount;
   }
 
   public float GetEasedKnockbackProgressIncrement()
   {
     return easedKnockbackProgressIncrement;
   }
+
+  public float GetEasedMovementProgressIncrement()
+  {
+    if (IsInKnockback())
+    {
+      return easedKnockbackProgressIncrement;
+    }
+    else if (IsDashing())
+    {
+      return easedDashProgressIncrement;
+    }
+    else
+    {
+      Debug.LogError("Trying to get movement progress increment when neither dashing or knocked back - mods???");
+      return 0;
+    }
+  }
   protected void EndKnockback()
   {
-    dashing = false;
-    easedDashProgressIncrement = 0;
-    dashProgress = 0;
-    dashRecoveryTimer = GetStat(CharacterStat.DashRecoveryDuration);
+    knockbackAmount = 0;
+    easedKnockbackProgressIncrement = 0;
+    knockbackProgress = 0;
   }
 
   protected void Fly()
@@ -1014,7 +1045,7 @@ public class Character : WorldObject
     Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
     if (knockback != Vector3.zero)
     {
-      po.ApplyImpulseForce(knockback);
+      BeginKnockback(knockback);
     }
   }
 
@@ -1640,14 +1671,14 @@ public class Character : WorldObject
   public void HandleKnockbackCooldown()
   {
     //Consumed by physics so needs to happen in fixedupdate. Might still suck?
-    if (inKnockback)
+    if (knockbackAmount > 0)
     {
       float oldEasedKnockbackProgress = GetEasedKnockbackProgress();
       knockbackProgress += Time.deltaTime;
       float newEasedKnockbackProgress = GetEasedKnockbackProgress();
-      if (knockbackProgress >= knockbackAmount)
+      if (knockbackProgress >= GetKnockbackDuration())
       {
-        knockbackProgress = knockbackAmount;
+        knockbackProgress = GetKnockbackDuration();
         newEasedKnockbackProgress = GetEasedKnockbackProgress();
         EndKnockback();
       }

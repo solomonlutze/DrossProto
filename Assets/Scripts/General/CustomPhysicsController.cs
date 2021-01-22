@@ -141,9 +141,9 @@ public class CustomPhysicsController : MonoBehaviour
 
     // maxVelocity = moveAcceleration - drag * Time.deltaTime;
     Vector2 desiredMovement;
-    if (owningCharacter.IsDashing()) // Ignore velocity + drag; move manually
+    if (owningCharacter.IsDashingOrInKnockback()) // Ignore velocity + drag; move manually
     {
-      desiredMovement = (movementInput.normalized * owningCharacter.GetEasedDashProgressIncrement());
+      desiredMovement = (movementInput.normalized * owningCharacter.GetEasedMovementProgressIncrement());
       Vector2 xMove = new Vector2(desiredMovement.x, 0);
       if (!ignoreCollisionPhysics)
       {

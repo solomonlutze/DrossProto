@@ -16,6 +16,9 @@ public class CharacterData : ScriptableObject
   public List<CharacterMovementAbility> movementAbilities;
   public CharacterAttributeToScriptableObjectDictionary attributeDatas;
 
+  [Tooltip("Time it takes to move 1 unit while being knocked back.")]
+  public float knockbackRate;
+
   public void Awake()
   {
     if (defaultStats == null)

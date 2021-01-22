@@ -5,148 +5,145 @@ using UnityEngine;
 
 public class Hitbox : MonoBehaviour, IDamageSource
 {
-    AttackSkillEffect attackSkillEffect;
-    Character owner;
+  AttackSkillEffect attackSkillEffect;
+  Character owner;
 
-    protected DamageInfo damageInfo;
-    protected string _sourceString = "";
-    public string sourceString
+  protected DamageInfo damageInfo;
+  protected string _sourceString = "";
+  public string sourceString
+  {
+    get
     {
-        get
-        {
-            if (_sourceString == "")
-            {
-                _sourceString = Guid.NewGuid().ToString("N").Substring(0, 15);
-            }
-            return _sourceString;
-        }
+      if (_sourceString == "")
+      {
+        _sourceString = Guid.NewGuid().ToString("N").Substring(0, 15);
+      }
+      return _sourceString;
     }
+  }
 
-    public void Init(Character ch, DamageInfo di)
-    {
-        owner = ch;
-        damageInfo = di;
-    }
+  public void Init(Character ch, DamageInfo di)
+  {
+    owner = ch;
+    damageInfo = di;
+  }
 
-    public void Init(Character ch)
-    {
-        owner = ch;
-    }
+  public void Init(Character ch)
+  {
+    owner = ch;
+  }
 
 
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        other.gameObject.SendMessage("TakeDamage", this, SendMessageOptions.DontRequireReceiver);
-    }
+  private void OnTriggerEnter2D(Collider2D other)
+  {
+    other.gameObject.SendMessage("TakeDamage", this, SendMessageOptions.DontRequireReceiver);
+  }
 
-    public bool IsOwnedBy(Character c)
-    {
-        return c == owner;
-    }
+  public bool IsOwnedBy(Character c)
+  {
+    return c == owner;
+  }
 
-    public bool IsSameOwnerType(Character c)
-    {
-        return owner && owner.characterType == c.characterType;
-    }
+  public bool IsSameOwnerType(Character c)
+  {
+    return owner && owner.characterType == c.characterType;
+  }
 
-    public int damageAmount
+  public int damageAmount
+  {
+    get
     {
-        get
-        {
-            return damageInfo.damageAmount;
-            // return attack_old.GetDamageAmount(character);
-        }
+      return damageInfo.damageAmount;
+      // return attack_old.GetDamageAmount(character);
     }
+  }
 
-    public DamageType damageType
+  public DamageType damageType
+  {
+    get
     {
-        get
-        {
-            return damageInfo.damageType;
-            // return attack_old.GetDamageType(character);
-        }
+      return damageInfo.damageType;
+      // return attack_old.GetDamageType(character);
     }
+  }
 
-    public float stunMagnitude
+  public float stunMagnitude
+  {
+    get
     {
-        get
-        {
-            return damageInfo.stun;
-            // return attack_old.GetStun(character);
-        }
+      return damageInfo.stun;
+      // return attack_old.GetStun(character);
     }
+  }
 
-    public bool ignoresInvulnerability
+  public bool ignoresInvulnerability
+  {
+    get
     {
-        get
-        {
-            return damageInfo.ignoreInvulnerability;
-            // return attack_old.IgnoresInvulnerability();
-        }
+      return damageInfo.ignoreInvulnerability;
+      // return attack_old.IgnoresInvulnerability();
     }
+  }
 
-    public bool isNonlethal
+  public bool isNonlethal
+  {
+    get
     {
-        get
-        {
-            return damageInfo.isNonlethal;
-        }
+      return damageInfo.isNonlethal;
     }
+  }
 
-    public bool isCritAttack
+  public bool isCritAttack
+  {
+    get
     {
-        get
-        {
-            return damageInfo.isCritAttack;
-        }
+      return damageInfo.isCritAttack;
     }
-    
-    public float invulnerabilityWindow
-    {
-        get
-        {
-            return damageInfo.invulnerabilityWindow;
-        }
-    }
+  }
 
-    public Vector3 GetKnockbackForCharacter(Character c)
+  public float invulnerabilityWindow
+  {
+    get
     {
-        Debug.Log("damageInfo: " + damageInfo);
-        Debug.Log("transform: " + transform);
-        Debug.Log("owner: " + owner);
-        return damageInfo.knockback
-          * (transform.position - owner.transform.position);
-        // return attack_old.GetKnockback(character, this);
+      return damageInfo.invulnerabilityWindow;
     }
+  }
 
-    public bool forcesItemDrop
-    {
-        get
-        {
-            return damageInfo.forcesItemDrop;
-        }
-    }
+  public Vector3 GetKnockbackForCharacter(Character c)
+  {
+    return damageInfo.knockback
+      * ((transform.position - owner.transform.position).normalized);
+    // return attack_old.GetKnockback(character, this);
+  }
 
-    public float CalculateDamageAfterResistances(Character c)
+  public bool forcesItemDrop
+  {
+    get
     {
-        if (c != null)
-        {
-            return ((1 - GetDamageTypeResistancePercent(c) / 100) * damageAmount);
-        }
-        return 0;
+      return damageInfo.forcesItemDrop;
     }
+  }
 
-    protected float GetDamageTypeResistancePercent(Character c)
+  public float CalculateDamageAfterResistances(Character c)
+  {
+    if (c != null)
     {
-        return 34 * c.GetDamageTypeResistanceLevel(damageType); // TODO: get rid of magic number!! build it into resistance tiers maybe?
+      return ((1 - GetDamageTypeResistancePercent(c) / 100) * damageAmount);
     }
+    return 0;
+  }
 
-    public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage
+  protected float GetDamageTypeResistancePercent(Character c)
+  {
+    return 34 * c.GetDamageTypeResistanceLevel(damageType); // TODO: get rid of magic number!! build it into resistance tiers maybe?
+  }
+
+  public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage
+  {
+    get
     {
-        get
-        {
-            return new List<CharacterMovementAbility>();
-        }
+      return new List<CharacterMovementAbility>();
     }
+  }
 
 }
