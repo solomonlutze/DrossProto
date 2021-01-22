@@ -260,6 +260,10 @@ public class Character : WorldObject
   public bool dashing = false;
   public float dashProgress = 0.0f;
   public float easedDashProgressIncrement = 0.0f;
+  public bool inKnockback = false;
+  public float knockbackAmount = 0.0f;
+  public float knockbackProgress = 0.0f;
+  public float easedKnockbackProgressIncrement = 0.0f;
   public float dashRecoveryTimer = 0.0f;
   protected bool stunned = false;
   public bool carapaceBroken = false;
@@ -760,13 +764,35 @@ public class Character : WorldObject
     return easedDashProgressIncrement;
   }
 
+
   protected void EndDash()
   {
-    // Vector3 distanceV = orientation.rotation * Vector3.right * GetStat(CharacterStat.DashAcceleration) - (orientation.rotation * Vector3.right * GetStat(CharacterStat.DashAcceleration)) * GetStat(CharacterStat.DashDuration);
+    dashing = false;
+    easedDashProgressIncrement = 0;
+    dashProgress = 0;
+    dashRecoveryTimer = GetStat(CharacterStat.DashRecoveryDuration);
+  }
 
-    // Debug.Log("Done dashing - distance was " + Vector3.Distance(dashStartPoint, transform.position));
-    // Debug.Log("Estimated dash distance is " + distanceV.magnitude);
+  public void Knockback()
+  {
+    BeginKnockback();
+  }
 
+  protected void BeginKnockback()
+  {
+    inKnockback = true;
+  }
+  public float GetEasedKnockbackProgress()
+  {
+    return Easing.Quadratic.Out(knockbackProgress / knockbackAmount);
+  }
+
+  public float GetEasedKnockbackProgressIncrement()
+  {
+    return easedKnockbackProgressIncrement;
+  }
+  protected void EndKnockback()
+  {
     dashing = false;
     easedDashProgressIncrement = 0;
     dashProgress = 0;
@@ -1608,6 +1634,24 @@ public class Character : WorldObject
         EndDash();
       }
       easedDashProgressIncrement = (newEasedDashProgress - oldEasedDashProgress) * GetStat(CharacterStat.DashDistance); // kill me a little
+    }
+  }
+
+  public void HandleKnockbackCooldown()
+  {
+    //Consumed by physics so needs to happen in fixedupdate. Might still suck?
+    if (inKnockback)
+    {
+      float oldEasedKnockbackProgress = GetEasedKnockbackProgress();
+      knockbackProgress += Time.deltaTime;
+      float newEasedKnockbackProgress = GetEasedKnockbackProgress();
+      if (knockbackProgress >= knockbackAmount)
+      {
+        knockbackProgress = knockbackAmount;
+        newEasedKnockbackProgress = GetEasedKnockbackProgress();
+        EndKnockback();
+      }
+      easedKnockbackProgressIncrement = (newEasedKnockbackProgress - oldEasedKnockbackProgress) * knockbackAmount; // kill me a little
     }
   }
 
