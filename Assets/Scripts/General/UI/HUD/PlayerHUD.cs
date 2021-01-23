@@ -42,27 +42,10 @@ public class PlayerHUD : MonoBehaviour
     {
       healthBar.character = playerController; //todo: anywhere but update please!
       carapaceBar.character = playerController;
-      // healthFieldText.text = "Health: ";
-      // healthValueText.text = Mathf.Max(Mathf.RoundToInt(playerController.GetCharacterVital(CharacterVital.CurrentHealth)), 0).ToString();
-      // maxHealthValueText.text = Mathf.Round(playerController.GetMaxHealth()).ToString();
       if (playerController.GetCharacterVital(CharacterVital.CurrentHealth) > 0)
       {
         diedText.text = " ";
       }
-      // if (playerController.lastActivatedTrait != null && playerController.lastActivatedTrait != "")
-      // {
-      //   activatedAbilityText.text = playerController.lastActivatedTrait + " Activated!";
-      // }
-      // if (playerController.GetSelectedCharacterSkill() != null)
-      // {
-      //   selectedSkillText.text = playerController.GetSelectedCharacterSkill().displayName;
-      // }
-      // else
-      // {
-      //   activatedAbilityText.text = " ";
-      // }
-      // skill1ValueText.text = playerController.skill1 ? playerController.skill1.GetTraitName() : "[None]";
-      // skill2ValueText.text = playerController.skill2 ? playerController.skill2.GetTraitName() : "[None]";
     }
     else
     { //  You Died, presumably

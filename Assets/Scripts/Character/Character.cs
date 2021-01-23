@@ -510,6 +510,7 @@ public class Character : WorldObject
   }
   public void UseSkill(CharacterSkillData skill, bool skipWarmup = false)
   {
+    Debug.Log("using skill " + skill);
     if (skill != null && !usingSkill)
     {
       // if (skillCoroutine == null)
