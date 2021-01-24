@@ -128,7 +128,7 @@ public class MoveAiAction : AiAction
   // Should be used with TargetIsReachable to fall out of state if target can't be reached.
   public override bool OnEntry(AiStateController controller)
   {
-    Debug.Log("moveAiAction onEntry");
+    // Debug.Log("moveAiAction onEntry");
     if (controller.objectOfInterest != null)
     {
       controller.StartCalculatingPath(controller.objectOfInterest.GetTileLocation(), this, controller.objectOfInterest);

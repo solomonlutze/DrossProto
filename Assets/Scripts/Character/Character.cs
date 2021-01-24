@@ -975,6 +975,7 @@ public class Character : WorldObject
       || carapaceBroken
       || IsInKnockback()
       || usingSkill
+      || dashAttackQueued
       || animationPreventsMoving // I guess?
     )
     {
@@ -1161,6 +1162,7 @@ public class Character : WorldObject
   // STAT GETTERS
   public float GetCurrentMaxHealth()
   {
+    return 100;
     return
         GetMaxHealth()
         - (GetMaxHealthLostPerMolt() * GetCharacterVital(CharacterVital.CurrentMoltCount));
