@@ -12,7 +12,7 @@ public class Weapon : MonoBehaviour
   AttackSkillEffect owningEffect;
   List<Weapon> owningEffectActiveWeapons;
   Attack attack;
-
+  float timeInCurrentActionGroup = 0;
 
   public void Update()
   {
@@ -36,11 +36,34 @@ public class Weapon : MonoBehaviour
     }
     WorldObject.ChangeLayersRecursively(gameObject.transform, owner.currentFloor);
   }
+
+  void FixedUpdate()
+  {
+    int i = 0;
+    if (i < attack.weaponActionGroups.Length)
+    {
+      timeInCurrentActionGroup += Time.deltaTime;
+      if (timeInCurrentActionGroup >= attack.weaponActionGroups[i].duration)
+      {
+        ExecuteWeaponActionGroup(attack.weaponActionGroups[i].duration, attack.weaponActionGroups[i], i == attack.weaponActionGroups.Length - 1);
+        i++;
+      }
+      else
+      {
+        ExecuteWeaponActionGroup(timeInCurrentActionGroup, attack.weaponActionGroups[i], i == attack.weaponActionGroups.Length - 1);
+      }
+    }
+    else
+    {
+      CleanUp();
+    }
+  }
   public IEnumerator PerformWeaponActions()
   {
     for (int i = 0; i < attack.weaponActionGroups.Length; i++)
     {
-      yield return ExecuteWeaponActionGroup(attack.weaponActionGroups[i], i == attack.weaponActionGroups.Length - 1);
+      yield return null;
+      // yield return ExecuteWeaponActionGroup(attack.weaponActionGroups[i], i == attack.weaponActionGroups.Length - 1);
     }
     CleanUp();
   }
@@ -55,15 +78,13 @@ public class Weapon : MonoBehaviour
     Destroy(this.gameObject);
   }
 
-  public IEnumerator ExecuteWeaponActionGroup(WeaponActionGroup actionGroup, bool isLast)
+  public void ExecuteWeaponActionGroup(float t, WeaponActionGroup actionGroup, bool isLast)
   {
-    float t = 0;
     float easedProgress = 0;
     float previousEasedProgress = 0;
     float increment = 0;
     while (t <= actionGroup.duration)
     {
-      t += Time.deltaTime;
       previousEasedProgress = easedProgress;
       easedProgress = isLast ? Easing.Quadratic.Out(t / actionGroup.duration) : Easing.Linear(t / actionGroup.duration); // ease out on last group only
       increment = easedProgress - previousEasedProgress;
@@ -71,9 +92,28 @@ public class Weapon : MonoBehaviour
       {
         ExecuteWeaponAction(action, increment);
       }
-      yield return null;
     }
   }
+
+  // public IEnumerator ExecuteWeaponActionGroup(WeaponActionGroup actionGroup, bool isLast)
+  // {
+  //   float t = 0;
+  //   float easedProgress = 0;
+  //   float previousEasedProgress = 0;
+  //   float increment = 0;
+  //   while (t <= actionGroup.duration)
+  //   {
+  //     t += Time.deltaTime;
+  //     previousEasedProgress = easedProgress;
+  //     easedProgress = isLast ? Easing.Quadratic.Out(t / actionGroup.duration) : Easing.Linear(t / actionGroup.duration); // ease out on last group only
+  //     increment = easedProgress - previousEasedProgress;
+  //     foreach (WeaponAction action in actionGroup.weaponActions)
+  //     {
+  //       ExecuteWeaponAction(action, increment);
+  //     }
+  //     yield return null;
+  //   }
+  // }
   public void ExecuteWeaponAction(WeaponAction action, float increment)
   {
     switch (action.type)
