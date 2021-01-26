@@ -347,7 +347,9 @@ public class AiStateController : Character
   {
     blocking = selectedAttackType == AttackType.Blocking; // block if using block attack, force unblock otherwise
     Debug.Log("using attack " + selectedAttackType);
-    yield return new WaitForSeconds(Random.Range(0.4f, 1.1f));
+
+    yield return null;
+    // yield return new WaitForSeconds(Random.Range(0.4f, 1.1f));
     if (selectedAttackType == AttackType.Critical)
     {
       StartCoroutine(UseCritAttack());

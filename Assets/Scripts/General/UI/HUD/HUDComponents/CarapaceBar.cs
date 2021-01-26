@@ -39,9 +39,7 @@ public class CarapaceBar : MonoBehaviour
   public Character character;
   void Start()
   {
-    // character = GetComponent<PlayerController>();
-    carapaceBarContentsSprite.color = defaultCarapaceColor;
-    carapaceBarContainer.alpha = 1;
+    Init();
   }
   // Update is called once per frame
   void Update()
@@ -50,6 +48,16 @@ public class CarapaceBar : MonoBehaviour
     {
       HandleCarapaceBar();
     }
+    else
+    {
+      Init();
+    }
+  }
+
+  void Init()
+  {
+    carapaceBarContentsSprite.color = defaultCarapaceColor;
+    carapaceBarContainer.alpha = 1;
   }
 
   void HandleCarapaceBar()
@@ -60,10 +68,12 @@ public class CarapaceBar : MonoBehaviour
     {
       carapaceBarContainer.alpha -= Time.deltaTime / carapaceBarFadeTime;
       carapaceBarContainer.alpha = Mathf.Max(.75f, carapaceBarContainer.alpha);
-      return;
     }
-    carapaceBarContainer.alpha += Time.deltaTime / carapaceBarFadeTime;
-    carapaceBarContainer.alpha = Mathf.Min(1, carapaceBarContainer.alpha);
+    else
+    {
+      carapaceBarContainer.alpha += Time.deltaTime / carapaceBarFadeTime;
+      carapaceBarContainer.alpha = Mathf.Min(1, carapaceBarContainer.alpha);
+    }
     carapaceBarContentsFill.localScale = new Vector3(currentCarapace / maxCarapace, carapaceBarContentsFill.localScale.y, 0);
     if (character.carapaceBroken)
     {
