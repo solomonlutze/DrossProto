@@ -1,9 +1,9 @@
 using System;
 using UnityEngine.Tilemaps;
 using UnityEngine;
-using UnityEditor;
-using UnityEditor.Tilemaps;
-using UnityEditor.EditorTools;
+// using UnityEditor;
+// using UnityEditor.Tilemaps;
+// using UnityEditor.EditorTools;
 using System.Collections;
 using UnityEngine.Scripting.APIUpdating;
 

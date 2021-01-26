@@ -77,6 +77,8 @@ public class GameMaster : Singleton<GameMaster>
         if (Input.GetKeyDown("=") && playerController != null)
         {
           playerController.Die();
+          SetGameStatus(Constants.GameState.ChooseBug);
+          canvasHandler.DisplaySelectBugScreen();
         }
         else if (Input.GetKeyDown(KeyCode.Escape))
         {

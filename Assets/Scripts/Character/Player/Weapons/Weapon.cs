@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEditor;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -14,6 +13,14 @@ public class Weapon : MonoBehaviour
   List<Weapon> owningEffectActiveWeapons;
   Attack attack;
 
+
+  public void Update()
+  {
+    if (owner == null)
+    {
+      CleanUp();
+    }
+  }
   public void Init(Attack atk, AttackSkillEffect effect, Character c, List<Weapon> activeWeaponObjects)
   {
     attack = atk;
@@ -41,7 +48,7 @@ public class Weapon : MonoBehaviour
   public void CleanUp()
   {
     owningEffectActiveWeapons.Remove(this);
-    if (attack.objectToSpawn != null && attack.objectToSpawn.attackData != null && attack.spawnObjectOnDestruction)
+    if (owner != null && attack.objectToSpawn != null && attack.objectToSpawn.attackData != null && attack.spawnObjectOnDestruction)
     {
       owner.StartCoroutine(owningEffect.SpawnWeapon(attack.objectToSpawn, owner, owningEffectActiveWeapons));
     }

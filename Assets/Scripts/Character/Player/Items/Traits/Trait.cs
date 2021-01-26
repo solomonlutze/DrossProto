@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 public enum TraitName { }; // just a list of names of every possible trait
 public enum TraitType { Passive, Active };
