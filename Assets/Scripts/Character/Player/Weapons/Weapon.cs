@@ -13,6 +13,10 @@ public class Weapon : MonoBehaviour
   List<Weapon> owningEffectActiveWeapons;
   Attack attack;
   float timeInCurrentActionGroup = 0;
+  float easedProgress = 0;
+  float previousEasedProgress = 0;
+  float increment = 0;
+  int currentActionGroup = 0;
 
   public void Update()
   {
@@ -39,18 +43,24 @@ public class Weapon : MonoBehaviour
 
   void FixedUpdate()
   {
-    int i = 0;
-    if (i < attack.weaponActionGroups.Length)
+    if (currentActionGroup < attack.weaponActionGroups.Length)
     {
-      timeInCurrentActionGroup += Time.deltaTime;
-      if (timeInCurrentActionGroup >= attack.weaponActionGroups[i].duration)
+      timeInCurrentActionGroup += Time.fixedDeltaTime;
+      if (timeInCurrentActionGroup >= attack.weaponActionGroups[currentActionGroup].duration)
       {
-        ExecuteWeaponActionGroup(attack.weaponActionGroups[i].duration, attack.weaponActionGroups[i], i == attack.weaponActionGroups.Length - 1);
-        i++;
+        ExecuteWeaponActionGroup(
+          attack.weaponActionGroups[currentActionGroup].duration, // don't allow overstepping of duration
+          attack.weaponActionGroups[currentActionGroup],
+          currentActionGroup == attack.weaponActionGroups.Length - 1
+        );
+        currentActionGroup++;
+        timeInCurrentActionGroup = 0;
+        easedProgress = 0;
+        previousEasedProgress = 0;
       }
       else
       {
-        ExecuteWeaponActionGroup(timeInCurrentActionGroup, attack.weaponActionGroups[i], i == attack.weaponActionGroups.Length - 1);
+        ExecuteWeaponActionGroup(timeInCurrentActionGroup, attack.weaponActionGroups[currentActionGroup], currentActionGroup == attack.weaponActionGroups.Length - 1);
       }
     }
     else
@@ -58,15 +68,16 @@ public class Weapon : MonoBehaviour
       CleanUp();
     }
   }
-  public IEnumerator PerformWeaponActions()
-  {
-    for (int i = 0; i < attack.weaponActionGroups.Length; i++)
-    {
-      yield return null;
-      // yield return ExecuteWeaponActionGroup(attack.weaponActionGroups[i], i == attack.weaponActionGroups.Length - 1);
-    }
-    CleanUp();
-  }
+
+  // public IEnumerator PerformWeaponActions()
+  // {
+  //   for (int i = 0; i < attack.weaponActionGroups.Length; i++)
+  //   {
+  //     yield return null;
+  //     // yield return ExecuteWeaponActionGroup(attack.weaponActionGroups[i], i == attack.weaponActionGroups.Length - 1);
+  //   }
+  //   CleanUp();
+  // }
 
   public void CleanUp()
   {
@@ -80,18 +91,12 @@ public class Weapon : MonoBehaviour
 
   public void ExecuteWeaponActionGroup(float t, WeaponActionGroup actionGroup, bool isLast)
   {
-    float easedProgress = 0;
-    float previousEasedProgress = 0;
-    float increment = 0;
-    while (t <= actionGroup.duration)
+    previousEasedProgress = easedProgress;
+    easedProgress = isLast ? Easing.Quadratic.Out(t / actionGroup.duration) : Easing.Linear(t / actionGroup.duration); // ease out on last group only
+    increment = easedProgress - previousEasedProgress;
+    foreach (WeaponAction action in actionGroup.weaponActions)
     {
-      previousEasedProgress = easedProgress;
-      easedProgress = isLast ? Easing.Quadratic.Out(t / actionGroup.duration) : Easing.Linear(t / actionGroup.duration); // ease out on last group only
-      increment = easedProgress - previousEasedProgress;
-      foreach (WeaponAction action in actionGroup.weaponActions)
-      {
-        ExecuteWeaponAction(action, increment);
-      }
+      ExecuteWeaponAction(action, increment);
     }
   }
 
