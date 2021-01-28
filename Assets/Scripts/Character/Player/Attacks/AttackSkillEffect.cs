@@ -102,7 +102,7 @@ public class AttackSkillEffect : SkillEffect
       rotationAngle
     );
     weaponInstance.Init(weaponSpawn.attackData, this, owner, weaponInstances); // weaponInstance.transform.parent = null; // we want to instantiate relative to the weaponPivot and then immediately leave the hierarchy
-    owner.StartCoroutine(weaponInstance.PerformWeaponActions());
+    // owner.StartCoroutine(weaponInstance.PerformWeaponActions());
   }
 
   public override float GetEffectiveRange()

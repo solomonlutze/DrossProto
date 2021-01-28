@@ -33,6 +33,7 @@ public class GameMaster : Singleton<GameMaster>
   void Start()
   {
     // Debug.unityLogger.logEnabled = false;
+    Time.fixedDeltaTime = 1 / 60f;
     pathfinding = GetComponent<PathfindingSystem>();
     SetGameStatus(startingGameStatus);
     switch (GetGameStatus())
