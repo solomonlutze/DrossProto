@@ -941,7 +941,7 @@ public class Character : WorldObject
       || IsInKnockback()
       || usingSkill
       || animationPreventsMoving // I guess?
-      || GetCharacterVital(CharacterVital.RemainingStamina) < 0
+      || !HasStamina()
     )
     {
       return false;
@@ -978,6 +978,7 @@ public class Character : WorldObject
       || IsInKnockback()
       || usingSkill
       || dashAttackQueued
+      || !HasStamina()
       || animationPreventsMoving // I guess?
     )
     {

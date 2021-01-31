@@ -8,6 +8,7 @@ public class PlayerHUD : MonoBehaviour
   //TODO: Use TextMeshProUGUI instead of STM
   public HealthBar healthBar;
   public CarapaceBar carapaceBar;
+  public StaminaBar staminaBar;
   // private SuperTextMesh healthFieldText;
   // private SuperTextMesh healthValueText;
   // private SuperTextMesh maxHealthValueText;
@@ -42,6 +43,7 @@ public class PlayerHUD : MonoBehaviour
     {
       healthBar.character = playerController; //todo: anywhere but update please!
       carapaceBar.character = playerController;
+      staminaBar.character = playerController;
       if (playerController.GetCharacterVital(CharacterVital.CurrentHealth) > 0)
       {
         diedText.text = " ";
