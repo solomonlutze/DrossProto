@@ -40,4 +40,9 @@ public class SkillEffect
   {
     return new List<SkillRangeInfo>();
   }
+
+  public virtual float CalculateDefaultStaminaCost()
+  {
+    return 0;
+  }
 }

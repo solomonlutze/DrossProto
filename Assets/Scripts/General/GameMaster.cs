@@ -49,7 +49,6 @@ public class GameMaster : Singleton<GameMaster>
 
   public void SelectBugPresetAndBegin(BugPresetData data)
   {
-    Debug.Log("Selecting bug preset " + data.displayName);
     canvasHandler.SetAllCanvasesInactive();
     SetGameStatus(Constants.GameState.Play);
     Respawn(data.loadout);

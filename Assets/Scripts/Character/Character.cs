@@ -766,7 +766,7 @@ public class Character : WorldObject
   {
     dashing = true;
     // dashStartPoint = transform.position;
-    vitals[CharacterVital.RemainingStamina] -= GetDashStaminaCost();
+    AdjustCurrentStamina(-GetDashStaminaCost());
   }
 
   public float GetEasedDashProgress()
@@ -831,6 +831,7 @@ public class Character : WorldObject
     easedKnockbackProgressIncrement = 0;
     knockbackProgress = 0;
   }
+
 
   protected void Fly()
   {
@@ -1344,9 +1345,20 @@ public class Character : WorldObject
   {
     vitals[CharacterVital.CurrentMoltCount] += adjustment;
   }
+
+  public void AdjustCurrentStamina(float amount)
+  {
+    vitals[CharacterVital.RemainingStamina] += amount;
+  }
+
   public float GetCharacterVital(CharacterVital vital)
   {
     return vitals[vital];
+  }
+
+  public bool HasStamina()
+  {
+    return GetCharacterVital(CharacterVital.RemainingStamina) > 0;
   }
   public virtual void SetCurrentFloor(FloorLayer newFloorLayer)
   {

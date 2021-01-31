@@ -50,6 +50,7 @@ public class CharacterSkillData : ScriptableObject
   public AttackSkillEffect[] skillEffects; // NOTE: Gotta fix this if we want vanilla skillEffects for anything!
 
   public SkillRangeInfo[] skillRangeInfo;
+  public float staminaCost;
 
   public SkillDelay cooldown;
 
@@ -68,6 +69,7 @@ public class CharacterSkillData : ScriptableObject
     }
     foreach (SkillEffect effect in skillEffects)
     {
+      owner.AdjustCurrentStamina(-staminaCost);
       yield return effect.ActivateSkillEffect(owner);
     }
     yield return new WaitForSeconds(cooldown.duration);

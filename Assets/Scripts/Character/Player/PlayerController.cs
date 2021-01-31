@@ -266,7 +266,7 @@ public class PlayerController : Character
         {
           if (Input.GetButtonDown("Attack"))
           {
-            if (critTarget != null)
+            if (critTarget != null && HasStamina())
             {
               Debug.Log("using crit?");
               StartCoroutine(UseCritAttack());
