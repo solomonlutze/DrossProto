@@ -338,6 +338,11 @@ public class AiStateController : Character
     }
     return false;
   }
+
+  public bool HasSufficientStaminaForSelectedAttack()
+  {
+    return (GetCharacterVital(CharacterVital.RemainingStamina) > GetSelectedCharacterSkill().staminaCost / 2);
+  }
   public void WaitThenAttack()
   {
     waitingToAttack = true;

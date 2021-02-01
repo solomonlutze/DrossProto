@@ -44,13 +44,13 @@ public class CharacterSkillData : ScriptableObject
   [TextArea]
   public string description;
   public bool isAttack = false; // TODO: be better than this
-  public float ai_preferredMinRange; // closer than this and we'd like to back up
-  public float ai_preferredAttackRangeBuffer; // weapon effectiveRange minus range buffer = ideal attack spot
-  public SkillDelay warmup;
-  public AttackSkillEffect[] skillEffects; // NOTE: Gotta fix this if we want vanilla skillEffects for anything!
-
+  // public float ai_preferredMinRange; // closer than this and we'd like to back up
+  // public float ai_preferredAttackRangeBuffer; // weapon effectiveRange minus range buffer = ideal attack spot
   public SkillRangeInfo[] skillRangeInfo;
   public float staminaCost;
+
+  public SkillDelay warmup;
+  public AttackSkillEffect[] skillEffects; // NOTE: Gotta fix this if we want vanilla skillEffects for anything!
 
   public SkillDelay cooldown;
 

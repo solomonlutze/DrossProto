@@ -344,10 +344,10 @@ public class Character : WorldObject
     ascendingDescendingState = AscendingDescendingState.None;
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
     characterSkills = CalculateSkills(traits);
-    if (!HasAttackSkill(characterSkills))
-    {
-      characterSkills.Insert(0, defaultCharacterData.defaultCharacterAttack);
-    }
+    // if (!HasAttackSkill(characterSkills))
+    // {
+    //   characterSkills.Insert(0, defaultCharacterData.defaultCharacterAttack);
+    // }
     // for (int i = 0; i < characterSkills.Count; i++)
     // {
     //   characterSkills[i].Init(this);
@@ -690,6 +690,7 @@ public class Character : WorldObject
       }
       else
       {
+        AdjustCurrentStamina(-GetMovementStaminaCost());
         timeMoving += Time.deltaTime;
         timeStandingStill = 0f;
       }
@@ -1177,6 +1178,7 @@ public class Character : WorldObject
       .GetHealthAttributeData()
       .GetMaxHealth(this);
   }
+
   public float GetMaxStamina()
   {
     return defaultCharacterData.defaultStats[CharacterStat.Stamina];
@@ -1192,11 +1194,20 @@ public class Character : WorldObject
     return GetMaxCarapace()
         - (GetMaxCarapaceLostPerMolt() * GetCharacterVital(CharacterVital.CurrentMoltCount));
   }
-  public float GetStaminaRecoverySpeed()
+  public float GetMovementStaminaCost()
   {
-    return 3;
+    return GetStaminaRecoveryRate() / 2;
   }
 
+  public float GetStaminaRecoverySpeed()
+  {
+    return 3; // ugh
+  }
+
+  public float GetStaminaRecoveryRate()
+  {
+    return (Time.deltaTime * GetMaxStamina() / GetStaminaRecoverySpeed());
+  }
   public float GetMoveAcceleration()
   {
     if (flying)
@@ -1349,7 +1360,7 @@ public class Character : WorldObject
 
   public void AdjustCurrentStamina(float amount)
   {
-    vitals[CharacterVital.RemainingStamina] += amount;
+    vitals[CharacterVital.RemainingStamina] = Mathf.Min(vitals[CharacterVital.RemainingStamina] + amount, GetMaxStamina()); // no lower bound on current stamina! DFIU!!
   }
 
   public float GetCharacterVital(CharacterVital vital)
@@ -1633,10 +1644,11 @@ public class Character : WorldObject
         EndFly();
       }
     }
-    if (!IsDashingOrRecovering())
+    if (!IsDashingOrRecovering() && !usingSkill)
     {
-      vitals[CharacterVital.RemainingStamina]
-        = Mathf.Min(vitals[CharacterVital.RemainingStamina] + (Time.deltaTime * GetMaxStamina() / GetStaminaRecoverySpeed()), GetMaxStamina());
+      AdjustCurrentStamina(GetStaminaRecoveryRate());
+      // vitals[CharacterVital.RemainingStamina]
+      //   = Mathf.Min(vitals[CharacterVital.RemainingStamina] + (Time.deltaTime * GetMaxStamina() / GetStaminaRecoverySpeed()), GetMaxStamina());
       dashAttackQueued = false;
     }
     else if (IsRecoveringFromDash())
