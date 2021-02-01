@@ -8,6 +8,7 @@ public class EnemyHUD : MonoBehaviour
 {
   public CarapaceBar carapaceBar;
   public HealthBar healthBar;
+  public StaminaBar staminaBar;
 
 
   // STAMINA
@@ -34,6 +35,7 @@ public class EnemyHUD : MonoBehaviour
     {
       healthBar.character = character; //todo: anywhere but update please!
       carapaceBar.character = character;
+      staminaBar.character = character;
     }
   }
 

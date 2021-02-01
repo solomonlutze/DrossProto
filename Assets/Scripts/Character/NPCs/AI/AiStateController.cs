@@ -341,7 +341,7 @@ public class AiStateController : Character
 
   public bool HasSufficientStaminaForSelectedAttack()
   {
-    return (GetCharacterVital(CharacterVital.RemainingStamina) > GetSelectedCharacterSkill().staminaCost / 2);
+    return (GetCharacterVital(CharacterVital.CurrentStamina) > GetSelectedCharacterSkill().staminaCost / 2);
   }
   public void WaitThenAttack()
   {

@@ -117,7 +117,7 @@ public class MoveAiAction : AiAction
   bool RemainingStaminaAfterDashAboveThreshold(AiStateController controller)
   {
     return (
-      controller.GetCharacterVital(CharacterVital.RemainingStamina) - controller.GetDashStaminaCost() > controller.GetStat(CharacterStat.Stamina) * minimumRemainingStaminaProportionForDash
+      controller.GetCharacterVital(CharacterVital.CurrentStamina) - controller.GetDashStaminaCost() > controller.GetStat(CharacterStat.Stamina) * minimumRemainingStaminaProportionForDash
     );
   }
   bool CorrectFacingDirectionForDash(AiStateController controller, WorldObject targetWorldLocation)

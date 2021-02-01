@@ -150,7 +150,7 @@ public class CharacterVitalToFloatDictionary : SerializableDictionaryBase<Charac
   {
     Add(CharacterVital.CurrentHealth, 0);
     Add(CharacterVital.CurrentMoltCount, 0);
-    Add(CharacterVital.RemainingStamina, 0);
+    Add(CharacterVital.CurrentStamina, 0);
     Add(CharacterVital.CurrentCarapace, 0);
     // Add(CharacterVital.CurrentDashCooldown, 0f);
   }

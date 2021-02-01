@@ -20,7 +20,7 @@ public enum CharacterVital
 {
   CurrentHealth,
   CurrentEnvironmentalDamageCooldown,
-  RemainingStamina,
+  CurrentStamina,
   CurrentCarapace, // Carapace might be "balance" sometime
   CurrentMoltCount
 }
@@ -370,7 +370,7 @@ public class Character : WorldObject
     vitals = new CharacterVitalToFloatDictionary();
     // statModifications = new StatToActiveStatModificationsDictionary();
     vitals[CharacterVital.CurrentHealth] = GetCurrentMaxHealth();
-    vitals[CharacterVital.RemainingStamina] = GetMaxStamina();
+    vitals[CharacterVital.CurrentStamina] = GetMaxStamina();
     vitals[CharacterVital.CurrentCarapace] = GetMaxCarapace();
     Debug.Log("initializing character data - max carapace " + GetMaxCarapace() + ", current set to " + vitals[CharacterVital.CurrentCarapace]);
     // vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
@@ -923,6 +923,7 @@ public class Character : WorldObject
       || IsDashingOrRecovering()
       || IsInKnockback()
       || usingSkill
+      || !HasStamina()
       || animationPreventsMoving
     )
     {
@@ -1360,7 +1361,7 @@ public class Character : WorldObject
 
   public void AdjustCurrentStamina(float amount)
   {
-    vitals[CharacterVital.RemainingStamina] = Mathf.Min(vitals[CharacterVital.RemainingStamina] + amount, GetMaxStamina()); // no lower bound on current stamina! DFIU!!
+    vitals[CharacterVital.CurrentStamina] = Mathf.Min(vitals[CharacterVital.CurrentStamina] + amount, GetMaxStamina()); // no lower bound on current stamina! DFIU!!
   }
 
   public float GetCharacterVital(CharacterVital vital)
@@ -1370,7 +1371,7 @@ public class Character : WorldObject
 
   public bool HasStamina()
   {
-    return GetCharacterVital(CharacterVital.RemainingStamina) > 0;
+    return GetCharacterVital(CharacterVital.CurrentStamina) > 0;
   }
   public virtual void SetCurrentFloor(FloorLayer newFloorLayer)
   {
@@ -1638,8 +1639,8 @@ public class Character : WorldObject
   {
     if (flying)
     {
-      vitals[CharacterVital.RemainingStamina] -= Time.deltaTime * GetMaxStamina() / 5;
-      if (vitals[CharacterVital.RemainingStamina] <= 0)
+      vitals[CharacterVital.CurrentStamina] -= Time.deltaTime * GetMaxStamina() / 5;
+      if (vitals[CharacterVital.CurrentStamina] <= 0)
       {
         EndFly();
       }

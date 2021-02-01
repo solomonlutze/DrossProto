@@ -61,7 +61,7 @@ public class StaminaBar : MonoBehaviour
 
   void HandleStaminaBar()
   {
-    float currentStamina = Mathf.Max(character.GetCharacterVital(CharacterVital.RemainingStamina), 0);
+    float currentStamina = Mathf.Max(character.GetCharacterVital(CharacterVital.CurrentStamina), 0);
     float maxStamina = character.GetMaxStamina();
     // if (!character.blocking && !character.staminaBroken)
     // {
