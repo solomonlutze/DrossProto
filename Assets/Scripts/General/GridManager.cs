@@ -18,6 +18,18 @@ public class TileLocation
 {
 
   public Vector2Int tilemapCoordinates;
+  public Vector3Int tilemapCoordinatesVector3
+  {
+    get
+    {
+      return new Vector3Int(
+        tilemapCoordinates.x,
+        tilemapCoordinates.y,
+        // (int)GridManager.GetZOffsetForFloor(WorldObject.GetGameObjectLayerFromFloorLayer(floorLayer))
+        0 // gfy
+      );
+    }
+  }
   public Vector3 worldPosition;
   // use this for putting child objects on the tilemap? I guess?
   public Vector3 cellCenterPosition
@@ -223,6 +235,8 @@ public class GridManager : Singleton<GridManager>
     worldGrid = new Dictionary<FloorLayer, Dictionary<Vector2Int, EnvironmentTileInfo>>();
     tilesToDestroyOnPlayerRespawn = new List<EnvironmentTileInfo>();
     tilesToRestoreOnPlayerRespawn = new List<EnvironmentTileInfo>();
+    visibleTiles = new HashSet<EnvironmentTileInfo>();
+    recentlyVisibleTiles = new HashSet<EnvironmentTileInfo>();
     Dictionary<Vector2, EnvironmentTileInfo> floor = new Dictionary<Vector2, EnvironmentTileInfo>();
     Tilemap groundTilemap;
     Tilemap objectTilemap;
@@ -274,6 +288,7 @@ public class GridManager : Singleton<GridManager>
     Vector3Int v3pos = new Vector3Int(loc.tilemapCoordinates.x, loc.tilemapCoordinates.y, 0);
     EnvironmentTileInfo info = new EnvironmentTileInfo();
     EnvironmentTile objectTile = objectTilemap.GetTile(v3pos) as EnvironmentTile;
+    groundTilemap.SetColor(v3pos, Color.black);
     EnvironmentTile groundTile = groundTilemap.GetTile(v3pos) as EnvironmentTile;
     info.Init(
       loc,
@@ -775,14 +790,53 @@ public class GridManager : Singleton<GridManager>
     int playerSightRange = 5;
     int currentDistance = 0;
     HashSet<EnvironmentTileInfo> totalVisibleTiles = new HashSet<EnvironmentTileInfo>();
-    HashSet<EnvironmentTileInfo> newVisibleTiles = new HashSet<EnvironmentTileInfo>() { GetTileAtLocation(newPlayerTileLocation) };
+    HashSet<EnvironmentTileInfo> nextVisibleTiles = new HashSet<EnvironmentTileInfo>();
+    HashSet<EnvironmentTileInfo> currentVisibleTiles = new HashSet<EnvironmentTileInfo>() { GetTileAtLocation(newPlayerTileLocation) };
     while (currentDistance < playerSightRange)
     {
-      foreach (EnvironmentTileInfo tile in newVisibleTiles)
+      foreach (EnvironmentTileInfo tile in currentVisibleTiles)
       {
-        totalVisibleTiles.Add(newVisibleTiles[i]);
-
+        tile.visibilityDistance = currentDistance;
+        totalVisibleTiles.Add(tile);
+        foreach (TilemapDirection dir in new List<TilemapDirection>(){
+          TilemapDirection.UpperLeft,
+          TilemapDirection.Left,
+          TilemapDirection.LowerLeft,
+          TilemapDirection.UpperRight,
+          TilemapDirection.Right,
+          TilemapDirection.LowerRight,
+        })
+        {
+          if (!totalVisibleTiles.Contains(GetAdjacentTile(tile.tileLocation, dir)))
+          {
+            nextVisibleTiles.Add(GetAdjacentTile(tile.tileLocation, dir));
+          }
+        }
+      }
+      Debug.Log("currentVisibleTiles count before clear: " + currentVisibleTiles.Count);
+      Debug.Log("nextVisibleTiles count before clear: " + currentVisibleTiles.Count);
+      currentVisibleTiles = new HashSet<EnvironmentTileInfo>(nextVisibleTiles);
+      nextVisibleTiles.Clear();
+      Debug.Log("currentVisibleTiles count after clear: " + currentVisibleTiles.Count);
+      Debug.Log("nextVisibleTiles count after clear: " + currentVisibleTiles.Count);
+      currentDistance++;
+    }
+    foreach (EnvironmentTileInfo tile in recentlyVisibleTiles)
+    {
+      if (!totalVisibleTiles.Contains(tile))
+      {
+        tile.visibilityDistance = -1;
+        layerFloors[tile.tileLocation.floorLayer].groundTilemap.SetColor(
+          tile.tileLocation.tilemapCoordinatesVector3, Color.black);
       }
     }
+    foreach (EnvironmentTileInfo tile in totalVisibleTiles)
+    {
+      Debug.Log("setting tile visible at " + tile.tileLocation.worldPosition + ", floor " + tile.tileLocation.floorLayer);
+      layerFloors[tile.tileLocation.floorLayer].groundTilemap.SetColor(
+        tile.tileLocation.tilemapCoordinatesVector3, Color.white);
+    }
+    recentlyVisibleTiles = new HashSet<EnvironmentTileInfo>(visibleTiles);
+    visibleTiles = new HashSet<EnvironmentTileInfo>(totalVisibleTiles);
   }
 }

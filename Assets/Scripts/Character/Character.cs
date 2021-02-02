@@ -344,6 +344,7 @@ public class Character : WorldObject
     ascendingDescendingState = AscendingDescendingState.None;
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
     characterSkills = CalculateSkills(traits);
+    // GridManager.Instance.PlayerChangedTile(CalculateCurrentTileLocation());
     // if (!HasAttackSkill(characterSkills))
     // {
     //   characterSkills.Insert(0, defaultCharacterData.defaultCharacterAttack);
