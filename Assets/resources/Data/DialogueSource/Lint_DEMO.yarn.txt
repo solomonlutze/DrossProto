@@ -1,4 +1,16 @@
 
+title: Lint_DEMO.Nope
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+Hey, not gonna do a whole thing in here. 
+
+You can find each of the three enemies through the exits, and you can see the readme for how to play stuff. 
+
+Good luck!
+===
 title: Lint_DEMO.Congratulations
 tags: 
 colorID: 0

@@ -14,6 +14,7 @@ public class EvadeAiAction : MoveAiAction
   public override bool OnEntry(AiStateController controller)
   {
     Debug.Log("OnEntry for Evade action - " + controller.gameObject.name);
+    base.OnEntry(controller);
     // int enemyAttackAngle = controller.objectOfInterest.GetComponent<Character>().GetAttackRadiusInDegrees();
     int enemyAttackAngle = 30;// controller.objectOfInterest.GetComponent<Character>().GetAttackRadiusInDegrees();
     Vector2 potentialOverrideDestination;

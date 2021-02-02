@@ -24,10 +24,23 @@ public class AiStateController : Character
   public float maxTargetDistanceFromSpawnPoint = 15;
   public float minDistanceFromPathNode = .15f;
 
+  [Tooltip("minDistanceToAttackBuffer * attack range = min distance at which we back up")]
+  public float minDistanceToAttackBuffer = .10f;
+
+  [Tooltip("attack range - (preferredAttackRangeBuffer * attack range) = max distance at which we will attack")]
+  public float preferredAttackRangeBuffer = .10f;
+
+  [Tooltip("smallest, in degrees, an attack angle is allowed to be")]
+  public float minimumAttackAngle = 5f;
+
+  [Tooltip("attackAngle - (attackAngle * attackAngleBuffer) = max angle at which we will attack")]
+  public float attackAngleBuffer = .1f;
+
   public float minDistanceFromTarget;
+  public float blockTimer = 0;
 
   [HideInInspector] public Vector2 spawnLocation;
-
+  public AttackType selectedAttackType;
   /*
   * Travel variables
    */
@@ -52,9 +65,7 @@ public class AiStateController : Character
   {
     base.Awake();
     aiActive = true;
-    // minDistanceFromPathNode = .15f;
     spawnLocation = transform.position;
-    blocking = true; // TODO: DELETE THIS
     Init();
   }
   protected override void Update()
@@ -77,8 +88,8 @@ public class AiStateController : Character
   {
     if (nextState != remainState)
     {
-      // Debug.Log(gameObject.name + "transitioning from " + currentState + " to " + nextState);
       timeSpentInState = 0f;
+      currentState.OnExit(this);
       currentState = nextState;
       //TODO: should we fall back if onEntry fails?
       currentState.OnEntry(this);
@@ -109,13 +120,13 @@ public class AiStateController : Character
     }
   }
 
-  public void StartValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl, AiAction initiatingAction)
+  public void StartValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl, MoveAiAction initiatingAction)
   {
     if (isCalculatingPath) { return; }
     StartCoroutine(ValidateAndSetWanderDestination(pos, fl, initiatingAction));
   }
 
-  public IEnumerator ValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl, AiAction initiatingAction)
+  public IEnumerator ValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl, MoveAiAction initiatingAction)
   {
     TileLocation targetLocation = new TileLocation(pos, fl);
     yield return StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, initiatingAction));
@@ -174,29 +185,6 @@ public class AiStateController : Character
 
   public void SetPathToTarget(List<Node> newPath)
   {
-    // if (newPath != null && newPath.Count > 1)
-    // {
-
-    //   // Debug.Log("new path first node: " + newPath[0].loc.tilemapCoordinates);
-    //   // Debug.Log("current loc: " + GetTileLocation().tilemapCoordinates);
-    //   // GridManager.Instance.DEBUGHighlightTile(newPath[0].loc);
-    //   // GridManager.Instance.DEBUGHighlightTile(GetTileLocation(), Color.blue);
-    // }
-    // if (pathToTarget != null && pathToTarget.Count > 0 // if we already have a path to the target...
-    // && newPath != null && newPath.Count > 1 && newPath[0].loc == GetTileLocation())
-    // {
-    //   Debug.Log("new path starts with current tile!");
-    // }
-    // if (pathToTarget != null && pathToTarget.Count > 0 // if we already have a path to the target...
-    // && newPath != null && newPath.Count > 1 && newPath[0].loc == GetTileLocation()// and our current tile is the first tile in our new path...
-    // && pathToTarget[0].loc == newPath[1].loc // and our current path's first tile is the SECOND tile in our new path...
-    // )
-    // {
-    //   Debug.Log("We already did the first tile in this path! Removing it!");
-    //   newPath.RemoveAt(0);
-    // }
-
-
     // we should drop the first tile from our new path
     pathToTarget = newPath;
   }
@@ -219,10 +207,9 @@ public class AiStateController : Character
     return isCalculatingPath;
   }
 
-  public void StartCalculatingPath(TileLocation targetLocation, AiAction initiatingAction, WorldObject potentialObjectOfInterest = null)
+  public void StartCalculatingPath(TileLocation targetLocation, MoveAiAction initiatingAction, WorldObject potentialObjectOfInterest = null)
   {
     if (isCalculatingPath || DEBUGStopRecalculatingPath) { return; }
-    // Debug.Log("startCalculatingPath");
     StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, initiatingAction, potentialObjectOfInterest));
   }
 
@@ -243,14 +230,118 @@ public class AiStateController : Character
       objectOfInterest != null
       && maxTargetDistanceFromSpawnPoint * maxTargetDistanceFromSpawnPoint > ((Vector2)objectOfInterest.transform.position - spawnLocation).sqrMagnitude;
   }
+
+  // public float GetMinPreferredAttackRange()
+  // {
+  //   return GetAttackRange() * minDistanceToAttackBuffer;
+  // }
+  // public float GetMaxPreferredAttackRange(AttackType attackType)
+  // {
+  //   float attackRange = GetSkillDataForAttackType(attackType).GetEffectiveRange();
+  //   return attackRange - attackRange * preferredAttackRangeBuffer;
+  // }
+
+  // public float GetMaxPreferredAttackRange()
+  // {
+  //   float attackRange = GetAttackRange();
+  //   return attackRange - attackRange * preferredAttackRangeBuffer;
+  // }
+
   public float GetMinPreferredAttackRange()
   {
-    return GetSelectedCharacterSkill().ai_preferredMinRange;
+    float overallMin = 1000f;
+    foreach (SkillRangeInfo range in GetAttackRangeInfo())
+    {
+      float min = range.minRange;
+      min += (range.maxRange - min) * minDistanceToAttackBuffer;
+      overallMin = Mathf.Min(min, overallMin);
+    }
+    return overallMin;
   }
 
-  public float GetMaxPreferredAttackRange()
+  public bool TooCloseToTarget(WorldObject target)
   {
-    return GetAttackRange() - GetSelectedCharacterSkill().ai_preferredAttackRangeBuffer;
+    foreach (SkillRangeInfo range in GetAttackRangeInfo())
+    {
+      float min = range.minRange;
+      min += (range.maxRange - min) * minDistanceToAttackBuffer;
+      if ((transform.position - target.transform.position).sqrMagnitude < min * min
+      )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+  public bool WithinAttackRange(WorldObject target)
+  {
+    foreach (SkillRangeInfo range in GetAttackRangeInfo())
+    {
+      float min = range.minRange;
+      float max = range.maxRange;
+      max -= (max - min) * preferredAttackRangeBuffer;
+      min += (max - min) * minDistanceToAttackBuffer;
+      if ((transform.position - target.transform.position).sqrMagnitude <= max * max
+        && (transform.position - target.transform.position).sqrMagnitude >= min * min
+      )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public bool WithinAttackAngle()
+  {
+    foreach (SkillRangeInfo range in GetAttackRangeInfo())
+    {
+      // if (selectedAttackType == AttackType.Critical)
+      // {
+      //   return true; // we auto-line up for crits 
+      // }
+      float min = range.minAngle;
+      float max = range.maxAngle;
+      if (Mathf.Abs(max - min) < minimumAttackAngle)
+      {
+        float d = minimumAttackAngle - (max - min);
+        min -= d / 2;
+        max += d / 2;
+      }
+      // —if abs(max - min) > 360, return true
+
+      // —elif max > 180
+      // —- true if angle between (min and 180) or (-180 and (max - 360)) 
+
+      // —elif min < -180
+      // —- true if angle between ((min + 360) and 180) or (-180 and max) 
+
+      // —else true if angle between min and max
+      // remember: angle to target always >= -180 and <= 180
+      if (Mathf.Abs(max - min) > 360f)
+      {
+        return true; // full circle swings are always in angle
+      }
+      else if (max > 180f)
+      {
+        return GetAngleToTarget() >= min || max - 360 > GetAngleToTarget();
+      }
+      else if (min < -180f)
+      {
+        return GetAngleToTarget() >= min + 360 || max > GetAngleToTarget();
+      }
+      else if (GetAngleToTarget() >= min && GetAngleToTarget() <= max)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public bool HasSufficientStaminaForSelectedAttack()
+  {
+    return (GetCharacterVital(CharacterVital.CurrentStamina) > GetSelectedCharacterSkill().staminaCost / 2);
   }
   public void WaitThenAttack()
   {
@@ -259,8 +350,19 @@ public class AiStateController : Character
   }
   public IEnumerator WaitThenAttackCoroutine()
   {
-    yield return new WaitForSeconds(Random.Range(0.4f, 1.1f));
-    UseSkill(GetSelectedCharacterSkill()); // todo: fix this????
+    blocking = selectedAttackType == AttackType.Blocking; // block if using block attack, force unblock otherwise
+    Debug.Log("using attack " + selectedAttackType);
+
+    yield return null;
+    // yield return new WaitForSeconds(Random.Range(0.4f, 1.1f));
+    if (selectedAttackType == AttackType.Critical)
+    {
+      StartCoroutine(UseCritAttack());
+    }
+    else
+    {
+      UseSkill(GetSelectedCharacterSkill()); // todo: fix this????
+    }
     waitingToAttack = false;
   }
 
@@ -271,6 +373,11 @@ public class AiStateController : Character
       SpawnDroppedItems();
     }
     base.TakeDamage(damageSource);
+  }
+
+  public override CharacterSkillData GetSelectedCharacterSkill()
+  {
+    return GetSkillDataForAttackType(selectedAttackType);
   }
 
   private void SpawnDroppedItems()

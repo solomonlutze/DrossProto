@@ -7,5 +7,4 @@ public class Utils
   {
     return (float)(1f - Math.Pow(1 - t, p));
   }
-
 }

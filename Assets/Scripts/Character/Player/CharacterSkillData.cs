@@ -1,7 +1,9 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using ScriptableObjectArchitecture;
 
 [System.Serializable]
@@ -13,6 +15,28 @@ public class SkillDelay
 }
 
 [System.Serializable]
+public class SkillRangeInfo
+{
+
+  [Tooltip("Closest attack distance to the user. Usually the attackSkillEffect's Range.")]
+  public float minRange;
+  [Tooltip("Furthest attack distance from the user. Usually range + weapon size + any positive Move amount.")]
+  public float maxRange;
+  [Tooltip("Lowest angle of the attack, in degrees")]
+  public float minAngle;
+  [Tooltip("Highest angle of the attack, in degrees")]
+  public float maxAngle;
+
+  public SkillRangeInfo(AttackSpawn spawn)
+  {
+    minRange = spawn.range;
+    maxRange = spawn.range + spawn.weaponSize;
+    minAngle = spawn.rotationOffset;
+    maxAngle = spawn.rotationOffset;
+  }
+}
+
+[System.Serializable]
 public class CharacterSkillData : ScriptableObject
 {
 
@@ -20,10 +44,14 @@ public class CharacterSkillData : ScriptableObject
   [TextArea]
   public string description;
   public bool isAttack = false; // TODO: be better than this
-  public float ai_preferredMinRange; // closer than this and we'd like to back up
-  public float ai_preferredAttackRangeBuffer; // weapon effectiveRange minus range buffer = ideal attack spot
+  // public float ai_preferredMinRange; // closer than this and we'd like to back up
+  // public float ai_preferredAttackRangeBuffer; // weapon effectiveRange minus range buffer = ideal attack spot
+  public SkillRangeInfo[] skillRangeInfo;
+  public float staminaCost;
+
   public SkillDelay warmup;
   public AttackSkillEffect[] skillEffects; // NOTE: Gotta fix this if we want vanilla skillEffects for anything!
+
   public SkillDelay cooldown;
 
   public virtual void Init(WeaponVariable weapon)
@@ -39,10 +67,9 @@ public class CharacterSkillData : ScriptableObject
     {
       yield return new WaitForSeconds(warmup.duration);
     }
-    Debug.Log("using skill data " + name);
     foreach (SkillEffect effect in skillEffects)
     {
-      Debug.Log("activating skill effect?" + name);
+      owner.AdjustCurrentStamina(-staminaCost);
       yield return effect.ActivateSkillEffect(owner);
     }
     yield return new WaitForSeconds(cooldown.duration);
@@ -55,6 +82,17 @@ public class CharacterSkillData : ScriptableObject
       effectRanges.Add(effect.GetEffectiveRange());
     }
     return Mathf.Max(effectRanges.ToArray());
+  }
+
+  public void CalculateRangeInfos()
+  {
+    Debug.Log("calculate range infos~");
+    List<SkillRangeInfo> rangeInfo = new List<SkillRangeInfo>();
+    if (skillEffects.Length > 0)
+    {
+      rangeInfo = skillEffects[0].CalculateRangeInfos();
+    }
+    skillRangeInfo = rangeInfo.ToArray();
   }
 
   public virtual IEnumerator PerformSkillCycle(Character owner)
@@ -72,4 +110,9 @@ public class CharacterSkillData : ScriptableObject
     AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<CharacterSkillData>(), path);
   }
 #endif
+
+  public void OnValidate()
+  {
+    CalculateRangeInfos();
+  }
 }

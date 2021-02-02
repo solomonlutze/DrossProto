@@ -1,7 +1,6 @@
 
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using UnityEditor;
 
 [SelectionBase]
 [ExecuteAlways]

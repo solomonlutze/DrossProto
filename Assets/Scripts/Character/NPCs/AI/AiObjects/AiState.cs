@@ -1,9 +1,9 @@
 using UnityEngine;
+using System.Collections.Generic;
 [CreateAssetMenu(menuName = "PluggableAi/State")]
 public class AiState : ScriptableObject
 {
   public AiAction[] actions;
-
   public AiTransition[] transitions;
   public void UpdateState(AiStateController controller)
   {
@@ -52,6 +52,14 @@ public class AiState : ScriptableObject
       }
     }
     return true;
+  }
 
+
+  public void OnExit(AiStateController controller)
+  {
+    foreach (AiAction action in actions)
+    {
+      action.OnExit(controller);
+    }
   }
 }

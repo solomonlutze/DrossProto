@@ -8,7 +8,6 @@ public class DoneAttackingAiDecision : AiDecision
     {
       return false;
     }
-    Debug.Log("Done attacking!");
     return true;
   }
 

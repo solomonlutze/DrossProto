@@ -1,17 +1,30 @@
 using UnityEngine;
-using UnityEditor;
 using System.Collections;
 using System.Collections.Generic;
 
 // in-world physical weapon object. This is what controls weapon movement during attacks.
 public class Weapon : MonoBehaviour
 {
+  [Tooltip("Used to determine weapon range. Use the primary transform of the weapon with the largest X size.")]
+  public Transform weaponBody;
   public Hitbox[] defaultHitboxes;
   Character owner;
   AttackSkillEffect owningEffect;
   List<Weapon> owningEffectActiveWeapons;
   Attack attack;
+  float timeInCurrentActionGroup = 0;
+  float easedProgress = 0;
+  float previousEasedProgress = 0;
+  float increment = 0;
+  int currentActionGroup = 0;
 
+  public void Update()
+  {
+    if (owner == null)
+    {
+      CleanUp();
+    }
+  }
   public void Init(Attack atk, AttackSkillEffect effect, Character c, List<Weapon> activeWeaponObjects)
   {
     attack = atk;
@@ -27,44 +40,85 @@ public class Weapon : MonoBehaviour
     }
     WorldObject.ChangeLayersRecursively(gameObject.transform, owner.currentFloor);
   }
-  public IEnumerator PerformWeaponActions()
+
+  void FixedUpdate()
   {
-    for (int i = 0; i < attack.weaponActionGroups.Length; i++)
+    if (currentActionGroup < attack.weaponActionGroups.Length)
     {
-      yield return ExecuteWeaponActionGroup(attack.weaponActionGroups[i], i == attack.weaponActionGroups.Length - 1);
+      timeInCurrentActionGroup += Time.fixedDeltaTime;
+      if (timeInCurrentActionGroup >= attack.weaponActionGroups[currentActionGroup].duration)
+      {
+        ExecuteWeaponActionGroup(
+          attack.weaponActionGroups[currentActionGroup].duration, // don't allow overstepping of duration
+          attack.weaponActionGroups[currentActionGroup],
+          currentActionGroup == attack.weaponActionGroups.Length - 1
+        );
+        currentActionGroup++;
+        timeInCurrentActionGroup = 0;
+        easedProgress = 0;
+        previousEasedProgress = 0;
+      }
+      else
+      {
+        ExecuteWeaponActionGroup(timeInCurrentActionGroup, attack.weaponActionGroups[currentActionGroup], currentActionGroup == attack.weaponActionGroups.Length - 1);
+      }
     }
-    CleanUp();
+    else
+    {
+      CleanUp();
+    }
   }
+
+  // public IEnumerator PerformWeaponActions()
+  // {
+  //   for (int i = 0; i < attack.weaponActionGroups.Length; i++)
+  //   {
+  //     yield return null;
+  //     // yield return ExecuteWeaponActionGroup(attack.weaponActionGroups[i], i == attack.weaponActionGroups.Length - 1);
+  //   }
+  //   CleanUp();
+  // }
 
   public void CleanUp()
   {
     owningEffectActiveWeapons.Remove(this);
-    if (attack.objectToSpawn != null && attack.objectToSpawn.attackData != null && attack.spawnObjectOnDestruction)
+    if (owner != null && attack.objectToSpawn != null && attack.objectToSpawn.attackData != null && attack.spawnObjectOnDestruction)
     {
       owner.StartCoroutine(owningEffect.SpawnWeapon(attack.objectToSpawn, owner, owningEffectActiveWeapons));
     }
     Destroy(this.gameObject);
   }
 
-  public IEnumerator ExecuteWeaponActionGroup(WeaponActionGroup actionGroup, bool isLast)
+  public void ExecuteWeaponActionGroup(float t, WeaponActionGroup actionGroup, bool isLast)
   {
-    float t = 0;
-    float easedProgress = 0;
-    float previousEasedProgress = 0;
-    float increment = 0;
-    while (t <= actionGroup.duration)
+    previousEasedProgress = easedProgress;
+    easedProgress = isLast ? Easing.Quadratic.Out(t / actionGroup.duration) : Easing.Linear(t / actionGroup.duration); // ease out on last group only
+    increment = easedProgress - previousEasedProgress;
+    foreach (WeaponAction action in actionGroup.weaponActions)
     {
-      t += Time.deltaTime;
-      previousEasedProgress = easedProgress;
-      easedProgress = isLast ? Easing.Quadratic.Out(t / actionGroup.duration) : Easing.Linear(t / actionGroup.duration); // ease out on last group only
-      increment = easedProgress - previousEasedProgress;
-      foreach (WeaponAction action in actionGroup.weaponActions)
-      {
-        ExecuteWeaponAction(action, increment);
-      }
-      yield return null;
+      ExecuteWeaponAction(action, increment);
     }
   }
+
+  // public IEnumerator ExecuteWeaponActionGroup(WeaponActionGroup actionGroup, bool isLast)
+  // {
+  //   float t = 0;
+  //   float easedProgress = 0;
+  //   float previousEasedProgress = 0;
+  //   float increment = 0;
+  //   while (t <= actionGroup.duration)
+  //   {
+  //     t += Time.deltaTime;
+  //     previousEasedProgress = easedProgress;
+  //     easedProgress = isLast ? Easing.Quadratic.Out(t / actionGroup.duration) : Easing.Linear(t / actionGroup.duration); // ease out on last group only
+  //     increment = easedProgress - previousEasedProgress;
+  //     foreach (WeaponAction action in actionGroup.weaponActions)
+  //     {
+  //       ExecuteWeaponAction(action, increment);
+  //     }
+  //     yield return null;
+  //   }
+  // }
   public void ExecuteWeaponAction(WeaponAction action, float increment)
   {
     switch (action.type)
@@ -103,32 +157,6 @@ public class Weapon : MonoBehaviour
   public void MarkDoneWeaponAction(WeaponAction action, float increment)
   {
     owningEffectActiveWeapons.Remove(this); // stops this weapon from marking the attack complete
-  }
-
-  // Return the overall effective weapon range for this weapon and any of its spawned objects
-  // do you ever write code and just go "hm actually testing this will be awful so let's just...
-  // ...hope it works"
-  public float GetCumulativeEffectiveWeaponRange(float rangeSoFar = 0)
-  {
-    float ownRange = rangeSoFar;
-    float cur = rangeSoFar;
-    foreach (WeaponActionGroup actionGroup in attack.weaponActionGroups)
-    {
-      foreach (WeaponAction action in actionGroup.weaponActions)
-      {
-        if (action.type == WeaponActionType.Move)
-        {
-          cur += action.magnitude;
-          ownRange = Mathf.Max(cur, ownRange);
-        }
-      }
-    }
-    float childRange = 0;
-    if (attack.objectToSpawn != null && attack.objectToSpawn.attackData != null && attack.spawnObjectOnDestruction)
-    {
-      childRange = attack.objectToSpawn.weaponObject.GetCumulativeEffectiveWeaponRange();
-    }
-    return ownRange + childRange;
   }
 
   public void OnContact(Collider2D col)

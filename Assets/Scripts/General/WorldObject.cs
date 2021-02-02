@@ -47,6 +47,11 @@ public class WorldObject : MonoBehaviour
     {
       r.sortingLayerName = layerName;
     }
+    TrailRenderer t = trans.gameObject.GetComponent<TrailRenderer>();
+    if (t != null)
+    {
+      t.sortingLayerName = layerName;
+    }
     foreach (Transform child in trans)
     {
       ChangeLayersRecursively(child, layerName);

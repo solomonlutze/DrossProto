@@ -32,6 +32,8 @@ public class GameMaster : Singleton<GameMaster>
   // Use this for initialization
   void Start()
   {
+    // Debug.unityLogger.logEnabled = false;
+    Time.fixedDeltaTime = 1 / 60f;
     pathfinding = GetComponent<PathfindingSystem>();
     SetGameStatus(startingGameStatus);
     switch (GetGameStatus())
@@ -47,7 +49,6 @@ public class GameMaster : Singleton<GameMaster>
 
   public void SelectBugPresetAndBegin(BugPresetData data)
   {
-    Debug.Log("Selecting bug preset " + data.displayName);
     canvasHandler.SetAllCanvasesInactive();
     SetGameStatus(Constants.GameState.Play);
     Respawn(data.loadout);
@@ -76,6 +77,8 @@ public class GameMaster : Singleton<GameMaster>
         if (Input.GetKeyDown("=") && playerController != null)
         {
           playerController.Die();
+          SetGameStatus(Constants.GameState.ChooseBug);
+          canvasHandler.DisplaySelectBugScreen();
         }
         else if (Input.GetKeyDown(KeyCode.Escape))
         {

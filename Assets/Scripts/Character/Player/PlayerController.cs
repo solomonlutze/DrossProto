@@ -298,7 +298,7 @@ public class PlayerController : Character
             }
           }
         }
-        else if (CanMove())
+        if (CanMove())
         {
           if (Input.GetButtonDown("Ascend"))
           {
@@ -329,6 +329,15 @@ public class PlayerController : Character
             else
             {
               // DescendOneFloor(); // maybe descend??
+            }
+          }
+          else if (Input.GetButtonDown("Activate"))
+          {
+            Debug.Log("activate?");
+            if (availableContextualActions.Count > 0)
+            {
+              GetSelectedContextualAction().actionToCall();
+              return;
             }
           }
         }
@@ -386,15 +395,7 @@ public class PlayerController : Character
         //     {
         //       // DescendOneFloor(); // maybe descend??
         //     }
-        //   }
-        //   else if (Input.GetButtonDown("Activate"))
-        //   {
-        //     Debug.Log("activate?");
-        //     if (availableContextualActions.Count > 0)
-        //     {
-        //       GetSelectedContextualAction().actionToCall();
-        //       return;
-        //     }
+        // }
         //     else if (inventory.lastPickedUpItems.Count > 0)
         //     {
         //       inventory.ClearPickedUpItem();

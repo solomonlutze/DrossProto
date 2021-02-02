@@ -8,8 +8,11 @@ public class WithinAttackRangeAiDecision : AiDecision
     // Debug.Log("correct angle: " + (controller.GetAngleToTarget() < controller.attackAngleInDegrees));
     if (
       controller.objectOfInterest != null
-      && Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetMaxPreferredAttackRange()
-      && controller.GetAngleToTarget() < controller.attackAngleInDegrees)
+      && controller.WithinAttackRange(controller.objectOfInterest)
+      // && Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetMaxPreferredAttackRange()
+      && controller.WithinAttackAngle()
+      && !controller.dashing
+      && controller.HasSufficientStaminaForSelectedAttack())
     {
       controller.WaitThenAttack();
       return true;
