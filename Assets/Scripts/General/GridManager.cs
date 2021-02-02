@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+// this sucks
 public static class GridConstants
 {
   // below are world-scale distances between center of a hex and one in the adjacent column (x) or row (y)
@@ -213,6 +214,8 @@ public class GridManager : Singleton<GridManager>
 
   private List<EnvironmentTileInfo> tilesToRestoreOnPlayerRespawn;
   public GameObject highlightTilePrefab;
+  public HashSet<EnvironmentTileInfo> visibleTiles;
+  public HashSet<EnvironmentTileInfo> recentlyVisibleTiles;
 
   int interestObjectsCount = 0;
   public void Awake()
@@ -765,5 +768,21 @@ public class GridManager : Singleton<GridManager>
     // scale x and y by grid cell size
     Vector2 transformedPoint = (Vector2)levelGrid.transform.InverseTransformPoint(worldPoint);
     return new Vector2(transformedPoint.x / levelGrid.cellSize.x, transformedPoint.y / (levelGrid.cellSize.y * .75f)); // the 1.5 is for how hex cells overlap along y boundaries
+  }
+
+  public void PlayerChangedTile(TileLocation newPlayerTileLocation)
+  {
+    int playerSightRange = 5;
+    int currentDistance = 0;
+    HashSet<EnvironmentTileInfo> totalVisibleTiles = new HashSet<EnvironmentTileInfo>();
+    HashSet<EnvironmentTileInfo> newVisibleTiles = new HashSet<EnvironmentTileInfo>() { GetTileAtLocation(newPlayerTileLocation) };
+    while (currentDistance < playerSightRange)
+    {
+      foreach (EnvironmentTileInfo tile in newVisibleTiles)
+      {
+        totalVisibleTiles.Add(newVisibleTiles[i]);
+
+      }
+    }
   }
 }

@@ -14,6 +14,7 @@ public class EnvironmentTileInfo
   public bool isInteractable = false;
   public bool dealsDamage = false;
   public bool corroded = false;
+  public int visibilityDistance;
   public List<EnvironmentalDamage> environmentalDamageSources;
 
   // public Dictionary<TilemapCorner, GameObject> cornerInterestObjects;
