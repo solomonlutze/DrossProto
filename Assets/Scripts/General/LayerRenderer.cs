@@ -26,12 +26,14 @@ public class LayerRenderer : MonoBehaviour
     else
     { // this block breaks the build and needs to be commented out every time we build
       // the alternative is not programming like a dipshit, which is out of budget
-      // GameObject selectedObject = Selection.objects.Length > 0 ? Selection.objects[0] as GameObject : null;
-      // if (selectedObject && WorldObject.GetFloorLayerOfGameObject(selectedObject) != lastTargetedFloorLayer)
-      // {
-      //   lastTargetedFloorLayer = WorldObject.GetFloorLayerOfGameObject(selectedObject);
-      // }
+#if UNITY_EDITOR
+      GameObject selectedObject = Selection.objects.Length > 0 ? Selection.objects[0] as GameObject : null;
+      if (selectedObject && WorldObject.GetFloorLayerOfGameObject(selectedObject) != lastTargetedFloorLayer)
+      {
+        lastTargetedFloorLayer = WorldObject.GetFloorLayerOfGameObject(selectedObject);
+      }
       HandleOpacity(lastTargetedFloorLayer);
+#endif
     }
   }
 

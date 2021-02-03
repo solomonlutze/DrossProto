@@ -240,6 +240,7 @@ public class GridManager : Singleton<GridManager>
     Dictionary<Vector2, EnvironmentTileInfo> floor = new Dictionary<Vector2, EnvironmentTileInfo>();
     Tilemap groundTilemap;
     Tilemap objectTilemap;
+    Tilemap visibilityTilemap;
     int minXAcrossAllFloors = 5000;
     int maxXAcrossAllFloors = -5000;
     int minYAcrossAllFloors = 5000;
@@ -269,6 +270,7 @@ public class GridManager : Singleton<GridManager>
       LayerFloor layerFloor = layerFloors[layer];
       groundTilemap = layerFloor.groundTilemap;
       objectTilemap = layerFloor.objectTilemap;
+      visibilityTilemap = layerFloor.visibilityTilemap;
       for (int x = minXAcrossAllFloors; x < maxXAcrossAllFloors; x++)
       {
         // for (int y = minYAcrossAllFloors; y < maxYAcrossAllFloors; y++)
@@ -276,19 +278,19 @@ public class GridManager : Singleton<GridManager>
         {
           //get both object and ground tile, build an environmentTileInfo out of them, and put it into our worldGrid
           TileLocation loc = new TileLocation(new Vector2Int(x, y), layer);
-          ConstructAndSetEnvironmentTileInfo(loc, groundTilemap, objectTilemap);
+          ConstructAndSetEnvironmentTileInfo(loc, groundTilemap, objectTilemap, visibilityTilemap);
         }
       }
       // }
     }
   }
 
-  public EnvironmentTileInfo ConstructAndSetEnvironmentTileInfo(TileLocation loc, Tilemap groundTilemap, Tilemap objectTilemap)
+  public EnvironmentTileInfo ConstructAndSetEnvironmentTileInfo(TileLocation loc, Tilemap groundTilemap, Tilemap objectTilemap, Tilemap visibilityTilemap)
   {
     Vector3Int v3pos = new Vector3Int(loc.tilemapCoordinates.x, loc.tilemapCoordinates.y, 0);
     EnvironmentTileInfo info = new EnvironmentTileInfo();
     EnvironmentTile objectTile = objectTilemap.GetTile(v3pos) as EnvironmentTile;
-    groundTilemap.SetColor(v3pos, Color.black);
+    visibilityTilemap.SetColor(v3pos, Color.white);
     EnvironmentTile groundTile = groundTilemap.GetTile(v3pos) as EnvironmentTile;
     info.Init(
       loc,
@@ -694,7 +696,7 @@ public class GridManager : Singleton<GridManager>
     }
     Tilemap levelTilemap = replacementTile != null && replacementTile.floorTilemapType == FloorTilemapType.Ground ? layerFloor.groundTilemap : layerFloor.objectTilemap;
     levelTilemap.SetTile(new Vector3Int(location.tilemapCoordinates.x, location.tilemapCoordinates.y, 0), replacementTile);
-    return ConstructAndSetEnvironmentTileInfo(location, layerFloor.groundTilemap, layerFloor.objectTilemap);
+    return ConstructAndSetEnvironmentTileInfo(location, layerFloor.groundTilemap, layerFloor.objectTilemap, layerFloor.visibilityTilemap);
   }
 
   public void MarkTileToDestroyOnPlayerRespawn(EnvironmentTileInfo tile, EnvironmentTile replacementTile)
@@ -787,7 +789,7 @@ public class GridManager : Singleton<GridManager>
 
   public void PlayerChangedTile(TileLocation newPlayerTileLocation)
   {
-    int playerSightRange = 1;
+    int playerSightRange = 4;
     int currentDistance = 0;
     HashSet<EnvironmentTileInfo> totalVisibleTiles = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> nextVisibleTiles = new HashSet<EnvironmentTileInfo>();
@@ -795,8 +797,8 @@ public class GridManager : Singleton<GridManager>
     foreach (EnvironmentTileInfo tile in visibleTiles)// if visibility seems to flicker we can move this down but it shouldn't
     {
       tile.visibilityDistance = -1;
-      layerFloors[tile.tileLocation.floorLayer].groundTilemap.SetColor(
-        tile.tileLocation.tilemapCoordinatesVector3, Color.black);
+      layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(
+        tile.tileLocation.tilemapCoordinatesVector3, Color.white);
     }
     while (currentDistance <= playerSightRange)
     {
@@ -804,8 +806,8 @@ public class GridManager : Singleton<GridManager>
       {
         tile.visibilityDistance = currentDistance;
         totalVisibleTiles.Add(tile);
-        layerFloors[tile.tileLocation.floorLayer].groundTilemap.SetColor(
-          tile.tileLocation.tilemapCoordinatesVector3, Color.white
+        layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(
+          tile.tileLocation.tilemapCoordinatesVector3, Color.clear
         );
         foreach (TilemapDirection dir in new List<TilemapDirection>(){
           TilemapDirection.UpperLeft,
