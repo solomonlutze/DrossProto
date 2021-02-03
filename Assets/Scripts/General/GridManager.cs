@@ -787,17 +787,26 @@ public class GridManager : Singleton<GridManager>
 
   public void PlayerChangedTile(TileLocation newPlayerTileLocation)
   {
-    int playerSightRange = 5;
+    int playerSightRange = 1;
     int currentDistance = 0;
     HashSet<EnvironmentTileInfo> totalVisibleTiles = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> nextVisibleTiles = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> currentVisibleTiles = new HashSet<EnvironmentTileInfo>() { GetTileAtLocation(newPlayerTileLocation) };
-    while (currentDistance < playerSightRange)
+    foreach (EnvironmentTileInfo tile in visibleTiles)// if visibility seems to flicker we can move this down but it shouldn't
+    {
+      tile.visibilityDistance = -1;
+      layerFloors[tile.tileLocation.floorLayer].groundTilemap.SetColor(
+        tile.tileLocation.tilemapCoordinatesVector3, Color.black);
+    }
+    while (currentDistance <= playerSightRange)
     {
       foreach (EnvironmentTileInfo tile in currentVisibleTiles)
       {
         tile.visibilityDistance = currentDistance;
         totalVisibleTiles.Add(tile);
+        layerFloors[tile.tileLocation.floorLayer].groundTilemap.SetColor(
+          tile.tileLocation.tilemapCoordinatesVector3, Color.white
+        );
         foreach (TilemapDirection dir in new List<TilemapDirection>(){
           TilemapDirection.UpperLeft,
           TilemapDirection.Left,
@@ -807,36 +816,40 @@ public class GridManager : Singleton<GridManager>
           TilemapDirection.LowerRight,
         })
         {
-          if (!totalVisibleTiles.Contains(GetAdjacentTile(tile.tileLocation, dir)))
+          if (
+            currentDistance != playerSightRange
+            && !totalVisibleTiles.Contains(GetAdjacentTile(tile.tileLocation, dir)))
           {
             nextVisibleTiles.Add(GetAdjacentTile(tile.tileLocation, dir));
           }
         }
       }
-      Debug.Log("currentVisibleTiles count before clear: " + currentVisibleTiles.Count);
-      Debug.Log("nextVisibleTiles count before clear: " + currentVisibleTiles.Count);
-      currentVisibleTiles = new HashSet<EnvironmentTileInfo>(nextVisibleTiles);
-      nextVisibleTiles.Clear();
-      Debug.Log("currentVisibleTiles count after clear: " + currentVisibleTiles.Count);
-      Debug.Log("nextVisibleTiles count after clear: " + currentVisibleTiles.Count);
+      // Debug.Log("currentVisibleTiles count before clear: " + currentVisibleTiles.Count);
+      // Debug.Log("nextVisibleTiles count before clear: " + currentVisibleTiles.Count);
+      if (currentDistance != playerSightRange)
+      {
+        currentVisibleTiles = new HashSet<EnvironmentTileInfo>(nextVisibleTiles);
+        nextVisibleTiles.Clear();
+      }
       currentDistance++;
     }
-    foreach (EnvironmentTileInfo tile in recentlyVisibleTiles)
-    {
-      if (!totalVisibleTiles.Contains(tile))
-      {
-        tile.visibilityDistance = -1;
-        layerFloors[tile.tileLocation.floorLayer].groundTilemap.SetColor(
-          tile.tileLocation.tilemapCoordinatesVector3, Color.black);
-      }
-    }
-    foreach (EnvironmentTileInfo tile in totalVisibleTiles)
-    {
-      Debug.Log("setting tile visible at " + tile.tileLocation.worldPosition + ", floor " + tile.tileLocation.floorLayer);
-      layerFloors[tile.tileLocation.floorLayer].groundTilemap.SetColor(
-        tile.tileLocation.tilemapCoordinatesVector3, Color.white);
-    }
-    recentlyVisibleTiles = new HashSet<EnvironmentTileInfo>(visibleTiles);
+    // recentlyVisibleTiles.ExceptWith(totalVisibleTiles);
+    // foreach (EnvironmentTileInfo tile in recentlyVisibleTiles)
+    // {
+    //   // if (!totalVisibleTiles.Contains(tile))
+    //   // {
+    //   tile.visibilityDistance = -1;
+    //   layerFloors[tile.tileLocation.floorLayer].groundTilemap.SetColor(
+    //     tile.tileLocation.tilemapCoordinatesVector3, Color.grey);
+    //   // }
+    // }
+    // foreach (EnvironmentTileInfo tile in totalVisibleTiles)
+    // {
+    //   Debug.Log("setting tile visible at " + tile.tileLocation.worldPosition + ", floor " + tile.tileLocation.floorLayer);
+    //   // layerFloors[tile.tileLocation.floorLayer].groundTilemap.SetColor(
+    //   //   tile.tileLocation.tilemapCoordinatesVector3, Color.white);
+    // }
+    // recentlyVisibleTiles = new HashSet<EnvironmentTileInfo>(visibleTiles);
     visibleTiles = new HashSet<EnvironmentTileInfo>(totalVisibleTiles);
   }
 }
