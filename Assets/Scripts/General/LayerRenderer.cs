@@ -14,27 +14,27 @@ public class LayerRenderer : MonoBehaviour
   private FloorLayer lastTargetedFloorLayer;
   void Update()
   {
-    if (Application.IsPlaying(gameObject))
+    // if (Application.IsPlaying(gameObject))
+    // {
+    PlayerController player = GameMaster.Instance.GetPlayerController();
+    if (player != null)
     {
-      PlayerController player = GameMaster.Instance.GetPlayerController();
-      if (player != null)
-      {
-        int offset = player.ascendingDescendingState == AscendingDescendingState.None ? 0 : 1;
-        HandleOpacity(player.currentFloor + offset);
-      }
+      int offset = player.ascendingDescendingState == AscendingDescendingState.None ? 0 : 1;
+      HandleOpacity(player.currentFloor + offset);
     }
-    else
-    { // this block breaks the build and needs to be commented out every time we build
-      // the alternative is not programming like a dipshit, which is out of budget
-#if UNITY_EDITOR
-      GameObject selectedObject = Selection.objects.Length > 0 ? Selection.objects[0] as GameObject : null;
-      if (selectedObject && WorldObject.GetFloorLayerOfGameObject(selectedObject) != lastTargetedFloorLayer)
-      {
-        lastTargetedFloorLayer = WorldObject.GetFloorLayerOfGameObject(selectedObject);
-      }
-      HandleOpacity(lastTargetedFloorLayer);
-#endif
-    }
+    // }
+    // else
+    // { // this block breaks the build and needs to be commented out every time we build
+    //   // the alternative is not programming like a dipshit, which is out of budget
+    //   // #if UNITY_EDITOR
+    //   GameObject selectedObject = Selection.objects.Length > 0 ? Selection.objects[0] as GameObject : null;
+    //   if (selectedObject && WorldObject.GetFloorLayerOfGameObject(selectedObject) != lastTargetedFloorLayer)
+    //   {
+    //     lastTargetedFloorLayer = WorldObject.GetFloorLayerOfGameObject(selectedObject);
+    //   }
+    //   HandleOpacity(lastTargetedFloorLayer);
+    //   // #endif
+    // }
   }
 
   void HandleOpacity(FloorLayer currentFloor)

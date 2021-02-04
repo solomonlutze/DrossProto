@@ -228,7 +228,8 @@ public class GridManager : Singleton<GridManager>
   public GameObject highlightTilePrefab;
   public HashSet<EnvironmentTileInfo> visibleTiles;
   public HashSet<EnvironmentTileInfo> recentlyVisibleTiles;
-
+  public Color nonVisibleTileColor;
+  public Tile fillTile;
   int interestObjectsCount = 0;
   public void Awake()
   {
@@ -285,12 +286,76 @@ public class GridManager : Singleton<GridManager>
     }
   }
 
+  int chunkSize = 13;
+  public void Update()
+  {
+    // get floor layer for player
+    // determine center tile (player location)
+    // player location within chunk at chunksize / 2
+    // 
+    PlayerController player = GameMaster.Instance.GetPlayerController();
+    if (player != null)
+    {
+      Tile[] tileArray = new Tile[chunkSize * chunkSize];
+      TileLocation playerLoc = player.GetTileLocation();
+      // BoundsInt bounds = new BoundsInt(playerLoc.x - chunkSize / 2, playerLoc.y - chunkSize / 2, 1, playerLoc.x + chunkSize / 2, playerLoc.y + chunkSize / 2, 1);
+      BoundsInt bounds = new BoundsInt(-12, -12, 0, 24, 24, 1);
+      TileBase[] tileBaseBlock = layerFloors[player.currentFloor].visibilityTilemap.GetTilesBlock(bounds);
+      Tile[] tileBlock = new Tile[tileBaseBlock.Length];
+      Debug.Log("tileblock length: " + tileBlock);
+      HashSet<EnvironmentTileInfo> tilesToRemove = new HashSet<EnvironmentTileInfo>();
+      // Debug.Log("bounds")
+      for (int i = 0; i < tileBaseBlock.Length; i++)
+      {
+        Tile tile = (Tile)tileBaseBlock[i];
+        Debug.Log("as tile: " + tile);
+        if (tile != null)
+        {
+          Debug.Log("tile.color before " + tile.color);
+          tile.flags = TileFlags.None;
+          Color c = tile.color;
+          c.a = Mathf.PingPong(Time.time, 1);
+          tile.color = c;
+          Debug.Log("tile.color after " + tile.color);
+        }
+        else
+        {
+          Debug.Log("couldn't cast tile at " + i);
+        }
+        tileBlock[i] = fillTile;
+        // tile;
+      }
+      layerFloors[player.currentFloor].visibilityTilemap.SetTilesBlock(bounds, tileBlock);
+      // foreach (EnvironmentTileInfo tile in recentlyVisibleTiles)
+      // {
+      //   Color c = layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.GetColor(tile.tileLocation.tilemapCoordinatesVector3);
+      //   c.a += Time.deltaTime * 3;
+      //   layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(
+      //     tile.tileLocation.tilemapCoordinatesVector3, c);
+      //   if (c.a >= 1)
+      //   {
+      //     tilesToRemove.Add(tile);
+      //   }
+      // }
+      // recentlyVisibleTiles.ExceptWith(tilesToRemove);
+      // foreach (EnvironmentTileInfo tile in visibleTiles)
+      // {
+      //   Color c = layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.GetColor(tile.tileLocation.tilemapCoordinatesVector3);
+      //   if (c.a <= 0) { continue; }
+      //   c.a -= Time.deltaTime * 3;
+      //   if (c.a < 0) { c.a = 0; }
+      //   layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(
+      //     tile.tileLocation.tilemapCoordinatesVector3, c);
+      // }
+    }
+  }
+
   public EnvironmentTileInfo ConstructAndSetEnvironmentTileInfo(TileLocation loc, Tilemap groundTilemap, Tilemap objectTilemap, Tilemap visibilityTilemap)
   {
     Vector3Int v3pos = new Vector3Int(loc.tilemapCoordinates.x, loc.tilemapCoordinates.y, 0);
     EnvironmentTileInfo info = new EnvironmentTileInfo();
     EnvironmentTile objectTile = objectTilemap.GetTile(v3pos) as EnvironmentTile;
-    visibilityTilemap.SetColor(v3pos, Color.white);
+    visibilityTilemap.SetColor(v3pos, nonVisibleTileColor);
     EnvironmentTile groundTile = groundTilemap.GetTile(v3pos) as EnvironmentTile;
     info.Init(
       loc,
@@ -789,16 +854,18 @@ public class GridManager : Singleton<GridManager>
 
   public void PlayerChangedTile(TileLocation newPlayerTileLocation)
   {
-    int playerSightRange = 4;
+    int playerSightRange = 1;
     int currentDistance = 0;
     HashSet<EnvironmentTileInfo> totalVisibleTiles = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> nextVisibleTiles = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> currentVisibleTiles = new HashSet<EnvironmentTileInfo>() { GetTileAtLocation(newPlayerTileLocation) };
-    foreach (EnvironmentTileInfo tile in visibleTiles)// if visibility seems to flicker we can move this down but it shouldn't
+    Debug.Log("recentlyVisibileTiles starts with " + recentlyVisibleTiles.Count);
+    Debug.Log("visibleTiles starts with " + visibleTiles.Count);
+    recentlyVisibleTiles.UnionWith(visibleTiles); // add all tiles visible BEFORE recalculating
+    Debug.Log("recentlyVisibileTiles after union with visibleTiles has " + recentlyVisibleTiles.Count);
+    foreach (EnvironmentTileInfo tile in recentlyVisibleTiles)// if visibility seems to flicker we can move this down but it shouldn't
     {
-      tile.visibilityDistance = -1;
-      layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(
-        tile.tileLocation.tilemapCoordinatesVector3, Color.white);
+      tile.visibilityDistance += 1;
     }
     while (currentDistance <= playerSightRange)
     {
@@ -806,9 +873,6 @@ public class GridManager : Singleton<GridManager>
       {
         tile.visibilityDistance = currentDistance;
         totalVisibleTiles.Add(tile);
-        layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(
-          tile.tileLocation.tilemapCoordinatesVector3, Color.clear
-        );
         foreach (TilemapDirection dir in new List<TilemapDirection>(){
           TilemapDirection.UpperLeft,
           TilemapDirection.Left,
@@ -826,8 +890,6 @@ public class GridManager : Singleton<GridManager>
           }
         }
       }
-      // Debug.Log("currentVisibleTiles count before clear: " + currentVisibleTiles.Count);
-      // Debug.Log("nextVisibleTiles count before clear: " + currentVisibleTiles.Count);
       if (currentDistance != playerSightRange)
       {
         currentVisibleTiles = new HashSet<EnvironmentTileInfo>(nextVisibleTiles);
@@ -835,23 +897,9 @@ public class GridManager : Singleton<GridManager>
       }
       currentDistance++;
     }
-    // recentlyVisibleTiles.ExceptWith(totalVisibleTiles);
-    // foreach (EnvironmentTileInfo tile in recentlyVisibleTiles)
-    // {
-    //   // if (!totalVisibleTiles.Contains(tile))
-    //   // {
-    //   tile.visibilityDistance = -1;
-    //   layerFloors[tile.tileLocation.floorLayer].groundTilemap.SetColor(
-    //     tile.tileLocation.tilemapCoordinatesVector3, Color.grey);
-    //   // }
-    // }
-    // foreach (EnvironmentTileInfo tile in totalVisibleTiles)
-    // {
-    //   Debug.Log("setting tile visible at " + tile.tileLocation.worldPosition + ", floor " + tile.tileLocation.floorLayer);
-    //   // layerFloors[tile.tileLocation.floorLayer].groundTilemap.SetColor(
-    //   //   tile.tileLocation.tilemapCoordinatesVector3, Color.white);
-    // }
-    // recentlyVisibleTiles = new HashSet<EnvironmentTileInfo>(visibleTiles);
-    visibleTiles = new HashSet<EnvironmentTileInfo>(totalVisibleTiles);
+    recentlyVisibleTiles.ExceptWith(totalVisibleTiles); // remove all tiles visible AFTER recalculating
+    Debug.Log("recentlyVisibileTiles after exceptWith has " + recentlyVisibleTiles.Count);
+    visibleTiles = new HashSet<EnvironmentTileInfo>(totalVisibleTiles); // replace contents of visibleTiles with totalVisibleTiles
+    Debug.Log("visibleTiles ends with " + visibleTiles.Count);
   }
 }
