@@ -411,10 +411,10 @@ public class PlayerController : Character
         // }
         if (Input.GetButtonDown("Dash"))
         {
-          Debug.Log("pressing dash");
+          // Debug.Log("pressing dash");
           if (CanDash())
           {
-            Debug.Log("doing dash");
+            // Debug.Log("doing dash");
             Dash();
           }
           return;
@@ -543,7 +543,7 @@ public class PlayerController : Character
     {
       if (tile != null && currentTile != null)
       {
-        Debug.Log("changing tile from " + currentTile.tileLocation + " to " + tile.tileLocation);
+        // Debug.Log("changing tile from " + currentTile.tileLocation + " to " + tile.tileLocation);
       }
       currentTile = tile;
       GridManager.Instance.PlayerChangedTile(currentLoc);

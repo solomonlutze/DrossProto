@@ -56,6 +56,7 @@ public class LayerFloor : MonoBehaviour
       {
         if (transform.Find(gameObject.name + "_Visibility") != null)
         {
+          objectTilemap.gameObject.layer = LayerMask.NameToLayer(gameObject.name);
           visibilityTilemap = transform.Find(gameObject.name + "_Visibility").GetComponent<Tilemap>();
         }
       }
