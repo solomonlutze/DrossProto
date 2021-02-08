@@ -73,11 +73,7 @@ public class EnvironmentTile : Tile
   public bool acceptsInterestObjects = true; // if false, no interest objects may be placed on this tile
   public GameObject[] borderInterestObjects;
   public GameObject[] cornerInterestObjects;
-
-  [Tooltip("illumination level of neighboring tiles. index = neighbor distance (0 is self)")]
-  public float[] lightRangeInfo;
-  public Color illuminationColor;
-  public LightPattern lightPattern;
+  public LightSourceInfo lightSource;
 
 #if UNITY_EDITOR
   // The following is a helper that adds a menu item to create an EnvironmentTile Asset

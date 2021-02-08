@@ -122,7 +122,7 @@ namespace UnityEditor.Tilemaps
           {
             desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().groundTilemap;
           }
-          else if (selectedTile.floorTilemapType == FloorTilemapType.Ground)
+          else if (selectedTile.floorTilemapType == FloorTilemapType.Object)
           {
             desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().objectTilemap;
           }

@@ -4,6 +4,55 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+
+public class IlluminationInfo
+{
+  public float illuminationLevel;
+  public Color visibleColor;
+  public Color opaqueColor;
+  public IlluminationInfo(float i, Color c)
+  {
+    illuminationLevel = i;
+    visibleColor = c;
+    visibleColor.a = 1 - i;
+    opaqueColor = c * illuminationLevel;
+    opaqueColor.a = 1;
+  }
+  public IlluminationInfo()
+  {
+    illuminationLevel = .15f;
+    visibleColor = Color.black;
+    visibleColor.a = .85f;
+    opaqueColor = Color.black;
+    opaqueColor.a = 1;
+  }
+}
+public class IlluminatedByInfo
+{
+  public EnvironmentTileInfo illuminationSource;
+  public int distanceFromSource;
+
+  public IlluminationInfo info;
+
+  public IlluminatedByInfo(EnvironmentTileInfo source, int distance)
+  {
+    illuminationSource = source;
+    distanceFromSource = distance;
+    info = new IlluminationInfo(illuminationSource.lightSource.lightRangeInfo[distanceFromSource], illuminationSource.lightSource.illuminationColor);
+  }
+
+}
+
+[System.Serializable]
+public class LightSourceInfo
+{
+
+  [Tooltip("illumination level of neighboring tiles. index = neighbor distance (0 is self)")]
+  public float[] lightRangeInfo;
+  public Color illuminationColor;
+  public LightPattern lightPattern;
+}
+
 public class EnvironmentTileInfo
 {
   public TileLocation tileLocation;
@@ -16,6 +65,17 @@ public class EnvironmentTileInfo
   public bool corroded = false;
   public int visibilityDistance;
   public List<EnvironmentalDamage> environmentalDamageSources;
+  public List<IlluminatedByInfo> illuminatedBySources;
+  public LightSourceInfo lightSource;
+  public bool isLightSource
+  {
+    get
+    {
+      return lightSource != null && lightSource.lightRangeInfo.Length > 0;
+    }
+  }
+
+  public IlluminationInfo illuminationInfo;
 
   // public Dictionary<TilemapCorner, GameObject> cornerInterestObjects;
   // public DamageData_OLD environmentalDamage_OLD;
@@ -28,6 +88,8 @@ public class EnvironmentTileInfo
     objectTileTags = new List<TileTag>();
     dealsDamage = false;
     environmentalDamageSources = new List<EnvironmentalDamage>();
+    illuminatedBySources = new List<IlluminatedByInfo>();
+    illuminationInfo = new IlluminationInfo();
     // cornerInterestObjects = new Dictionary<TilemapCorner, GameObject>() {
     //   {TilemapCorner.UpperLeft, null},
     //   {TilemapCorner.LowerLeft, null},
@@ -57,6 +119,11 @@ public class EnvironmentTileInfo
         d.Init(objectTileType);
         environmentalDamageSources.Add(d);
       }
+      if (objectTileType.lightSource != null && objectTileType.lightSource.lightRangeInfo.Length > 0)
+      {
+        Debug.Log("definitely found a light source!");
+      }
+      lightSource = objectTileType.lightSource;
     }
   }
 
@@ -301,6 +368,29 @@ public class EnvironmentTileInfo
       default:
         return false;
     }
+  }
+
+  public void AddIlluminatedBySource(EnvironmentTileInfo source, int distance)
+  {
+    illuminatedBySources.Add(new IlluminatedByInfo(source, distance));
+    RecalculateIllumination();
+  }
+
+  public void RecalculateIllumination()
+  {
+    Color finalColor = Color.black;
+    float totalIntensity = 0;
+    float maxIntensity = 0;
+    for (int i = 0; i < illuminatedBySources.Count; i++)
+    {
+      totalIntensity += illuminatedBySources[i].info.illuminationLevel;
+      maxIntensity = Mathf.Max(maxIntensity, illuminatedBySources[i].info.illuminationLevel);
+    }
+    for (int i = 0; i < illuminatedBySources.Count; i++)
+    {
+      finalColor += (illuminatedBySources[i].info.visibleColor * (illuminatedBySources[i].info.illuminationLevel) / totalIntensity);
+    }
+    illuminationInfo = new IlluminationInfo(maxIntensity, finalColor);
   }
 
 }
