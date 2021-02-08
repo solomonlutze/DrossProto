@@ -230,8 +230,9 @@ public class GridManager : Singleton<GridManager>
   public HashSet<EnvironmentTileInfo> recentlyVisibleTiles;
   public List<List<EnvironmentTileInfo>> tilesToMakeVisible;
   public List<List<EnvironmentTileInfo>> tilesToMakeObscured;
+
+  public List<EnvironmentTileInfo> lightSources;
   public Color nonVisibleTileColor;
-  public Tile fillTile;
   int interestObjectsCount = 0;
   public void Awake()
   {
@@ -242,6 +243,7 @@ public class GridManager : Singleton<GridManager>
     recentlyVisibleTiles = new HashSet<EnvironmentTileInfo>();
     tilesToMakeVisible = new List<List<EnvironmentTileInfo>>();
     tilesToMakeObscured = new List<List<EnvironmentTileInfo>>();
+    lightSources = new List<EnvironmentTileInfo>();
     Dictionary<Vector2, EnvironmentTileInfo> floor = new Dictionary<Vector2, EnvironmentTileInfo>();
     Tilemap groundTilemap;
     Tilemap objectTilemap;
@@ -288,6 +290,7 @@ public class GridManager : Singleton<GridManager>
       }
       // }
     }
+    Debug.Log("lightSources length: " + lightSources.Count);
   }
 
   float opacity = 0;
@@ -447,6 +450,10 @@ public class GridManager : Singleton<GridManager>
     Vector3Int v3pos = new Vector3Int(loc.tilemapCoordinates.x, loc.tilemapCoordinates.y, 0);
     EnvironmentTileInfo info = new EnvironmentTileInfo();
     EnvironmentTile objectTile = objectTilemap.GetTile(v3pos) as EnvironmentTile;
+    if (objectTile != null && objectTile.lightRangeInfo != null && objectTile.lightRangeInfo.Length > 0)
+    {
+      lightSources.Add(info);
+    }
     visibilityTilemap.SetColor(v3pos, nonVisibleTileColor);
     EnvironmentTile groundTile = groundTilemap.GetTile(v3pos) as EnvironmentTile;
     info.Init(
