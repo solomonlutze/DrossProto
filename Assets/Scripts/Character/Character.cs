@@ -373,7 +373,6 @@ public class Character : WorldObject
     vitals[CharacterVital.CurrentHealth] = GetCurrentMaxHealth();
     vitals[CharacterVital.CurrentStamina] = GetMaxStamina();
     vitals[CharacterVital.CurrentCarapace] = GetMaxCarapace();
-    Debug.Log("initializing character data - max carapace " + GetMaxCarapace() + ", current set to " + vitals[CharacterVital.CurrentCarapace]);
     // vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
     // vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
   }

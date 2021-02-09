@@ -1045,12 +1045,27 @@ public class GridManager : Singleton<GridManager>
       foreach (EnvironmentTileInfo tile in currentVisibleTiles)
       {
         tile.visibilityDistance = currentDistance;
-        totalVisibleTiles.Add(tile);
-        if (GetColorOfVisibilityTileAtLocation(tile.tileLocation).a > 0)
+        if (currentDistance <=
+          (tile.illuminationInfo.illuminationLevel * (2 - tile.illuminationInfo.illuminationLevel)) // quadratic ease-out, hopefully?
+          * playerSightRange)
         {
-          tempTilesToMakeVisible.Add(tile);
+          totalVisibleTiles.Add(tile);
+          if (GetColorOfVisibilityTileAtLocation(tile.tileLocation).a > 0)
+          {
+            tempTilesToMakeVisible.Add(tile);
+          }
         }
-        foreach (TilemapDirection dir in new List<TilemapDirection>(){
+        else
+        {
+          // Debug.Log("eliminating tile:");
+          // Debug.Log("currentDistance: " + currentDistance);
+          // Debug.Log("illumination level: " + tile.illuminationInfo.illuminationLevel);
+          // Debug.Log("calculated vision distance: " + (Mathf.Pow(tile.illuminationInfo.illuminationLevel, 2) // quadratic ease-out, hopefully?
+          // * playerSightRange));
+        }
+        if (!tile.HasSolidObject())
+        {
+          foreach (TilemapDirection dir in new List<TilemapDirection>(){
           TilemapDirection.UpperLeft,
           TilemapDirection.Left,
           TilemapDirection.LowerLeft,
@@ -1058,12 +1073,13 @@ public class GridManager : Singleton<GridManager>
           TilemapDirection.Right,
           TilemapDirection.LowerRight,
         })
-        {
-          if (
-            currentDistance != playerSightRange
-            && !totalVisibleTiles.Contains(GetAdjacentTile(tile.tileLocation, dir)))
           {
-            nextVisibleTiles.Add(GetAdjacentTile(tile.tileLocation, dir));
+            if (
+              currentDistance != playerSightRange
+              && !totalVisibleTiles.Contains(GetAdjacentTile(tile.tileLocation, dir)))
+            {
+              nextVisibleTiles.Add(GetAdjacentTile(tile.tileLocation, dir));
+            }
           }
         }
       }

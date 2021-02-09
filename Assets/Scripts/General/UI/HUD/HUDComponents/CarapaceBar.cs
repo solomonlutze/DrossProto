@@ -15,7 +15,6 @@ public class CarapaceBar : MonoBehaviour
   {
     get
     {
-      Debug.Log("carapaceBarContentsFill " + carapaceBarContentsFill);
       return carapaceBarContentsFill == null ? null : carapaceBarContentsFill.GetComponent<Image>();
     }
   }

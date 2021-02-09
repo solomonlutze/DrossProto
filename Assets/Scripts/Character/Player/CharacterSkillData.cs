@@ -86,7 +86,6 @@ public class CharacterSkillData : ScriptableObject
 
   public void CalculateRangeInfos()
   {
-    Debug.Log("calculate range infos~");
     List<SkillRangeInfo> rangeInfo = new List<SkillRangeInfo>();
     if (skillEffects.Length > 0)
     {
