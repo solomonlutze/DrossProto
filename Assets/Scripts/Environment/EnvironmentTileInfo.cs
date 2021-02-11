@@ -29,25 +29,23 @@ public class IlluminationInfo
 }
 public class IlluminatedByInfo
 {
-  public EnvironmentTileInfo illuminationSource;
+  public LightSourceInfo illuminationSource;
   public int distanceFromSource;
 
   public IlluminationInfo info;
-  public bool sunlit = false;
+  public bool sunlit
+  {
+    get
+    {
+      return illuminationSource != null && illuminationSource.isSunlight && distanceFromSource == 0;
+    }
+  }
 
-  public IlluminatedByInfo(EnvironmentTileInfo source, int distance, bool isSunlit = false)
+  public IlluminatedByInfo(LightSourceInfo source, int distance)
   {
     illuminationSource = source;
     distanceFromSource = distance;
-    info = new IlluminationInfo(illuminationSource.lightSource.lightRangeInfo[distanceFromSource], illuminationSource.lightSource.illuminationColor);
-  }
-  // this one is for sunlight babes
-  public IlluminatedByInfo()
-  {
-    illuminationSource = null;
-    distanceFromSource = 0;
-    sunlit = true;
-    info = new IlluminationInfo(0, GridManager.Instance.sunlightColor);
+    info = new IlluminationInfo(illuminationSource.lightRangeInfo[distanceFromSource], illuminationSource.illuminationColor);
   }
 }
 
@@ -59,6 +57,7 @@ public class LightSourceInfo
   public float[] lightRangeInfo;
   public Color illuminationColor;
   public LightPattern lightPattern;
+  public bool isSunlight;
 }
 
 public class EnvironmentTileInfo
@@ -395,17 +394,12 @@ public class EnvironmentTileInfo
     }
   }
 
-  public void AddIlluminatedBySource(EnvironmentTileInfo source, int distance)
+  public void AddIlluminatedBySource(LightSourceInfo source, int distance)
   {
     illuminatedBySources.Add(new IlluminatedByInfo(source, distance));
     RecalculateIllumination();
   }
 
-  public void AddSunlight()
-  {
-    illuminatedBySources.Add(new IlluminatedByInfo());
-    RecalculateIllumination();
-  }
 
   public void RecalculateIllumination()
   {
