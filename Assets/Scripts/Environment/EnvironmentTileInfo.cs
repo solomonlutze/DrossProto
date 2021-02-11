@@ -33,14 +33,22 @@ public class IlluminatedByInfo
   public int distanceFromSource;
 
   public IlluminationInfo info;
+  public bool sunlit = false;
 
-  public IlluminatedByInfo(EnvironmentTileInfo source, int distance)
+  public IlluminatedByInfo(EnvironmentTileInfo source, int distance, bool isSunlit = false)
   {
     illuminationSource = source;
     distanceFromSource = distance;
     info = new IlluminationInfo(illuminationSource.lightSource.lightRangeInfo[distanceFromSource], illuminationSource.lightSource.illuminationColor);
   }
-
+  // this one is for sunlight babes
+  public IlluminatedByInfo()
+  {
+    illuminationSource = null;
+    distanceFromSource = 0;
+    sunlit = true;
+    info = new IlluminationInfo(0, GridManager.Instance.sunlightColor);
+  }
 }
 
 [System.Serializable]
@@ -270,6 +278,23 @@ public class EnvironmentTileInfo
     return (groundTileType == null && objectTileType == null);
   }
 
+  public bool IsSunlit()
+  {
+    for (int i = 0; i < illuminatedBySources.Count; i++)
+    {
+      if (illuminatedBySources[i].sunlit)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public bool IsEmptyAndSunlit()
+  {
+    return IsEmpty() && IsSunlit();
+  }
+
   // DEPRECATED
   public void DestroyTile()
   {
@@ -373,6 +398,12 @@ public class EnvironmentTileInfo
   public void AddIlluminatedBySource(EnvironmentTileInfo source, int distance)
   {
     illuminatedBySources.Add(new IlluminatedByInfo(source, distance));
+    RecalculateIllumination();
+  }
+
+  public void AddSunlight()
+  {
+    illuminatedBySources.Add(new IlluminatedByInfo());
     RecalculateIllumination();
   }
 

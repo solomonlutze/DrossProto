@@ -235,6 +235,7 @@ public class GridManager : Singleton<GridManager>
   public HashSet<EnvironmentTileInfo> litTiles;
 
   public Color nonVisibleTileColor;
+  public Color sunlightColor;
   int interestObjectsCount = 0;
   public void Awake()
   {
@@ -268,8 +269,10 @@ public class GridManager : Singleton<GridManager>
     }
     if (minXAcrossAllFloors + maxXAcrossAllFloors % 2 != 0) { maxXAcrossAllFloors += 1; }
     if (minYAcrossAllFloors + maxYAcrossAllFloors % 2 != 0) { maxYAcrossAllFloors += 1; }
-    foreach (FloorLayer layer in Enum.GetValues(typeof(FloorLayer)))
+    for (int i = Enum.GetValues(typeof(FloorLayer)).Length - 1; i >= 0; i--)
     {
+      FloorLayer layer = (FloorLayer)i;
+      Debug.Log("layer: " + layer);
       floor.Clear();
       worldGrid[layer] = new Dictionary<Vector2Int, EnvironmentTileInfo>();
       if (!layerFloors.ContainsKey(layer))
@@ -348,94 +351,6 @@ public class GridManager : Singleton<GridManager>
         tilesToMakeVisible.RemoveAt(0);
       }
     }
-
-    // if (GameMaster.Instance.GetPlayerController() != null)
-    // {
-    //   TileLocation charLoc = GameMaster.Instance.GetPlayerController().GetTileLocation();
-    //   LayerFloor layerFloor = layerFloors[charLoc.floorLayer];
-    //   int z = (int)GridManager.GetZOffsetForFloor(WorldObject.GetGameObjectLayerFromFloorLayer(charLoc.floorLayer));
-
-    //   for (int x = charLoc.tilemapCoordinates.x - 40; x <= charLoc.tilemapCoordinates.x + 40; x++)
-    //   {
-    //     for (int y = charLoc.tilemapCoordinates.y - 40; y <= charLoc.tilemapCoordinates.y + 40; y++)
-    //     {
-    //       // Debug.Log("x: " + x);
-    //       // Debug.Log("y: " + y);
-    //       // if (layerFloor.groundTilemap.GetTile(new Vector3Int(x, y, 0)).name != "waffle") { return; }
-    //       Color c = layerFloor.visibilityTilemap.GetColor(new Vector3Int(x, y, 0));
-    //       // c.a += opacity;
-    //       c.a = Mathf.PingPong(Time.time, 1);
-    //       layerFloor.visibilityTilemap.SetColor(new Vector3Int(x, y, 0), c);
-    //       // opacity += .0001f * sign;
-    //       // if (opacity > 1 || opacity < 0)
-    //       // {
-    //       //   sign *= -1;
-    //       // }
-    //     }
-    //     // opacity = Mathf.PingPong(Time.time, 1f);
-    //     // Debug.Log("opacity: " + opacity);
-    //   }
-    // }
-
-    // get floor layer for player
-    // determine center tile (player location)
-    // player location within chunk at chunksize / 2
-    // 
-    // PlayerController player = GameMaster.Instance.GetPlayerController();
-    // if (player != null)
-    // {
-    //   Tile[] tileArray = new Tile[chunkSize * chunkSize];
-    //   TileLocation playerLoc = player.GetTileLocation();
-    //   // BoundsInt bounds = new BoundsInt(playerLoc.x - chunkSize / 2, playerLoc.y - chunkSize / 2, 1, playerLoc.x + chunkSize / 2, playerLoc.y + chunkSize / 2, 1);
-    //   BoundsInt bounds = new BoundsInt(-12, -12, 0, 24, 24, 1);
-    //   TileBase[] tileBaseBlock = layerFloors[player.currentFloor].visibilityTilemap.GetTilesBlock(bounds);
-    //   Tile[] tileBlock = new Tile[tileBaseBlock.Length];
-    //   Debug.Log("tileblock length: " + tileBlock);
-    //   HashSet<EnvironmentTileInfo> tilesToRemove = new HashSet<EnvironmentTileInfo>();
-    //   // Debug.Log("bounds")
-    //   for (int i = 0; i < tileBaseBlock.Length; i++)
-    //   {
-    //     Tile tile = (Tile)tileBaseBlock[i];
-    //     Debug.Log("as tile: " + tile);
-    //     if (tile != null)
-    //     {
-    //       Debug.Log("tile.color before " + tile.color);
-    //       tile.flags = TileFlags.None;
-    //       Color c = tile.color;
-    //       c.a = Mathf.PingPong(Time.time, 1);
-    //       tile.color = c;
-    //       Debug.Log("tile.color after " + tile.color);
-    //     }
-    //     else
-    //     {
-    //       Debug.Log("couldn't cast tile at " + i);
-    //     }
-    //     tileBlock[i] = fillTile;
-    //     // tile;
-    //   }
-    //   layerFloors[player.currentFloor].visibilityTilemap.SetTilesBlock(bounds, tileBlock);
-    // foreach (EnvironmentTileInfo tile in recentlyVisibleTiles)
-    // {
-    //   Color c = layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.GetColor(tile.tileLocation.tilemapCoordinatesVector3);
-    //   c.a += Time.deltaTime * 3;
-    //   layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(
-    //     tile.tileLocation.tilemapCoordinatesVector3, c);
-    //   if (c.a >= 1)
-    //   {
-    //     tilesToRemove.Add(tile);
-    //   }
-    // }
-    // recentlyVisibleTiles.ExceptWith(tilesToRemove);
-    // foreach (EnvironmentTileInfo tile in visibleTiles)
-    // {
-    //   Color c = layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.GetColor(tile.tileLocation.tilemapCoordinatesVector3);
-    //   if (c.a <= 0) { continue; }
-    //   c.a -= Time.deltaTime * 3;
-    //   if (c.a < 0) { c.a = 0; }
-    //   layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(
-    //     tile.tileLocation.tilemapCoordinatesVector3, c);
-    // }
-    // }
   }
 
   public EnvironmentTileInfo ConstructAndSetEnvironmentTileInfo(TileLocation loc, Tilemap groundTilemap, Tilemap objectTilemap, Tilemap visibilityTilemap)
@@ -443,8 +358,11 @@ public class GridManager : Singleton<GridManager>
     Vector3Int v3pos = new Vector3Int(loc.tilemapCoordinates.x, loc.tilemapCoordinates.y, 0);
     EnvironmentTileInfo info = new EnvironmentTileInfo();
     EnvironmentTile objectTile = objectTilemap.GetTile(v3pos) as EnvironmentTile;
-
     EnvironmentTile groundTile = groundTilemap.GetTile(v3pos) as EnvironmentTile;
+    if (loc.floorLayer == FloorLayer.F6 || GetAdjacentTile(loc, TilemapDirection.Above).IsEmptyAndSunlit())
+    {
+      info.AddSunlight();
+    }
     info.Init(
       loc,
       groundTile,
