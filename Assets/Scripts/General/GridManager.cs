@@ -387,7 +387,7 @@ public class GridManager : Singleton<GridManager>
       {
         litTiles.Add(info);
       }
-      if (info.IsEmpty() && currentTilesToLight != null)
+      if (!info.IsEmpty() && currentTilesToLight != null)
       {
         currentTilesToLight.Add(info);
       }
@@ -413,6 +413,7 @@ public class GridManager : Singleton<GridManager>
     int currentDistance = 0;
     while (currentDistance < sunlight.lightRangeInfo.Length)
     {
+      Debug.Log("currentTilesToIlluminate.count " + currentTilesToIlluminate.Count);
       foreach (EnvironmentTileInfo tile in currentTilesToIlluminate)
       {
         if (currentDistance != 0)
@@ -443,6 +444,7 @@ public class GridManager : Singleton<GridManager>
       }
       currentTilesToIlluminate = new HashSet<EnvironmentTileInfo>(nextTilesToLight);
       nextTilesToLight.Clear();
+      Debug.Log("current distance: " + currentDistance);
       currentDistance++;
     }
   }
