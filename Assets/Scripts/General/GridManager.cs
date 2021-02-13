@@ -421,8 +421,17 @@ public class GridManager : Singleton<GridManager>
           tile.AddIlluminatedBySource(sunlight, currentDistance);
           litTiles.Add(tile);
         }
-        layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(tile.tileLocation.tilemapCoordinatesVector3, tile.illuminationInfo.opaqueColor);
-        foreach (TilemapDirection dir in new List<TilemapDirection>(){
+        if (!tile.IsEmpty())
+        {
+          layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(tile.tileLocation.tilemapCoordinatesVector3, tile.illuminationInfo.opaqueColor);
+        }
+        else
+        {
+          layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(tile.tileLocation.tilemapCoordinatesVector3, Color.clear);
+        }
+        if (!tile.HasSolidObject())
+        {
+          foreach (TilemapDirection dir in new List<TilemapDirection>(){
             TilemapDirection.UpperLeft,
             TilemapDirection.Left,
             TilemapDirection.LowerLeft,
@@ -432,13 +441,16 @@ public class GridManager : Singleton<GridManager>
             TilemapDirection.Above,
             TilemapDirection.Below
           })
-        {
-          if (
-            GetAdjacentTile(tile.tileLocation, dir) != null
-            && currentDistance != (sunlight.lightRangeInfo.Length - 1)
-            && !litTiles.Contains(GetAdjacentTile(tile.tileLocation, dir)))
           {
-            nextTilesToLight.Add(GetAdjacentTile(tile.tileLocation, dir));
+            if (dir == TilemapDirection.Below && !tile.IsEmpty()) { continue; } // can't go down through a floor
+            if (dir == TilemapDirection.Above && (GetAdjacentTile(tile.tileLocation, dir) == null || !GetAdjacentTile(tile.tileLocation, dir).IsEmpty())) { continue; } // can't go up through a floor
+            if (
+              GetAdjacentTile(tile.tileLocation, dir) != null
+              && currentDistance != (sunlight.lightRangeInfo.Length - 1)
+              && !litTiles.Contains(GetAdjacentTile(tile.tileLocation, dir)))
+            {
+              nextTilesToLight.Add(GetAdjacentTile(tile.tileLocation, dir));
+            }
           }
         }
       }
@@ -1029,19 +1041,14 @@ public class GridManager : Singleton<GridManager>
           (tile.illuminationInfo.illuminationLevel * (2 - tile.illuminationInfo.illuminationLevel)) // quadratic ease-out, hopefully?
           * playerSightRange)
         {
-          totalVisibleTiles.Add(tile);
-          if (GetColorOfVisibilityTileAtLocation(tile.tileLocation).a > 0)
+          if (!tile.IsEmpty())
           {
-            tempTilesToMakeVisible.Add(tile);
+            totalVisibleTiles.Add(tile);
+            if (GetColorOfVisibilityTileAtLocation(tile.tileLocation).a > 0)
+            {
+              tempTilesToMakeVisible.Add(tile);
+            }
           }
-        }
-        else
-        {
-          // Debug.Log("eliminating tile:");
-          // Debug.Log("currentDistance: " + currentDistance);
-          // Debug.Log("illumination level: " + tile.illuminationInfo.illuminationLevel);
-          // Debug.Log("calculated vision distance: " + (Mathf.Pow(tile.illuminationInfo.illuminationLevel, 2) // quadratic ease-out, hopefully?
-          // * playerSightRange));
         }
         if (!tile.HasSolidObject())
         {
