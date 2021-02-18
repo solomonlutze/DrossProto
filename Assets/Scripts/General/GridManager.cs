@@ -236,6 +236,8 @@ public class GridManager : Singleton<GridManager>
 
   public Color nonVisibleTileColor;
   public LightSourceInfo sunlight;
+  [Tooltip("Time it takes a tile to fade in, in seconds")]
+  public float tileFadeTime = .5f;
   int interestObjectsCount = 0;
   public void Awake()
   {
@@ -315,13 +317,13 @@ public class GridManager : Singleton<GridManager>
       for (int i = tilesToMakeObscured[0].Count - 1; i >= 0; i--)
       {
         EnvironmentTileInfo tile = tilesToMakeObscured[0][i];
-        if (visibleTiles.Contains(tile))
+        if (visibleTiles.Contains(tile) || tile.IsEmpty())
         {
           tilesToMakeObscured[0].Remove(tile);
           continue;
         }
         Color c = layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.GetColor(tile.tileLocation.tilemapCoordinatesVector3);
-        c.a += Time.deltaTime * 3;
+        c.a += Time.deltaTime / tileFadeTime;
         if (c.a >= 1)
         {
           c.a = 1;
@@ -341,7 +343,7 @@ public class GridManager : Singleton<GridManager>
       {
         EnvironmentTileInfo tile = tilesToMakeVisible[0][i];
         Color c = layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.GetColor(tile.tileLocation.tilemapCoordinatesVector3);
-        c.a -= Time.deltaTime * 3;
+        c.a -= Time.deltaTime / tileFadeTime;
         if (c.a <= tile.illuminationInfo.visibleColor.a)
         {
           c.a = tile.illuminationInfo.visibleColor.a;
@@ -392,7 +394,14 @@ public class GridManager : Singleton<GridManager>
         currentTilesToLight.Add(info);
       }
     }
-    visibilityTilemap.SetColor(v3pos, info.illuminationInfo.opaqueColor);
+    if (!info.IsEmpty())
+    {
+      visibilityTilemap.SetColor(v3pos, info.illuminationInfo.opaqueColor);
+    }
+    else
+    {
+      visibilityTilemap.SetColor(v3pos, Color.clear);
+    }
     // if (objectTile != null && objectTile.colliderType == Tile.ColliderType.Grid)
     // {
     //   Debug.Log("placing " + objectTile + " tile at tilemap position " + loc.tilemapCoordinates + ", world position " + loc.worldPosition);
@@ -1016,32 +1025,30 @@ public class GridManager : Singleton<GridManager>
   }
   public void PlayerChangedTile(TileLocation newPlayerTileLocation)
   {
-    int playerSightRange = 6;
-    int currentDistance = 0;
     HashSet<EnvironmentTileInfo> totalVisibleTiles = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> nextVisibleTiles = new HashSet<EnvironmentTileInfo>();
-    HashSet<EnvironmentTileInfo> currentVisibleTiles = new HashSet<EnvironmentTileInfo>() { GetTileAtLocation(newPlayerTileLocation) };
-    // Debug.Log("recentlyVisibileTiles starts with " + recentlyVisibleTiles.Count);
-    // Debug.Log("visibleTiles starts with " + visibleTiles.Count);
     tilesToMakeVisible.Clear();
     recentlyVisibleTiles.UnionWith(visibleTiles); // add all tiles visible BEFORE recalculating
-                                                  // Debug.Log("recentlyVisibileTiles after union with visibleTiles has " + recentlyVisibleTiles.Count);
     foreach (EnvironmentTileInfo tile in recentlyVisibleTiles)// if visibility seems to flicker we can move this down but it shouldn't
     {
       tile.visibilityDistance += 1;
     }
-    while (currentDistance <= playerSightRange)
+    for (int i = 0; i <= 2; i++)
     {
-      List<EnvironmentTileInfo> tempTilesToMakeVisible = new List<EnvironmentTileInfo>();
-      foreach (EnvironmentTileInfo tile in currentVisibleTiles)
+      int playerSightRange = 6 + 4 * Mathf.Abs(i); // who fucking knows!!
+      int currentDistance = 0;
+      if (!Enum.IsDefined(typeof(FloorLayer), newPlayerTileLocation.floorLayer - i)) { continue; }
+      EnvironmentTileInfo initialTile = GetTileAtLocation(new TileLocation(newPlayerTileLocation.x, newPlayerTileLocation.y, newPlayerTileLocation.floorLayer - i));
+      HashSet<EnvironmentTileInfo> currentVisibleTiles = new HashSet<EnvironmentTileInfo>() { initialTile };
+      while (currentDistance <= playerSightRange)
       {
-        tile.visibilityDistance = currentDistance;
-        if (currentDistance == 0) Debug.Log("evaluating tile at " + currentDistance + " with illumination level " + tile.illuminationInfo.illuminationLevel);
-        if (currentDistance <=
-          (tile.illuminationInfo.illuminationLevel * (2 - tile.illuminationInfo.illuminationLevel)) // quadratic ease-out, hopefully?
-          * playerSightRange)
+        List<EnvironmentTileInfo> tempTilesToMakeVisible = new List<EnvironmentTileInfo>();
+        foreach (EnvironmentTileInfo tile in currentVisibleTiles)
         {
-          if (!tile.IsEmpty())
+          tile.visibilityDistance = currentDistance;
+          if (currentDistance <=
+            (tile.illuminationInfo.illuminationLevel * (2 - tile.illuminationInfo.illuminationLevel)) // quadratic ease-out, hopefully?
+            * playerSightRange)
           {
             totalVisibleTiles.Add(tile);
             if (GetColorOfVisibilityTileAtLocation(tile.tileLocation).a > 0)
@@ -1049,10 +1056,9 @@ public class GridManager : Singleton<GridManager>
               tempTilesToMakeVisible.Add(tile);
             }
           }
-        }
-        if (!tile.HasSolidObject())
-        {
-          foreach (TilemapDirection dir in new List<TilemapDirection>(){
+          if (!tile.HasSolidObject() || i != 0) // can see over obstacles below us, I guess?
+          {
+            foreach (TilemapDirection dir in new List<TilemapDirection>(){
           TilemapDirection.UpperLeft,
           TilemapDirection.Left,
           TilemapDirection.LowerLeft,
@@ -1060,31 +1066,38 @@ public class GridManager : Singleton<GridManager>
           TilemapDirection.Right,
           TilemapDirection.LowerRight,
         })
-          {
-            if (
-              currentDistance != playerSightRange
-              && !totalVisibleTiles.Contains(GetAdjacentTile(tile.tileLocation, dir)))
             {
-              nextVisibleTiles.Add(GetAdjacentTile(tile.tileLocation, dir));
+              if (
+                currentDistance != playerSightRange
+                && !totalVisibleTiles.Contains(GetAdjacentTile(tile.tileLocation, dir)))
+              {
+                nextVisibleTiles.Add(GetAdjacentTile(tile.tileLocation, dir));
+              }
             }
           }
         }
+        if (tempTilesToMakeVisible.Count > 0)
+        {
+          if (tilesToMakeVisible.Count > currentDistance)
+          {
+            tilesToMakeVisible[currentDistance].AddRange(tempTilesToMakeVisible);
+          }
+          else
+          {
+            tilesToMakeVisible.Add(tempTilesToMakeVisible);
+          }
+        }
+        if (currentDistance != playerSightRange)
+        {
+          currentVisibleTiles = new HashSet<EnvironmentTileInfo>(nextVisibleTiles);
+          nextVisibleTiles.Clear();
+        }
+        currentDistance++;
       }
-      if (tempTilesToMakeVisible.Count > 0)
-      {
-        tilesToMakeVisible.Add(tempTilesToMakeVisible);
-      }
-      if (currentDistance != playerSightRange)
-      {
-        currentVisibleTiles = new HashSet<EnvironmentTileInfo>(nextVisibleTiles);
-        nextVisibleTiles.Clear();
-      }
-      currentDistance++;
     }
+
     recentlyVisibleTiles.ExceptWith(totalVisibleTiles); // remove all tiles visible AFTER recalculating
     tilesToMakeObscured.Add(new List<EnvironmentTileInfo>(recentlyVisibleTiles));
-    // Debug.Log("recentlyVisibileTiles after exceptWith has " + recentlyVisibleTiles.Count);
     visibleTiles = new HashSet<EnvironmentTileInfo>(totalVisibleTiles); // replace contents of visibleTiles with totalVisibleTiles
-                                                                        // Debug.Log("visibleTiles ends with " + visibleTiles.Count);
   }
 }
