@@ -233,6 +233,7 @@ public class GridManager : Singleton<GridManager>
 
   public HashSet<EnvironmentTileInfo> lightSources;
   public HashSet<EnvironmentTileInfo> litTiles;
+  public EnvironmentTile visibilityTile;
 
   public Color nonVisibleTileColor;
   public LightSourceInfo sunlight;
@@ -312,6 +313,10 @@ public class GridManager : Singleton<GridManager>
   int sign = 1;
   public void Update()
   {
+    foreach (EnvironmentTileInfo lightSource in lightSources)
+    {
+      lightSource.IlluminateNeighbors();
+    }
     if (tilesToMakeObscured.Count > 0)
     {
       for (int i = tilesToMakeObscured[0].Count - 1; i >= 0; i--)
@@ -370,6 +375,7 @@ public class GridManager : Singleton<GridManager>
   {
     Vector3Int v3pos = new Vector3Int(loc.tilemapCoordinates.x, loc.tilemapCoordinates.y, 0);
     EnvironmentTileInfo info = new EnvironmentTileInfo();
+    visibilityTilemap.SetTile(v3pos, visibilityTile);
     EnvironmentTile objectTile = objectTilemap.GetTile(v3pos) as EnvironmentTile;
     EnvironmentTile groundTile = groundTilemap.GetTile(v3pos) as EnvironmentTile;
 
@@ -402,15 +408,7 @@ public class GridManager : Singleton<GridManager>
     {
       visibilityTilemap.SetColor(v3pos, Color.clear);
     }
-    // if (objectTile != null && objectTile.colliderType == Tile.ColliderType.Grid)
-    // {
-    //   Debug.Log("placing " + objectTile + " tile at tilemap position " + loc.tilemapCoordinates + ", world position " + loc.worldPosition);
-    // }
     worldGrid[loc.floorLayer][loc.tilemapCoordinates] = info;
-    // if (interestObjectsCount < 500)
-    // {
-    // AddInterestObjects(GetAdjacentTileLocation(loc, TilemapDirection.Left));
-    // }
     return info;
   }
 
@@ -420,7 +418,7 @@ public class GridManager : Singleton<GridManager>
   {
     HashSet<EnvironmentTileInfo> nextTilesToLight = new HashSet<EnvironmentTileInfo>();
     int currentDistance = 0;
-    while (currentDistance < sunlight.lightRangeInfo.Length)
+    while (currentDistance < sunlight.lightRangeInfos.Length)
     {
       Debug.Log("currentTilesToIlluminate.count " + currentTilesToIlluminate.Count);
       foreach (EnvironmentTileInfo tile in currentTilesToIlluminate)
@@ -455,7 +453,7 @@ public class GridManager : Singleton<GridManager>
             if (dir == TilemapDirection.Above && (GetAdjacentTile(tile.tileLocation, dir) == null || !GetAdjacentTile(tile.tileLocation, dir).IsEmpty())) { continue; } // can't go up through a floor
             if (
               GetAdjacentTile(tile.tileLocation, dir) != null
-              && currentDistance != (sunlight.lightRangeInfo.Length - 1)
+              && currentDistance != (sunlight.lightRangeInfos.Length - 1)
               && !litTiles.Contains(GetAdjacentTile(tile.tileLocation, dir)))
             {
               nextTilesToLight.Add(GetAdjacentTile(tile.tileLocation, dir));
@@ -954,17 +952,19 @@ public class GridManager : Singleton<GridManager>
     return layerFloors[loc.floorLayer].visibilityTilemap.GetColor(loc.tilemapCoordinatesVector3);
   }
 
+  // TODO: move this method into EnvironmentTileInfo probably
   public void AddIlluminationSourceToNeighbors(EnvironmentTileInfo sourceTile)
   {
     int currentDistance = 0;
     HashSet<EnvironmentTileInfo> totalTilesToIlluminate = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> nextTilesToIlluminate = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> currentTilesToIlluminate = new HashSet<EnvironmentTileInfo>() { sourceTile };
-    while (currentDistance < sourceTile.lightSource.lightRangeInfo.Length)
+    while (currentDistance < sourceTile.lightSource.lightRangeInfos.Length)
     {
       foreach (EnvironmentTileInfo tile in currentTilesToIlluminate)
       {
         tile.AddIlluminatedBySource(sourceTile.lightSource, currentDistance);
+        sourceTile.illuminatedNeighbors.Add(tile);
         totalTilesToIlluminate.Add(tile);
         layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(tile.tileLocation.tilemapCoordinatesVector3, tile.illuminationInfo.opaqueColor);
         foreach (TilemapDirection dir in new List<TilemapDirection>(){
@@ -977,46 +977,12 @@ public class GridManager : Singleton<GridManager>
           })
         {
           if (
-            currentDistance != (sourceTile.lightSource.lightRangeInfo.Length - 1)
+            currentDistance != (sourceTile.lightSource.lightRangeInfos.Length - 1)
             && !totalTilesToIlluminate.Contains(GetAdjacentTile(tile.tileLocation, dir)))
           {
             nextTilesToIlluminate.Add(GetAdjacentTile(tile.tileLocation, dir));
           }
         }
-        //   totalVisibleTiles.Add(tile);
-        //   if (GetColorOfVisibilityTileAtLocation(tile.tileLocation).a > 0)
-        //   {
-        //     tempTilesToMakeVisible.Add(tile);
-        //   }
-        //   foreach (TilemapDirection dir in new List<TilemapDirection>(){
-        //     TilemapDirection.UpperLeft,
-        //     TilemapDirection.Left,
-        //     TilemapDirection.LowerLeft,
-        //     TilemapDirection.UpperRight,
-        //     TilemapDirection.Right,
-        //     TilemapDirection.LowerRight,
-        //   })
-        //   {
-        //     if (
-        //       currentDistance != playerSightRange
-        //       && !totalVisibleTiles.Contains(GetAdjacentTile(tile.tileLocation, dir)))
-        //     {
-        //       nextVisibleTiles.Add(GetAdjacentTile(tile.tileLocation, dir));
-        //     }
-        //   }
-        // }
-        // if (tempTilesToMakeVisible.Count > 0)
-        // {
-        //   tilesToMakeVisible.Add(tempTilesToMakeVisible);
-        // }
-        // if (currentDistance != playerSightRange)
-        // {
-        //   currentVisibleTiles = new HashSet<EnvironmentTileInfo>(nextVisibleTiles);
-        //   nextVisibleTiles.Clear();
-        // }
-        // if (currentDistance != (source.lightSource.lightRangeInfo.Length - 1))
-        // {
-        // }
       }
       currentTilesToIlluminate = new HashSet<EnvironmentTileInfo>(nextTilesToIlluminate);
       nextTilesToIlluminate.Clear();
@@ -1069,6 +1035,7 @@ public class GridManager : Singleton<GridManager>
             {
               if (
                 currentDistance != playerSightRange
+                && AdjacentTileIsValid(tile.tileLocation, dir)
                 && !totalVisibleTiles.Contains(GetAdjacentTile(tile.tileLocation, dir)))
               {
                 nextVisibleTiles.Add(GetAdjacentTile(tile.tileLocation, dir));
