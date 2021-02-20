@@ -7,6 +7,7 @@ using UnityEngine.Tilemaps;
 
 public class IlluminationInfo
 {
+  public LightRangeInfo sourceLightInfo;
   public float illuminationLevel;
   public Color visibleColor;
   public Color opaqueColor;
@@ -43,7 +44,13 @@ public class IlluminatedByInfo
   public LightSourceInfo illuminationSource;
   public int distanceFromSource;
 
-  public IlluminationInfo info;
+  public LightRangeInfo sourceRangeInfo
+  {
+    get
+    {
+      return illuminationSource.lightRangeInfos[distanceFromSource];
+    }
+  }
   public bool sunlit
   {
     get
@@ -56,7 +63,8 @@ public class IlluminatedByInfo
   {
     illuminationSource = source;
     distanceFromSource = distance;
-    info = new IlluminationInfo(illuminationSource.lightRangeInfos[distanceFromSource].currentIntensity, illuminationSource.illuminationColor);
+    // info = new IlluminationInfo(illuminationSource.lightRangeInfos[distanceFromSource].currentIntensity, illuminationSource.illuminationColor);
+
   }
 }
 
@@ -432,12 +440,12 @@ public class EnvironmentTileInfo
     float maxIntensity = 0;
     for (int i = 0; i < illuminatedBySources.Count; i++)
     {
-      totalIntensity += illuminatedBySources[i].info.illuminationLevel;
-      maxIntensity = Mathf.Max(maxIntensity, illuminatedBySources[i].info.illuminationLevel);
+      totalIntensity += illuminatedBySources[i].sourceRangeInfo.currentIntensity;
+      maxIntensity = Mathf.Max(maxIntensity, illuminatedBySources[i].sourceRangeInfo.currentIntensity);
     }
     for (int i = 0; i < illuminatedBySources.Count; i++)
     {
-      finalColor += (illuminatedBySources[i].info.visibleColor * (illuminatedBySources[i].info.illuminationLevel) / totalIntensity);
+      finalColor += (illuminatedBySources[i].illuminationSource.illuminationColor * (illuminatedBySources[i].sourceRangeInfo.currentIntensity) / totalIntensity);
     }
     illuminationInfo = new IlluminationInfo(maxIntensity, finalColor);
   }
