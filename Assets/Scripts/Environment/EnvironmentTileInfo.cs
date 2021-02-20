@@ -27,6 +27,7 @@ public class IlluminationInfo
     opaqueColor = c * illuminationLevel;
     opaqueColor.a = 1;
   }
+
   public IlluminationInfo()
   {
     illuminationLevel = .15f;
@@ -36,16 +37,6 @@ public class IlluminationInfo
     opaqueColor.a = 1;
   }
 }
-// public class IlluminatingInfo
-// { // this class named half a drink in at 9:50 on a thursday
-//   public int distanceFromSelf;
-//   public EnvironmentTileInfo tileInfo;
-//   public IlluminatingInfo(EnvironmentTileInfo t, int d)
-//   {
-//     distanceFromSelf = d;
-//     tileInfo = t;
-//   }
-// }
 
 public class IlluminatedByInfo
 {
@@ -69,6 +60,7 @@ public class IlluminatedByInfo
   }
 }
 
+[System.Serializable]
 public class LightRangeInfo
 {
   public float defaultIntensity;
@@ -103,7 +95,7 @@ public class EnvironmentTileInfo
   public int visibilityDistance;
   public List<EnvironmentalDamage> environmentalDamageSources;
   public List<IlluminatedByInfo> illuminatedBySources;
-  public List<EnvironmentTileInfo> illuminatedNeighbors;
+  public HashSet<EnvironmentTileInfo> illuminatedNeighbors;
   public LightSourceInfo lightSource;
   public bool isLightSource
   {
@@ -128,6 +120,7 @@ public class EnvironmentTileInfo
     environmentalDamageSources = new List<EnvironmentalDamage>();
     illuminatedBySources = new List<IlluminatedByInfo>();
     illuminationInfo = new IlluminationInfo();
+    illuminatedNeighbors = new HashSet<EnvironmentTileInfo>();
     // cornerInterestObjects = new Dictionary<TilemapCorner, GameObject>() {
     //   {TilemapCorner.UpperLeft, null},
     //   {TilemapCorner.LowerLeft, null},
@@ -451,7 +444,7 @@ public class EnvironmentTileInfo
 
   // doing illumination this way could mean we change tile colors multiple times a frame in cases of overlapping lights :o
   // worth noting if perf gets shitty!!
-  public void IlluminateNeighbors()
+  public HashSet<EnvironmentTileInfo> IlluminateNeighbors()
   {
     switch (lightSource.lightPattern)
     {
@@ -463,10 +456,10 @@ public class EnvironmentTileInfo
           int sign = temp > lightSource.lightRangeInfos[i].currentIntensity ? 1 : -1;
           lightSource.lightRangeInfos[i].currentIntensity += (sign > 0 ? sign * lightSource.patternIncreaseSpeed : sign * lightSource.patternDecreaseSpeed);
         }
-        break;
+        return illuminatedNeighbors;
       case LightPattern.Constant:
       default:
-        return;
+        return null;
     }
   }
 }

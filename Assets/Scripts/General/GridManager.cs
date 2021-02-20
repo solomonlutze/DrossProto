@@ -233,6 +233,7 @@ public class GridManager : Singleton<GridManager>
 
   public HashSet<EnvironmentTileInfo> lightSources;
   public HashSet<EnvironmentTileInfo> litTiles;
+  public HashSet<EnvironmentTileInfo> tilesToRecalculateLightingFor;
   public EnvironmentTile visibilityTile;
 
   public Color nonVisibleTileColor;
@@ -250,6 +251,7 @@ public class GridManager : Singleton<GridManager>
     tilesToMakeVisible = new List<List<EnvironmentTileInfo>>();
     tilesToMakeObscured = new List<List<EnvironmentTileInfo>>();
     lightSources = new HashSet<EnvironmentTileInfo>();
+    tilesToRecalculateLightingFor = new HashSet<EnvironmentTileInfo>();
     Dictionary<Vector2, EnvironmentTileInfo> floor = new Dictionary<Vector2, EnvironmentTileInfo>();
     Tilemap groundTilemap;
     Tilemap objectTilemap;
@@ -313,9 +315,19 @@ public class GridManager : Singleton<GridManager>
   int sign = 1;
   public void Update()
   {
+    tilesToRecalculateLightingFor.Clear();
+    HashSet<EnvironmentTileInfo> tempSet;
     foreach (EnvironmentTileInfo lightSource in lightSources)
     {
-      lightSource.IlluminateNeighbors();
+      tempSet = lightSource.IlluminateNeighbors();
+      if (tempSet != null)
+      {
+        tilesToRecalculateLightingFor.UnionWith(lightSource.IlluminateNeighbors());
+      }
+    }
+    foreach (EnvironmentTileInfo litTile in tilesToRecalculateLightingFor)
+    {
+      litTile.RecalculateIllumination();
     }
     if (tilesToMakeObscured.Count > 0)
     {
@@ -327,7 +339,8 @@ public class GridManager : Singleton<GridManager>
           tilesToMakeObscured[0].Remove(tile);
           continue;
         }
-        Color c = layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.GetColor(tile.tileLocation.tilemapCoordinatesVector3);
+        Color c = tile.illuminationInfo.opaqueColor;
+        c.a = layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.GetColor(tile.tileLocation.tilemapCoordinatesVector3).a;
         c.a += Time.deltaTime / tileFadeTime;
         if (c.a >= 1)
         {
@@ -347,7 +360,8 @@ public class GridManager : Singleton<GridManager>
       for (int i = tilesToMakeVisible[0].Count - 1; i >= 0; i--)
       {
         EnvironmentTileInfo tile = tilesToMakeVisible[0][i];
-        Color c = layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.GetColor(tile.tileLocation.tilemapCoordinatesVector3);
+        Color c = tile.illuminationInfo.visibleColor;
+        c.a = layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.GetColor(tile.tileLocation.tilemapCoordinatesVector3).a;
         c.a -= Time.deltaTime / tileFadeTime;
         if (c.a <= tile.illuminationInfo.visibleColor.a)
         {
