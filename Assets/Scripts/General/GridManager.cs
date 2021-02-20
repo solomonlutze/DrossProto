@@ -376,6 +376,17 @@ public class GridManager : Singleton<GridManager>
         tilesToMakeVisible.RemoveAt(0);
       }
     }
+    foreach (EnvironmentTileInfo litTile in tilesToRecalculateLightingFor)
+    {
+      if (visibleTiles.Contains(litTile))
+      {
+        layerFloors[litTile.tileLocation.floorLayer].visibilityTilemap.SetColor(litTile.tileLocation.tilemapCoordinatesVector3, litTile.illuminationInfo.visibleColor);
+      }
+      else
+      {
+        layerFloors[litTile.tileLocation.floorLayer].visibilityTilemap.SetColor(litTile.tileLocation.tilemapCoordinatesVector3, litTile.illuminationInfo.opaqueColor);
+      }
+    }
   }
 
   public EnvironmentTileInfo ConstructAndSetEnvironmentTileInfo(
