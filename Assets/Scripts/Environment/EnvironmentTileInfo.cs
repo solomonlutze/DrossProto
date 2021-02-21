@@ -85,8 +85,9 @@ public class LightSourceInfo
   public LightPattern lightPattern;
   [Range(0, 1)]
   public float patternVariation;
-  public float patternIncreaseSpeed; // time it takes to go from 0 to 1, in seconds
-  public float patternDecreaseSpeed; // time it takes pattern to go from 1 to 0, in seconds
+  public int smoothing;
+  public Queue<float> smoothingQueue;
+  public float smoothingSum = 0;
   public bool isSunlight;
 }
 
@@ -129,6 +130,7 @@ public class EnvironmentTileInfo
     illuminatedBySources = new List<IlluminatedByInfo>();
     illuminationInfo = new IlluminationInfo();
     illuminatedNeighbors = new HashSet<EnvironmentTileInfo>();
+    if (lightSource != null) { lightSource.smoothingQueue = new Queue<float>(); }
     // cornerInterestObjects = new Dictionary<TilemapCorner, GameObject>() {
     //   {TilemapCorner.UpperLeft, null},
     //   {TilemapCorner.LowerLeft, null},
@@ -457,12 +459,28 @@ public class EnvironmentTileInfo
     switch (lightSource.lightPattern)
     {
       case LightPattern.Flicker:
-        float targetIntensityVariation = UnityEngine.Random.Range(-lightSource.patternVariation, lightSource.patternVariation);
+        if (lightSource.smoothingQueue == null)
+        {
+          Debug.Log("smoothing queue null?");
+          return null;
+        }
+        while (lightSource.smoothingQueue.Count >= lightSource.smoothing)
+        {
+          lightSource.smoothingSum -= lightSource.smoothingQueue.Dequeue();
+        }
+        float newValue = UnityEngine.Random.Range(-lightSource.patternVariation, lightSource.patternVariation);
+        lightSource.smoothingQueue.Enqueue(newValue);
+        lightSource.smoothingSum += newValue;
+        float intensityModifier = lightSource.smoothingSum / (float)lightSource.smoothingQueue.Count;
         for (int i = 0; i < lightSource.lightRangeInfos.Length; i++)
         {
-          float temp = lightSource.lightRangeInfos[i].defaultIntensity + targetIntensityVariation;
-          int sign = temp > lightSource.lightRangeInfos[i].currentIntensity ? 1 : -1;
-          lightSource.lightRangeInfos[i].currentIntensity += (sign > 0 ? sign * lightSource.patternIncreaseSpeed : sign * lightSource.patternDecreaseSpeed);
+          float temp = lightSource.lightRangeInfos[i].defaultIntensity + intensityModifier;
+          lightSource.lightRangeInfos[i].currentIntensity = Mathf.Clamp(
+            lightSource.lightRangeInfos[i].currentIntensity + intensityModifier,
+            0,
+            1
+          );
+
         }
         return illuminatedNeighbors;
       case LightPattern.Constant:
