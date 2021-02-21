@@ -317,23 +317,29 @@ public class GridManager : Singleton<GridManager>
   {
     tilesToRecalculateLightingFor.Clear();
     HashSet<EnvironmentTileInfo> tempSet;
+    Debug.Log("lightSources length: " + lightSources.Count);
     foreach (EnvironmentTileInfo lightSource in lightSources)
     {
       tempSet = lightSource.IlluminateNeighbors();
       if (tempSet != null)
       {
-        tilesToRecalculateLightingFor.UnionWith(lightSource.IlluminateNeighbors());
+        tilesToRecalculateLightingFor.UnionWith(tempSet);
       }
     }
     foreach (EnvironmentTileInfo litTile in tilesToRecalculateLightingFor)
     {
       litTile.RecalculateIllumination();
     }
+    Debug.Log("tilesToRecalculateLightingFor length at start: " + tilesToRecalculateLightingFor.Count);
     if (tilesToMakeObscured.Count > 0)
     {
       for (int i = tilesToMakeObscured[0].Count - 1; i >= 0; i--)
       {
         EnvironmentTileInfo tile = tilesToMakeObscured[0][i];
+        if (tilesToRecalculateLightingFor.Contains(tile))
+        {
+          tilesToRecalculateLightingFor.Remove(tile);
+        }
         if (visibleTiles.Contains(tile) || tile.IsEmpty())
         {
           tilesToMakeObscured[0].Remove(tile);
@@ -360,6 +366,10 @@ public class GridManager : Singleton<GridManager>
       for (int i = tilesToMakeVisible[0].Count - 1; i >= 0; i--)
       {
         EnvironmentTileInfo tile = tilesToMakeVisible[0][i];
+        if (tilesToRecalculateLightingFor.Contains(tile))
+        {
+          tilesToRecalculateLightingFor.Remove(tile);
+        }
         Color c = tile.illuminationInfo.visibleColor;
         c.a = layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.GetColor(tile.tileLocation.tilemapCoordinatesVector3).a;
         c.a -= Time.deltaTime / tileFadeTime;
@@ -376,6 +386,8 @@ public class GridManager : Singleton<GridManager>
         tilesToMakeVisible.RemoveAt(0);
       }
     }
+    bool flag = false;
+    Debug.Log("tilesToRecalculateLightingFor length at end: " + tilesToRecalculateLightingFor.Count);
     foreach (EnvironmentTileInfo litTile in tilesToRecalculateLightingFor)
     {
       if (visibleTiles.Contains(litTile))
@@ -384,6 +396,11 @@ public class GridManager : Singleton<GridManager>
       }
       else
       {
+        if (!flag)
+        {
+          Debug.Log("recalculating lighting for tile; opaqueColor = " + litTile.illuminationInfo.opaqueColor);
+          flag = true;
+        }
         layerFloors[litTile.tileLocation.floorLayer].visibilityTilemap.SetColor(litTile.tileLocation.tilemapCoordinatesVector3, litTile.illuminationInfo.opaqueColor);
       }
     }
