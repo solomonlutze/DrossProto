@@ -317,7 +317,6 @@ public class GridManager : Singleton<GridManager>
   {
     tilesToRecalculateLightingFor.Clear();
     HashSet<EnvironmentTileInfo> tempSet;
-    Debug.Log("lightSources length: " + lightSources.Count);
     foreach (EnvironmentTileInfo lightSource in lightSources)
     {
       tempSet = lightSource.IlluminateNeighbors();
@@ -330,7 +329,6 @@ public class GridManager : Singleton<GridManager>
     {
       litTile.RecalculateIllumination();
     }
-    Debug.Log("tilesToRecalculateLightingFor length at start: " + tilesToRecalculateLightingFor.Count);
     if (tilesToMakeObscured.Count > 0)
     {
       for (int i = tilesToMakeObscured[0].Count - 1; i >= 0; i--)
@@ -386,8 +384,6 @@ public class GridManager : Singleton<GridManager>
         tilesToMakeVisible.RemoveAt(0);
       }
     }
-    bool flag = false;
-    Debug.Log("tilesToRecalculateLightingFor length at end: " + tilesToRecalculateLightingFor.Count);
     foreach (EnvironmentTileInfo litTile in tilesToRecalculateLightingFor)
     {
       if (visibleTiles.Contains(litTile))
@@ -396,11 +392,6 @@ public class GridManager : Singleton<GridManager>
       }
       else
       {
-        if (!flag)
-        {
-          Debug.Log("recalculating lighting for tile; opaqueColor = " + litTile.illuminationInfo.opaqueColor);
-          flag = true;
-        }
         layerFloors[litTile.tileLocation.floorLayer].visibilityTilemap.SetColor(litTile.tileLocation.tilemapCoordinatesVector3, litTile.illuminationInfo.opaqueColor);
       }
     }

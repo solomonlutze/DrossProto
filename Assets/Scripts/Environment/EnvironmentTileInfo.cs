@@ -130,7 +130,6 @@ public class EnvironmentTileInfo
     illuminatedBySources = new List<IlluminatedByInfo>();
     illuminationInfo = new IlluminationInfo();
     illuminatedNeighbors = new HashSet<EnvironmentTileInfo>();
-    if (lightSource != null) { lightSource.smoothingQueue = new Queue<float>(); }
     // cornerInterestObjects = new Dictionary<TilemapCorner, GameObject>() {
     //   {TilemapCorner.UpperLeft, null},
     //   {TilemapCorner.LowerLeft, null},
@@ -166,6 +165,7 @@ public class EnvironmentTileInfo
       }
       lightSource = objectTileType.lightSource;
     }
+    if (lightSource != null) { lightSource.smoothingQueue = new Queue<float>(); }
   }
 
   // for now, groundTiles should never change floor layer, but, y'know
@@ -476,7 +476,7 @@ public class EnvironmentTileInfo
         {
           float temp = lightSource.lightRangeInfos[i].defaultIntensity + intensityModifier;
           lightSource.lightRangeInfos[i].currentIntensity = Mathf.Clamp(
-            lightSource.lightRangeInfos[i].currentIntensity + intensityModifier,
+            temp,
             0,
             1
           );
