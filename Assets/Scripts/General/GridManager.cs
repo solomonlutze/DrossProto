@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -112,7 +113,7 @@ public class TileLocation
     // First to vector3Int
     cubeCoords = new Vector3();
     cubeCoords.y = -1 * worldPosition.y / GridConstants.Y_SPACING;
-    // Debug.Log("cubeCoords.y: " + cubeCoords.y);
+    // UnityEngine.Debug.Log("cubeCoords.y: " + cubeCoords.y);
     if ((Mathf.RoundToInt(cubeCoords.y) & 1) == 0)
     {
       cubeCoords.x = worldPosition.x / GridConstants.X_SPACING;
@@ -280,7 +281,7 @@ public class GridManager : Singleton<GridManager>
     for (int i = Enum.GetValues(typeof(FloorLayer)).Length - 1; i >= 0; i--)
     {
       FloorLayer layer = (FloorLayer)i;
-      Debug.Log("layer: " + layer);
+      UnityEngine.Debug.Log("layer: " + layer);
       floor.Clear();
       worldGrid[layer] = new Dictionary<Vector2Int, EnvironmentTileInfo>();
       if (!layerFloors.ContainsKey(layer))
@@ -306,9 +307,9 @@ public class GridManager : Singleton<GridManager>
     InitializeLighting(litTiles, currentTilesToLight);
     foreach (EnvironmentTileInfo source in lightSources)
     {
-      AddIlluminationSourceToNeighbors(source);
+      // AddIlluminationSourceToNeighbors(source);
     }
-    Debug.Log("lightSources length: " + lightSources.Count);
+    UnityEngine.Debug.Log("lightSources length: " + lightSources.Count);
   }
 
   float opacity = 0;
@@ -404,7 +405,7 @@ public class GridManager : Singleton<GridManager>
     }
     if (loc.floorLayer == FloorLayer.F6 || GetAdjacentTile(loc, TilemapDirection.Above).IsEmptyAndSunlit())
     {
-      info.AddIlluminatedBySource(sunlight, 0);
+      // info.AddIlluminatedBySource(sunlight, 0);
       if (litTiles != null)
       {
         litTiles.Add(info);
@@ -434,7 +435,7 @@ public class GridManager : Singleton<GridManager>
     int currentDistance = 0;
     while (currentDistance < sunlight.lightRangeInfos.Length)
     {
-      Debug.Log("currentTilesToIlluminate.count " + currentTilesToIlluminate.Count);
+      UnityEngine.Debug.Log("currentTilesToIlluminate.count " + currentTilesToIlluminate.Count);
       foreach (EnvironmentTileInfo tile in currentTilesToIlluminate)
       {
         if (currentDistance != 0)
@@ -477,7 +478,7 @@ public class GridManager : Singleton<GridManager>
       }
       currentTilesToIlluminate = new HashSet<EnvironmentTileInfo>(nextTilesToLight);
       nextTilesToLight.Clear();
-      Debug.Log("current distance: " + currentDistance);
+      UnityEngine.Debug.Log("current distance: " + currentDistance);
       currentDistance++;
     }
   }
@@ -595,7 +596,7 @@ public class GridManager : Singleton<GridManager>
   {
     if (!TileIsValid(loc))
     {
-      // Debug.LogError("WARNING: Tried to find invalid tile at layer " + loc.floorLayer + ", coordinates " + loc.tilemapCoordinates);
+      // UnityEngine.Debug.LogError("WARNING: Tried to find invalid tile at layer " + loc.floorLayer + ", coordinates " + loc.tilemapCoordinates);
       return null;
     }
     return worldGrid[loc.floorLayer][loc.tilemapCoordinates];
@@ -622,28 +623,28 @@ public class GridManager : Singleton<GridManager>
     return null;
   }
   // public EnvironmentTile GetTileAtLocation(Vector2 loc, FloorLayer floor, FloorTilemapType? floorTilemapType=null) {
-  // 	Debug.Log("inside GetTileAtLocation?");
+  // 	UnityEngine.Debug.Log("inside GetTileAtLocation?");
   // 	if (!layerFloors.ContainsKey(floor) || layerFloors[floor].groundTilemap == null || layerFloors[floor].objectTilemap == null)
   //     {
-  //         Debug.LogWarning("missing layerFloor info for "+floor.ToString());
+  //         UnityEngine.Debug.LogWarning("missing layerFloor info for "+floor.ToString());
   //         return null;
   //     }
   //     LayerFloor layerFloor = layerFloors[floor];
-  // 	Debug.Log("floor is "+floor);
+  // 	UnityEngine.Debug.Log("floor is "+floor);
   // 	EnvironmentTile tile = null;
   // 	if (floorTilemapType == null || floorTilemapType == FloorTilemapType.Object) {
-  // 		Debug.Log("trying to select object tile");
+  // 		UnityEngine.Debug.Log("trying to select object tile");
   // 		tile = (EnvironmentTile) layerFloor.objectTilemap.GetTile(new Vector3Int(Mathf.FloorToInt(loc.x),Mathf.FloorToInt(loc.y),0));
   // 	}
   // 	if (tile == null || floorTilemapType == FloorTilemapType.Ground) {
-  // 		Debug.Log("trying to select ground tile");
+  // 		UnityEngine.Debug.Log("trying to select ground tile");
   // 		tile = (EnvironmentTile) layerFloor.groundTilemap.GetTile(new Vector3Int(Mathf.FloorToInt(loc.x),Mathf.FloorToInt(loc.y),0));
   // 	}
   // 	if (tile == null) { // Empty tile.
-  // 		Debug.Log("tile is null");
+  // 		UnityEngine.Debug.Log("tile is null");
   // 		return null; // TODO: Should maybe return some kind of placeholder "empty tile", rather than null
   // 	}
-  // 	Debug.Log("getTileAtLocation: "+tile.gameObject.name + " "+tile.name);
+  // 	UnityEngine.Debug.Log("getTileAtLocation: "+tile.gameObject.name + " "+tile.name);
   // 	return tile;
   // }
 
@@ -865,7 +866,7 @@ public class GridManager : Singleton<GridManager>
     LayerFloor layerFloor = layerFloors[location.floorLayer];
     if (layerFloor == null || layerFloor.groundTilemap == null || layerFloor.objectTilemap == null)
     {
-      Debug.LogWarning("missing layerFloor info for " + location.floorLayer.ToString());
+      UnityEngine.Debug.LogWarning("missing layerFloor info for " + location.floorLayer.ToString());
       return null;
     }
     Tilemap levelTilemap = replacementTile != null && replacementTile.floorTilemapType == FloorTilemapType.Ground ? layerFloor.groundTilemap : layerFloor.objectTilemap;
@@ -909,7 +910,7 @@ public class GridManager : Singleton<GridManager>
     {
       tileHighlight.GetComponent<SpriteRenderer>().color = (Color)color;
     }
-    // Debug.Log("highlighting tile at " + tileHighlight.transform.position);
+    // UnityEngine.Debug.Log("highlighting tile at " + tileHighlight.transform.position);
     WorldObject.ChangeLayersRecursively(tileHighlight.transform, tilePos.floorLayer);
     StartCoroutine(DEBUGHighlightTileCleanup(tileHighlight));
   }
@@ -977,7 +978,7 @@ public class GridManager : Singleton<GridManager>
     {
       foreach (EnvironmentTileInfo tile in currentTilesToIlluminate)
       {
-        tile.AddIlluminatedBySource(sourceTile.lightSource, currentDistance);
+        // tile.AddIlluminatedBySource(sourceTile.lightSource, currentDistance);
         // sourceTile.illuminatedNeighbors.Add(tile);
         totalTilesToIlluminate.Add(tile);
         layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(tile.tileLocation.tilemapCoordinatesVector3, tile.illuminationInfo.opaqueColor);
@@ -1005,6 +1006,8 @@ public class GridManager : Singleton<GridManager>
   }
   public void PlayerChangedTile(TileLocation newPlayerTileLocation)
   {
+    Stopwatch timeSpentThisFrame = new Stopwatch();
+    timeSpentThisFrame.Start();
     HashSet<EnvironmentTileInfo> totalVisibleTiles = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> nextVisibleTiles = new HashSet<EnvironmentTileInfo>();
     tilesToMakeVisible.Clear();
@@ -1013,7 +1016,9 @@ public class GridManager : Singleton<GridManager>
     {
       tile.visibilityDistance += 1;
     }
-    for (int i = 0; i <= 2; i++)
+    // float t = timeSpentThisFrame.ElapsedMilliseconds;
+    // UnityEngine.Debug.Log("ms elapsed - bp 1: " + t);
+    for (int i = 0; i <= 0; i++)
     {
       int playerSightRange = 6 + 4 * Mathf.Abs(i); // who fucking knows!!
       int currentDistance = 0;
@@ -1022,6 +1027,7 @@ public class GridManager : Singleton<GridManager>
       HashSet<EnvironmentTileInfo> currentVisibleTiles = new HashSet<EnvironmentTileInfo>() { initialTile };
       while (currentDistance <= playerSightRange)
       {
+        // timeSpentThisFrame.Restart();
         List<EnvironmentTileInfo> tempTilesToMakeVisible = new List<EnvironmentTileInfo>();
         foreach (EnvironmentTileInfo tile in currentVisibleTiles)
         {
@@ -1031,12 +1037,12 @@ public class GridManager : Singleton<GridManager>
             * playerSightRange)
           {
             totalVisibleTiles.Add(tile);
-            if (GetColorOfVisibilityTileAtLocation(tile.tileLocation).a > 0)
-            {
-              tempTilesToMakeVisible.Add(tile);
-            }
+            // if (GetColorOfVisibilityTileAtLocation(tile.tileLocation).a > 0)
+            // {
+            tempTilesToMakeVisible.Add(tile);
+            // }
           }
-          if (!tile.HasSolidObject() || i != 0) // can see over obstacles below us, I guess?
+          if ((!tile.HasSolidObject() || i != 0) && currentDistance != playerSightRange) // can see over obstacles below us, I guess?
           {
             foreach (TilemapDirection dir in new List<TilemapDirection>(){
           TilemapDirection.UpperLeft,
@@ -1048,8 +1054,7 @@ public class GridManager : Singleton<GridManager>
         })
             {
               if (
-                currentDistance != playerSightRange
-                && AdjacentTileIsValid(tile.tileLocation, dir)
+                AdjacentTileIsValid(tile.tileLocation, dir)
                 && !totalVisibleTiles.Contains(GetAdjacentTile(tile.tileLocation, dir)))
               {
                 nextVisibleTiles.Add(GetAdjacentTile(tile.tileLocation, dir));
@@ -1073,6 +1078,7 @@ public class GridManager : Singleton<GridManager>
           currentVisibleTiles = new HashSet<EnvironmentTileInfo>(nextVisibleTiles);
           nextVisibleTiles.Clear();
         }
+        // UnityEngine.Debug.Log("loop at currentDistance " + currentDistance + " took " + timeSpentThisFrame.ElapsedMilliseconds);
         currentDistance++;
       }
     }

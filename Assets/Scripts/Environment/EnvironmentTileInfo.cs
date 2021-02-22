@@ -56,7 +56,7 @@ public class IlluminatedByInfo
   {
     illuminationSource = source;
     distanceFromSource = distance;
-    info = new IlluminationInfo(illuminationSource.lightRangeInfos[distanceFromSource].currentIntensity, illuminationSource.illuminationColor);
+    // info = new IlluminationInfo(illuminationSource.lightRangeInfos[distanceFromSource].currentIntensity, illuminationSource.illuminationColor);
   }
 }
 
