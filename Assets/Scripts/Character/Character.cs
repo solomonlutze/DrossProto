@@ -334,7 +334,7 @@ public class Character : WorldObject
       Debug.LogError("No physics controller component on Character object: " + gameObject.name);
     }
     WorldObject.ChangeLayersRecursively(transform, currentFloor);
-    transform.position = new Vector3(transform.position.x, transform.position.y, GridManager.GetZOffsetForFloor(gameObject.layer));
+    transform.position = new Vector3(transform.position.x, transform.position.y, GridManager.GetZOffsetForGameObjectLayer(gameObject.layer));
   }
 
   protected virtual void Init()
@@ -895,7 +895,7 @@ public class Character : WorldObject
     {
       Debug.Log("should be ascending?");
       transform.position -= new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
-      if (transform.position.z - GridManager.GetZOffsetForFloor(gameObject.layer + 1) < .01)
+      if (transform.position.z - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer + 1) < .01)
       {
         transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
         ascendingDescendingState = AscendingDescendingState.None;
@@ -906,7 +906,7 @@ public class Character : WorldObject
     {
       transform.position += new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
       // Debug.Log("descending distance: " + (GridManager.GetZOffsetForFloor(gameObject.layer) - transform.position.z));
-      if (GridManager.GetZOffsetForFloor(gameObject.layer) - transform.position.z < .01)
+      if (GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - transform.position.z < .01)
       {
         transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
         ascendingDescendingState = AscendingDescendingState.None;
@@ -1565,7 +1565,7 @@ public class Character : WorldObject
     // skill1.CancelActiveEffects();
     // skill2.CancelActiveEffects();
     transform.position =
-      new Vector3(lastSafeTileLocation.worldPosition.x + .5f, lastSafeTileLocation.worldPosition.y + .5f, GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
+      new Vector3(lastSafeTileLocation.worldPosition.x + .5f, lastSafeTileLocation.worldPosition.y + .5f, GridManager.GetZOffsetForGameObjectLayer(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
     if (currentFloor != lastSafeTileLocation.floorLayer)
     {
       SetCurrentFloor(lastSafeTileLocation.floorLayer);

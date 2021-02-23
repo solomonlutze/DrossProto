@@ -27,12 +27,12 @@ public class LayerRenderer : MonoBehaviour
     { // this block breaks the build and needs to be commented out every time we build
       // the alternative is not programming like a dipshit, which is out of budget
       // #if UNITY_EDITOR
-      GameObject selectedObject = Selection.objects.Length > 0 ? Selection.objects[0] as GameObject : null;
-      if (selectedObject && WorldObject.GetFloorLayerOfGameObject(selectedObject) != lastTargetedFloorLayer)
-      {
-        lastTargetedFloorLayer = WorldObject.GetFloorLayerOfGameObject(selectedObject);
-      }
-      HandleOpacity(lastTargetedFloorLayer);
+      // GameObject selectedObject = Selection.objects.Length > 0 ? Selection.objects[0] as GameObject : null;
+      // if (selectedObject && WorldObject.GetFloorLayerOfGameObject(selectedObject) != lastTargetedFloorLayer)
+      // {
+      //   lastTargetedFloorLayer = WorldObject.GetFloorLayerOfGameObject(selectedObject);
+      // }
+      // HandleOpacity(lastTargetedFloorLayer);
       // #endif
     }
   }
@@ -59,12 +59,14 @@ public class LayerRenderer : MonoBehaviour
     {
       actualNewOpacity = Mathf.SmoothDamp(r.color.a, targetOpacity, ref _ref, fadeDampTime);
       r.color = new Color(r.color.r, r.color.g, r.color.b, actualNewOpacity);
+      if (actualNewOpacity == targetOpacity) { return; }
     }
     Tilemap t = trans.gameObject.GetComponent<Tilemap>();
     if (t != null)
     {
       actualNewOpacity = Mathf.SmoothDamp(t.color.a, targetOpacity, ref _ref, fadeDampTime);
       t.color = new Color(t.color.r, t.color.g, t.color.b, actualNewOpacity);
+      if (actualNewOpacity == targetOpacity) { return; }
     }
     // }
     foreach (Transform child in trans)

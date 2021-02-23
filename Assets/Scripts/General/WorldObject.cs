@@ -8,6 +8,21 @@ public class WorldObject : MonoBehaviour
   public float detectableRange = Constants.DEFAULT_DETECTION_RANGE; // default range at which this object can be sensed by AI (possibly also player?)
 
   public FloorLayer currentFloor;
+  public static Dictionary<FloorLayer, int> floorLayerToGameObjectLayer = new Dictionary<FloorLayer, int>() {
+    {FloorLayer.B6, 9},
+    {FloorLayer.B5, 10},
+    {FloorLayer.B4, 11},
+    {FloorLayer.B3, 12},
+    {FloorLayer.B2, 13},
+    {FloorLayer.B1, 14},
+    {FloorLayer.F1, 15},
+    {FloorLayer.F2, 16},
+    {FloorLayer.F3, 17},
+    {FloorLayer.F4, 18},
+    {FloorLayer.F5, 19},
+    {FloorLayer.F6, 20},
+
+  };
   public Collider2D col
   {
     get
@@ -70,7 +85,7 @@ public class WorldObject : MonoBehaviour
 
   public static int GetGameObjectLayerFromFloorLayer(FloorLayer floorLayer)
   {
-    return LayerMask.NameToLayer(floorLayer.ToString());
+    return floorLayerToGameObjectLayer[floorLayer];
   }
 
 #if UNITY_EDITOR
