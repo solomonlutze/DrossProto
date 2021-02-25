@@ -182,11 +182,6 @@ public class TraitsLoadout_OLD
   public TraitSlotToTraitDictionary EquippedTraits()
   {
     TraitSlotToTraitDictionary d = new TraitSlotToTraitDictionary();
-    // d[TraitSlot.Head] = Resources.Load("Data/TraitData/PassiveTraits/" + head) as PassiveTrait;
-    // d[TraitSlot.Thorax] = Resources.Load("Data/TraitData/PassiveTraits/" + thorax) as PassiveTrait;
-    // d[TraitSlot.Abdomen] = Resources.Load("Data/TraitData/PassiveTraits/" + abdomen) as PassiveTrait;
-    // d[TraitSlot.Legs] = Resources.Load("Data/TraitData/PassiveTraits/" + legs) as PassiveTrait;
-    // d[TraitSlot.Wings] = Resources.Load("Data/TraitData/PassiveTraits/" + wings) as PassiveTrait;
     return d;
   }
 
@@ -318,11 +313,6 @@ public class Character : WorldObject
       Debug.LogError("No object named 'Orientation' on Character object: " + gameObject.name);
       return;
     }
-    // weaponPivot = orientation.Find("WeaponPivot");
-    // if (weaponPivot == null)
-    // {
-    //   Debug.LogError("No object named 'WeaponPivot' on Character object: " + gameObject.name);
-    // }
   }
 
   protected virtual void Start()
@@ -333,7 +323,7 @@ public class Character : WorldObject
     {
       Debug.LogError("No physics controller component on Character object: " + gameObject.name);
     }
-    WorldObject.ChangeLayersRecursively(transform, currentFloor);
+    SetCurrentFloor(currentFloor);
     transform.position = new Vector3(transform.position.x, transform.position.y, GridManager.GetZOffsetForGameObjectLayer(gameObject.layer));
   }
 
@@ -344,15 +334,6 @@ public class Character : WorldObject
     ascendingDescendingState = AscendingDescendingState.None;
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
     characterSkills = CalculateSkills(traits);
-    // GridManager.Instance.PlayerChangedTile(CalculateCurrentTileLocation());
-    // if (!HasAttackSkill(characterSkills))
-    // {
-    //   characterSkills.Insert(0, defaultCharacterData.defaultCharacterAttack);
-    // }
-    // for (int i = 0; i < characterSkills.Count; i++)
-    // {
-    //   characterSkills[i].Init(this);
-    // }
     moveset = new Moveset(traits);
     attributes = CalculateAttributes(traits);
     InitializeFromCharacterData();

@@ -16,7 +16,6 @@ public enum TilemapDirection { None, UpperLeft, UpperRight, Left, Right, LowerLe
 
 public class TileLocation
 {
-
   public Vector2Int tilemapCoordinates;
   public Vector3Int tilemapCoordinatesVector3
   {
