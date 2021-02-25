@@ -60,6 +60,7 @@ public class AiStateController : Character
 
   private bool alreadyDroppedItems;
   public PickupItem[] itemDrops;
+  public LayerRenderer layerRenderer;
 
   protected override void Awake()
   {
@@ -118,6 +119,12 @@ public class AiStateController : Character
     {
       UseTile();
     }
+  }
+
+  public override void SetCurrentFloor(FloorLayer newFloorLayer)
+  {
+    base.SetCurrentFloor(newFloorLayer);
+    layerRenderer.floorLayer = newFloorLayer;
   }
 
   public void StartValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl, MoveAiAction initiatingAction)
