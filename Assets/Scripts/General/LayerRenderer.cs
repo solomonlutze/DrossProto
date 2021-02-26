@@ -12,8 +12,10 @@ public class LayerRenderer : MonoBehaviour
   public FloorLayer floorLayer;
   public IntVariable currentFloorLayer;
 
-  private float _ref = 0;
-  private FloorLayer lastTargetedFloorLayer;
+  void Awake()
+  {
+    currentOpacity = .001f; // dumb hack; will force a changeOpacity update that will turn off renderers
+  }
 
   void Update()
   {
@@ -32,8 +34,9 @@ public class LayerRenderer : MonoBehaviour
   public void ChangeTargetOpacity()
   {
     int floorOffsetFromCurrentLayer = (int)floorLayer - currentFloorLayer.Value; // positive means we are above player; negative means we are below
-    if (floorOffsetFromCurrentLayer > 0 || floorOffsetFromCurrentLayer < -2)
+    if (floorOffsetFromCurrentLayer > 0 || floorOffsetFromCurrentLayer < -3)
     {
+      Debug.Log("received changeTargetOpacity for " + gameObject + "; should no longer be visible");
       shouldBeVisible = false;
     }
     else
@@ -60,7 +63,12 @@ public class LayerRenderer : MonoBehaviour
     TilemapRenderer tr = trans.GetComponent<TilemapRenderer>();
     if (tr != null)
     {
-      if (currentOpacity <= 0) { tr.enabled = false; }
+      // Debug.Log("should be disabling " + tr);
+      if (currentOpacity <= 0)
+      {
+        tr.enabled = false;
+        Debug.Log("should be disabling " + tr);
+      }
       else { tr.enabled = true; }
     }
     foreach (Transform child in trans)

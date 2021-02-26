@@ -219,7 +219,7 @@ public class GridManager : Singleton<GridManager>
   public Material semiTransparentMaterial;
   public Material fullyOpaqueMaterial;
   public LayerToLayerFloorDictionary layerFloors;
-  public Dictionary<FloorLayer, Dictionary<Vector2Int, EnvironmentTileInfo>> worldGrid;
+  public Dictionary<FloorLayer, Dictionary<int, EnvironmentTileInfo>> worldGrid;
 
   private List<EnvironmentTileInfo> tilesToDestroyOnPlayerRespawn;
 
@@ -248,7 +248,7 @@ public class GridManager : Singleton<GridManager>
   int maxYAcrossAllFloors;
   public void Awake()
   {
-    worldGrid = new Dictionary<FloorLayer, Dictionary<Vector2Int, EnvironmentTileInfo>>();
+    worldGrid = new Dictionary<FloorLayer, Dictionary<int, EnvironmentTileInfo>>();
     tilesToDestroyOnPlayerRespawn = new List<EnvironmentTileInfo>();
     tilesToRestoreOnPlayerRespawn = new List<EnvironmentTileInfo>();
     visibleTiles = new HashSet<EnvironmentTileInfo>();
@@ -257,7 +257,6 @@ public class GridManager : Singleton<GridManager>
     tilesToMakeObscured = new List<List<EnvironmentTileInfo>>();
     lightSources = new HashSet<EnvironmentTileInfo>();
     tilesToRecalculateLightingFor = new HashSet<EnvironmentTileInfo>();
-    Dictionary<Vector2, EnvironmentTileInfo> floor = new Dictionary<Vector2, EnvironmentTileInfo>();
     Tilemap groundTilemap;
     Tilemap objectTilemap;
     Tilemap visibilityTilemap;
@@ -285,9 +284,7 @@ public class GridManager : Singleton<GridManager>
     for (int i = Enum.GetValues(typeof(FloorLayer)).Length - 1; i >= 0; i--)
     {
       FloorLayer layer = (FloorLayer)i;
-      Debug.Log("layer: " + layer);
-      floor.Clear();
-      worldGrid[layer] = new Dictionary<Vector2Int, EnvironmentTileInfo>();
+      worldGrid[layer] = new Dictionary<int, EnvironmentTileInfo>();
       if (!layerFloors.ContainsKey(layer))
       {
         continue;
@@ -402,6 +399,10 @@ public class GridManager : Singleton<GridManager>
     }
   }
 
+  public int CoordsToKey(Vector2Int coordinates)
+  {
+    return coordinates.x + ((maxXAcrossAllFloors - minXAcrossAllFloors + 1) * coordinates.y);
+  }
   public EnvironmentTileInfo ConstructAndSetEnvironmentTileInfo(
     TileLocation loc,
     Tilemap groundTilemap,
@@ -446,7 +447,7 @@ public class GridManager : Singleton<GridManager>
     {
       visibilityTilemap.SetColor(v3pos, Color.clear);
     }
-    worldGrid[loc.floorLayer][loc.tilemapCoordinates] = info;
+    worldGrid[loc.floorLayer][CoordsToKey(loc.tilemapCoordinates)] = info;
     return info;
   }
 
@@ -619,14 +620,8 @@ public class GridManager : Singleton<GridManager>
   // WARNING: this'll blow up if you try to get an invalid tile, so, don't!
   public EnvironmentTileInfo GetTileAtLocation(TileLocation loc)
   {
-    // if (!TileIsValid(loc))
-    // {
-    //   // Debug.LogError("WARNING: Tried to find invalid tile at layer " + loc.floorLayer + ", coordinates " + loc.tilemapCoordinates);
-    //   return null;
-    // }
-    return worldGrid[loc.floorLayer][loc.tilemapCoordinates];
+    return worldGrid[loc.floorLayer][CoordsToKey(loc.tilemapCoordinates)];
   }
-
 
   public LayerFloor GetFloorLayerAbove(FloorLayer floorLayer)
   {
@@ -810,7 +805,7 @@ public class GridManager : Singleton<GridManager>
     {
       return false;
     }
-    if (!worldGrid[loc.floorLayer].ContainsKey(loc.tilemapCoordinates))
+    if (!worldGrid[loc.floorLayer].ContainsKey(CoordsToKey(loc.tilemapCoordinates)))
     {
       return false;
     }
@@ -866,6 +861,29 @@ public class GridManager : Singleton<GridManager>
     }
   }
 
+  public Vector2Int GetAdjacentTileCoords(TileLocation loc, TilemapDirection direction)
+  {
+    Vector2Int v2Loc = new Vector2Int(Mathf.FloorToInt(loc.x), Mathf.FloorToInt(loc.y));
+    int rightOffset = (int)loc.y & 1;
+    int leftOffset = -((int)(loc.y + 1) & 1);
+    switch (direction)
+    {
+      case TilemapDirection.UpperLeft:
+        return v2Loc + new Vector2Int(leftOffset, 1);
+      case TilemapDirection.UpperRight:
+        return v2Loc + new Vector2Int(rightOffset, 1);
+      case TilemapDirection.LowerLeft:
+        return v2Loc + new Vector2Int(leftOffset, -1);
+      case TilemapDirection.LowerRight:
+        return v2Loc + new Vector2Int(rightOffset, -1);
+      case TilemapDirection.Right:
+        return v2Loc + new Vector2Int(1, 0);
+      case TilemapDirection.Left:
+        return v2Loc + new Vector2Int(-1, 0);
+      default:
+        return v2Loc;
+    }
+  }
 
   public Vector2Int GetAdjacentTileOffset(TileLocation loc, TilemapDirection direction)
   {
@@ -1116,6 +1134,7 @@ public class GridManager : Singleton<GridManager>
     timeSpentRecalculatingVisibility.Start();
     HashSet<EnvironmentTileInfo> totalVisibleTiles = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> nextVisibleTiles = new HashSet<EnvironmentTileInfo>();
+    HashSet<int> consideredCoords = new HashSet<int>();
     List<List<EnvironmentTileInfo>> newTilesToMakeVisible = new List<List<EnvironmentTileInfo>>();
     tilesToMakeVisible.Clear();
     recentlyVisibleTiles.UnionWith(visibleTiles); // add all tiles visible BEFORE recalculating
@@ -1142,6 +1161,7 @@ public class GridManager : Singleton<GridManager>
           //   yield return null;
           //   timeSpentThisFrame.Restart();
           // }
+          consideredCoords.Add(CoordsToKey(tile.tileLocation.tilemapCoordinates));
           tile.visibilityDistance = currentDistance;
           if (currentDistance <=
             (tile.illuminationInfo.illuminationLevel * (2 - tile.illuminationInfo.illuminationLevel)) // quadratic ease-out, hopefully?
@@ -1160,7 +1180,7 @@ public class GridManager : Singleton<GridManager>
               if (
                 AdjacentTileIsValid(tile.tileLocation, dir)
                 && (newPlayerTileLocation.floorLayer - tile.tileLocation.floorLayer < 3)
-                && !totalVisibleTiles.Contains(GetAdjacentTile(tile.tileLocation, dir)))
+                && !consideredCoords.Contains(CoordsToKey(GetAdjacentTileCoords(tile.tileLocation, dir))))
               {
                 nextVisibleTiles.Add(GetAdjacentTile(tile.tileLocation, dir));
               }

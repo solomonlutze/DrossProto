@@ -424,7 +424,6 @@ public class Character : WorldObject
   {
     HandleHealth();
     HandleFacingDirection();
-    HandleFalling();
     HandleTile();
     HandleCooldowns();
     HandleConditionallyActivatedTraits();
@@ -1508,6 +1507,11 @@ public class Character : WorldObject
     if (tile != currentTile)
     {
       currentTile = tile;
+    }
+
+    if (currentTile.IsEmpty())
+    {
+      HandleFalling();
     }
     TileLocation nowTileLocation = CalculateCurrentTileLocation();
     if (currentTileLocation != nowTileLocation)

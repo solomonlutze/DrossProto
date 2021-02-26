@@ -44,7 +44,7 @@ public class PlayerHUD : MonoBehaviour
       healthBar.character = playerController; //todo: anywhere but update please!
       carapaceBar.character = playerController;
       staminaBar.character = playerController;
-      if (playerController.GetCharacterVital(CharacterVital.CurrentHealth) > 0)
+      if (playerController.GetCharacterVital(CharacterVital.CurrentHealth) > 0 && diedText.text != " ")
       {
         diedText.text = " ";
       }
