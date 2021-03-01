@@ -15,7 +15,6 @@ public class StaminaBar : MonoBehaviour
   {
     get
     {
-      Debug.Log("staminaBarContentsFill " + staminaBarContentsFill);
       return staminaBarContentsFill == null ? null : staminaBarContentsFill.GetComponent<Image>();
     }
   }

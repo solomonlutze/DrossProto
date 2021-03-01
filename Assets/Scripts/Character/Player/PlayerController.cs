@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
+using ScriptableObjectArchitecture;
 
 public struct ContextualAction
 {
@@ -30,6 +30,9 @@ public class PlayerController : Character
   private int selectedContextualActionIdx = 0;
   private int selectedSkillIdx = 0;
   private int selectedSpellIdx = 0;
+
+  public IntVariable currentFloorLayer;
+  public GameEvent changedFloorLayerEvent;
 
 
   [Header("Trait Info", order = 1)]
@@ -411,10 +414,10 @@ public class PlayerController : Character
         // }
         if (Input.GetButtonDown("Dash"))
         {
-          Debug.Log("pressing dash");
+          // Debug.Log("pressing dash");
           if (CanDash())
           {
-            Debug.Log("doing dash");
+            // Debug.Log("doing dash");
             Dash();
           }
           return;
@@ -510,11 +513,48 @@ public class PlayerController : Character
 
   public override void SetCurrentFloor(FloorLayer newFloorLayer)
   {
-    // Debug.Log("should be changing to floor " + newFloorLayer);
-    // GridManager.Instance.OnLayerChange(newFloorLayer);
+    // change currentFloorLayer scriptableObject variable
+    // raise floorLayerChanged event
+    currentFloorLayer.Value = (int)newFloorLayer;
+    changedFloorLayerEvent.Raise();
     base.SetCurrentFloor(newFloorLayer);
   }
 
+  protected override void HandleTile()
+  {
+
+    TileLocation currentLoc = CalculateCurrentTileLocation();
+    // GridManager.Instance.DEBUGHighlightTile(currentLoc, Color.red);
+    // GridManager.Instance.DEBUGHighlightTile(new TileLocation(Vector3.zero, currentFloor), Color.blue);
+    // Debug.Log("current tile world position y" + GetTileLocation().worldPosition.y);
+    // Debug.Log("current tile (cube coords int)" + GetTileLocation().CubeCoordsInt());
+    // Debug.Log("current tile position y FROM current tile's cube coords" + TileLocation.FromCubicCoords(GetTileLocation().cubeCoords, currentFloor).worldPosition.y);
+
+    // Debug.Log("odd-y: " + ((Mathf.RoundToInt(GetTileLocation().worldPosition.y) & 1)) + ", off by " + (TileLocation.FromCubicCoords(GetTileLocation().cubeCoords, currentFloor).worldPosition - GetTileLocation().worldPosition));
+    // Debug.Log("y: " + GetTileLocation().worldPosition.y + ", off by " + (TileLocation.FromCubicCoords(GetTileLocation().cubeCoords, currentFloor).worldPosition - GetTileLocation().worldPosition));
+
+    // PathfindingSystem.Instance.IsPathClearOfHazards(Vector3.zero, currentFloor, this);
+
+    // PathfindingSystem.Instance.GetTilesAlongLine(new TileLocation(Vector3.zero, currentFloor), GetTileLocation(), true);
+    // Debug.Log("current tile (offset coords)" + GetTileLocation().tilemapCoordinates);
+    // Debug.Log("current tile (cube)" + GetTileLocation().cubeCoords);
+    // Debug.Log("upper-left should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.UpperLeft).tilemapCoordinates);
+    // Debug.Log("upper-right should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.UpperRight).tilemapCoordinates);
+    // Debug.Log("lower-left should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerLeft).tilemapCoordinates);
+    // Debug.Log("lower-right should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerRight).tilemapCoordinates);
+
+    EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(currentLoc);
+    if (tile != currentTile)
+    {
+      if (tile != null && currentTile != null)
+      {
+        // Debug.Log("changing tile from " + currentTile.tileLocation + " to " + tile.tileLocation);
+      }
+      currentTile = tile;
+      GridManager.Instance.PlayerChangedTile(currentLoc);
+    }
+    base.HandleTile();
+  }
   public void RemoveFromInventory(string itemId, int quantity)
   {
     inventory.RemoveFromInventory(itemId, quantity);

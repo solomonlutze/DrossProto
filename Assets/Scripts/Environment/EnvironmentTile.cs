@@ -11,7 +11,8 @@ using UnityEditor;
 public enum FloorLayer { B6, B5, B4, B3, B2, B1, F1, F2, F3, F4, F5, F6 }
 public enum TileDurability { Delicate, Soft, Medium, Hard, Indestructable }
 public enum TileTag { Ground, Water }
-public enum FloorTilemapType { Ground, Object }
+public enum FloorTilemapType { Ground, Object, Visibility }
+public enum LightPattern { Constant, Flicker }
 
 [System.Serializable]
 public class EnvironmentTileParticleSystemInfo
@@ -72,6 +73,7 @@ public class EnvironmentTile : Tile
   public bool acceptsInterestObjects = true; // if false, no interest objects may be placed on this tile
   public GameObject[] borderInterestObjects;
   public GameObject[] cornerInterestObjects;
+  public LightSourceInfo lightSource;
 
 #if UNITY_EDITOR
   // The following is a helper that adds a menu item to create an EnvironmentTile Asset

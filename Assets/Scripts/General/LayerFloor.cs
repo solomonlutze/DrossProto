@@ -8,25 +8,24 @@ public class LayerFloor : MonoBehaviour
 {
   public Tilemap groundTilemap;
   public Tilemap objectTilemap;
+  public Tilemap visibilityTilemap;
   public Transform interestObjects;
   void Update()
   {
     if (!Application.IsPlaying(gameObject))
     {
-      // groundTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Background";
-      // objectTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Background";
-      // groundTilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
-      // objectTilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
-      // objectTilemap.transform.localPosition = new Vector3(0, 0, 0f);
-      if (transform.position.z != GridManager.GetZOffsetForFloor(gameObject.layer))
+      if (transform.position.z != GridManager.GetZOffsetForGameObjectLayer(gameObject.layer))
       {
-        transform.position = new Vector3(0, 0, GridManager.GetZOffsetForFloor(gameObject.layer));
+        transform.position = new Vector3(0, 0, GridManager.GetZOffsetForGameObjectLayer(gameObject.layer));
       }
       if (gameObject.name == "LayerFloor") { return; }
       gameObject.layer = LayerMask.NameToLayer(gameObject.name);
-      if (groundTilemap == null && transform.Find(gameObject.name + "_Ground") != null)
+      if (groundTilemap == null)
       {
-        groundTilemap = transform.Find(gameObject.name + "_Ground").GetComponent<Tilemap>();
+        if (transform.Find(gameObject.name + "_Ground") != null)
+        {
+          groundTilemap = transform.Find(gameObject.name + "_Ground").GetComponent<Tilemap>();
+        }
       }
       else
       {
@@ -34,9 +33,12 @@ public class LayerFloor : MonoBehaviour
         groundTilemap.gameObject.name = gameObject.name + "_Ground";
         groundTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
       }
-      if (objectTilemap == null && transform.Find(gameObject.name + "_Object") != null)
+      if (objectTilemap == null)
       {
-        objectTilemap = transform.Find(gameObject.name + "_Object").GetComponent<Tilemap>();
+        if (transform.Find(gameObject.name + "_Object") != null)
+        {
+          objectTilemap = transform.Find(gameObject.name + "_Object").GetComponent<Tilemap>();
+        }
       }
       else
       {
@@ -44,6 +46,21 @@ public class LayerFloor : MonoBehaviour
         objectTilemap.gameObject.name = gameObject.name + "_Object";
         objectTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
         objectTilemap.GetComponent<TilemapRenderer>().sortingOrder = 1;
+      }
+      if (visibilityTilemap == null)
+      {
+        if (transform.Find(gameObject.name + "_Visibility") != null)
+        {
+          objectTilemap.gameObject.layer = LayerMask.NameToLayer(gameObject.name);
+          visibilityTilemap = transform.Find(gameObject.name + "_Visibility").GetComponent<Tilemap>();
+        }
+      }
+      else
+      {
+        visibilityTilemap.gameObject.layer = LayerMask.NameToLayer(gameObject.name);
+        visibilityTilemap.gameObject.name = gameObject.name + "_Visibility";
+        visibilityTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
+        visibilityTilemap.GetComponent<TilemapRenderer>().sortingOrder = 100;
       }
     }
   }
