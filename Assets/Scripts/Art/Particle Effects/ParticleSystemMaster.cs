@@ -44,7 +44,7 @@ public class ParticleSystemMaster : MonoBehaviour
         newSystemRenderer.sortingOrder = 3;
         systemToAdd.Stop();
         systemToAdd.gameObject.layer = LayerMask.NameToLayer(lfEntry.Key.ToString());
-        systemToAdd.transform.position = new Vector3(0, 0, GridManager.GetZOffsetForFloor(systemToAdd.gameObject.layer));
+        systemToAdd.transform.position = new Vector3(0, 0, GridManager.GetZOffsetForGameObjectLayer(systemToAdd.gameObject.layer));
         particleSystemDataToInstanceMap[lfEntry.Key].Add(ps, systemToAdd);
       }
       particleSystemMap[lfEntry.Key].Add(tile, systemToAdd);

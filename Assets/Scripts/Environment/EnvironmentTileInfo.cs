@@ -7,9 +7,19 @@ using UnityEngine.Tilemaps;
 
 public class IlluminationInfo
 {
+  public LightRangeInfo sourceLightInfo;
   public float illuminationLevel;
   public Color visibleColor;
   public Color opaqueColor;
+  // public IlluminationInfo(LightRangeInfo i, Color c)
+  // {
+  //   illuminationLevel = i.currentIntensity;
+  //   visibleColor = c;
+  //   visibleColor.a = 1 - i.currentIntensity;
+  //   opaqueColor = c * illuminationLevel;
+  //   opaqueColor.a = 1;
+  // }
+
   public IlluminationInfo(float i, Color c)
   {
     illuminationLevel = i;
@@ -18,6 +28,7 @@ public class IlluminationInfo
     opaqueColor = c * illuminationLevel;
     opaqueColor.a = 1;
   }
+
   public IlluminationInfo()
   {
     illuminationLevel = .15f;
@@ -27,12 +38,19 @@ public class IlluminationInfo
     opaqueColor.a = 1;
   }
 }
+
 public class IlluminatedByInfo
 {
   public LightSourceInfo illuminationSource;
   public int distanceFromSource;
 
-  public IlluminationInfo info;
+  public LightRangeInfo sourceRangeInfo
+  {
+    get
+    {
+      return illuminationSource.lightRangeInfos[distanceFromSource];
+    }
+  }
   public bool sunlit
   {
     get
@@ -45,8 +63,16 @@ public class IlluminatedByInfo
   {
     illuminationSource = source;
     distanceFromSource = distance;
-    info = new IlluminationInfo(illuminationSource.lightRangeInfo[distanceFromSource], illuminationSource.illuminationColor);
+    // info = new IlluminationInfo(illuminationSource.lightRangeInfos[distanceFromSource].currentIntensity, illuminationSource.illuminationColor);
+
   }
+}
+
+[System.Serializable]
+public class LightRangeInfo
+{
+  public float defaultIntensity;
+  public float currentIntensity;
 }
 
 [System.Serializable]
@@ -54,9 +80,14 @@ public class LightSourceInfo
 {
 
   [Tooltip("illumination level of neighboring tiles. index = neighbor distance (0 is self)")]
-  public float[] lightRangeInfo;
+  public LightRangeInfo[] lightRangeInfos;
   public Color illuminationColor;
   public LightPattern lightPattern;
+  [Range(0, 1)]
+  public float patternVariation;
+  public int smoothing;
+  public Queue<float> smoothingQueue;
+  public float smoothingSum = 0;
   public bool isSunlight;
 }
 
@@ -73,12 +104,13 @@ public class EnvironmentTileInfo
   public int visibilityDistance;
   public List<EnvironmentalDamage> environmentalDamageSources;
   public List<IlluminatedByInfo> illuminatedBySources;
+  public HashSet<EnvironmentTileInfo> illuminatedNeighbors;
   public LightSourceInfo lightSource;
   public bool isLightSource
   {
     get
     {
-      return lightSource != null && lightSource.lightRangeInfo.Length > 0;
+      return lightSource != null && lightSource.lightRangeInfos.Length > 0;
     }
   }
 
@@ -97,6 +129,7 @@ public class EnvironmentTileInfo
     environmentalDamageSources = new List<EnvironmentalDamage>();
     illuminatedBySources = new List<IlluminatedByInfo>();
     illuminationInfo = new IlluminationInfo();
+    illuminatedNeighbors = new HashSet<EnvironmentTileInfo>();
     // cornerInterestObjects = new Dictionary<TilemapCorner, GameObject>() {
     //   {TilemapCorner.UpperLeft, null},
     //   {TilemapCorner.LowerLeft, null},
@@ -126,12 +159,13 @@ public class EnvironmentTileInfo
         d.Init(objectTileType);
         environmentalDamageSources.Add(d);
       }
-      if (objectTileType.lightSource != null && objectTileType.lightSource.lightRangeInfo.Length > 0)
+      if (objectTileType.lightSource != null && objectTileType.lightSource.lightRangeInfos.Length > 0)
       {
         Debug.Log("definitely found a light source!");
       }
       lightSource = objectTileType.lightSource;
     }
+    if (lightSource != null) { lightSource.smoothingQueue = new Queue<float>(); }
   }
 
   // for now, groundTiles should never change floor layer, but, y'know
@@ -408,14 +442,50 @@ public class EnvironmentTileInfo
     float maxIntensity = 0;
     for (int i = 0; i < illuminatedBySources.Count; i++)
     {
-      totalIntensity += illuminatedBySources[i].info.illuminationLevel;
-      maxIntensity = Mathf.Max(maxIntensity, illuminatedBySources[i].info.illuminationLevel);
+      totalIntensity += illuminatedBySources[i].sourceRangeInfo.currentIntensity;
+      maxIntensity = Mathf.Max(maxIntensity, illuminatedBySources[i].sourceRangeInfo.currentIntensity);
     }
     for (int i = 0; i < illuminatedBySources.Count; i++)
     {
-      finalColor += (illuminatedBySources[i].info.visibleColor * (illuminatedBySources[i].info.illuminationLevel) / totalIntensity);
+      finalColor += (illuminatedBySources[i].illuminationSource.illuminationColor * (illuminatedBySources[i].sourceRangeInfo.currentIntensity) / totalIntensity);
     }
     illuminationInfo = new IlluminationInfo(maxIntensity, finalColor);
   }
 
+  // doing illumination this way could mean we change tile colors multiple times a frame in cases of overlapping lights :o
+  // worth noting if perf gets shitty!!
+  public HashSet<EnvironmentTileInfo> IlluminateNeighbors()
+  {
+    switch (lightSource.lightPattern)
+    {
+      case LightPattern.Flicker:
+        if (lightSource.smoothingQueue == null)
+        {
+          Debug.Log("smoothing queue null?");
+          return null;
+        }
+        while (lightSource.smoothingQueue.Count >= lightSource.smoothing)
+        {
+          lightSource.smoothingSum -= lightSource.smoothingQueue.Dequeue();
+        }
+        float newValue = UnityEngine.Random.Range(-lightSource.patternVariation, lightSource.patternVariation);
+        lightSource.smoothingQueue.Enqueue(newValue);
+        lightSource.smoothingSum += newValue;
+        float intensityModifier = lightSource.smoothingSum / (float)lightSource.smoothingQueue.Count;
+        for (int i = 0; i < lightSource.lightRangeInfos.Length; i++)
+        {
+          float temp = lightSource.lightRangeInfos[i].defaultIntensity + intensityModifier;
+          lightSource.lightRangeInfos[i].currentIntensity = Mathf.Clamp(
+            temp,
+            0,
+            1
+          );
+
+        }
+        return illuminatedNeighbors;
+      case LightPattern.Constant:
+      default:
+        return null;
+    }
+  }
 }

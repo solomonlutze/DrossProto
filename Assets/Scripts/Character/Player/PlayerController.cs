@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
+using ScriptableObjectArchitecture;
 
 public struct ContextualAction
 {
@@ -30,6 +30,9 @@ public class PlayerController : Character
   private int selectedContextualActionIdx = 0;
   private int selectedSkillIdx = 0;
   private int selectedSpellIdx = 0;
+
+  public IntVariable currentFloorLayer;
+  public GameEvent changedFloorLayerEvent;
 
 
   [Header("Trait Info", order = 1)]
@@ -510,8 +513,10 @@ public class PlayerController : Character
 
   public override void SetCurrentFloor(FloorLayer newFloorLayer)
   {
-    // Debug.Log("should be changing to floor " + newFloorLayer);
-    // GridManager.Instance.OnLayerChange(newFloorLayer);
+    // change currentFloorLayer scriptableObject variable
+    // raise floorLayerChanged event
+    currentFloorLayer.Value = (int)newFloorLayer;
+    changedFloorLayerEvent.Raise();
     base.SetCurrentFloor(newFloorLayer);
   }
 

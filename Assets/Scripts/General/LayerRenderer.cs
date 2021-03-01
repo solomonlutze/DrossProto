@@ -1,75 +1,79 @@
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using ScriptableObjectArchitecture;
 
 [ExecuteInEditMode]
 public class LayerRenderer : MonoBehaviour
 {
   public float fadeDampTime = 0.005f;
+  public float fadeTime = 0.25f;
+  float currentOpacity = 0;
+  bool shouldBeVisible = false;
+  public FloorLayer floorLayer;
+  public IntVariable currentFloorLayer;
 
-  private float _ref = 0;
-  private FloorLayer lastTargetedFloorLayer;
+  void Awake()
+  {
+    currentOpacity = .001f; // dumb hack; will force a changeOpacity update that will turn off renderers
+  }
+
   void Update()
   {
-    // if (Application.IsPlaying(gameObject))
-    // {
-    PlayerController player = GameMaster.Instance.GetPlayerController();
-    if (player != null)
+    if (!FinishedChangingOpacity())
     {
-      int offset = player.ascendingDescendingState == AscendingDescendingState.None ? 0 : 1;
-      HandleOpacity(player.currentFloor + offset);
+      currentOpacity += Time.deltaTime / fadeTime * (shouldBeVisible ? 1 : -1);
+      ChangeOpacityRecursively(transform);
     }
-    // }
+  }
+
+  bool FinishedChangingOpacity()
+  {
+    return (shouldBeVisible && currentOpacity >= 1) || (!shouldBeVisible && currentOpacity <= 0);
+  }
+
+  public void ChangeTargetOpacity()
+  {
+    int floorOffsetFromCurrentLayer = (int)floorLayer - currentFloorLayer.Value; // positive means we are above player; negative means we are below
+    if (floorOffsetFromCurrentLayer > 0 || floorOffsetFromCurrentLayer < -3)
+    {
+      Debug.Log("received changeTargetOpacity for " + gameObject + "; should no longer be visible");
+      shouldBeVisible = false;
+    }
     else
-    { // this block breaks the build and needs to be commented out every time we build
-      // the alternative is not programming like a dipshit, which is out of budget
-      // #if UNITY_EDITOR
-      GameObject selectedObject = Selection.objects.Length > 0 ? Selection.objects[0] as GameObject : null;
-      if (selectedObject && WorldObject.GetFloorLayerOfGameObject(selectedObject) != lastTargetedFloorLayer)
-      {
-        lastTargetedFloorLayer = WorldObject.GetFloorLayerOfGameObject(selectedObject);
-      }
-      HandleOpacity(lastTargetedFloorLayer);
-      // #endif
+    {
+      shouldBeVisible = true;
     }
   }
 
-  void HandleOpacity(FloorLayer currentFloor)
+  public void ChangeOpacityRecursively(Transform trans)
   {
-    ChangeOpacityRecursively(transform, currentFloor, fadeDampTime);
-  }
-
-
-  public void ChangeOpacityRecursively(Transform trans, FloorLayer playerFloorLayer, float fadeDampTime)
-  {
-    int floorOffsetFromPlayer = (int)(WorldObject.GetFloorLayerFromGameObjectLayer(trans.gameObject.layer) - playerFloorLayer); // positive means we are above player; negative means we are below
-    float targetOpacity = 1;
-    if (floorOffsetFromPlayer > 0) { targetOpacity = 0; }
-    // if (floorOffsetFromPlayer > 2) { targetOpacity = 0; }
-    // else if (floorOffsetFromPlayer == 2) { targetOpacity = .15f; }
-    // else if (floorOffsetFromPlayer == 1) { targetOpacity = .35f; }
-    float actualNewOpacity;
     SpriteRenderer r = trans.gameObject.GetComponent<SpriteRenderer>();
-    // if (trans.gameObject.name != "DarknessBelow")
-    // {
     if (r != null)
     {
-      actualNewOpacity = Mathf.SmoothDamp(r.color.a, targetOpacity, ref _ref, fadeDampTime);
-      r.color = new Color(r.color.r, r.color.g, r.color.b, actualNewOpacity);
+      r.color = new Color(r.color.r, r.color.g, r.color.b, currentOpacity);
+      if (currentOpacity <= 0) { r.enabled = false; }
+      else { r.enabled = true; }
     }
     Tilemap t = trans.gameObject.GetComponent<Tilemap>();
     if (t != null)
     {
-      actualNewOpacity = Mathf.SmoothDamp(t.color.a, targetOpacity, ref _ref, fadeDampTime);
-      t.color = new Color(t.color.r, t.color.g, t.color.b, actualNewOpacity);
+      // actualNewOpacity = Mathf.SmoothDamp(t.color.a, targetOpacity, ref _ref, fadeDampTime);
+      t.color = new Color(t.color.r, t.color.g, t.color.b, currentOpacity);
     }
-    // }
+    TilemapRenderer tr = trans.GetComponent<TilemapRenderer>();
+    if (tr != null)
+    {
+      // Debug.Log("should be disabling " + tr);
+      if (currentOpacity <= 0)
+      {
+        tr.enabled = false;
+        Debug.Log("should be disabling " + tr);
+      }
+      else { tr.enabled = true; }
+    }
     foreach (Transform child in trans)
     {
-      ChangeOpacityRecursively(child, playerFloorLayer, fadeDampTime);
+      ChangeOpacityRecursively(child);
     }
   }
 }

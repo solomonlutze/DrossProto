@@ -12,7 +12,7 @@ public enum FloorLayer { B6, B5, B4, B3, B2, B1, F1, F2, F3, F4, F5, F6 }
 public enum TileDurability { Delicate, Soft, Medium, Hard, Indestructable }
 public enum TileTag { Ground, Water }
 public enum FloorTilemapType { Ground, Object, Visibility }
-public enum LightPattern { Constant }
+public enum LightPattern { Constant, Flicker }
 
 [System.Serializable]
 public class EnvironmentTileParticleSystemInfo
