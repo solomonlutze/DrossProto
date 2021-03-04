@@ -126,16 +126,14 @@ public class Hitbox : MonoBehaviour, IDamageSource
 
   public float CalculateDamageAfterResistances(Character c)
   {
-    if (c != null)
+    Debug.Log("calculating damage - " + c != null + ", " + c.blocking);
+    if (c != null && c.blocking)
     {
-      return ((1 - GetDamageTypeResistancePercent(c) / 100) * damageAmount);
+      Debug.Log("damage reduction percent: " + c.GetDamageReductionPercent(damageType));
+      Debug.Log("damage reduction: " + (1 - c.GetDamageReductionPercent(damageType) / 100f));
+      return ((1 - c.GetDamageReductionPercent(damageType) / 100f) * damageAmount);
     }
-    return 0;
-  }
-
-  protected float GetDamageTypeResistancePercent(Character c)
-  {
-    return 34 * c.GetDamageTypeResistanceLevel(damageType); // TODO: get rid of magic number!! build it into resistance tiers maybe?
+    return damageAmount;
   }
 
   public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage
