@@ -1001,6 +1001,7 @@ public class Character : WorldObject
       && !damageSource.ignoresInvulnerability)
     { return; }
     float damageAfterResistances = damageSource.CalculateDamageAfterResistances(this);
+    Debug.Log("damage before resist: " + damageSource.damageAmount + "; damage after: " + damageAfterResistances);
     if (
       damageAfterResistances <= 0
       && damageSource.damageAmount > 0
@@ -1009,7 +1010,6 @@ public class Character : WorldObject
     {
       return;
     }
-    float damageToHealth = damageAfterResistances;
     // if (carapaceBroken) // full damage to health and then some!!
     // {
     //     damageToHealth *= Constants.STUN_DAMAGE_MULTIPLIER;
@@ -1017,13 +1017,11 @@ public class Character : WorldObject
     // }
     if (blocking && !carapaceBroken)
     {
-      float damageToCarapace = damageAfterResistances * Constants.CARAPACE_DAMAGE_REDUCTION;
-      damageToHealth = damageAfterResistances - damageToCarapace;
-      vitals[CharacterVital.CurrentCarapace] = GetCharacterVital(CharacterVital.CurrentCarapace) - damageToCarapace; // carapace takes brunt of damage
+      vitals[CharacterVital.CurrentCarapace] = GetCharacterVital(CharacterVital.CurrentCarapace) - damageAfterResistances; // carapace takes brunt of damage
       if (GetCharacterVital(CharacterVital.CurrentCarapace) < 0)
       {
         // set carapace to 0
-        damageToHealth += (GetCharacterVital(CharacterVital.CurrentCarapace) * -1);
+        damageAfterResistances += (GetCharacterVital(CharacterVital.CurrentCarapace) * -1);
         vitals[CharacterVital.CurrentCarapace] = 0;
         StartCoroutine(ApplyCarapaceBreak(Constants.CARAPACE_BREAK_STUN_DURATION)); // don't want to reapply if already stunned, but can't block if stunned
       }
@@ -1031,7 +1029,7 @@ public class Character : WorldObject
     characterVisuals.DamageFlash(damageFlashColor);
     InterruptAnimation();
     // Debug.Log("taking " + damageToHealth + " damage");
-    AdjustCurrentHealth(Mathf.Floor(-damageToHealth), damageSource.isNonlethal);
+    AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
     StartCoroutine(ApplyInvulnerability(damageSource));
     Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
     if (knockback != Vector3.zero)
@@ -1040,17 +1038,29 @@ public class Character : WorldObject
     }
   }
 
-  public int GetDamageTypeResistanceLevel(DamageType type)
+  // public int GetDamageTypeResistanceLevel(DamageType type)
+  // {
+  //   bool exists = Enum.TryParse("Resist_" + type.ToString(), out CharacterAttribute resistAttribute);
+  //   if (!exists)
+  //   {
+  //     Debug.LogError("Could not find attribute Resist_" + type.ToString());
+  //     return 0;
+  //   }
+  //   return GetAttribute(resistAttribute);
+  // }
+
+  public int GetDamageTypeResistanceLevel(DamageType type) // we could also just return the 
   {
-    bool exists = Enum.TryParse("Resist_" + type.ToString(), out CharacterAttribute resistAttribute);
-    if (!exists)
-    {
-      Debug.LogError("Could not find attribute Resist_" + type.ToString());
-      return 0;
-    }
-    return GetAttribute(resistAttribute);
+    return GetAttribute((CharacterAttribute)ProtectionAttributeData.DamageTypeToProtectionAttribute[type]);
   }
 
+
+  public int GetDamageReductionPercent(DamageType type) // we could also just return the 
+  {
+    return defaultCharacterData
+    .GetProtectionAttributeDataForDamageType(type)
+    .GetDamageReductionPercent(this);
+  }
   private IEnumerator ApplyDamageFlash(DamageData_OLD damageObj)
   {
     // Todo: might wanna change this!
@@ -1136,6 +1146,7 @@ public class Character : WorldObject
   // ATTRIBUTE/VITALS ACCESSORS
   public int GetAttribute(CharacterAttribute attributeToGet)
   {
+    Debug.Log("attribute to get: " + attributeToGet);
     bool exists = attributes.TryGetValue(attributeToGet, out int val);
     if (!exists)
     {

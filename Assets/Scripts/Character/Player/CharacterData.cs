@@ -112,6 +112,21 @@ public class CharacterData : ScriptableObject
   {
     return (HealthAttributeData)GetAttributeDataInterface(CharacterAttribute.Health);
   }
+
+  public ProtectionAttributeData GetProtectionAttributeDataForDamageType(DamageType damageType)
+  {
+    Debug.Log("damage type: " + damageType);
+    Debug.Log("protection attribute: " + ProtectionAttributeData.DamageTypeToProtectionAttribute[damageType]);
+    Debug.Log("physical attribute protection: " + ProtectionAttribute.Physical);
+    return GetProtectionAttributeData(ProtectionAttributeData.DamageTypeToProtectionAttribute[damageType]);
+  }
+
+  public ProtectionAttributeData GetProtectionAttributeData(ProtectionAttribute attribute)
+  {
+    return (ProtectionAttributeData)GetAttributeDataInterface((CharacterAttribute)attribute);
+  }
+
+
 #if UNITY_EDITOR
   // The following is a helper that adds a menu item to create an PlayerCharacterData Asset
   [MenuItem("Assets/Create/CharacterData/PlayerCharacterData")]
