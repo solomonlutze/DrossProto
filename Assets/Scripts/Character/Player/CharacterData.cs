@@ -117,6 +117,11 @@ public class CharacterData : ScriptableObject
   {
     return (MetabolismAttributeData)GetAttributeDataInterface(CharacterAttribute.Metabolism);
   }
+  public HazardResistanceAttributeData GetHazardResistanceAttributeData()
+  {
+    return (HazardResistanceAttributeData)GetAttributeDataInterface(CharacterAttribute.HazardResistance);
+  }
+
   public ProtectionAttributeData GetProtectionAttributeDataForDamageType(DamageType damageType)
   {
     Debug.Log("damage type: " + damageType);

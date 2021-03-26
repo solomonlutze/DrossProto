@@ -1084,6 +1084,11 @@ public class Character : WorldObject
   {
     float invulnerabilityDuration = damageSource.invulnerabilityWindow;
     if (invulnerabilityDuration <= 0) { yield break; }
+    if (damageSource as EnvironmentalDamage != null)
+    {
+      Debug.Log("modifying invulnerability duration");
+      invulnerabilityDuration *= GetHazardImmunityDurationMultiplier();
+    }
     string src = damageSource.sourceString;
     sourceInvulnerabilities.Add(src);
     yield return new WaitForSeconds(invulnerabilityDuration);
@@ -1270,6 +1275,13 @@ public class Character : WorldObject
       .GetDashStaminaCost(this);
   }
 
+  public float GetHazardImmunityDurationMultiplier()
+  {
+
+    return defaultCharacterData
+      .GetHazardResistanceAttributeData()
+      .GetHazardImmunityDurationMultiplier(this);
+  }
   public float GetStat(CharacterStat statToGet)
   {
     return defaultCharacterData.defaultStats[statToGet];
