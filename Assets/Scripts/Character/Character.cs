@@ -62,7 +62,8 @@ public enum CharacterAttribute
   WaterResistance = 10,
   Flight = 11,
   Dash = 12,
-  Health = 13
+  Health = 13,
+  Metabolism = 14
 }
 public enum CharacterAttackValue
 {
@@ -1188,12 +1189,19 @@ public class Character : WorldObject
   }
   public float GetMovementStaminaCost()
   {
-    return GetStaminaRecoveryRate() / 2;
+    if (GetAttribute(CharacterAttribute.Metabolism) < 2)
+    {
+      return GetStaminaRecoveryRate() / 2;
+    }
+    return 0;
   }
 
   public float GetStaminaRecoverySpeed()
   {
-    return 3; // ugh
+    return defaultCharacterData
+      .GetMetabolismAttributeData()
+      .GetAttributeTier(this)
+      .staminaRecoverySpeed;
   }
 
   public float GetStaminaRecoveryRate()
