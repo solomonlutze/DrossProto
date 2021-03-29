@@ -122,6 +122,10 @@ public class CharacterData : ScriptableObject
     return (HazardResistanceAttributeData)GetAttributeDataInterface(CharacterAttribute.HazardResistance);
   }
 
+  public SightRangeAttributeData GetSightRangeAttributeData()
+  {
+    return (SightRangeAttributeData)GetAttributeDataInterface(CharacterAttribute.SightRange);
+  }
   public ProtectionAttributeData GetProtectionAttributeDataForDamageType(DamageType damageType)
   {
     Debug.Log("damage type: " + damageType);

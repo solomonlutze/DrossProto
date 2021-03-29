@@ -238,7 +238,7 @@ public class GridManager : Singleton<GridManager>
   public Color nonVisibleTileColor;
   public LightSourceInfo sunlight;
   [Tooltip("Time it takes a tile to fade in, in seconds")]
-  public float tileFadeTime = .5f;
+  public float tileFadeTime = .25f;
   int interestObjectsCount = 0;
   public TileLocation currentPlayerLocation;
 
@@ -1095,10 +1095,10 @@ public class GridManager : Singleton<GridManager>
 
   Coroutine _recalculateVisiblityCoroutine;
 
-  public void PlayerChangedTile(TileLocation newPlayerTileLocation)
+  public void PlayerChangedTile(TileLocation newPlayerTileLocation, int sightRange)
   {
     currentPlayerLocation = newPlayerTileLocation;
-    RecalculateVisibility(currentPlayerLocation);
+    RecalculateVisibility(currentPlayerLocation, sightRange);
     // if (_recalculateVisiblityCoroutine != null)
     // {
     //   StopCoroutine(_recalculateVisiblityCoroutine);
@@ -1125,7 +1125,7 @@ public class GridManager : Singleton<GridManager>
     TilemapDirection.LowerRight,
     TilemapDirection.Below,
   };
-  void RecalculateVisibility(TileLocation newPlayerTileLocation)
+  void RecalculateVisibility(TileLocation newPlayerTileLocation, int sightRange)
   {
     System.Diagnostics.Stopwatch timeSpentThisFrame = new System.Diagnostics.Stopwatch();
     System.Diagnostics.Stopwatch timeSpentThisLoop = new System.Diagnostics.Stopwatch();
@@ -1134,38 +1134,35 @@ public class GridManager : Singleton<GridManager>
     timeSpentRecalculatingVisibility.Start();
     HashSet<EnvironmentTileInfo> totalVisibleTiles = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> nextVisibleTiles = new HashSet<EnvironmentTileInfo>();
-    HashSet<int> consideredCoords = new HashSet<int>();
+    HashSet<int>[] consideredCoords = new HashSet<int>[] { new HashSet<int>(), new HashSet<int>(), new HashSet<int>() };
     List<List<EnvironmentTileInfo>> newTilesToMakeVisible = new List<List<EnvironmentTileInfo>>();
     tilesToMakeVisible.Clear();
     recentlyVisibleTiles.UnionWith(visibleTiles); // add all tiles visible BEFORE recalculating
-    // foreach (EnvironmentTileInfo tile in recentlyVisibleTiles)// if visibility seems to flicker we can move this down but it shouldn't
-    // {
-    //   tile.visibilityDistance += 1;
-    // }
+                                                  // foreach (EnvironmentTileInfo tile in recentlyVisibleTiles)// if visibility seems to flicker we can move this down but it shouldn't
+                                                  // {
+                                                  //   tile.visibilityDistance += 1;
+                                                  // }
+    int sightRangeForFloor = sightRange; // who fucking knows!!
     for (int i = 0; i <= 0; i++)
     {
       timeSpentThisLoop.Restart();
-      int playerSightRange = 6 + 4 * Mathf.Abs(i); // who fucking knows!!
       int currentDistance = 0;
       if (!Enum.IsDefined(typeof(FloorLayer), newPlayerTileLocation.floorLayer - i)) { continue; }
       EnvironmentTileInfo initialTile = GetTileAtLocation(new TileLocation(newPlayerTileLocation.x, newPlayerTileLocation.y, newPlayerTileLocation.floorLayer - i));
       HashSet<EnvironmentTileInfo> currentVisibleTiles = new HashSet<EnvironmentTileInfo>() { initialTile };
-
-      while (currentDistance <= playerSightRange)
+      int tileFloorOffset = 0;
+      while (currentVisibleTiles.Count > 0)
       {
         List<EnvironmentTileInfo> tempTilesToMakeVisible = new List<EnvironmentTileInfo>();
         foreach (EnvironmentTileInfo tile in currentVisibleTiles)
         {
-          // if (timeSpentThisFrame.ElapsedMilliseconds > .25f)
-          // {
-          //   yield return null;
-          //   timeSpentThisFrame.Restart();
-          // }
-          consideredCoords.Add(CoordsToKey(tile.tileLocation.tilemapCoordinates));
-          tile.visibilityDistance = currentDistance;
+          tileFloorOffset = newPlayerTileLocation.floorLayer - tile.tileLocation.floorLayer;
+          sightRangeForFloor = sightRange + Mathf.Abs(4 * tileFloorOffset); // who fucking knows!!  
+          consideredCoords[tileFloorOffset].Add(CoordsToKey(tile.tileLocation.tilemapCoordinates));
+          tile.effectiveVisibilityDistance = currentDistance;
           if (currentDistance <=
             (tile.illuminationInfo.illuminationLevel * (2 - tile.illuminationInfo.illuminationLevel)) // quadratic ease-out, hopefully?
-            * playerSightRange)
+            * sightRangeForFloor)
           {
             totalVisibleTiles.Add(tile);
             if (GetColorOfVisibilityTileAtLocation(tile.tileLocation).a > tile.illuminationInfo.visibleColor.a)
@@ -1173,14 +1170,13 @@ public class GridManager : Singleton<GridManager>
               tempTilesToMakeVisible.Add(tile);
             }
           }
-          if ((!tile.HasSolidObject() || i != 0) && currentDistance != playerSightRange) // can see over obstacles below us, I guess?
+          if (!tile.HasSolidObject() && currentDistance <= sightRangeForFloor) // can see over obstacles below us, I guess?
           {
-            foreach (TilemapDirection dir in (tile.IsEmpty() ? emptyTileDirections : nonEmptyTileDirections))
+            foreach (TilemapDirection dir in (tile.IsEmpty() && tileFloorOffset < 2 ? emptyTileDirections : nonEmptyTileDirections))
             {
               if (
                 AdjacentTileIsValid(tile.tileLocation, dir)
-                && (newPlayerTileLocation.floorLayer - tile.tileLocation.floorLayer < 3)
-                && !consideredCoords.Contains(CoordsToKey(GetAdjacentTileCoords(tile.tileLocation, dir))))
+                && !consideredCoords[tileFloorOffset + (dir == TilemapDirection.Below ? 1 : 0)].Contains(CoordsToKey(GetAdjacentTileCoords(tile.tileLocation, dir))))
               {
                 nextVisibleTiles.Add(GetAdjacentTile(tile.tileLocation, dir));
               }
@@ -1198,7 +1194,7 @@ public class GridManager : Singleton<GridManager>
             newTilesToMakeVisible.Add(tempTilesToMakeVisible);
           }
         }
-        if (currentDistance != playerSightRange)
+        if (currentDistance != sightRangeForFloor)
         {
           currentVisibleTiles = new HashSet<EnvironmentTileInfo>(nextVisibleTiles);
           nextVisibleTiles.Clear();

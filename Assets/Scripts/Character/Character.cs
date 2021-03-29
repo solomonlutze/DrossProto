@@ -63,7 +63,8 @@ public enum CharacterAttribute
   Flight = 11,
   Dash = 12,
   Health = 13,
-  Metabolism = 14
+  Metabolism = 14,
+  SightRange = 15,
 }
 public enum CharacterAttackValue
 {
@@ -1152,7 +1153,6 @@ public class Character : WorldObject
   // ATTRIBUTE/VITALS ACCESSORS
   public int GetAttribute(CharacterAttribute attributeToGet)
   {
-    Debug.Log("attribute to get: " + attributeToGet);
     bool exists = attributes.TryGetValue(attributeToGet, out int val);
     if (!exists)
     {
@@ -1281,6 +1281,14 @@ public class Character : WorldObject
     return defaultCharacterData
       .GetHazardResistanceAttributeData()
       .GetHazardImmunityDurationMultiplier(this);
+  }
+
+  public int GetSightRange()
+  {
+    return defaultCharacterData
+      .GetSightRangeAttributeData()
+      .GetAttributeTier(this)
+      .sightRange;
   }
   public float GetStat(CharacterStat statToGet)
   {

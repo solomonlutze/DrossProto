@@ -23,7 +23,7 @@ public class IlluminationInfo
   public IlluminationInfo(float i, Color c)
   {
     illuminationLevel = i;
-    visibleColor = c;
+    visibleColor = c * illuminationLevel;
     visibleColor.a = 1 - i;
     opaqueColor = c * illuminationLevel;
     opaqueColor.a = 1;
@@ -101,7 +101,7 @@ public class EnvironmentTileInfo
   public bool isInteractable = false;
   public bool dealsDamage = false;
   public bool corroded = false;
-  public int visibilityDistance;
+  public int effectiveVisibilityDistance;
   public List<EnvironmentalDamage> environmentalDamageSources;
   public List<IlluminatedByInfo> illuminatedBySources;
   public HashSet<EnvironmentTileInfo> illuminatedNeighbors;
