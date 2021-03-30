@@ -5,7 +5,7 @@ public class TargetInRangeAiDecision : AiDecision
   public override bool Decide(AiStateController controller)
   {
     PlayerController player = GameMaster.Instance.GetPlayerController();
-    if (player != null && Vector2.Distance(player.transform.position, controller.transform.position) < controller.detectionRange)
+    if (player != null && Vector2.Distance(player.transform.position, controller.transform.position) < controller.GetSightRange())
     {
       controller.objectOfInterest = player;
       return true;

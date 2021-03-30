@@ -19,7 +19,6 @@ public class AiStateController : Character
 
   [Header("AI Attributes")]
   public bool DEBUGStopRecalculatingPath = false;
-  public float detectionRange = 5f;
   public float attackAngleInDegrees = 45f;
   public float maxTargetDistanceFromSpawnPoint = 15;
   public float minDistanceFromPathNode = .15f;
