@@ -275,7 +275,7 @@ public class Character : WorldObject
   // point in space we would like to face
   public Vector3 orientTowards;
   protected TileLocation currentTileLocation;
-  protected EnvironmentTileInfo currentTile;
+  public EnvironmentTileInfo currentTile;
   protected TileLocation lastSafeTileLocation;
   protected float timeStandingStill = 0;
   protected float timeMoving = 0;
@@ -1209,6 +1209,11 @@ public class Character : WorldObject
       .GetMetabolismAttributeData()
       .GetAttributeTier(this)
       .staminaRecoverySpeed;
+  }
+
+  public DarkVisionInfo[] GetDarkVisionInfos()
+  {
+    return defaultCharacterData.GetDarkVisionAttributeData().GetDarkVisionInfos(this);
   }
 
   public float GetStaminaRecoveryRate()
