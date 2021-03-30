@@ -551,7 +551,7 @@ public class PlayerController : Character
         // Debug.Log("changing tile from " + currentTile.tileLocation + " to " + tile.tileLocation);
       }
       currentTile = tile;
-      GridManager.Instance.PlayerChangedTile(currentLoc, GetSightRange());
+      GridManager.Instance.PlayerChangedTile(currentLoc, GetSightRange(), defaultCharacterData.GetDarkVisionAttributeData().GetDarkVisionInfos(this));
     }
     base.HandleTile();
   }

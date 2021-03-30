@@ -65,7 +65,9 @@ public enum CharacterAttribute
   Health = 13,
   Metabolism = 14,
   SightRange = 15,
+  DarkVision = 16,
 }
+
 public enum CharacterAttackValue
 {
   Damage,

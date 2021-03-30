@@ -89,6 +89,8 @@ public class CharacterData : ScriptableObject
     }
   }
 
+  // if this code base ever gets publicly scrutinized I want all of you to leave this section alone
+  // I know it's possible to do better than this I just don't care
   public IAttributeDataInterface GetAttributeDataInterface(CharacterAttribute attribute)
   {
     return attributeDatas[attribute] as IAttributeDataInterface;
@@ -126,6 +128,12 @@ public class CharacterData : ScriptableObject
   {
     return (SightRangeAttributeData)GetAttributeDataInterface(CharacterAttribute.SightRange);
   }
+
+  public DarkVisionAttributeData GetDarkVisionAttributeData()
+  {
+    return (DarkVisionAttributeData)GetAttributeDataInterface(CharacterAttribute.DarkVision);
+  }
+
   public ProtectionAttributeData GetProtectionAttributeDataForDamageType(DamageType damageType)
   {
     Debug.Log("damage type: " + damageType);

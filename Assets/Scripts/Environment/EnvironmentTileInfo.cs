@@ -11,32 +11,16 @@ public class IlluminationInfo
   public float illuminationLevel;
   public Color visibleColor;
   public Color opaqueColor;
-  // public IlluminationInfo(LightRangeInfo i, Color c)
-  // {
-  //   illuminationLevel = i.currentIntensity;
-  //   visibleColor = c;
-  //   visibleColor.a = 1 - i.currentIntensity;
-  //   opaqueColor = c * illuminationLevel;
-  //   opaqueColor.a = 1;
-  // }
 
   public IlluminationInfo(float i, Color c)
   {
     illuminationLevel = i;
     visibleColor = c * illuminationLevel;
-    visibleColor.a = 1 - i;
+    visibleColor.a = .5f * (1 - i);
     opaqueColor = c * illuminationLevel;
     opaqueColor.a = 1;
   }
 
-  public IlluminationInfo()
-  {
-    illuminationLevel = .15f;
-    visibleColor = Color.black;
-    visibleColor.a = .85f;
-    opaqueColor = Color.black;
-    opaqueColor.a = 1;
-  }
 }
 
 public class IlluminatedByInfo
@@ -63,8 +47,6 @@ public class IlluminatedByInfo
   {
     illuminationSource = source;
     distanceFromSource = distance;
-    // info = new IlluminationInfo(illuminationSource.lightRangeInfos[distanceFromSource].currentIntensity, illuminationSource.illuminationColor);
-
   }
 }
 
@@ -116,8 +98,6 @@ public class EnvironmentTileInfo
 
   public IlluminationInfo illuminationInfo;
 
-  // public Dictionary<TilemapCorner, GameObject> cornerInterestObjects;
-  // public DamageData_OLD environmentalDamage_OLD;
   public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile)
   {
     tileLocation = location;
@@ -128,7 +108,7 @@ public class EnvironmentTileInfo
     dealsDamage = false;
     environmentalDamageSources = new List<EnvironmentalDamage>();
     illuminatedBySources = new List<IlluminatedByInfo>();
-    illuminationInfo = new IlluminationInfo();
+    RecalculateIllumination();
     illuminatedNeighbors = new HashSet<EnvironmentTileInfo>();
     // cornerInterestObjects = new Dictionary<TilemapCorner, GameObject>() {
     //   {TilemapCorner.UpperLeft, null},
@@ -191,14 +171,6 @@ public class EnvironmentTileInfo
   {
     int currentFloorAsInt = (int)currentFloor;
     int targetFloorLayerAsInt = currentFloorAsInt + (int)AscendsOrDescends();
-    // if (objectTileType != null && objectTileType.changesFloorLayer != AscendingDescendingState.None)
-    // {
-    //   targetFloorLayerAsInt = currentFloorAsInt + (int)objectTileType.changesFloorLayer;
-    // }
-    // else if (groundTileType != null && groundTileType.changesFloorLayer != AscendingDescendingState.None)
-    // {
-    //   targetFloorLayerAsInt = currentFloorAsInt + (int)groundTileType.changesFloorLayer;
-    // }
     if (targetFloorLayerAsInt == currentFloorAsInt)
     {
       Debug.LogError("tried to get target floor layer from tileInfo that does not change floors?");
@@ -439,7 +411,7 @@ public class EnvironmentTileInfo
   {
     Color finalColor = Color.black;
     float totalIntensity = 0;
-    float maxIntensity = 0;
+    float maxIntensity = .001f;
     for (int i = 0; i < illuminatedBySources.Count; i++)
     {
       totalIntensity += illuminatedBySources[i].sourceRangeInfo.currentIntensity;

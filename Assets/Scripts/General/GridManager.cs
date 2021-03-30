@@ -1095,10 +1095,10 @@ public class GridManager : Singleton<GridManager>
 
   Coroutine _recalculateVisiblityCoroutine;
 
-  public void PlayerChangedTile(TileLocation newPlayerTileLocation, int sightRange)
+  public void PlayerChangedTile(TileLocation newPlayerTileLocation, int sightRange, DarkVisionInfo[] darkVisionInfos)
   {
     currentPlayerLocation = newPlayerTileLocation;
-    RecalculateVisibility(currentPlayerLocation, sightRange);
+    RecalculateVisibility(currentPlayerLocation, sightRange, darkVisionInfos);
     // if (_recalculateVisiblityCoroutine != null)
     // {
     //   StopCoroutine(_recalculateVisiblityCoroutine);
@@ -1125,7 +1125,8 @@ public class GridManager : Singleton<GridManager>
     TilemapDirection.LowerRight,
     TilemapDirection.Below,
   };
-  void RecalculateVisibility(TileLocation newPlayerTileLocation, int sightRange)
+
+  void RecalculateVisibility(TileLocation newPlayerTileLocation, int sightRange, DarkVisionInfo[] darkVisionInfos)
   {
     System.Diagnostics.Stopwatch timeSpentThisFrame = new System.Diagnostics.Stopwatch();
     System.Diagnostics.Stopwatch timeSpentThisLoop = new System.Diagnostics.Stopwatch();
@@ -1161,7 +1162,7 @@ public class GridManager : Singleton<GridManager>
           consideredCoords[tileFloorOffset].Add(CoordsToKey(tile.tileLocation.tilemapCoordinates));
           tile.effectiveVisibilityDistance = currentDistance;
           if (currentDistance <=
-            (tile.illuminationInfo.illuminationLevel * (2 - tile.illuminationInfo.illuminationLevel)) // quadratic ease-out, hopefully?
+            DarkVisionAttributeData.GetVisibilityMultiplierForTile(darkVisionInfos, tile)
             * sightRangeForFloor)
           {
             totalVisibleTiles.Add(tile);
