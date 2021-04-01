@@ -737,6 +737,16 @@ public class Character : WorldObject
   {
     return dashing;
   }
+  public bool DashingPreventsDamage()
+  {
+    return dashing && defaultCharacterData.GetDashAttributeData().GetDashingPreventsDamage(this);
+  }
+  public bool DashingPreventsFalling()
+  {
+    Debug.Log("dashing: " + dashing + "; dashing prevents falling:" + defaultCharacterData.GetDashAttributeData().GetDashingPreventsFalling(this));
+    return dashing && defaultCharacterData.GetDashAttributeData().GetDashingPreventsFalling(this);
+  }
+
   public bool IsInKnockback()
   {
     return knockbackAmount > 0;
@@ -1017,6 +1027,11 @@ public class Character : WorldObject
     // -If you're using a crit, you don't take damage
     // -If you aren't critVictimOf the damageSource owner, don't take damage
     if (usingCrit) { return; }
+    if (DashingPreventsDamage())
+    {
+      Debug.Log("Dashing prevents damage!");
+      return;
+    }
     if (damageSource.isCritAttack && !damageSource.IsOwnedBy(critVictimOf)) { return; }
     if (
       sourceInvulnerabilities.Contains(damageSource.sourceString)
@@ -1305,7 +1320,6 @@ public class Character : WorldObject
       .GetDashAttributeData()
       .GetDashStaminaCost(this);
   }
-
   public float GetHazardImmunityDurationMultiplier()
   {
 
@@ -1536,6 +1550,7 @@ public class Character : WorldObject
           || flying
           || ascending
           || descending
+          || DashingPreventsFalling()
         )
     {
       return; // abilities prevent falling!
@@ -1555,24 +1570,6 @@ public class Character : WorldObject
   protected virtual void HandleTile()
   {
     TileLocation currentLoc = CalculateCurrentTileLocation();
-    // GridManager.Instance.DEBUGHighlightTile(currentLoc, Color.red);
-    // GridManager.Instance.DEBUGHighlightTile(new TileLocation(Vector3.zero, currentFloor), Color.blue);
-    // Debug.Log("current tile world position y" + GetTileLocation().worldPosition.y);
-    // Debug.Log("current tile (cube coords int)" + GetTileLocation().CubeCoordsInt());
-    // Debug.Log("current tile position y FROM current tile's cube coords" + TileLocation.FromCubicCoords(GetTileLocation().cubeCoords, currentFloor).worldPosition.y);
-
-    // Debug.Log("odd-y: " + ((Mathf.RoundToInt(GetTileLocation().worldPosition.y) & 1)) + ", off by " + (TileLocation.FromCubicCoords(GetTileLocation().cubeCoords, currentFloor).worldPosition - GetTileLocation().worldPosition));
-    // Debug.Log("y: " + GetTileLocation().worldPosition.y + ", off by " + (TileLocation.FromCubicCoords(GetTileLocation().cubeCoords, currentFloor).worldPosition - GetTileLocation().worldPosition));
-
-    // PathfindingSystem.Instance.IsPathClearOfHazards(Vector3.zero, currentFloor, this);
-
-    // PathfindingSystem.Instance.GetTilesAlongLine(new TileLocation(Vector3.zero, currentFloor), GetTileLocation(), true);
-    // Debug.Log("current tile (offset coords)" + GetTileLocation().tilemapCoordinates);
-    // Debug.Log("current tile (cube)" + GetTileLocation().cubeCoords);
-    // Debug.Log("upper-left should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.UpperLeft).tilemapCoordinates);
-    // Debug.Log("upper-right should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.UpperRight).tilemapCoordinates);
-    // Debug.Log("lower-left should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerLeft).tilemapCoordinates);
-    // Debug.Log("lower-right should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerRight).tilemapCoordinates);
 
     EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(currentLoc);
     if (tile == null)
@@ -1623,8 +1620,6 @@ public class Character : WorldObject
 
   protected void RespawnCharacterAtLastSafeLocation()
   {
-    // skill1.CancelActiveEffects();
-    // skill2.CancelActiveEffects();
     transform.position =
       new Vector3(lastSafeTileLocation.worldPosition.x + .5f, lastSafeTileLocation.worldPosition.y + .5f, GridManager.GetZOffsetForGameObjectLayer(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
     if (currentFloor != lastSafeTileLocation.floorLayer)

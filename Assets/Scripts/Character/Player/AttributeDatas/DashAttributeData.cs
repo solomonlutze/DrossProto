@@ -7,6 +7,8 @@ using UnityEditor;
 public class DashAttributeTier : AttributeTier
 {
   public float dashStaminaCostPercent;
+  public bool ignoreFallsWhileDashing = false;
+  public bool ignoreDamageWhileDashing = false;
   // public bool canFlyUp;
 }
 public class DashAttributeData : BaseAttributeData<DashAttributeTier>
@@ -16,12 +18,27 @@ public class DashAttributeData : BaseAttributeData<DashAttributeTier>
   {
     return GetAttributeTier(tier).dashStaminaCostPercent;
   }
-
+  public bool GetDashingPreventsDamageForTier(int tier)
+  {
+    return GetAttributeTier(tier).ignoreDamageWhileDashing;
+  }
+  public bool GetDashingPreventsFallingForTier(int tier)
+  {
+    return GetAttributeTier(tier).ignoreFallsWhileDashing;
+  }
   public float GetDashStaminaCost(Character c)
   {
     return GetDashStaminaCostPercentForTier(c.GetAttribute(CharacterAttribute.Dash)) / 100 * c.GetMaxStamina();
   }
 
+  public bool GetDashingPreventsDamage(Character c)
+  {
+    return GetDashingPreventsDamageForTier(c.GetAttribute(CharacterAttribute.Dash));
+  }
+  public bool GetDashingPreventsFalling(Character c)
+  {
+    return GetDashingPreventsFallingForTier(c.GetAttribute(CharacterAttribute.Dash));
+  }
 
 #if UNITY_EDITOR
   [MenuItem("Assets/Create/Attributes/DashAttributeData")]
