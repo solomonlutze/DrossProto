@@ -345,7 +345,7 @@ public class PlayerController : Character
           }
           else if (Input.GetButtonDown("Molt"))
           {
-            Molt();
+            StartCoroutine(Molt());
             return;
           }
         }

@@ -42,7 +42,7 @@ public enum CharacterStat
   DashRecoveryDuration = 8,
   RotationSpeed = 9,
   Carapace = 10,
-  MaxCarapaceLostPerMolt = 11,
+  MoltDuration = 11,
   BlockingMoveAcceleration = 12,
   BlockingRotationSpeed = 13
 }
@@ -258,6 +258,7 @@ public class Character : WorldObject
   public bool flying = false;
   public bool blocking = false;
   public bool dashing = false;
+  public bool molting = false;
   public float dashProgress = 0.0f;
   public float easedDashProgressIncrement = 0.0f;
   public bool inKnockback = false;
@@ -708,12 +709,20 @@ public class Character : WorldObject
       transform.position.z
     );
   }
-  protected void Molt()
+
+  protected IEnumerator Molt()
   {
-    if (GetMaxCarapaceLostPerMolt() >= GetCurrentMaxCarapace())
+    if (GetMaxCarapaceLostPerMolt() < GetCurrentMaxCarapace())
     {
-      return;
+      molting = true;
+      yield return new WaitForSeconds(GetStat(CharacterStat.MoltDuration));
+      DoMolt();
+      molting = false;
     }
+  }
+
+  protected void DoMolt()
+  {
     AdjustCurrentMoltCount(1);
     AdjustCurrentCarapace(100);
   }
@@ -907,6 +916,7 @@ public class Character : WorldObject
   {
     if ((ascending && !flying)
       || stunned
+      || molting
       || carapaceBroken
       || IsDashingOrRecovering()
       || IsInKnockback()
@@ -926,6 +936,7 @@ public class Character : WorldObject
     if (
       (ascending && !flying)
       || stunned
+      || molting
       || carapaceBroken
       || IsDashing()
       || IsInKnockback()
@@ -945,6 +956,7 @@ public class Character : WorldObject
     if (
       (ascending && !flying)
       || stunned
+      || molting
       || carapaceBroken
       || IsDashing()
       || IsInKnockback()
@@ -964,6 +976,7 @@ public class Character : WorldObject
       ascending
       || descending
       || stunned
+      || molting
       || carapaceBroken
       || IsInKnockback()
       || usingSkill
@@ -983,6 +996,7 @@ public class Character : WorldObject
       ascending
       || descending
       || stunned
+      || molting
       || carapaceBroken
       || usingSkill
       || animationPreventsMoving // I guess?
