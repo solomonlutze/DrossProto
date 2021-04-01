@@ -20,6 +20,7 @@ public class CarapaceBar : MonoBehaviour
   }
 
   public RectTransform carapaceBarEmpty;
+  public RectTransform carapaceBarBackground;
   public Image carapaceBarEmptySprite
   {
     get
@@ -32,6 +33,8 @@ public class CarapaceBar : MonoBehaviour
   public Color lowCarapaceColor;
   public Color brokenCarapaceColor;
   public Color defaultCarapaceColor;
+
+  float maxCarapaceBarWidth;
   private Coroutine carapaceBrokenFlashCoroutine;
 
   // END CARAPACE
@@ -57,6 +60,7 @@ public class CarapaceBar : MonoBehaviour
   {
     carapaceBarContentsSprite.color = defaultCarapaceColor;
     carapaceBarContainer.alpha = 1;
+    carapaceBarBackground.transform.localScale = new Vector3(1, 1, 0);
   }
 
   void HandleCarapaceBar()
@@ -73,7 +77,8 @@ public class CarapaceBar : MonoBehaviour
       carapaceBarContainer.alpha += Time.deltaTime / carapaceBarFadeTime;
       carapaceBarContainer.alpha = Mathf.Min(1, carapaceBarContainer.alpha);
     }
-    carapaceBarContentsFill.localScale = new Vector3(currentCarapace / maxCarapace, carapaceBarContentsFill.localScale.y, 0);
+    carapaceBarBackground.transform.localScale = new Vector3(maxCarapace / 100, 1, 0);
+    carapaceBarContentsFill.localScale = new Vector3(currentCarapace / 100, carapaceBarContentsFill.localScale.y, 0);
     if (character.carapaceBroken)
     {
       if (carapaceBrokenFlashCoroutine == null)

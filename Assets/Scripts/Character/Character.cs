@@ -66,6 +66,7 @@ public enum CharacterAttribute
   Metabolism = 14,
   SightRange = 15,
   DarkVision = 16,
+  MoltingEfficiency = 17
 }
 
 public enum CharacterAttackValue
@@ -709,11 +710,14 @@ public class Character : WorldObject
   }
   protected void Molt()
   {
-    Instantiate(moltCasingPrefab, orientation.transform.position, orientation.transform.rotation);
-    moltCasingPrefab.Init(Color.white, this);
+    if (GetMaxCarapaceLostPerMolt() >= GetCurrentMaxCarapace())
+    {
+      return;
+    }
     AdjustCurrentMoltCount(1);
-    AdjustCurrentHealth(5);
+    AdjustCurrentCarapace(100);
   }
+
   // Traits activated on dash are handled in HandleConditionallyActivatedTraits()
 
   public bool IsDashingOrRecovering()
@@ -1029,6 +1033,10 @@ public class Character : WorldObject
         vitals[CharacterVital.CurrentCarapace] = 0;
         StartCoroutine(ApplyCarapaceBreak(Constants.CARAPACE_BREAK_STUN_DURATION)); // don't want to reapply if already stunned, but can't block if stunned
       }
+      else
+      {
+        damageAfterResistances = 0;
+      }
     }
     characterVisuals.DamageFlash(damageFlashColor);
     InterruptAnimation();
@@ -1257,7 +1265,9 @@ public class Character : WorldObject
 
   public float GetMaxCarapaceLostPerMolt()
   {
-    return defaultCharacterData.defaultStats[CharacterStat.MaxCarapaceLostPerMolt];
+    return defaultCharacterData
+    .GetMoltingEfficiencyAttributeData()
+    .GetMoltCarapaceCost(this);
   }
   public bool GetCanFlyUp()
   {
@@ -1378,6 +1388,12 @@ public class Character : WorldObject
     // Debug.Log("Adjusting current health - nonlethal: " + isNonlethal);
     vitals[CharacterVital.CurrentHealth] =
       Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, isNonlethal ? 1 : 0, GetCurrentMaxHealth());
+  }
+
+  public void AdjustCurrentCarapace(float adjustment)
+  {
+    vitals[CharacterVital.CurrentCarapace] =
+      Mathf.Clamp(vitals[CharacterVital.CurrentCarapace] + adjustment, 0, GetCurrentMaxCarapace());
   }
 
   public void AdjustCurrentMoltCount(float adjustment)

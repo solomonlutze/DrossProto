@@ -134,6 +134,10 @@ public class CharacterData : ScriptableObject
     return (DarkVisionAttributeData)GetAttributeDataInterface(CharacterAttribute.DarkVision);
   }
 
+  public MoltingEfficiencyAttributeData GetMoltingEfficiencyAttributeData()
+  {
+    return (MoltingEfficiencyAttributeData)GetAttributeDataInterface(CharacterAttribute.MoltingEfficiency);
+  }
   public ProtectionAttributeData GetProtectionAttributeDataForDamageType(DamageType damageType)
   {
     Debug.Log("damage type: " + damageType);

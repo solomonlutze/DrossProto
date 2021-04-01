@@ -343,6 +343,11 @@ public class PlayerController : Character
               return;
             }
           }
+          else if (Input.GetButtonDown("Molt"))
+          {
+            Molt();
+            return;
+          }
         }
         // if (CanAct())
         // {
