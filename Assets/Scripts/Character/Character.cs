@@ -66,7 +66,8 @@ public enum CharacterAttribute
   Metabolism = 14,
   SightRange = 15,
   DarkVision = 16,
-  MoltingEfficiency = 17
+  MoltingEfficiency = 17,
+  Reflexes
 }
 
 public enum CharacterAttackValue
@@ -1274,7 +1275,7 @@ public class Character : WorldObject
     }
     else
     {
-      return GetStat(CharacterStat.MoveAcceleration);
+      return GetStat(CharacterStat.MoveAcceleration) * GetMoveSpeedMultiplier();
     }
   }
 
@@ -1297,6 +1298,13 @@ public class Character : WorldObject
     return defaultCharacterData
     .GetMoltingEfficiencyAttributeData()
     .GetMoltCarapaceCost(this);
+  }
+
+  public float GetMoveSpeedMultiplier()
+  {
+    return defaultCharacterData
+    .GetReflexesAttributeData()
+    .GetMoveSpeedMultiplier(this);
   }
   public bool GetCanFlyUp()
   {

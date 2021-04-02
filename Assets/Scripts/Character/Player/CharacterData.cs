@@ -138,6 +138,12 @@ public class CharacterData : ScriptableObject
   {
     return (MoltingEfficiencyAttributeData)GetAttributeDataInterface(CharacterAttribute.MoltingEfficiency);
   }
+
+  public ReflexesAttributeData GetReflexesAttributeData()
+  {
+    return (ReflexesAttributeData)GetAttributeDataInterface(CharacterAttribute.Reflexes);
+  }
+
   public ProtectionAttributeData GetProtectionAttributeDataForDamageType(DamageType damageType)
   {
     Debug.Log("damage type: " + damageType);
