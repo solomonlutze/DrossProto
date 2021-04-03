@@ -6,6 +6,7 @@ public class CharacterDirectionIndicator : MonoBehaviour
   public Character target;
   AwarenessTrigger owningTrigger;
   public float rotationSpeed = .3f;
+  public float minVisibleDistance = 7f;
   public void Init(Character o, Character t, AwarenessTrigger a)
   {
     owner = o;
@@ -18,6 +19,14 @@ public class CharacterDirectionIndicator : MonoBehaviour
   {
     if (target != null)
     {
+      if ((transform.position - target.transform.position).sqrMagnitude < minVisibleDistance)
+      {
+        GetComponentInChildren<SpriteRenderer>().enabled = false;
+      }
+      else
+      {
+        GetComponentInChildren<SpriteRenderer>().enabled = true;
+      }
       Quaternion targetDirection = GetDirectionAngle(target.transform.position);
       Debug.Log("euler: " + targetDirection.eulerAngles);
       // transform.rotation = Quaternion.RotateTowards(transform.rotation, targetDirection, rotationSpeed * Time.deltaTime);
