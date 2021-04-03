@@ -67,6 +67,11 @@ public class WorldObject : MonoBehaviour
     {
       t.sortingLayerName = layerName;
     }
+    Canvas c = trans.gameObject.GetComponent<Canvas>();
+    if (c != null)
+    {
+      c.sortingLayerName = layerName;
+    }
     foreach (Transform child in trans)
     {
       ChangeLayersRecursively(child, layerName);

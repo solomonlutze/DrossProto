@@ -343,6 +343,12 @@ public class Character : WorldObject
     characterSkills = CalculateSkills(traits);
     moveset = new Moveset(traits);
     attributes = CalculateAttributes(traits);
+    AwarenessTrigger awareness = GetComponentInChildren<AwarenessTrigger>();
+    if (awareness != null)
+    {
+      awareness.Init(this);
+      awareness.transform.localScale = new Vector3(10, 1, 1);
+    }
     InitializeFromCharacterData();
   }
 
