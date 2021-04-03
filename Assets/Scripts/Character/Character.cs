@@ -1635,7 +1635,7 @@ public class Character : WorldObject
   protected void RespawnCharacterAtLastSafeLocation()
   {
     transform.position =
-      new Vector3(lastSafeTileLocation.worldPosition.x + .5f, lastSafeTileLocation.worldPosition.y + .5f, GridManager.GetZOffsetForGameObjectLayer(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
+      new Vector3(lastSafeTileLocation.cellCenterWorldPosition.x, lastSafeTileLocation.cellCenterWorldPosition.y, GridManager.GetZOffsetForGameObjectLayer(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
     if (currentFloor != lastSafeTileLocation.floorLayer)
     {
       SetCurrentFloor(lastSafeTileLocation.floorLayer);
