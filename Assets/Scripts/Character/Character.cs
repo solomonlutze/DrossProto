@@ -1346,10 +1346,11 @@ public class Character : WorldObject
 
   public int GetSightRange()
   {
-    return defaultCharacterData
-      .GetSightRangeAttributeData()
-      .GetAttributeTier(this)
-      .sightRange;
+    return
+      defaultCharacterData
+        .GetSightRangeAttributeData()
+        .GetAttributeTier(this)
+        .sightRange;
   }
   public float GetStat(CharacterStat statToGet)
   {

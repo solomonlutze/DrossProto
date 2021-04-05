@@ -7,6 +7,7 @@ using UnityEditor;
 public class AntennaeSensitivityAttributeTier : AttributeTier
 {
   public float awarenessRange;
+  public float aiAwarenessRange;
 }
 public class AntennaeSensitivityAttributeData : BaseAttributeData<AntennaeSensitivityAttributeTier>
 {
@@ -20,7 +21,15 @@ public class AntennaeSensitivityAttributeData : BaseAttributeData<AntennaeSensit
   {
     return GetAwarenessRangeForTier(c.GetAttribute(CharacterAttribute.AntennaeSensitivity));
   }
+  public float GetAiAwarenessRangeForTier(int tier)
+  {
+    return GetAttributeTier(tier).aiAwarenessRange;
+  }
 
+  public float GetAiAwarenessRange(Character c)
+  {
+    return GetAiAwarenessRangeForTier(c.GetAttribute(CharacterAttribute.AntennaeSensitivity));
+  }
 
 #if UNITY_EDITOR
   [MenuItem("Assets/Create/Attributes/AntennaeSensitivityAttributeData")]

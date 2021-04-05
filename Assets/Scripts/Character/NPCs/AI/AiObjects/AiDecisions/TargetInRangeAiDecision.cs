@@ -16,6 +16,6 @@ public class TargetInRangeAiDecision : AiDecision
   bool TargetWithinSightRange(AiStateController controller, Character c)
   {
     return c != null && c.currentTile != null
-      && Vector2.Distance(c.transform.position, controller.transform.position) < controller.GetSightRange() * DarkVisionAttributeData.GetVisibilityMultiplierForTile(controller.GetDarkVisionInfos(), c.currentTile);
+      && Vector2.Distance(c.transform.position, controller.transform.position) < controller.GetAwarenessRange() * DarkVisionAttributeData.GetVisibilityMultiplierForTile(controller.GetDarkVisionInfos(), c.currentTile);
   }
 }
