@@ -67,7 +67,8 @@ public enum CharacterAttribute
   SightRange = 15,
   DarkVision = 16,
   MoltingEfficiency = 17,
-  Reflexes
+  Reflexes = 18,
+  AntennaeSensitivity = 19
 }
 
 public enum CharacterAttackValue
@@ -344,10 +345,11 @@ public class Character : WorldObject
     moveset = new Moveset(traits);
     attributes = CalculateAttributes(traits);
     AwarenessTrigger awareness = GetComponentInChildren<AwarenessTrigger>();
-    if (awareness != null)
+    float awarenessRange = defaultCharacterData.GetAntennaeSensitivityAttributeData().GetAwarenessRange(this);
+    if (awareness != null && awarenessRange > 0)
     {
       awareness.Init(this);
-      awareness.transform.localScale = new Vector3(10, 1, 1);
+      awareness.transform.localScale = new Vector3(awarenessRange, 1, 1);
     }
     InitializeFromCharacterData();
   }

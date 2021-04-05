@@ -16,7 +16,7 @@ public class AwarenessTrigger : MonoBehaviour
   void OnTriggerEnter2D(Collider2D c)
   {
     Character character = c.GetComponent<Character>();
-    if (character != null && character != owner && !nearbyCharacters.Contains(character))
+    if (owner != null && character != null && character != owner && !nearbyCharacters.Contains(character))
     {
       Debug.Log("enter " + character.name);
       nearbyCharacters.Add(character);

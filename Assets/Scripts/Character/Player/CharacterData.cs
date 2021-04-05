@@ -144,6 +144,11 @@ public class CharacterData : ScriptableObject
     return (ReflexesAttributeData)GetAttributeDataInterface(CharacterAttribute.Reflexes);
   }
 
+  public AntennaeSensitivityAttributeData GetAntennaeSensitivityAttributeData()
+  {
+    return (AntennaeSensitivityAttributeData)GetAttributeDataInterface(CharacterAttribute.AntennaeSensitivity);
+  }
+
   public ProtectionAttributeData GetProtectionAttributeDataForDamageType(DamageType damageType)
   {
     Debug.Log("damage type: " + damageType);
