@@ -5,7 +5,7 @@ public class TargetInRangeAiDecision : AiDecision
   public override bool Decide(AiStateController controller)
   {
     PlayerController player = GameMaster.Instance.GetPlayerController();
-    if (TargetWithinSightRange(controller, player))
+    if (TargetWithinAttentionRange(controller, player))
     {
       controller.objectOfInterest = player;
       return true;
@@ -13,9 +13,19 @@ public class TargetInRangeAiDecision : AiDecision
     return false;
   }
 
-  bool TargetWithinSightRange(AiStateController controller, Character c)
+  bool TargetWithinAttentionRange(AiStateController controller, Character c)
   {
-    return c != null && c.currentTile != null
-      && Vector2.Distance(c.transform.position, controller.transform.position) < controller.GetAwarenessRange() * DarkVisionAttributeData.GetVisibilityMultiplierForTile(controller.GetDarkVisionInfos(), c.currentTile);
+    if (c == null || c.currentTile == null) { return false; }
+    float distance = Vector2.Distance(c.transform.position, controller.transform.position);
+    if (distance < controller.GetAwarenessRange()) // antennae overrides camouflage and darkvision; kinda broken for AI tbh!
+    {
+      return true;
+    }
+    float camouflageRange = c.GetCamouflageRange();
+    if (camouflageRange > 0 && distance > camouflageRange)
+    {
+      return false;
+    }
+    return distance < controller.GetSightRange() * DarkVisionAttributeData.GetVisibilityMultiplierForTile(controller.GetDarkVisionInfos(), c.currentTile);
   }
 }

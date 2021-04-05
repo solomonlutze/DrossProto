@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class WorldObject : MonoBehaviour
 {
-  public float detectableRange = Constants.DEFAULT_DETECTION_RANGE; // default range at which this object can be sensed by AI (possibly also player?)
 
   public FloorLayer currentFloor;
   public static Dictionary<FloorLayer, int> floorLayerToGameObjectLayer = new Dictionary<FloorLayer, int>() {

@@ -126,13 +126,6 @@ public class AiStateController : Character
     layerRenderer.floorLayer = newFloorLayer;
   }
 
-  public float GetAwarenessRange()
-  {
-    return Mathf.Max(
-      GetSightRange(),
-      defaultCharacterData.GetAntennaeSensitivityAttributeData().GetAiAwarenessRange(this)
-    );
-  }
   public void StartValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl, MoveAiAction initiatingAction)
   {
     if (isCalculatingPath) { return; }

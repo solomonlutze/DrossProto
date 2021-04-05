@@ -144,6 +144,10 @@ public class CharacterData : ScriptableObject
     return (ReflexesAttributeData)GetAttributeDataInterface(CharacterAttribute.Reflexes);
   }
 
+  public CamouflageAttributeData GetCamouflageAttributeData()
+  {
+    return (CamouflageAttributeData)GetAttributeDataInterface(CharacterAttribute.Camouflage);
+  }
   public AntennaeSensitivityAttributeData GetAntennaeSensitivityAttributeData()
   {
     return (AntennaeSensitivityAttributeData)GetAttributeDataInterface(CharacterAttribute.AntennaeSensitivity);

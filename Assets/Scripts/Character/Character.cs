@@ -345,7 +345,7 @@ public class Character : WorldObject
     moveset = new Moveset(traits);
     attributes = CalculateAttributes(traits);
     AwarenessTrigger awareness = GetComponentInChildren<AwarenessTrigger>();
-    float awarenessRange = defaultCharacterData.GetAntennaeSensitivityAttributeData().GetAwarenessRange(this);
+    float awarenessRange = GetAwarenessRange();
     if (awareness != null && awarenessRange > 0)
     {
       awareness.Init(this);
@@ -1262,6 +1262,12 @@ public class Character : WorldObject
     return defaultCharacterData.GetDarkVisionAttributeData().GetDarkVisionInfos(this);
   }
 
+  public float GetAwarenessRange()
+  {
+    return defaultCharacterData.GetAntennaeSensitivityAttributeData().GetAwarenessRange(this);
+  }
+
+
   public float GetStaminaRecoveryRate()
   {
     return (Time.deltaTime * GetMaxStamina() / GetStaminaRecoverySpeed());
@@ -1351,6 +1357,15 @@ public class Character : WorldObject
         .GetSightRangeAttributeData()
         .GetAttributeTier(this)
         .sightRange;
+  }
+
+  public float GetCamouflageRange()
+  {
+    return
+      defaultCharacterData
+        .GetCamouflageAttributeData()
+        .GetAttributeTier(this)
+        .camouflageDistance;
   }
   public float GetStat(CharacterStat statToGet)
   {
