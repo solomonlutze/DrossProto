@@ -38,6 +38,10 @@ public class AiStateController : Character
   public float minDistanceFromTarget;
   public float blockTimer = 0;
 
+  public float currentOpacity = 1;
+  public bool shouldBeVisible = true;
+  public float camouflageFadeTime = .25f; //maybe this should live on defaultCharacterData
+
   [HideInInspector] public Vector2 spawnLocation;
   public AttackType selectedAttackType;
   /*
@@ -72,6 +76,7 @@ public class AiStateController : Character
   {
     base.Update();
     timeSpentInState += Time.deltaTime;
+    HandleVisibility();
   }
 
   protected override void FixedUpdate()
@@ -118,6 +123,47 @@ public class AiStateController : Character
     {
       UseTile();
     }
+  }
+
+  // WARNING: Tightly coupled with layerRenderer.
+  // Visibility controlled by LayerRenderer if LayerRenderer wants to hide the character,
+  // and by the AI otherwise.
+  // The reasoning is that the character should only be visible if they're both:
+  // - not camouflaged (controlled by AI), and
+  // - not above the player (controlled by layerRenderer)
+
+  void HandleVisibility()
+  {
+    CalculateTargetOpacity();
+    if (!layerRenderer.shouldBeVisible)
+    {
+      return; // LayerRenderer handles visability if it thinks the character should be invisible
+    }
+    else
+    {
+      if (!LayerRenderer.FinishedChangingOpacity(shouldBeVisible, currentOpacity))
+      {
+        currentOpacity += Time.deltaTime / camouflageFadeTime * (shouldBeVisible ? 1 : -1);
+      }
+      LayerRenderer.ChangeOpacityRecursively(transform, currentOpacity);
+    }
+  }
+
+  void CalculateTargetOpacity()
+  {
+    PlayerController player = GameMaster.Instance.GetPlayerController();
+    if (player == null || GetCamouflageRange() < 0)
+    {
+      shouldBeVisible = true;
+      return;
+    }
+    float distanceFromPlayer = Vector2.SqrMagnitude(transform.position - player.transform.position);
+    if (distanceFromPlayer > Mathf.Pow(GetCamouflageRange(), 2))
+    {
+      shouldBeVisible = false;
+      return;
+    }
+    shouldBeVisible = true;
   }
 
   public override void SetCurrentFloor(FloorLayer newFloorLayer)

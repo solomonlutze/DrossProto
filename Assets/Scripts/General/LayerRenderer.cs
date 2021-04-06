@@ -8,7 +8,7 @@ public class LayerRenderer : MonoBehaviour
   public float fadeDampTime = 0.005f;
   public float fadeTime = 0.25f;
   float currentOpacity = 0;
-  bool shouldBeVisible = false;
+  public bool shouldBeVisible = false;
   public FloorLayer floorLayer;
   public IntVariable currentFloorLayer;
 
@@ -19,14 +19,21 @@ public class LayerRenderer : MonoBehaviour
 
   void Update()
   {
-    if (!FinishedChangingOpacity())
+    if (!FinishedChangingOpacity(shouldBeVisible, currentOpacity))
     {
+      // WARNING: AI and LayerRenderer tightly coupled for camouflage.
+      // See AiStateController.HandleVisibility. 
+      AiStateController ai = GetComponent<AiStateController>();
+      if (ai != null && shouldBeVisible) // AI handling opacity
+      {
+        return;
+      }
       currentOpacity += Time.deltaTime / fadeTime * (shouldBeVisible ? 1 : -1);
-      ChangeOpacityRecursively(transform);
+      ChangeOpacityRecursively(transform, currentOpacity);
     }
   }
 
-  bool FinishedChangingOpacity()
+  public static bool FinishedChangingOpacity(bool shouldBeVisible, float currentOpacity)
   {
     return (shouldBeVisible && currentOpacity >= 1) || (!shouldBeVisible && currentOpacity <= 0);
   }
@@ -34,9 +41,9 @@ public class LayerRenderer : MonoBehaviour
   public void ChangeTargetOpacity()
   {
     int floorOffsetFromCurrentLayer = (int)floorLayer - currentFloorLayer.Value; // positive means we are above player; negative means we are below
+
     if (floorOffsetFromCurrentLayer > 0 || floorOffsetFromCurrentLayer < -3)
     {
-      Debug.Log("received changeTargetOpacity for " + gameObject + "; should no longer be visible");
       shouldBeVisible = false;
     }
     else
@@ -45,7 +52,7 @@ public class LayerRenderer : MonoBehaviour
     }
   }
 
-  public void ChangeOpacityRecursively(Transform trans)
+  public static void ChangeOpacityRecursively(Transform trans, float currentOpacity)
   {
     SpriteRenderer r = trans.gameObject.GetComponent<SpriteRenderer>();
     if (r != null)
@@ -67,13 +74,17 @@ public class LayerRenderer : MonoBehaviour
       if (currentOpacity <= 0)
       {
         tr.enabled = false;
-        Debug.Log("should be disabling " + tr);
       }
       else { tr.enabled = true; }
     }
+    CanvasGroup c = trans.GetComponent<CanvasGroup>();
+    if (c != null)
+    {
+      c.alpha = currentOpacity;
+    }
     foreach (Transform child in trans)
     {
-      ChangeOpacityRecursively(child);
+      ChangeOpacityRecursively(child, currentOpacity);
     }
   }
 }
