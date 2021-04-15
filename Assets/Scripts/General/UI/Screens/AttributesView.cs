@@ -41,6 +41,10 @@ public class AttributesView : MonoBehaviour
       if (attrObj == null) { continue; }
       attributeDataObjects.Add(attrObj.attribute, attrObj);
     }
+    foreach (IAttributeDataInterface data in attributeDataObjects.Values)
+    {
+      AddOrUpdateAttributeInfoObject(data.attribute, 0, 0);
+    }
     foreach (TraitSlot slot in Enum.GetValues(typeof(TraitSlot)))
     {
       GameObject button = Instantiate(traitButtonPrefab, traitButtonsContainer);
@@ -115,10 +119,11 @@ public class AttributesView : MonoBehaviour
 
   public void AddOrUpdateAttributeInfoObject(CharacterAttribute attribute, int value, int nextValue)
   {
+    if (attributeDataObjects[attribute].ignoreInMenus) { return; }
     if (!attributeInfoGameObjects.ContainsKey(attribute))
     {
-      attributeInfoGameObjects.Add(attribute, Instantiate(attributeInfoPrefab).gameObject);
-      attributeInfoGameObjects[attribute].transform.parent = attributeInfosContainer;
+      attributeInfoGameObjects.Add(attribute, Instantiate(attributeInfoPrefab, attributeInfosContainer).gameObject);
+      // attributeInfoGameObjects[attribute].transform.parent = attributeInfosContainer;
     }
 
     if (!attributeDataObjects.ContainsKey(attribute))

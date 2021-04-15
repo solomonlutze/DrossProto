@@ -28,6 +28,7 @@ public class GameMaster : Singleton<GameMaster>
   public Camera mainCamera;
   public Camera camera2D; // god save me
   public bool isPaused = false;
+  public bool playerObliterated;
 
   // Use this for initialization
   void Start()

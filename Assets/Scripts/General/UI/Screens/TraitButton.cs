@@ -44,6 +44,7 @@ public class TraitButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
   public void SetTraitAttributeText(Trait it)
   {
+    Debug.LogError("wat?");
     if (it == null)
     {
       foreach (SuperTextMesh m in traitAttributeTexts)
@@ -93,12 +94,14 @@ public class TraitButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     //   + traitDescription
     //   + "\n\n" + itemEntry.itemDescription
     // );
+    if (itemTrait == null) { return; }
     parentScreen.ShowHighlightedTraitDelta(equippedTrait, itemTrait);
   }
 
   public void OnPointerExit(PointerEventData data)
   {
     // inventoryScreen.SetItemDescriptionText("");
+    if (itemTrait == null) { return; }
     parentScreen.UnshowHighlightedTraitDelta();
   }
 }

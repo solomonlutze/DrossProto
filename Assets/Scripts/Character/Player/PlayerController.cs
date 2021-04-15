@@ -59,6 +59,7 @@ public class PlayerController : Character
     interactables = new List<GameObject>();
     inventory = GetComponent<Inventory>();
     inventory.owner = this;
+    GameMaster.Instance.playerObliterated = false;
   }
   // Player specific non-physics biz.
 
@@ -315,7 +316,7 @@ public class PlayerController : Character
               AscendOneFloor();
               return;
             }
-            else if (!flying)
+            else if (!flying && GetCanFly())
             {
               Fly();
               return;
@@ -549,6 +550,14 @@ public class PlayerController : Character
     // Debug.Log("lower-right should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerRight).tilemapCoordinates);
 
     EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(currentLoc);
+    if (tile == null)
+    {
+      {
+        GameMaster.Instance.playerObliterated = true;
+        Die();
+        return;
+      }
+    }
     if (tile != currentTile)
     {
       if (tile != null && currentTile != null)

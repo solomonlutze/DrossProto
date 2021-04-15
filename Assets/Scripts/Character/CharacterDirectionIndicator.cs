@@ -28,7 +28,6 @@ public class CharacterDirectionIndicator : MonoBehaviour
         GetComponentInChildren<SpriteRenderer>().enabled = true;
       }
       Quaternion targetDirection = GetDirectionAngle(target.transform.position);
-      Debug.Log("euler: " + targetDirection.eulerAngles);
       // transform.rotation = Quaternion.RotateTowards(transform.rotation, targetDirection, rotationSpeed * Time.deltaTime);
       transform.rotation = targetDirection;
     }

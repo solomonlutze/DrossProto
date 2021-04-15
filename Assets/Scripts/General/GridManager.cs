@@ -35,11 +35,18 @@ public class TileLocation
   {
     get
     {
-      return GridManager.Instance.levelGrid.CellToWorld(new Vector3Int(
+      int zOffSet = GridManager.GetZOffsetForGameObjectLayer(WorldObject.GetGameObjectLayerFromFloorLayer(floorLayer));
+      Vector3 worldPos = GridManager.Instance.levelGrid.CellToWorld(new Vector3Int(
         tilemapCoordinates.x,
         tilemapCoordinates.y,
-        (int)GridManager.GetZOffsetForGameObjectLayer(WorldObject.GetGameObjectLayerFromFloorLayer(floorLayer)))
+        zOffSet)
       );
+      return new Vector3(worldPos.x, worldPos.y, zOffSet);
+      // return GridManager.Instance.levelGrid.CellToWorld(new Vector3Int(
+      //   tilemapCoordinates.x,
+      //   tilemapCoordinates.y,
+      //   GridManager.GetZOffsetForGameObjectLayer(WorldObject.GetGameObjectLayerFromFloorLayer(floorLayer)))
+      // );
     }
   }
 
@@ -425,6 +432,10 @@ public class GridManager : Singleton<GridManager>
     );
     if (info.isLightSource)
     {
+      foreach (LightRangeInfo i in info.lightSource.lightRangeInfos)
+      {
+        i.currentIntensity = i.defaultIntensity;
+      }
       lightSources.Add(info);
     }
     if (loc.floorLayer == FloorLayer.F6 || GetAdjacentTile(loc, TilemapDirection.Above).IsEmptyAndSunlit())
@@ -459,7 +470,6 @@ public class GridManager : Singleton<GridManager>
     int currentDistance = 0;
     while (currentDistance < sunlight.lightRangeInfos.Length)
     {
-      Debug.Log("currentTilesToIlluminate.count " + currentTilesToIlluminate.Count);
       foreach (EnvironmentTileInfo tile in currentTilesToIlluminate)
       {
         if (currentDistance != 0)
@@ -1008,7 +1018,7 @@ public class GridManager : Singleton<GridManager>
     yield return null;
     Destroy(th);
   }
-  public static float GetZOffsetForGameObjectLayer(int floorLayer)
+  public static int GetZOffsetForGameObjectLayer(int floorLayer)
   {
     return (LayerMask.NameToLayer("B6") + Constants.numberOfFloorLayers) - floorLayer;
     // floor layers 9-20 (bottom to top)
@@ -1019,6 +1029,7 @@ public class GridManager : Singleton<GridManager>
     // return firstFloorLayerIndex - floorLayer;
     // int numberOfFloorLayers = Constants.numberOfFloorLayers; // 12?
   }
+
   public static TilemapDirection GetOppositeTilemapDirection(TilemapDirection d)
   {
     switch (d)
@@ -1070,7 +1081,9 @@ public class GridManager : Singleton<GridManager>
         sourceTile.illuminatedNeighbors.Add(tile);
         totalTilesToIlluminate.Add(tile);
         layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(tile.tileLocation.tilemapCoordinatesVector3, tile.illuminationInfo.opaqueColor);
-        foreach (TilemapDirection dir in new List<TilemapDirection>(){
+        if (!tile.HasSolidObject())
+        {
+          foreach (TilemapDirection dir in new List<TilemapDirection>(){
             TilemapDirection.UpperLeft,
             TilemapDirection.Left,
             TilemapDirection.LowerLeft,
@@ -1078,12 +1091,13 @@ public class GridManager : Singleton<GridManager>
             TilemapDirection.Right,
             TilemapDirection.LowerRight,
           })
-        {
-          if (
-            currentDistance != (sourceTile.lightSource.lightRangeInfos.Length - 1)
-            && !totalTilesToIlluminate.Contains(GetAdjacentTile(tile.tileLocation, dir)))
           {
-            nextTilesToIlluminate.Add(GetAdjacentTile(tile.tileLocation, dir));
+            if (
+              currentDistance != (sourceTile.lightSource.lightRangeInfos.Length - 1)
+              && !totalTilesToIlluminate.Contains(GetAdjacentTile(tile.tileLocation, dir)))
+            {
+              nextTilesToIlluminate.Add(GetAdjacentTile(tile.tileLocation, dir));
+            }
           }
         }
       }

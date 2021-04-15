@@ -11,7 +11,6 @@ public class EvadeAttackAiDecision : AiDecision
       // && controller.objectOfInterest.GetComponent<Character>().usingSkill
       && controller.objectOfInterest.GetComponent<Character>().GetAngleToDirection(controller.transform.position) < assumedEnemyAttackAngle / 2)
     {
-      Debug.Log("attempting to evade!");
       return true;
     }
     controller.UnsetOverrideDestination();

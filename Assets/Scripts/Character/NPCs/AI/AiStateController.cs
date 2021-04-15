@@ -64,6 +64,7 @@ public class AiStateController : Character
   private bool alreadyDroppedItems;
   public PickupItem[] itemDrops;
   public LayerRenderer layerRenderer;
+  public bool DEBUG_AiLogging = false;
 
   protected override void Awake()
   {
@@ -112,6 +113,12 @@ public class AiStateController : Character
   {
     base.HandleTile();
     EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(CalculateCurrentTileLocation());
+    if (tile.HasSolidObject())
+    {
+      GridManager.Instance.DEBUGHighlightTile(tile.tileLocation, Color.magenta);
+      Debug.Log("bugstuck");
+      Debug.Break();
+    }
     if (tile.ChangesFloorLayer()
       && pathToTarget != null
       && pathToTarget.Count > 1
@@ -180,7 +187,9 @@ public class AiStateController : Character
 
   public IEnumerator ValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl, MoveAiAction initiatingAction)
   {
+    pos.z = GridManager.GetZOffsetForGameObjectLayer(WorldObject.GetGameObjectLayerFromFloorLayer(fl));
     TileLocation targetLocation = new TileLocation(pos, fl);
+
     yield return StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, initiatingAction));
     if (pathToTarget != null)
     {

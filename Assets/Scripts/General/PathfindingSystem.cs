@@ -35,9 +35,12 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     Dictionary<TileLocation, Node> nodeLocationsToNodes = new Dictionary<TileLocation, Node>();
     List<Node> adjacentNodes;
     List<Node> finalPath = new List<Node>();
-    Node startNode = InitNewNode(new TileLocation(startPosition, ai.currentFloor), 0, null, targetLocation);
-    openNodes.Enqueue(startNode.loc, startNode.f);
-    nodeLocationsToNodes[startNode.loc] = startNode;
+    if (!GridManager.Instance.GetTileAtLocation(targetLocation).HasSolidObject()) // if false there won't be a path. I think?
+    {
+      Node startNode = InitNewNode(new TileLocation(startPosition, ai.currentFloor), 0, null, targetLocation);
+      openNodes.Enqueue(startNode.loc, startNode.f);
+      nodeLocationsToNodes[startNode.loc] = startNode;
+    }
     timeSpentThisFrame.Start();
     while (openNodes.Count > 0)
     {

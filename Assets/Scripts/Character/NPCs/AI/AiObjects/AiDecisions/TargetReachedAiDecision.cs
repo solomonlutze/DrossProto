@@ -16,9 +16,16 @@ public class TargetReachedAiDecision : AiDecision
     }
     if (controller.wanderDestination != null)
     {
+      if (controller.DEBUG_AiLogging)
+      {
+        Debug.Log("Destination: " + controller.wanderDestination.transform.position);
+        Debug.Log("self: " + controller.transform.position);
+        Debug.Log("min distance: " + minDistanceFromTarget);
+        Debug.Log("distance from wander destination: " + Vector3.Distance(controller.wanderDestination.transform.position, controller.transform.position));
+      }
       if (Vector3.Distance(controller.wanderDestination.transform.position, controller.transform.position) < minDistanceFromTarget)
       {
-        controller.wanderDestination = null;
+        controller.UnsetWanderDestination();
         return true;
       }
     }

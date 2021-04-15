@@ -7,6 +7,7 @@ using UnityEditor;
 public class FlightAttributeTier : AttributeTier
 {
   public int flightDuration;
+  public bool canFly;
   public bool canFlyUp;
 }
 public class FlightAttributeData : BaseAttributeData<FlightAttributeTier>

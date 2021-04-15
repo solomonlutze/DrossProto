@@ -16,7 +16,7 @@ public class IlluminationInfo
   {
     illuminationLevel = i;
     visibleColor = c * illuminationLevel;
-    visibleColor.a = .5f * (1 - i);
+    visibleColor.a = .55f * (1 - i);
     opaqueColor = c * illuminationLevel;
     opaqueColor.a = 1;
   }
@@ -138,10 +138,6 @@ public class EnvironmentTileInfo
         EnvironmentalDamage d = new EnvironmentalDamage();
         d.Init(objectTileType);
         environmentalDamageSources.Add(d);
-      }
-      if (objectTileType.lightSource != null && objectTileType.lightSource.lightRangeInfos.Length > 0)
-      {
-        Debug.Log("definitely found a light source!");
       }
       lightSource = objectTileType.lightSource;
     }

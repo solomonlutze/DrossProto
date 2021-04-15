@@ -365,12 +365,9 @@ public class Character : WorldObject
       activeMovementAbilities.AddRange(dataInstance.movementAbilities);
     }
     vitals = new CharacterVitalToFloatDictionary();
-    // statModifications = new StatToActiveStatModificationsDictionary();
     vitals[CharacterVital.CurrentHealth] = GetCurrentMaxHealth();
     vitals[CharacterVital.CurrentStamina] = GetMaxStamina();
     vitals[CharacterVital.CurrentCarapace] = GetMaxCarapace();
-    // vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] = GetStat(CharacterStat.MaxEnvironmentalDamageCooldown);
-    // vitals[CharacterVital.CurrentDashCooldown] = GetStat(CharacterStat.MaxDashCooldown);
   }
 
   protected virtual void InitializeAttributes()
@@ -1320,6 +1317,13 @@ public class Character : WorldObject
     .GetReflexesAttributeData()
     .GetMoveSpeedMultiplier(this);
   }
+  public bool GetCanFly()
+  {
+    return defaultCharacterData
+      .GetFlightAttributeData()
+      .GetAttributeTier(this)
+      .canFly;
+  }
   public bool GetCanFlyUp()
   {
     return defaultCharacterData
@@ -1606,7 +1610,8 @@ public class Character : WorldObject
     EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(currentLoc);
     if (tile == null)
     {
-      Debug.LogError("WARNING: no tile found at " + CalculateCurrentTileLocation().ToString());
+      // Debug.LogError("WARNING: no tile found at " + CalculateCurrentTileLocation().ToString());
+      Die();
       return;
     }
     if (tile != currentTile)

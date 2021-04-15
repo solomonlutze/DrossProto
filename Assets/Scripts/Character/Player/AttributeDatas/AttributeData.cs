@@ -12,6 +12,7 @@ public interface IAttributeDataInterface
   string displayNameWithGroup { get; }
   // Hide this attribute in the AttributesView screen if its value is zero
   bool hideIfZero { get; }
+  bool ignoreInMenus { get; }
 }
 
 public abstract class BaseAttributeData<T> : ScriptableObject, IAttributeDataInterface where T : AttributeTier
@@ -32,6 +33,11 @@ public abstract class BaseAttributeData<T> : ScriptableObject, IAttributeDataInt
   [SerializeField]
   protected bool _hideIfZero;
   public bool hideIfZero { get { return _hideIfZero; } }
+
+  [SerializeField]
+  protected bool _ignoreInMenus;
+  public bool ignoreInMenus { get { return _ignoreInMenus; } }
+
 
   public T GetAttributeTier(Character c)
   {

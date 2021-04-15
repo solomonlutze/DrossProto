@@ -23,6 +23,7 @@ public class PlayerHUD : MonoBehaviour
   // public TextMeshProUGUI skill2ValueText;
 
   private string diedString = "This body has been destroyed.\nPress Return to be reborn.";
+  private string obliteratedString = "This body has been swallowed by Oblivion.\nPress Return to be reborn.";
   // Use this for initialization
   // TODO: these should be public properties we set in the inspector
   void Start()
@@ -54,7 +55,14 @@ public class PlayerHUD : MonoBehaviour
       // healthValueText.text = "0";
       if (diedText.text == " ")
       {
-        diedText.text = diedString;
+        if (GameMaster.Instance.playerObliterated)
+        {
+          diedText.text = obliteratedString;
+        }
+        else
+        {
+          diedText.text = diedString;
+        }
       }
     }
   }

@@ -30,6 +30,10 @@ public class AttributeInfo : MonoBehaviour
   {
     defaultFontSize = pupaAttributeDescriptionText.quality;
     defaultFontColor = pupaAttributeDescriptionText.color;
+    if (gameObject.name != attribute.ToString() + "_AttributeInfo")
+    {
+      gameObject.name = attribute.ToString() + "_AttributeInfo";
+    }
   }
 
   void Update()
@@ -45,9 +49,10 @@ public class AttributeInfo : MonoBehaviour
 
   public void Init(IAttributeDataInterface data, int value, int nextValue)
   {
+    attribute = data.attribute;
     attributeData = data;
-    attributeNameText.text = attributeData.displayName;
-    attributeDescriptionText.text = attributeData.attributeTiers[value].attributeTierDescription;
+    attributeNameText.text = attributeData.displayNameWithGroup;
+    attributeDescriptionText.gameObject.SetActive(false);
     pupaAttributeDescriptionText.text = attributeData.attributeTiers[nextValue].attributeTierDescription;
     actualPupaAttributeValue = nextValue; // save to modify when looking at items
     arrowImage.gameObject.SetActive(false);

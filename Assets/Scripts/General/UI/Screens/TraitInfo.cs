@@ -37,7 +37,7 @@ public class TraitInfo : MonoBehaviour
     foreach (KeyValuePair<CharacterAttribute, int> entry in trait.attributeModifiers)
     {
       traitAttributeTexts[i].gameObject.SetActive(true);
-      string attributeName = attributeDataObjects[entry.Key].displayNameWithGroup;
+      string attributeName = attributeDataObjects[entry.Key].displayName;
       traitAttributeTexts[i].text = $"{attributeName}{System.String.Concat(Enumerable.Repeat("+", entry.Value - 1))}";
       i++;
     }
