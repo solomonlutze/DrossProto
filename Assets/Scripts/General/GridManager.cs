@@ -241,6 +241,7 @@ public class GridManager : Singleton<GridManager>
   public HashSet<EnvironmentTileInfo> litTiles;
   public HashSet<EnvironmentTileInfo> tilesToRecalculateLightingFor;
   public EnvironmentTile visibilityTile;
+  public WallObject defaultWallObject;
 
   public Color nonVisibleTileColor;
   public LightSourceInfo sunlight;
@@ -324,86 +325,86 @@ public class GridManager : Singleton<GridManager>
   int sign = 1;
   public void Update()
   {
-    tilesToRecalculateLightingFor.Clear();
-    HashSet<EnvironmentTileInfo> tempSet;
-    foreach (EnvironmentTileInfo lightSource in lightSources)
-    {
-      tempSet = lightSource.IlluminateNeighbors();
-      if (tempSet != null)
-      {
-        tilesToRecalculateLightingFor.UnionWith(tempSet);
-      }
-    }
-    foreach (EnvironmentTileInfo litTile in tilesToRecalculateLightingFor)
-    {
-      litTile.RecalculateIllumination();
-    }
-    if (tilesToMakeObscured.Count > 0)
-    {
-      for (int i = tilesToMakeObscured[0].Count - 1; i >= 0; i--)
-      {
-        EnvironmentTileInfo tile = tilesToMakeObscured[0][i];
-        if (tilesToRecalculateLightingFor.Contains(tile))
-        {
-          tilesToRecalculateLightingFor.Remove(tile);
-        }
-        if (visibleTiles.Contains(tile) || tile.IsEmpty())
-        {
-          tilesToMakeObscured[0].Remove(tile);
-          continue;
-        }
-        Color c = tile.illuminationInfo.opaqueColor;
-        c.a = layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.GetColor(tile.tileLocation.tilemapCoordinatesVector3).a;
-        c.a += Time.deltaTime / tileFadeTime;
-        if (c.a >= 1)
-        {
-          c.a = 1;
-          tilesToMakeObscured[0].Remove(tile);
-        }
-        layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(
-          tile.tileLocation.tilemapCoordinatesVector3, c);
-      }
-      if (tilesToMakeObscured[0].Count == 0)
-      {
-        tilesToMakeObscured.RemoveAt(0);
-      }
-    }
-    if (tilesToMakeVisible.Count > 0)
-    {
-      for (int i = tilesToMakeVisible[0].Count - 1; i >= 0; i--)
-      {
-        EnvironmentTileInfo tile = tilesToMakeVisible[0][i];
-        if (tilesToRecalculateLightingFor.Contains(tile))
-        {
-          tilesToRecalculateLightingFor.Remove(tile);
-        }
-        Color c = tile.illuminationInfo.visibleColor;
-        c.a = layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.GetColor(tile.tileLocation.tilemapCoordinatesVector3).a;
-        c.a -= Time.deltaTime / tileFadeTime;
-        if (c.a <= tile.illuminationInfo.visibleColor.a)
-        {
-          c.a = tile.illuminationInfo.visibleColor.a;
-          tilesToMakeVisible[0].Remove(tile);
-        }
-        layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(
-          tile.tileLocation.tilemapCoordinatesVector3, c);
-      }
-      if (tilesToMakeVisible[0].Count == 0)
-      {
-        tilesToMakeVisible.RemoveAt(0);
-      }
-    }
-    foreach (EnvironmentTileInfo litTile in tilesToRecalculateLightingFor)
-    {
-      if (visibleTiles.Contains(litTile))
-      {
-        layerFloors[litTile.tileLocation.floorLayer].visibilityTilemap.SetColor(litTile.tileLocation.tilemapCoordinatesVector3, litTile.illuminationInfo.visibleColor);
-      }
-      else
-      {
-        layerFloors[litTile.tileLocation.floorLayer].visibilityTilemap.SetColor(litTile.tileLocation.tilemapCoordinatesVector3, litTile.illuminationInfo.opaqueColor);
-      }
-    }
+    // tilesToRecalculateLightingFor.Clear();
+    // HashSet<EnvironmentTileInfo> tempSet;
+    // foreach (EnvironmentTileInfo lightSource in lightSources)
+    // {
+    //   tempSet = lightSource.IlluminateNeighbors();
+    //   if (tempSet != null)
+    //   {
+    //     tilesToRecalculateLightingFor.UnionWith(tempSet);
+    //   }
+    // }
+    // foreach (EnvironmentTileInfo litTile in tilesToRecalculateLightingFor)
+    // {
+    //   litTile.RecalculateIllumination();
+    // }
+    // if (tilesToMakeObscured.Count > 0)
+    // {
+    //   for (int i = tilesToMakeObscured[0].Count - 1; i >= 0; i--)
+    //   {
+    //     EnvironmentTileInfo tile = tilesToMakeObscured[0][i];
+    //     if (tilesToRecalculateLightingFor.Contains(tile))
+    //     {
+    //       tilesToRecalculateLightingFor.Remove(tile);
+    //     }
+    //     if (visibleTiles.Contains(tile) || tile.IsEmpty())
+    //     {
+    //       tilesToMakeObscured[0].Remove(tile);
+    //       continue;
+    //     }
+    //     Color c = tile.illuminationInfo.opaqueColor;
+    //     c.a = layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.GetColor(tile.tileLocation.tilemapCoordinatesVector3).a;
+    //     c.a += Time.deltaTime / tileFadeTime;
+    //     if (c.a >= 1)
+    //     {
+    //       c.a = 1;
+    //       tilesToMakeObscured[0].Remove(tile);
+    //     }
+    //     layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(
+    //       tile.tileLocation.tilemapCoordinatesVector3, c);
+    //   }
+    //   if (tilesToMakeObscured[0].Count == 0)
+    //   {
+    //     tilesToMakeObscured.RemoveAt(0);
+    //   }
+    // }
+    // if (tilesToMakeVisible.Count > 0)
+    // {
+    //   for (int i = tilesToMakeVisible[0].Count - 1; i >= 0; i--)
+    //   {
+    //     EnvironmentTileInfo tile = tilesToMakeVisible[0][i];
+    //     if (tilesToRecalculateLightingFor.Contains(tile))
+    //     {
+    //       tilesToRecalculateLightingFor.Remove(tile);
+    //     }
+    //     Color c = tile.illuminationInfo.visibleColor;
+    //     c.a = layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.GetColor(tile.tileLocation.tilemapCoordinatesVector3).a;
+    //     c.a -= Time.deltaTime / tileFadeTime;
+    //     if (c.a <= tile.illuminationInfo.visibleColor.a)
+    //     {
+    //       c.a = tile.illuminationInfo.visibleColor.a;
+    //       tilesToMakeVisible[0].Remove(tile);
+    //     }
+    //     layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(
+    //       tile.tileLocation.tilemapCoordinatesVector3, c);
+    //   }
+    //   if (tilesToMakeVisible[0].Count == 0)
+    //   {
+    //     tilesToMakeVisible.RemoveAt(0);
+    //   }
+    // }
+    // foreach (EnvironmentTileInfo litTile in tilesToRecalculateLightingFor)
+    // {
+    //   // if (visibleTiles.Contains(litTile))
+    //   // {
+    //     layerFloors[litTile.tileLocation.floorLayer].visibilityTilemap.SetColor(litTile.tileLocation.tilemapCoordinatesVector3, litTile.illuminationInfo.visibleColor);
+    //   // }
+    //   // else
+    //   // {
+    //   //   layerFloors[litTile.tileLocation.floorLayer].visibilityTilemap.SetColor(litTile.tileLocation.tilemapCoordinatesVector3, litTile.illuminationInfo.opaqueColor);
+    //   // }
+    // }
   }
 
   public int CoordsToKey(Vector2Int coordinates)
@@ -452,11 +453,17 @@ public class GridManager : Singleton<GridManager>
     }
     if (!info.IsEmpty())
     {
-      visibilityTilemap.SetColor(v3pos, info.illuminationInfo.opaqueColor);
+      visibilityTilemap.SetColor(v3pos, info.illuminationInfo.visibleColor);
     }
     else
     {
       visibilityTilemap.SetColor(v3pos, Color.clear);
+    }
+    if (info.HasSolidObject())
+    {
+      info.wallObject = Instantiate(defaultWallObject);
+      info.wallObject.transform.position = loc.cellCenterWorldPosition;
+      info.wallObject.Init(loc, objectTile.sprite);
     }
     worldGrid[loc.floorLayer][CoordsToKey(loc.tilemapCoordinates)] = info;
     return info;
@@ -479,7 +486,7 @@ public class GridManager : Singleton<GridManager>
         }
         if (!tile.IsEmpty())
         {
-          layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(tile.tileLocation.tilemapCoordinatesVector3, tile.illuminationInfo.opaqueColor);
+          layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(tile.tileLocation.tilemapCoordinatesVector3, tile.illuminationInfo.visibleColor);
         }
         else
         {
@@ -1080,7 +1087,7 @@ public class GridManager : Singleton<GridManager>
         tile.AddIlluminatedBySource(sourceTile.lightSource, currentDistance);
         sourceTile.illuminatedNeighbors.Add(tile);
         totalTilesToIlluminate.Add(tile);
-        layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(tile.tileLocation.tilemapCoordinatesVector3, tile.illuminationInfo.opaqueColor);
+        layerFloors[tile.tileLocation.floorLayer].visibilityTilemap.SetColor(tile.tileLocation.tilemapCoordinatesVector3, tile.illuminationInfo.visibleColor);
         if (!tile.HasSolidObject())
         {
           foreach (TilemapDirection dir in new List<TilemapDirection>(){
@@ -1112,7 +1119,7 @@ public class GridManager : Singleton<GridManager>
   public void PlayerChangedTile(TileLocation newPlayerTileLocation, int sightRange, DarkVisionInfo[] darkVisionInfos)
   {
     currentPlayerLocation = newPlayerTileLocation;
-    RecalculateVisibility(currentPlayerLocation, sightRange, darkVisionInfos);
+    // RecalculateVisibility(currentPlayerLocation, sightRange, darkVisionInfos);
     // if (_recalculateVisiblityCoroutine != null)
     // {
     //   StopCoroutine(_recalculateVisiblityCoroutine);
@@ -1121,6 +1128,10 @@ public class GridManager : Singleton<GridManager>
     // }
   }
 
+  void RecalculateVisibility(DarkVisionInfo[] darkVisionInfos)
+  {
+    // eh whatever do it later
+  }
   List<TilemapDirection> nonEmptyTileDirections = new List<TilemapDirection>(){
     TilemapDirection.UpperLeft,
     TilemapDirection.Left,

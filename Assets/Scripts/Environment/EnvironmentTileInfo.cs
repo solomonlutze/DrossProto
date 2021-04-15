@@ -88,6 +88,7 @@ public class EnvironmentTileInfo
   public List<IlluminatedByInfo> illuminatedBySources;
   public HashSet<EnvironmentTileInfo> illuminatedNeighbors;
   public LightSourceInfo lightSource;
+  public WallObject wallObject;
   public bool isLightSource
   {
     get
@@ -418,6 +419,10 @@ public class EnvironmentTileInfo
       finalColor += (illuminatedBySources[i].illuminationSource.illuminationColor * (illuminatedBySources[i].sourceRangeInfo.currentIntensity) / totalIntensity);
     }
     illuminationInfo = new IlluminationInfo(maxIntensity, finalColor);
+    if (wallObject != null)
+    {
+      wallObject.ChangeColor(finalColor);
+    }
   }
 
   // doing illumination this way could mean we change tile colors multiple times a frame in cases of overlapping lights :o

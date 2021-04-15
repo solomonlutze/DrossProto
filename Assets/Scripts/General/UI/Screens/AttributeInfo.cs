@@ -34,6 +34,7 @@ public class AttributeInfo : MonoBehaviour
     {
       gameObject.name = attribute.ToString() + "_AttributeInfo";
     }
+    UnhighlightDelta();
   }
 
   void Update()

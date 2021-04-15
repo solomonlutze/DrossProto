@@ -749,7 +749,6 @@ public class Character : WorldObject
   }
   public bool DashingPreventsFalling()
   {
-    Debug.Log("dashing: " + dashing + "; dashing prevents falling:" + defaultCharacterData.GetDashAttributeData().GetDashingPreventsFalling(this));
     return dashing && defaultCharacterData.GetDashAttributeData().GetDashingPreventsFalling(this);
   }
 
