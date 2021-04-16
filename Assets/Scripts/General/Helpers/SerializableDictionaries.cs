@@ -250,3 +250,18 @@ public class AttackTypeToWeaponDataDictionary : SerializableDictionaryBase<Attac
     }
   }
 }
+
+[System.Serializable]
+public class AnimationNameToAnimationClipDictionary : SerializableDictionaryBase<AnimationName, AnimationClip>
+{
+  public AnimationNameToAnimationClipDictionary()
+  {
+    foreach (AnimationName animation in (AnimationName[])Enum.GetValues(typeof(AnimationName)))
+    {
+      Add(animation, null);
+    }
+  }
+}
+
+[System.Serializable]
+public class BugSpeciesToBugAnimationDictionary : SerializableDictionaryBase<BugSpecies, BugAnimationData> { }
