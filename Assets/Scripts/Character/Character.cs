@@ -280,7 +280,7 @@ public class Character : WorldObject
 
   public CircleCollider2D circleCollider;
   public BoxCollider2D boxCollider; // used for calculating collisions w/ tiles while changing floor layer
-  public CharacterVisuals characterVisuals;
+  public CharacterVisuals_Old characterVisuals;
 
   [Header("Game State Info")]
   public Color damageFlashColor = Color.red;

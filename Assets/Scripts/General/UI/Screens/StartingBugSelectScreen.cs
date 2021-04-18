@@ -18,7 +18,7 @@ public class StartingBugSelectScreen : MonoBehaviour
   public SuperTextMesh descriptionText;
   public BugPresetData[] startingBugs;
 
-  public CharacterVisuals visuals;
+  public CharacterVisuals_Old visuals;
 
   int highlightedBug;
 

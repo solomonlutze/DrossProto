@@ -46,7 +46,7 @@ public class LymphTypeToIntDictionary : SerializableDictionaryBase<LymphType, in
 // }
 
 [System.Serializable]
-public class TraitSlotToCharacterCharacterBodyPartVisualDictionary : SerializableDictionaryBase<TraitSlot, CharacterBodyPartVisual>
+public class TraitSlotToCharacterCharacterBodyPartVisualDictionary : SerializableDictionaryBase<TraitSlot, CharacterBodyPartVisual_Old>
 {
 
   public TraitSlotToCharacterCharacterBodyPartVisualDictionary()
@@ -58,6 +58,18 @@ public class TraitSlotToCharacterCharacterBodyPartVisualDictionary : Serializabl
   }
 }
 
+[System.Serializable]
+public class BugSkeletonPartToCharacterCharacterBodyPartVisualDictionary : SerializableDictionaryBase<BugSkeletonPart, CharacterBodyPartVisual>
+{
+
+  public BugSkeletonPartToCharacterCharacterBodyPartVisualDictionary()
+  {
+    foreach (BugSkeletonPart part in (TraitSlot[])Enum.GetValues(typeof(BugSkeletonPart)))
+    {
+      Add(part, null);
+    }
+  }
+}
 [System.Serializable]
 public class TraitSlotToTraitDictionary : SerializableDictionaryBase<TraitSlot, Trait>
 {

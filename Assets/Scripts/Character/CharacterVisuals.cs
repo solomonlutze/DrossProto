@@ -1,76 +1,103 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 // This class exists only to map body parts to gameobjects to display visuals.
 // Visuals are populated from scriptableobjects....... somehow
 public class CharacterVisuals : MonoBehaviour
 {
-    public TraitSlotToCharacterCharacterBodyPartVisualDictionary traitSlotsToVisuals;
-    public Color32 defaultColor = Color.clear;
+  public BugSkeletonPartToCharacterCharacterBodyPartVisualDictionary skeletonPartToCharacterBodyPartVisual;
+  public static Dictionary<BugSkeletonPart, TraitSlot> bugSkeletonPartToTraitSlot = new Dictionary<BugSkeletonPart, TraitSlot>() {
+    {BugSkeletonPart.HindlegRight, TraitSlot.Legs},
+    {BugSkeletonPart.HindlegLeft, TraitSlot.Legs},
+    {BugSkeletonPart.MidlegRight, TraitSlot.Legs},
+    {BugSkeletonPart.MidlegLeft, TraitSlot.Legs},
+    {BugSkeletonPart.ForelegRight, TraitSlot.Legs},
+    {BugSkeletonPart.ForelegLeft, TraitSlot.Legs},
+    {BugSkeletonPart.Abdomen, TraitSlot.Abdomen},
+    {BugSkeletonPart.MandibleRight, TraitSlot.Head},
+    {BugSkeletonPart.MandibleLeft, TraitSlot.Head},
+    {BugSkeletonPart.Head, TraitSlot.Head},
+    {BugSkeletonPart.Eyes, TraitSlot.Head},
+    {BugSkeletonPart.AntennaRight, TraitSlot.Head},
+    {BugSkeletonPart.AntennaLeft, TraitSlot.Head},
+    {BugSkeletonPart.Thorax, TraitSlot.Thorax},
+    {BugSkeletonPart.HindwingRight, TraitSlot.Wings},
+    {BugSkeletonPart.HindwingLeft, TraitSlot.Wings},
+    {BugSkeletonPart.ForewingRight, TraitSlot.Wings},
+    {BugSkeletonPart.ForewingLeft, TraitSlot.Wings},
+  };
+  public Color32 defaultColor = Color.clear;
 
-    public void SetCharacterVisuals(TraitSlotToTraitDictionary traits)
-    {
-        foreach (TraitSlot slot in traits.Keys)
-        {
-            if (!traitSlotsToVisuals.ContainsKey(slot))
-            {
-                Debug.LogError("Need to assign body part transforms to character visuals on character " + gameObject.name);
-            }
-            else
-            {
-                CharacterBodyPartVisual visual = traitSlotsToVisuals[slot];
-                visual.SetSpritesFromTrait(traits[slot]);
-                visual.gameObject.SetActive(true);
-            }
-        }
-    }
+  public void SetCharacterVisuals(TraitSlotToTraitDictionary traits)
+  {
 
-    public void SetOverrideColor(Color32 overrideColor)
-    {
-        MaterialPropertyBlock mpb = new MaterialPropertyBlock();
-        foreach (CharacterBodyPartVisual visual in traitSlotsToVisuals.Values)
-        {
-            if (visual.spriteRenderer1 != null)
-            {
-                visual.spriteRenderer1.GetPropertyBlock(mpb);
-                mpb.SetColor("_OverrideColor", overrideColor);
-                visual.spriteRenderer1.SetPropertyBlock(mpb);
-            }
-            if (visual.spriteRenderer2 != null)
-            {
-                visual.spriteRenderer2.GetPropertyBlock(mpb);
-                mpb.SetColor("_OverrideColor", overrideColor);
-                visual.spriteRenderer1.SetPropertyBlock(mpb);
-                visual.spriteRenderer2.SetPropertyBlock(mpb);
-            }
-            // visual.spriteRenderer2.SetPropertyBlock(mpb);
-        }
-    }
-    public void ClearCharacterVisuals()
+    foreach (BugSkeletonPart part in (BugSkeletonPart[])Enum.GetValues(typeof(BugSkeletonPart)))
     {
 
-        foreach (TraitSlot slot in traitSlotsToVisuals.Keys)
-        {
-            CharacterBodyPartVisual visual = traitSlotsToVisuals[slot];
-            visual.ClearSprites();
-            visual.gameObject.SetActive(false);
-        }
     }
+    // foreach (TraitSlot slot in traits.Keys)
+    // {
+    //   if (!traitSlotsToVisuals.ContainsKey(slot))
+    //   {
+    //     Debug.LogError("Need to assign body part transforms to character visuals on character " + gameObject.name);
+    //   }
+    //   else
+    //   {
+    //     CharacterBodyPartVisual_Old visual = traitSlotsToVisuals[slot];
+    //     visual.SetSpritesFromTrait(traits[slot]);
+    //     visual.gameObject.SetActive(true);
+    //   }
+    // }
+  }
 
-    public void DamageFlash(Color32 damageFlashColor)
+  public void SetOverrideColor(Color32 overrideColor)
+  {
+    MaterialPropertyBlock mpb = new MaterialPropertyBlock();
+    foreach (CharacterBodyPartVisual visual in skeletonPartToCharacterBodyPartVisual.Values)
     {
-        StartCoroutine(DoDamageFlash(damageFlashColor));
+      if (visual.spriteRenderer1 != null)
+      {
+        visual.spriteRenderer1.GetPropertyBlock(mpb);
+        mpb.SetColor("_OverrideColor", overrideColor);
+        visual.spriteRenderer1.SetPropertyBlock(mpb);
+      }
+      if (visual.spriteRenderer2 != null)
+      {
+        visual.spriteRenderer2.GetPropertyBlock(mpb);
+        mpb.SetColor("_OverrideColor", overrideColor);
+        visual.spriteRenderer1.SetPropertyBlock(mpb);
+        visual.spriteRenderer2.SetPropertyBlock(mpb);
+      }
+      // visual.spriteRenderer2.SetPropertyBlock(mpb);
     }
+  }
+  public void ClearCharacterVisuals()
+  {
 
-    IEnumerator DoDamageFlash(Color32 damageFlashColor)
+    foreach (BugSkeletonPart part in skeletonPartToCharacterBodyPartVisual.Keys)
     {
-        Debug.Log("Doing damage flash");
-        SetOverrideColor(damageFlashColor);
-        yield return new WaitForSeconds(.1f);
-        SetOverrideColor(defaultColor);
-        yield return new WaitForSeconds(.1f);
-        SetOverrideColor(damageFlashColor);
-        yield return new WaitForSeconds(.1f);
-        SetOverrideColor(defaultColor);
+      CharacterBodyPartVisual visual = skeletonPartToCharacterBodyPartVisual[part];
+      visual.ClearSprites();
+      visual.gameObject.SetActive(false);
     }
+  }
+
+  public void DamageFlash(Color32 damageFlashColor)
+  {
+    StartCoroutine(DoDamageFlash(damageFlashColor));
+  }
+
+  IEnumerator DoDamageFlash(Color32 damageFlashColor)
+  {
+    Debug.Log("Doing damage flash");
+    SetOverrideColor(damageFlashColor);
+    yield return new WaitForSeconds(.1f);
+    SetOverrideColor(defaultColor);
+    yield return new WaitForSeconds(.1f);
+    SetOverrideColor(damageFlashColor);
+    yield return new WaitForSeconds(.1f);
+    SetOverrideColor(defaultColor);
+  }
 }
