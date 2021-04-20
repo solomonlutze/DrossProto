@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEditor;
-
+using System.Collections.Generic;
 
 public enum BugSkeletonPart
 {
@@ -47,6 +47,7 @@ public class BugSkeletonImagesData : ScriptableObject
   BugSkeletonPart.ForewingRight,
   BugSkeletonPart.ForewingLeft
 };
+
   public BugSkeletonPartToSpriteDictionary bugSkeletonPartImages;
 
   public void LoadAndAssignSprites(string path)

@@ -32,10 +32,9 @@ public class CharacterVisuals : MonoBehaviour
 
   public void SetCharacterVisuals(TraitSlotToTraitDictionary traits)
   {
-
     foreach (BugSkeletonPart part in (BugSkeletonPart[])Enum.GetValues(typeof(BugSkeletonPart)))
     {
-
+      skeletonPartToCharacterBodyPartVisual[part].spriteRenderer1.sprite = traits[bugSkeletonPartToTraitSlot[part]].imagesData.bugSkeletonPartImages[part];
     }
     // foreach (TraitSlot slot in traits.Keys)
     // {
