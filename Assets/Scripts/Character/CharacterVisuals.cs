@@ -36,21 +36,15 @@ public class CharacterVisuals : MonoBehaviour
     {
       skeletonPartToCharacterBodyPartVisual[part].spriteRenderer1.sprite = traits[bugSkeletonPartToTraitSlot[part]].imagesData.bugSkeletonPartImages[part];
     }
-    // foreach (TraitSlot slot in traits.Keys)
-    // {
-    //   if (!traitSlotsToVisuals.ContainsKey(slot))
-    //   {
-    //     Debug.LogError("Need to assign body part transforms to character visuals on character " + gameObject.name);
-    //   }
-    //   else
-    //   {
-    //     CharacterBodyPartVisual_Old visual = traitSlotsToVisuals[slot];
-    //     visual.SetSpritesFromTrait(traits[slot]);
-    //     visual.gameObject.SetActive(true);
-    //   }
-    // }
   }
 
+  public void SetCharacterVisualsFromSkeletonImagesData(BugSkeletonImagesData data)
+  {
+    foreach (BugSkeletonPart part in (BugSkeletonPart[])Enum.GetValues(typeof(BugSkeletonPart)))
+    {
+      skeletonPartToCharacterBodyPartVisual[part].spriteRenderer1.sprite = data.bugSkeletonPartImages[part];
+    }
+  }
   public void SetOverrideColor(Color32 overrideColor)
   {
     MaterialPropertyBlock mpb = new MaterialPropertyBlock();
@@ -69,7 +63,6 @@ public class CharacterVisuals : MonoBehaviour
         visual.spriteRenderer1.SetPropertyBlock(mpb);
         visual.spriteRenderer2.SetPropertyBlock(mpb);
       }
-      // visual.spriteRenderer2.SetPropertyBlock(mpb);
     }
   }
   public void ClearCharacterVisuals()

@@ -52,13 +52,8 @@ public class BugSkeletonImagesData : ScriptableObject
 
   public void LoadAndAssignSprites(string path)
   { // assumes a path to a folder full of sprites, all of whicah
-
-    Debug.Log("hi??? ");
     string modifiedPath = path.Substring((Application.dataPath + "/resources/").Length);
-    Debug.Log("modifiedPath: " + modifiedPath);
     Sprite[] sprites = Resources.LoadAll<Sprite>(modifiedPath);
-    // Sprite[] sprites = Resources.LoadAll<Sprite>("Art/Characters/Sprites/Wasp");// as Sprite[];
-    Debug.Log("sprites: " + sprites.Length);
     BugSkeletonPartToSpriteDictionary images = new BugSkeletonPartToSpriteDictionary();
     foreach (Sprite sprite in sprites)
     {
