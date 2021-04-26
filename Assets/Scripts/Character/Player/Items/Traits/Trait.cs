@@ -175,6 +175,7 @@ public class TraitEffect
 public class Trait : ScriptableObject
 {
   public string traitName;
+  public BugSpecies bugSpecies;
 
   [TextArea]
   public string traitDescription;

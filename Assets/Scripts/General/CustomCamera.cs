@@ -15,7 +15,7 @@ public class CustomCamera : MonoBehaviour
   }
 
   // Update is called once per frame
-  void Update()
+  void LateUpdate()
   {
     int firstFloorLayerIndex = LayerMask.NameToLayer("B6");
     PlayerController player = GameMaster.Instance.GetPlayerController();

@@ -11,7 +11,7 @@ namespace Infrastructure.Editor
     [MenuItem("CustomTools/RebuildAnimationData")]
     private static void RebuildAnimationData()
     {
-      BugSpeciesToAnimationData bugAnimationDatas = Resources.Load("Prefabs/Characters/Animation/BugAnimationData/BugSpeciesToAnimationData") as BugSpeciesToAnimationData;
+      BugSpeciesToAnimationDataMap bugAnimationDatas = Resources.Load("Prefabs/Characters/Animation/BugAnimationData/BugSpeciesToAnimationData") as BugSpeciesToAnimationDataMap;
       AnimatorController animationController = Resources.Load("Prefabs/Characters/Animation/BugAnimationController") as AnimatorController;
       AnimatorControllerLayer baseLayer = System.Array.Find(animationController.layers, l => l.name == "Base");
       AnimatorControllerLayer[] layers = animationController.layers;
