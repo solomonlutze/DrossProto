@@ -46,7 +46,7 @@ public class LymphTypeToIntDictionary : SerializableDictionaryBase<LymphType, in
 // }
 
 [System.Serializable]
-public class TraitSlotToCharacterCharacterBodyPartVisualDictionary : SerializableDictionaryBase<TraitSlot, CharacterBodyPartVisual>
+public class TraitSlotToCharacterCharacterBodyPartVisualDictionary : SerializableDictionaryBase<TraitSlot, CharacterBodyPartVisual_Old>
 {
 
   public TraitSlotToCharacterCharacterBodyPartVisualDictionary()
@@ -58,6 +58,18 @@ public class TraitSlotToCharacterCharacterBodyPartVisualDictionary : Serializabl
   }
 }
 
+[System.Serializable]
+public class BugSkeletonPartToCharacterCharacterBodyPartVisualDictionary : SerializableDictionaryBase<BugSkeletonPart, CharacterBodyPartVisual>
+{
+
+  public BugSkeletonPartToCharacterCharacterBodyPartVisualDictionary()
+  {
+    foreach (BugSkeletonPart part in (TraitSlot[])Enum.GetValues(typeof(BugSkeletonPart)))
+    {
+      Add(part, null);
+    }
+  }
+}
 [System.Serializable]
 public class TraitSlotToTraitDictionary : SerializableDictionaryBase<TraitSlot, Trait>
 {
@@ -250,3 +262,20 @@ public class AttackTypeToWeaponDataDictionary : SerializableDictionaryBase<Attac
     }
   }
 }
+
+[System.Serializable]
+public class AnimationNameToAnimationClipDictionary : SerializableDictionaryBase<AnimationName, AnimationClip>
+{
+  public AnimationNameToAnimationClipDictionary()
+  {
+    foreach (AnimationName animation in (AnimationName[])Enum.GetValues(typeof(AnimationName)))
+    {
+      Add(animation, null);
+    }
+  }
+}
+
+[System.Serializable]
+public class BugSpeciesToBugAnimationDictionary : SerializableDictionaryBase<BugSpecies, BugAnimationData> { }
+[System.Serializable]
+public class BugSkeletonPartToSpriteDictionary : SerializableDictionaryBase<BugSkeletonPart, Sprite> { }

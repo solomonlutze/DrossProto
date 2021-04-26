@@ -175,6 +175,7 @@ public class TraitEffect
 public class Trait : ScriptableObject
 {
   public string traitName;
+  public BugSpecies bugSpecies;
 
   [TextArea]
   public string traitDescription;
@@ -187,6 +188,7 @@ public class Trait : ScriptableObject
   public Sprite visual1;
 
   public Sprite visual2;
+  public BugSkeletonImagesData imagesData;
 
 #if UNITY_EDITOR
   // The following is a helper that adds a menu item to create an Trait Asset

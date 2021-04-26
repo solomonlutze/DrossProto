@@ -71,6 +71,39 @@ public enum CharacterAttribute
   AntennaeSensitivity = 19
 }
 
+public enum BugSpecies
+{
+  Ant = 0,
+  AssassinBug = 1,
+  Bee = 2,
+  Blowfly = 3,
+  BombardierBeetle = 4,
+  Booklouse = 5,
+  Butterfly = 6,
+  Cicada = 7,
+  Cockroach = 8,
+  CuckooWasp = 9,
+  Dragonfly = 10,
+  Firefly = 11,
+  GiantHornet = 12,
+  GoliathBeetle = 13,
+  Ladybug = 14,
+  Mantis = 15,
+  Mayfly = 16,
+  MoleCricket = 17,
+  Mosquito = 18,
+  Moth = 19,
+  Scarab = 20,
+  Shieldbug = 21,
+  StickInsect = 22,
+  Strepsiptera = 23,
+  Termite = 24,
+  Wasp = 25,
+  WaterBoatman = 26,
+  WaterBug = 27,
+  WaterStrider = 28,
+
+}
 public enum CharacterAttackValue
 {
   Damage,
@@ -242,12 +275,13 @@ public class Character : WorldObject
   // our physics object
   public CustomPhysicsController po;
   // animation object
-  protected Animator animator;
+  public Animator animator;
   public SpriteRenderer[] renderers;
 
   public CircleCollider2D circleCollider;
   public BoxCollider2D boxCollider; // used for calculating collisions w/ tiles while changing floor layer
   public CharacterVisuals characterVisuals;
+  // public AnimatorController animatorController;
 
   [Header("Game State Info")]
   public Color damageFlashColor = Color.red;
@@ -316,6 +350,8 @@ public class Character : WorldObject
     orientation = transform.Find("Orientation");
     circleCollider = GetComponent<CircleCollider2D>();
     boxCollider = GetComponent<BoxCollider2D>();
+    animator = characterVisuals.GetComponent<Animator>();
+    Debug.Log("character awake");
     if (orientation == null)
     {
       Debug.LogError("No object named 'Orientation' on Character object: " + gameObject.name);
@@ -325,8 +361,8 @@ public class Character : WorldObject
 
   protected virtual void Start()
   {
+    Debug.Log("character Start");
     movementInput = new Vector2(0, 0);
-    animator = GetComponent<Animator>();
     if (po == null)
     {
       Debug.LogError("No physics controller component on Character object: " + gameObject.name);
@@ -337,6 +373,7 @@ public class Character : WorldObject
 
   protected virtual void Init()
   {
+    Debug.Log("character init");
     sourceInvulnerabilities = new List<string>();
     conditionallyActivatedTraitEffects = new List<TraitEffect>();
     ascendingDescendingState = AscendingDescendingState.None;
@@ -345,6 +382,7 @@ public class Character : WorldObject
     moveset = new Moveset(traits);
     attributes = CalculateAttributes(traits);
     AwarenessTrigger awareness = GetComponentInChildren<AwarenessTrigger>();
+
     float awarenessRange = GetAwarenessRange();
     if (awareness != null && awarenessRange > 0)
     {
@@ -352,6 +390,7 @@ public class Character : WorldObject
       awareness.transform.localScale = new Vector3(awarenessRange, 1, 1);
     }
     InitializeFromCharacterData();
+    InitializeAnimationParameters();
   }
 
   private void InitializeFromCharacterData()
@@ -430,6 +469,15 @@ public class Character : WorldObject
       }
     }
     return false;
+  }
+
+  void InitializeAnimationParameters()
+  {
+    animator.SetFloat("HeadAnimationType", (int)traits[TraitSlot.Head].bugSpecies);
+    animator.SetFloat("ThoraxAnimationType", (int)traits[TraitSlot.Thorax].bugSpecies);
+    animator.SetFloat("AbdomenAnimationType", (int)traits[TraitSlot.Abdomen].bugSpecies);
+    animator.SetFloat("LegsAnimationType", (int)traits[TraitSlot.Legs].bugSpecies);
+    animator.SetFloat("WingsAnimationType", (int)traits[TraitSlot.Wings].bugSpecies);
   }
   // non-physics biz
   protected virtual void Update()
@@ -677,11 +725,13 @@ public class Character : WorldObject
     {
       if (!IsDashing() && !flying && (movementInput == Vector2.zero))
       { // should be an approximate equals
+        animator.SetBool("IsWalking", false);
         timeStandingStill += Time.deltaTime;
         timeMoving = 0;
       }
       else
       {
+        animator.SetBool("IsWalking", true);
         AdjustCurrentStamina(-GetMovementStaminaCost());
         timeMoving += Time.deltaTime;
         timeStandingStill = 0f;

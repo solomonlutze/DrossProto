@@ -34,9 +34,7 @@ public class AttributeInfo : MonoBehaviour
     {
       gameObject.name = attribute.ToString() + "_AttributeInfo";
     }
-    UnhighlightDelta();
   }
-
   void Update()
   {
     if (!Application.IsPlaying(gameObject))
@@ -57,6 +55,7 @@ public class AttributeInfo : MonoBehaviour
     pupaAttributeDescriptionText.text = attributeData.attributeTiers[nextValue].attributeTierDescription;
     actualPupaAttributeValue = nextValue; // save to modify when looking at items
     arrowImage.gameObject.SetActive(false);
+    UnhighlightDelta();
     DisableAllPips();
   }
 
