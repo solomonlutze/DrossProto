@@ -24,7 +24,6 @@ public class EnvironmentTileParticleSystemInfo
   public float burstCooldown;
 }
 
-[System.Serializable]
 public class EnvironmentTile : Tile
 {
 

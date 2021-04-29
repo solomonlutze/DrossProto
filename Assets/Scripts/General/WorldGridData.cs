@@ -7,13 +7,19 @@ using UnityEditor;
 
 public class WorldGridData : ScriptableObject
 {
+  [HideInInspector]
   public FloorLayerToTileInfosDictionary worldGrid;
+  // public EnvironmentTileInfo DEBUG_TILE;
   public HashSet<EnvironmentTileInfo> lightSources;
   int minXAcrossAllFloors;
   int maxXAcrossAllFloors;
   int minYAcrossAllFloors;
   int maxYAcrossAllFloors;
 
+  public int CoordsToKey(Vector2Int coordinates)
+  {
+    return coordinates.x + ((maxXAcrossAllFloors - minXAcrossAllFloors + 1) * coordinates.y);
+  }
 #if UNITY_EDITOR
   // The following is a helper that adds a menu item to create an TraitItem Asset
   [MenuItem("Assets/Create/Scene/WorldGrid")]
@@ -69,6 +75,10 @@ public class WorldGridData : ScriptableObject
     }
     if (minXAcrossAllFloors + maxXAcrossAllFloors % 2 != 0) { maxXAcrossAllFloors += 1; }
     if (minYAcrossAllFloors + maxYAcrossAllFloors % 2 != 0) { maxYAcrossAllFloors += 1; }
+    Debug.Log("minx: " + minXAcrossAllFloors);
+    Debug.Log("maxX: " + maxXAcrossAllFloors);
+    Debug.Log("minY: " + minYAcrossAllFloors);
+    Debug.Log("maxY: " + maxYAcrossAllFloors);
     HashSet<EnvironmentTileInfo> litTiles = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> currentTilesToLight = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> nextTilesToLight = new HashSet<EnvironmentTileInfo>();
@@ -84,7 +94,6 @@ public class WorldGridData : ScriptableObject
       groundTilemap = layerFloor.groundTilemap;
       objectTilemap = layerFloor.objectTilemap;
       visibilityTilemap = layerFloor.visibilityTilemap;
-      Debug.Log("setting environment tile info for layer " + layer);
       for (int x = minXAcrossAllFloors; x < maxXAcrossAllFloors; x++)
       {
         // for (int y = minYAcrossAllFloors; y < maxYAcrossAllFloors; y++)
@@ -97,13 +106,13 @@ public class WorldGridData : ScriptableObject
       }
       // }
     }
-    // Debug.Log("Initializing lighting");
-    // InitializeLighting(litTiles, currentTilesToLight);
-    // Debug.Log("Adding illumination sources to neighbors");
-    // foreach (EnvironmentTileInfo source in lightSources)
-    // {
-    //   AddIlluminationSourceToNeighbors(source);
-    // }
+    Debug.Log("Initializing lighting");
+    InitializeLighting(litTiles, currentTilesToLight);
+    Debug.Log("Adding illumination sources to neighbors");
+    foreach (EnvironmentTileInfo source in lightSources)
+    {
+      AddIlluminationSourceToNeighbors(source);
+    }
   }
   public EnvironmentTileInfo ConstructAndSetEnvironmentTileInfo(
   TileLocation loc,
@@ -115,7 +124,19 @@ public class WorldGridData : ScriptableObject
   )
   {
     Vector3Int v3pos = new Vector3Int(loc.tilemapCoordinates.x, loc.tilemapCoordinates.y, 0);
+    // if (v3pos.x != 0 || v3pos.y != 0)
+    // {
+    //   if (GridManager.Instance.CoordsToKey(loc.tilemapCoordinates) == 0)
+    //   {
+    //     Debug.Log("got coords of zero for tilemap coordinates " + loc.tilemapCoordinates);
+    //   }
+    //   return null;
+    // }
     EnvironmentTileInfo info = new EnvironmentTileInfo();
+    // if (loc.floorLayer == FloorLayer.B1)
+    // {
+    //   DEBUG_TILE = info;
+    // }
     visibilityTilemap.SetTile(v3pos, GridManager.Instance.visibilityTile);
     EnvironmentTile objectTile = objectTilemap.GetTile(v3pos) as EnvironmentTile;
     EnvironmentTile groundTile = groundTilemap.GetTile(v3pos) as EnvironmentTile;
@@ -159,7 +180,7 @@ public class WorldGridData : ScriptableObject
       info.wallObject.transform.position = loc.cellCenterWorldPosition;
       info.wallObject.Init(loc, objectTile.sprite);
     }
-    worldGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)] = info;
+    worldGrid[loc.floorLayer][CoordsToKey(loc.tilemapCoordinates)] = info;
     return info;
   }
 

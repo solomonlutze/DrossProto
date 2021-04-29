@@ -118,7 +118,6 @@ public class TileLocation
     // First to vector3Int
     cubeCoords = new Vector3();
     cubeCoords.y = -1 * worldPosition.y / GridConstants.Y_SPACING;
-    // Debug.Log("cubeCoords.y: " + cubeCoords.y);
     if ((Mathf.RoundToInt(cubeCoords.y) & 1) == 0)
     {
       cubeCoords.x = worldPosition.x / GridConstants.X_SPACING;
@@ -363,7 +362,7 @@ public class GridManager : Singleton<GridManager>
 
   public int CoordsToKey(Vector2Int coordinates)
   {
-    return coordinates.x + ((maxXAcrossAllFloors - minXAcrossAllFloors + 1) * coordinates.y);
+    return worldGridData.CoordsToKey(coordinates);
   }
 
   // Populate the world with small sprites that bridge gaps between areas.
@@ -482,9 +481,6 @@ public class GridManager : Singleton<GridManager>
     {
       // return overrideWorldGridData.worldGrid[loc.floorLayer][CoordsToKey(loc.tilemapCoordinates)];
     }
-    Debug.Log(worldGridData.worldGrid[loc.floorLayer]);
-    Debug.Log(worldGridData.worldGrid[loc.floorLayer].Count);
-    // Debug.Log("seeking " + loc.floorLayer + " with coords " + loc.tilemapCoordinates);
     return worldGridData.worldGrid[loc.floorLayer][CoordsToKey(loc.tilemapCoordinates)];
   }
 
@@ -508,7 +504,6 @@ public class GridManager : Singleton<GridManager>
     return null;
   }
   // public EnvironmentTile GetTileAtLocation(Vector2 loc, FloorLayer floor, FloorTilemapType? floorTilemapType=null) {
-  // 	Debug.Log("inside GetTileAtLocation?");
   // 	if (!layerFloors.ContainsKey(floor) || layerFloors[floor].groundTilemap == null || layerFloors[floor].objectTilemap == null)
   //     {
   //         Debug.LogWarning("missing layerFloor info for "+floor.ToString());
@@ -858,6 +853,7 @@ public class GridManager : Singleton<GridManager>
 
   public void DEBUGHighlightTile(TileLocation tilePos, Color? color = null)
   {
+    return;
     GameObject tileHighlight = Instantiate(highlightTilePrefab, new Vector3(tilePos.cellCenterPosition.x, tilePos.cellCenterPosition.y, layerFloors[tilePos.floorLayer].transform.position.z), Quaternion.identity, layerFloors[tilePos.floorLayer].transform);
     if (color != null)
     {

@@ -115,9 +115,9 @@ public class AiStateController : Character
     EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(CalculateCurrentTileLocation());
     if (tile.HasSolidObject())
     {
-      GridManager.Instance.DEBUGHighlightTile(tile.tileLocation, Color.magenta);
       Debug.Log("bugstuck");
-      Debug.Break();
+      GridManager.Instance.DEBUGHighlightTile(tile.tileLocation, Color.magenta);
+      // Debug.Break();
     }
     if (tile.ChangesFloorLayer()
       && pathToTarget != null

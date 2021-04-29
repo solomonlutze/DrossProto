@@ -1543,7 +1543,8 @@ public class Character : WorldObject
     }
     else if (!AllTilesOnTargetFloorClearOfObjects(newFloorLayer))
     {
-      CenterCharacterOnCurrentTile();
+      Debug.Log("not all tiles clear on floor " + newFloorLayer + " - bug " + name);
+      // CenterCharacterOnCurrentTile();
     }
     currentFloor = newFloorLayer;
     currentTileLocation = CalculateCurrentTileLocation();
