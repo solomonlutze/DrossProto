@@ -73,6 +73,7 @@ public class LightSourceInfo
   public bool isSunlight;
 }
 
+[System.Serializable]
 public class EnvironmentTileInfo
 {
   public TileLocation tileLocation;

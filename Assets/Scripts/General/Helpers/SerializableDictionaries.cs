@@ -279,3 +279,11 @@ public class AnimationNameToAnimationClipDictionary : SerializableDictionaryBase
 public class BugSpeciesToBugAnimationDictionary : SerializableDictionaryBase<BugSpecies, BugAnimationData> { }
 [System.Serializable]
 public class BugSkeletonPartToSpriteDictionary : SerializableDictionaryBase<BugSkeletonPart, Sprite> { }
+
+
+[System.Serializable]
+public class IntToEnvironmentTileInfoDictionary : SerializableDictionaryBase<int, EnvironmentTileInfo> { }
+
+
+[System.Serializable]
+public class FloorLayerToTileInfosDictionary : SerializableDictionaryBase<FloorLayer, IntToEnvironmentTileInfoDictionary> { }

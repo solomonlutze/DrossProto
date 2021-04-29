@@ -29,6 +29,7 @@ public class DarkVisionAttributeData : BaseAttributeData<DarkVisionAttributeTier
 
   public static float GetVisibilityMultiplierForTile(DarkVisionInfo[] infos, EnvironmentTileInfo t)
   {
+    return 1;
     for (int i = 0; i < infos.Length; i++)
     {
       if (t.illuminationInfo.illuminationLevel >= infos[i].minIllumination)
