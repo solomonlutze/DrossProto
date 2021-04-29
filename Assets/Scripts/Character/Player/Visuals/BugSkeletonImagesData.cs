@@ -60,8 +60,9 @@ public class BugSkeletonImagesData : ScriptableObject
       string spriteNumberString = System.Text.RegularExpressions.Regex.Match(sprite.name, @"\d+").Value;
       int spriteNumber = System.Int32.Parse(spriteNumberString) - 1;
       Debug.Log(spriteNumber);
-      bugSkeletonPartImages.Add(bugSkeletonPartOrder[spriteNumber], sprite);
+      images.Add(bugSkeletonPartOrder[spriteNumber], sprite);
     }
+    bugSkeletonPartImages = images;
   }
 #if UNITY_EDITOR
   // The following is a helper that adds a menu item to create a BugSkeletonImagesData Asset

@@ -389,6 +389,7 @@ public class Character : WorldObject
       awareness.Init(this);
       awareness.transform.localScale = new Vector3(awarenessRange, 1, 1);
     }
+    characterVisuals.SetCharacterVisuals(traits);
     InitializeFromCharacterData();
     InitializeAnimationParameters();
   }
