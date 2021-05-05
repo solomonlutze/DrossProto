@@ -12,7 +12,8 @@ namespace Infrastructure.Editor
     private static void RebuildAnimationData()
     {
       BugSpeciesToAnimationDataMap bugAnimationDatas = Resources.Load("Prefabs/Characters/Animation/BugAnimationData/BugSpeciesToAnimationData") as BugSpeciesToAnimationDataMap;
-      AnimatorController animationController = Resources.Load("Prefabs/Characters/Animation/BugAnimationController") as AnimatorController;
+      //AnimatorController animationController = Resources.Load("Prefabs/Characters/Animation/BugAnimationController") as AnimatorController;
+      AnimatorController animationController = AssetDatabase.LoadAssetAtPath<AnimatorController>("Assets/Art/Animation/BugAnimationController.controller");
       AnimatorControllerLayer baseLayer = System.Array.Find(animationController.layers, l => l.name == "Base");
       AnimatorControllerLayer[] layers = animationController.layers;
       foreach (ChildAnimatorState state in baseLayer.stateMachine.states)
@@ -28,11 +29,14 @@ namespace Infrastructure.Editor
           {
             tree.AddChild(bugAnimationDatas.bugSpeciesToAnimationData[bugSpecies].animationStateNamesToClips[stateName], (int)bugSpecies);
           }
+          AssetDatabase.AddObjectToAsset(tree, "Assets/Art/Animation/BugAnimationController.controller");
           layers[i].SetOverrideMotion(state.state, tree);
+          // animationController.SetStateEffectiveMotion(state.state, tree, i);
         }
       }
       animationController.layers = layers;
+      EditorUtility.SetDirty(animationController);
+      AssetDatabase.SaveAssets();
     }
-
   }
 }

@@ -23,6 +23,10 @@ public class CharacterVisualsEditor : Editor
       data.SetCharacterVisualsFromSkeletonImagesData(imagesData);
       GUIUtility.ExitGUI();
     }
+    if (GUILayout.Button("Set renderer layers"))
+    {
+      WorldObject.ChangeLayersRecursively(data.transform, data.gameObject.layer);
+    }
     this.serializedObject.ApplyModifiedProperties();
   }
 

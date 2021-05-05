@@ -1,0 +1,22 @@
+
+title: Sentinel
+tags: 
+colorID: 0
+position: 0,0
+parent: 
+---
+<<if not visited("Sentinel")>>
+
+Welcome, and congratulations!
+This is the intended end of the demo level.
+
+Please, uh, buy the full version, when it exists?
+<<else>>
+I don't have anything else for you, but I can congratulate you again if you want!
+
+-> Sure
+	Congratulations! You're still great.
+-> Nah
+	Ok! Standing offer.
+<<endif>>
+===

@@ -44,6 +44,14 @@ public class WorldObject : MonoBehaviour
     return (FloorLayer)Enum.Parse(typeof(FloorLayer), LayerMask.LayerToName(gameObject.layer));
   }
 
+  public static void ChangeLayersRecursively(Transform t, int gameObjectLayer)
+  {
+    // if (t.position.z != GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(layerName)))
+    // {
+    //   t.position = new Vector3(t.position.x, t.position.y, GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(layerName)));
+    // }
+    ChangeLayersRecursively(t, (FloorLayer)Enum.Parse(typeof(FloorLayer), LayerMask.LayerToName(gameObjectLayer)));
+  }
   public static void ChangeLayersRecursively(Transform t, FloorLayer layerName)
   {
     // if (t.position.z != GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(layerName)))
