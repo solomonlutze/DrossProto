@@ -22,15 +22,20 @@ namespace Infrastructure.Editor
         for (int i = 0; i < layers.Length; i++)
         {
           if (layers[i].name == "Base") { continue; }
-          BlendTree tree = new BlendTree();
+          BlendTree tree = layers[i].GetOverrideMotion(state.state) as BlendTree;
+          if (tree != null)
+          {
+            AssetDatabase.RemoveObjectFromAsset(tree);
+          }
+          tree = new BlendTree();
           tree.blendParameter = layers[i].name + "AnimationType";
           tree.useAutomaticThresholds = false;
           foreach (BugSpecies bugSpecies in bugAnimationDatas.bugSpeciesToAnimationData.Keys)
           {
             tree.AddChild(bugAnimationDatas.bugSpeciesToAnimationData[bugSpecies].animationStateNamesToClips[stateName], (int)bugSpecies);
           }
-          AssetDatabase.AddObjectToAsset(tree, "Assets/Art/Animation/BugAnimationController.controller");
           layers[i].SetOverrideMotion(state.state, tree);
+          AssetDatabase.AddObjectToAsset(tree, "Assets/Art/Animation/BugAnimationController.controller");
           // animationController.SetStateEffectiveMotion(state.state, tree, i);
         }
       }

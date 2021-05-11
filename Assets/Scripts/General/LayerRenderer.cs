@@ -38,16 +38,19 @@ public class LayerRenderer : MonoBehaviour
     return (shouldBeVisible && currentOpacity >= 1) || (!shouldBeVisible && currentOpacity <= 0);
   }
 
+  // called from event handler. gotta set it up or this script does nothing!
   public void ChangeTargetOpacity()
   {
     int floorOffsetFromCurrentLayer = (int)floorLayer - currentFloorLayer.Value; // positive means we are above player; negative means we are below
 
     if (floorOffsetFromCurrentLayer > 0 || floorOffsetFromCurrentLayer < -3)
     {
+      Debug.Log(gameObject.name + " received event for floor layer " + currentFloorLayer.Value + " - shouldn't be visible; own layer " + floorLayer);
       shouldBeVisible = false;
     }
     else
     {
+      Debug.Log(gameObject.name + " received event for changing floor layer - should be visible");
       shouldBeVisible = true;
     }
   }

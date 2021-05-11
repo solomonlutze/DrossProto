@@ -117,7 +117,7 @@ public class AiStateController : Character
     {
       GridManager.Instance.DEBUGHighlightTile(tile.tileLocation, Color.magenta);
       Debug.Log("bugstuck");
-      Debug.Break();
+      // Debug.Break();
     }
     if (tile.ChangesFloorLayer()
       && pathToTarget != null
@@ -144,10 +144,18 @@ public class AiStateController : Character
     CalculateTargetOpacity();
     if (!layerRenderer.shouldBeVisible)
     {
+      if (GetCamouflageRange() > 0)
+      {
+        Debug.Log("layer renderer handling visibility for " + gameObject.name);
+      }
       return; // LayerRenderer handles visability if it thinks the character should be invisible
     }
     else
     {
+      if (GetCamouflageRange() > 0)
+      {
+        Debug.Log("currentOpacity: " + currentOpacity);
+      }
       if (!LayerRenderer.FinishedChangingOpacity(shouldBeVisible, currentOpacity))
       {
         currentOpacity += Time.deltaTime / camouflageFadeTime * (shouldBeVisible ? 1 : -1);
@@ -159,17 +167,20 @@ public class AiStateController : Character
   void CalculateTargetOpacity()
   {
     PlayerController player = GameMaster.Instance.GetPlayerController();
-    if (player == null || GetCamouflageRange() < 0)
+    if (player == null || GetCamouflageRange() <= 0)
     {
       shouldBeVisible = true;
       return;
     }
     float distanceFromPlayer = Vector2.SqrMagnitude(transform.position - player.transform.position);
+    Debug.Log("camouflageRange ^ 2: " + Mathf.Pow(GetCamouflageRange(), 2));
+    Debug.Log("distanceFromPlayer ^ 2: " + Vector2.SqrMagnitude(transform.position - player.transform.position));
     if (distanceFromPlayer > Mathf.Pow(GetCamouflageRange(), 2))
     {
       shouldBeVisible = false;
       return;
     }
+    Debug.Log("should be visible at this range!!");
     shouldBeVisible = true;
   }
 
@@ -177,6 +188,7 @@ public class AiStateController : Character
   {
     base.SetCurrentFloor(newFloorLayer);
     layerRenderer.floorLayer = newFloorLayer;
+    layerRenderer.ChangeTargetOpacity();
   }
 
   public void StartValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl, MoveAiAction initiatingAction)

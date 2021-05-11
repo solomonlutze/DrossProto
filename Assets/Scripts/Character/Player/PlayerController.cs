@@ -523,6 +523,7 @@ public class PlayerController : Character
     // raise floorLayerChanged event
     currentFloorLayer.Value = (int)newFloorLayer;
     changedFloorLayerEvent.Raise();
+    Debug.Log("raised changeFloorLayer event");
     base.SetCurrentFloor(newFloorLayer);
   }
 

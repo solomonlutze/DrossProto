@@ -1541,7 +1541,7 @@ public class Character : WorldObject
         return;
       }
     }
-    else if (!AllTilesOnTargetFloorClearOfObjects(newFloorLayer))
+    else if (!AllTilesOnTargetFloorClearOfObjects(newFloorLayer) && currentTile != null)
     {
       CenterCharacterOnCurrentTile();
     }
