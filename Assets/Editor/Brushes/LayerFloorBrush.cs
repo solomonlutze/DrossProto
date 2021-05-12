@@ -58,7 +58,7 @@ namespace UnityEditor.Tilemaps
               EnvironmentTile originalTileToErase = (EnvironmentTile)targetTilemap.GetTile(location);
               if (originalTileToErase == null) { continue; }
               EnvironmentTile objectTileBelow = (EnvironmentTile)objectTilemapBelow.GetTile(location);
-              if (objectTileBelow != null && objectTileBelow.colliderType != Tile.ColliderType.None)
+              if (objectTileBelow != null && objectTileBelow.m_DefaultColliderType != Tile.ColliderType.None)
               {
                 // WARNING: possibly not performant! use SetTilesBlock instead if this gets ugly
                 objectTilemapBelow.SetTile(location, null);

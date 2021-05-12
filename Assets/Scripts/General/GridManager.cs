@@ -463,7 +463,7 @@ public class GridManager : Singleton<GridManager>
     {
       info.wallObject = Instantiate(defaultWallObject);
       info.wallObject.transform.position = loc.cellCenterWorldPosition;
-      info.wallObject.Init(loc, objectTile.sprite);
+      info.wallObject.Init(loc, objectTile.m_DefaultSprite);
       info.wallObject.transform.parent = groundTilemap.transform.parent;
     }
     worldGrid[loc.floorLayer][CoordsToKey(loc.tilemapCoordinates)] = info;

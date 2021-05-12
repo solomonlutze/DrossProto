@@ -272,7 +272,7 @@ public class EnvironmentTileInfo
 
   public bool HasSolidObject()
   {
-    return (objectTileType != null && objectTileType.colliderType != Tile.ColliderType.None);
+    return (objectTileType != null && objectTileType.m_DefaultColliderType != Tile.ColliderType.None);
   }
 
   public bool IsEmpty()
@@ -313,7 +313,7 @@ public class EnvironmentTileInfo
     if (!objectTileType) { return Tile.ColliderType.None; }
     else
     {
-      return objectTileType.colliderType;
+      return objectTileType.m_DefaultColliderType;
     }
   }
 

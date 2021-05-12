@@ -25,7 +25,7 @@ public class EnvironmentTileParticleSystemInfo
 }
 
 [System.Serializable]
-public class EnvironmentTile : Tile
+public class EnvironmentTile : RuleTile
 {
 
   // Annoying workaround for non-nullable environmentalDamage. Mark True to have tile deal damage.
@@ -187,9 +187,9 @@ public class EnvironmentTile : Tile
     mask += IsSameTileTypeAs(tilemap, location + new Vector3Int(1, 0, 0)) ? 2 : 0;
     mask += IsSameTileTypeAs(tilemap, location + new Vector3Int(0, -1, 0)) ? 4 : 0;
     mask += IsSameTileTypeAs(tilemap, location + new Vector3Int(-1, 0, 0)) ? 8 : 0;
-    tileData.sprite = this.sprite;
-    tileData.colliderType = this.colliderType;
-    tileData.gameObject = this.gameObject;
+    tileData.sprite = this.m_DefaultSprite;
+    tileData.colliderType = this.m_DefaultColliderType;
+    tileData.gameObject = this.m_DefaultGameObject;
   }
 
   // The following determines which sprite to use based on the number of adjacent similar tiles

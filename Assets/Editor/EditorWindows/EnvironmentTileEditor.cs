@@ -4,11 +4,12 @@ using UnityEngine;
 using UnityEditor;
 
 [CustomEditor(typeof(EnvironmentTile))]
-public class EnvironmentTileEditor : Editor
+public class EnvironmentTileEditor : RuleTileEditor
 {
   override public void OnInspectorGUI()
   {
-    DrawDefaultInspector();
+    // DrawDefaultInspector();
+    base.OnInspectorGUI();
     EnvironmentTile environmentTile = target as EnvironmentTile;
     environmentTile.changesFloorLayer_old = GUILayout.Toggle(environmentTile.changesFloorLayer_old, "Changes Floor Layer");
     if (environmentTile.changesFloorLayer_old)

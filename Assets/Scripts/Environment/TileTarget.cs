@@ -15,6 +15,6 @@ public class TileTarget : MonoBehaviour
   private void OnValidate()
   {
     SpriteRenderer sr = GetComponent<SpriteRenderer>();
-    sr.sprite = tileToReplaceWith ? tileToReplaceWith.sprite : nullSprite;
+    sr.sprite = tileToReplaceWith ? tileToReplaceWith.m_DefaultSprite : nullSprite;
   }
 }
