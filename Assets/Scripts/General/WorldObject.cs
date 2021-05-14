@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 public class WorldObject : MonoBehaviour
 {
@@ -113,6 +114,16 @@ public class WorldObject : MonoBehaviour
     {
       prevLayer = gameObject.layer;
       ChangeLayersRecursively(transform, LayerMask.LayerToName(gameObject.layer));
+    }
+  }
+  [MenuItem("CustomTools/ChangeLayersRecursively")]
+  public static void ChangeLayersRecursivelyForSelected()
+  {
+
+    GameObject selectedObject = Selection.objects.Length > 0 ? Selection.objects[0] as GameObject : null;
+    if (selectedObject != null)
+    {
+      WorldObject.ChangeLayersRecursively(selectedObject.transform, selectedObject.layer);
     }
   }
 #endif

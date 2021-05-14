@@ -173,21 +173,18 @@ public class AiStateController : Character
       return;
     }
     float distanceFromPlayer = Vector2.SqrMagnitude(transform.position - player.transform.position);
-    Debug.Log("camouflageRange ^ 2: " + Mathf.Pow(GetCamouflageRange(), 2));
-    Debug.Log("distanceFromPlayer ^ 2: " + Vector2.SqrMagnitude(transform.position - player.transform.position));
     if (distanceFromPlayer > Mathf.Pow(GetCamouflageRange(), 2))
     {
       shouldBeVisible = false;
       return;
     }
-    Debug.Log("should be visible at this range!!");
     shouldBeVisible = true;
   }
 
   public override void SetCurrentFloor(FloorLayer newFloorLayer)
   {
     base.SetCurrentFloor(newFloorLayer);
-    layerRenderer.floorLayer = newFloorLayer;
+    // layerRenderer.floorLayer = newFloorLayer;
     layerRenderer.ChangeTargetOpacity();
   }
 

@@ -90,49 +90,50 @@ public class EnvironmentTile : Tile
   public override bool StartUp(Vector3Int location, ITilemap tilemap, GameObject go)
   {
     tileType = this.name;
-    if (go != null)
-    {
-      SetPropertyBlock(location, tilemap, go);
-      go.transform.eulerAngles = new Vector3(90, 90, -90);
-      go.transform.position += new Vector3(.5f, .5f, 0);
-    }
+    // if (go != null)
+    // {
+    //   SetPropertyBlock(location, tilemap, go);
+    //   go.transform.eulerAngles = new Vector3(90, 90, -90);
+    //   go.transform.position += new Vector3(.5f, .5f, 0);
+    // }
     return base.StartUp(location, tilemap, go);
   }
 
   private void SetPropertyBlock(Vector3Int location, ITilemap tilemap, GameObject go)
   {
-    if (shaderData == null) { return; }
-    _renderer = go.GetComponent<Renderer>();
-    AssignMask(location, tilemap, go);
-    MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
-    _renderer.GetPropertyBlock(propBlock);
-    Dictionary<string, TextureData> textureDatas = new Dictionary<string, TextureData>() {
-            {"_Red0", shaderData.red0TextureData },
-            {"_Red50", shaderData.red50TextureData },
-            {"_Red100", shaderData.red100TextureData },
-            {"_Red150", shaderData.red150TextureData },
-            {"_Green0", shaderData.green0TextureData },
-            {"_Green50", shaderData.green50TextureData },
-            {"_Green100", shaderData.green100TextureData },
-            {"_Green150", shaderData.green150TextureData },
-            {"_Blue0", shaderData.blue0TextureData },
-            {"_Blue50", shaderData.blue50TextureData },
-            {"_Blue100", shaderData.blue100TextureData },
-            {"_Blue150", shaderData.blue150TextureData },
-        };
-    foreach (var textureData in textureDatas)
-    {
-      if (textureData.Value != null && textureData.Value.texture != null)
-      {
-        propBlock.SetTexture(textureData.Key + "Texture", textureData.Value.texture);
-        propBlock.SetVector(textureData.Key + "Scale", textureData.Value.scale);
-        propBlock.SetFloat(textureData.Key + "IntensityMin", textureData.Value.intensityMin);
-        propBlock.SetFloat(textureData.Key + "IntensityMax", textureData.Value.intensityMax);
-        propBlock.SetFloat(textureData.Key + "Opacity", textureData.Value.opacity);
-        propBlock.SetVector(textureData.Key + "ScrollSpeed", textureData.Value.scrollSpeed);
-      }
-    }
-    _renderer.SetPropertyBlock(propBlock);
+    Debug.Log("wut");
+    // if (shaderData == null) { return; }
+    // _renderer = go.GetComponent<Renderer>();
+    // AssignMask(location, tilemap, go);
+    // MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
+    // _renderer.GetPropertyBlock(propBlock);
+    // Dictionary<string, TextureData> textureDatas = new Dictionary<string, TextureData>() {
+    //         {"_Red0", shaderData.red0TextureData },
+    //         {"_Red50", shaderData.red50TextureData },
+    //         {"_Red100", shaderData.red100TextureData },
+    //         {"_Red150", shaderData.red150TextureData },
+    //         {"_Green0", shaderData.green0TextureData },
+    //         {"_Green50", shaderData.green50TextureData },
+    //         {"_Green100", shaderData.green100TextureData },
+    //         {"_Green150", shaderData.green150TextureData },
+    //         {"_Blue0", shaderData.blue0TextureData },
+    //         {"_Blue50", shaderData.blue50TextureData },
+    //         {"_Blue100", shaderData.blue100TextureData },
+    //         {"_Blue150", shaderData.blue150TextureData },
+    //     };
+    // foreach (var textureData in textureDatas)
+    // {
+    //   if (textureData.Value != null && textureData.Value.texture != null)
+    //   {
+    //     propBlock.SetTexture(textureData.Key + "Texture", textureData.Value.texture);
+    //     propBlock.SetVector(textureData.Key + "Scale", textureData.Value.scale);
+    //     propBlock.SetFloat(textureData.Key + "IntensityMin", textureData.Value.intensityMin);
+    //     propBlock.SetFloat(textureData.Key + "IntensityMax", textureData.Value.intensityMax);
+    //     propBlock.SetFloat(textureData.Key + "Opacity", textureData.Value.opacity);
+    //     propBlock.SetVector(textureData.Key + "ScrollSpeed", textureData.Value.scrollSpeed);
+    //   }
+    // }
+    // _renderer.SetPropertyBlock(propBlock);
 
   }
   public override void RefreshTile(Vector3Int location, ITilemap tilemap)

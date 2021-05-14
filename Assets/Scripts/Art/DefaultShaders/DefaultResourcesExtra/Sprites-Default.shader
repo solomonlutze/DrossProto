@@ -40,6 +40,7 @@ Shader "Sprites/Default"
             #pragma fragment DrossSpriteFrag
             #pragma target 2.0
             #pragma multi_compile_instancing
+			      #pragma multi_compile EDITOR PLAYMODE
             #pragma multi_compile_local _ PIXELSNAP_ON
             #pragma multi_compile _ ETC1_EXTERNAL_ALPHA
             #pragma multi_compile_fwdbase nolightmap
@@ -58,6 +59,7 @@ fixed4 _OverrideColor;
                 OUT.vertex = UnityObjectToClipPos(OUT.vertex);
                 OUT.texcoord = IN.texcoord;
                 OUT.color = IN.color * _Color * _RendererColor;
+                OUT.worldpos = mul(unity_ObjectToWorld, IN.vertex);
 
                 #ifdef PIXELSNAP_ON
                 OUT.vertex = UnityPixelSnap (OUT.vertex);
@@ -69,12 +71,42 @@ fixed4 _OverrideColor;
             fixed4 DrossSpriteFrag(v2f IN) : SV_Target
             {
                 fixed4 c = SampleSpriteTexture (IN.texcoord) * IN.color;
+                float zDistanceFromCamera = IN.worldpos.z - _WorldSpaceCameraPos.z;
+                if (zDistanceFromCamera < 0) {
+                  zDistanceFromCamera = 0;
+                }
+                // c.a *= zDistanceFromCamera;
                 c= lerp(c,
                  _OverrideColor, fixed4 (
                    _OverrideColor.a,
                    _OverrideColor.a,
                    _OverrideColor.a,
                    _OverrideColor.a)) * c.a;
+                   // Beyond 1 floor away from camera, begin to fade.
+                   // Beyond 4 floors away from the camera, we should be completely opaque.
+                   // Interpolate linearly between those.
+                   // So if we're at 2.5 floors away we should be at 50%.
+                   // camera at 0, floor at 4:
+                   // (4 - 1) / 4 = .75
+                   // rgb *= 1 / .75
+                // #ifdef PLAYMODE
+                //   if (zDistanceFromCamera > 1) {
+                //     float darknessMultiplier = (zDistanceFromCamera - 1) / 3;
+                //     if (darknessMultiplier > 1) {
+                //       darknessMultiplier = 1;
+                //     }
+                //     c.rgb *= (1 - darknessMultiplier);
+                //   }
+	        			// #endif
+                // else {
+                //   c.a *= zDistanceFromCamera;
+                // }
+                // c= lerp(c,
+                //  _OverrideColor, fixed4 (
+                //    _OverrideColor.a,
+                //    _OverrideColor.a,
+                //    _OverrideColor.a,
+                //    _OverrideColor.a)) * zDistanceFromCamera;
                 return c;
             }
 

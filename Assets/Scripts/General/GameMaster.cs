@@ -37,6 +37,7 @@ public class GameMaster : Singleton<GameMaster>
     Time.fixedDeltaTime = 1 / 60f;
     pathfinding = GetComponent<PathfindingSystem>();
     SetGameStatus(startingGameStatus);
+    Shader.EnableKeyword("EDITOR");
     switch (GetGameStatus())
     {
       case Constants.GameState.Play:

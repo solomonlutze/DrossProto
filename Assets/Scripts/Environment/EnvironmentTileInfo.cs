@@ -15,8 +15,9 @@ public class IlluminationInfo
   public IlluminationInfo(float i, Color c)
   {
     illuminationLevel = i;
-    visibleColor = c * illuminationLevel;
-    visibleColor.a = .55f * (1 - i);
+    // visibleColor = c * (illuminationLevel / 2);
+    visibleColor = Color.black;
+    visibleColor.a = (1 - i);
     opaqueColor = c * illuminationLevel;
     opaqueColor.a = 1;
   }

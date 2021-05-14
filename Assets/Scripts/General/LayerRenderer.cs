@@ -9,7 +9,7 @@ public class LayerRenderer : MonoBehaviour
   public float fadeTime = 0.25f;
   float currentOpacity = 0;
   public bool shouldBeVisible = false;
-  public FloorLayer floorLayer;
+  // public FloorLayer floorLayer;
   public IntVariable currentFloorLayer;
 
   void Awake()
@@ -41,16 +41,14 @@ public class LayerRenderer : MonoBehaviour
   // called from event handler. gotta set it up or this script does nothing!
   public void ChangeTargetOpacity()
   {
-    int floorOffsetFromCurrentLayer = (int)floorLayer - currentFloorLayer.Value; // positive means we are above player; negative means we are below
+    int floorOffsetFromCurrentLayer = (int)WorldObject.GetFloorLayerFromGameObjectLayer(gameObject.layer) - currentFloorLayer.Value; // positive means we are above player; negative means we are below
 
     if (floorOffsetFromCurrentLayer > 0 || floorOffsetFromCurrentLayer < -3)
     {
-      Debug.Log(gameObject.name + " received event for floor layer " + currentFloorLayer.Value + " - shouldn't be visible; own layer " + floorLayer);
       shouldBeVisible = false;
     }
     else
     {
-      Debug.Log(gameObject.name + " received event for changing floor layer - should be visible");
       shouldBeVisible = true;
     }
   }

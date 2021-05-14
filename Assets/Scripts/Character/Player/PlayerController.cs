@@ -34,6 +34,8 @@ public class PlayerController : Character
   public IntVariable currentFloorLayer;
   public GameEvent changedFloorLayerEvent;
 
+  public IntVariable trophyGrubCount;
+  public GameEvent changedTrophyGrubCountEvent;
 
   [Header("Trait Info", order = 1)]
   public TraitSlotToTraitDictionary pupa;
@@ -514,7 +516,15 @@ public class PlayerController : Character
 
   public void AddToInventory(PickupItem item)
   {
-    inventory.AddToInventory(item);
+    if (item.itemType == InventoryItemType.Currency)
+    {
+      trophyGrubCount.Value += item.quantity;
+      changedTrophyGrubCountEvent.Raise();
+    }
+    else
+    {
+      inventory.AddToInventory(item);
+    }
   }
 
   public override void SetCurrentFloor(FloorLayer newFloorLayer)

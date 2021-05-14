@@ -1,14 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using ScriptableObjectArchitecture;
 using TMPro;
 
 public class PlayerHUD : MonoBehaviour
 {
   //TODO: Use TextMeshProUGUI instead of STM
+  public IntVariable grubCount;
   public HealthBar healthBar;
   public CarapaceBar carapaceBar;
   public StaminaBar staminaBar;
+  public SuperTextMesh grubCountText;
   // private SuperTextMesh healthFieldText;
   // private SuperTextMesh healthValueText;
   // private SuperTextMesh maxHealthValueText;
@@ -65,6 +68,11 @@ public class PlayerHUD : MonoBehaviour
         }
       }
     }
+  }
+
+  public void SetGrubCount()
+  {
+    grubCountText.text = "" + grubCount.Value;
   }
 
 }

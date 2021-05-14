@@ -50,28 +50,26 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
   private void _OnValidate()
   {
 
-    //   if (this == null || this.gameObject == null) { return; }
-    //   if (objectToSpawn && objectToSpawn != prevObjectToSpawn)
-    //   {
-    //     prevObjectToSpawn = objectToSpawn;
-    //     gameObject.name = objectToSpawn.name + "_Spawner";
-    //     SpriteRenderer[] newSrs = objectToSpawn.GetComponentsInChildren<SpriteRenderer>();
-    //     if (newSrs.Length > 0)
-    //     {
-    //       List<SpriteRenderer> srs = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>());
-
-    //       while (srs.Count < newSrs.Length)
-    //       {
-    //         srs.Add(Instantiate(spawnerSpritePrefab, transform));
-    //       }
-    //       for (int i = 0; i < newSrs.Length; i++)
-    //       {
-
-    //         srs[i].sprite = newSrs[i].sprite;
-    //       }
-    //     }
-    //   }
-    //   WorldObject.ChangeLayersRecursively(transform, LayerMask.LayerToName(gameObject.layer));
+    if (this == null || this.gameObject == null) { return; }
+    if (objectToSpawn && objectToSpawn != prevObjectToSpawn)
+    {
+      gameObject.name = objectToSpawn.name + "_Spawner";
+      SpriteRenderer[] newSrs = objectToSpawn.GetComponentsInChildren<SpriteRenderer>();
+      if (newSrs.Length > 0)
+      {
+        List<SpriteRenderer> srs = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>());
+        while (srs.Count < newSrs.Length)
+        {
+          srs.Add(Instantiate(spawnerSpritePrefab, transform));
+        }
+        for (int i = 0; i < newSrs.Length; i++)
+        {
+          srs[i].sprite = newSrs[i].sprite;
+        }
+      }
+      prevObjectToSpawn = objectToSpawn;
+    }
+    WorldObject.ChangeLayersRecursively(transform, LayerMask.LayerToName(gameObject.layer));
   }
 #endif
 }
