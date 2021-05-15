@@ -194,7 +194,7 @@ public class CustomPhysicsController : MonoBehaviour
     for (int i = 0; i < hits; i++)
     {
       RaycastHit2D hit = results[i];
-      movement = movement.normalized * (hit.distance - skinWidth);
+      movement = movement.normalized * Mathf.Min(hit.distance - skinWidth, 0);
     }
     return movement;
   }
