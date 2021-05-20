@@ -103,7 +103,7 @@ namespace UnityEditor.Tilemaps
 
     public void SelectAppropriateTilemapForBrushTileType()
     {
-      if (EditorTools.EditorTools.activeToolType == typeof(EraseTool))
+      if (UnityEditor.EditorTools.ToolManager.activeToolType == typeof(EraseTool))
       {
         return;
       }
