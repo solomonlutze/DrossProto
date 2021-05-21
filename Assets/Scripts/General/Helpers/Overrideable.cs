@@ -2,25 +2,25 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+[System.Serializable]
 public class Overrideable<T>
 {
-  Conditional<T>[] overrides;
-  public T resolveValue(Character character)
+  public T defaultValue;
+  [Tooltip("Overrides resolve from bottom to top")]
+  public Conditional<T>[] overrides;
+  public T ResolveValue(Character character)
   {
-    foreach (Conditional<T> o in overrides)
+    for (int i = overrides.Length - 1; i >= 0; i--)
     {
-      foreach (Condition c in o.conditions)
+      if (overrides[i].ConditionsMet(character))
       {
-        if (c.conditionType == ConditionType.Default)
-        {
-          return o.value;
-        }
+        return overrides[i].value;
       }
     }
-    if (overrides.Length > 0)
-    {
-      return overrides[0].value;
-    }
-    return default(T);
+    return defaultValue;
+  }
+  public T get(Character c)
+  {
+    return ResolveValue(c);
   }
 }

@@ -6,36 +6,27 @@ public class ConditionDrawer : PropertyDrawer
 {
   public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
   {
-    EditorGUI.PropertyField(position, property, label, true);
-    //  // Using BeginProperty / EndProperty on the parent property means that
-    //     // prefab override logic works on the entire property.
-    //     EditorGUI.BeginProperty(position, label, property);
+    EditorGUI.BeginProperty(position, label, property);
 
-    //     // Draw label
-    //     position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
+    var indent = EditorGUI.indentLevel;
+    EditorGUI.indentLevel = 0;
 
-    //     // Don't make child fields be indented
-    //     var indent = EditorGUI.indentLevel;
-    //     EditorGUI.indentLevel = 0;
+    var conditionRect = new Rect(position.x, position.y, 150, EditorGUIUtility.singleLineHeight);
+    var conditionValueRect = new Rect(position.x + 155, position.y, 200, EditorGUIUtility.singleLineHeight);
 
-    //     // Calculate rects
-    //     var amountRect = new Rect(position.x, position.y, 30, position.height);
-    //     var unitRect = new Rect(position.x + 35, position.y, 50, position.height);
-    //     var nameRect = new Rect(position.x + 90, position.y, position.width - 90, position.height);
+    var labelWidth = EditorGUIUtility.labelWidth;
+    EditorGUIUtility.labelWidth = 30;
+    EditorGUI.PropertyField(conditionRect, property.FindPropertyRelative("conditionType"), new GUIContent("if"));
+    EditorGUI.PropertyField(conditionValueRect, property.FindPropertyRelative("_tileType"), new GUIContent("is"));
 
-    //     // Draw fields - passs GUIContent.none to each so they are drawn without labels
-    //     EditorGUI.PropertyField(amountRect, property.FindPropertyRelative("amount"), GUIContent.none);
-    //     EditorGUI.PropertyField(unitRect, property.FindPropertyRelative("unit"), GUIContent.none);
-    //     EditorGUI.PropertyField(nameRect, property.FindPropertyRelative("name"), GUIContent.none);
+    EditorGUIUtility.labelWidth = labelWidth;
+    EditorGUI.indentLevel = indent;
 
-    //     // Set indent back to what it was
-    //     EditorGUI.indentLevel = indent;
-
-    //     EditorGUI.EndProperty();
+    EditorGUI.EndProperty();
   }
   public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
   {
-    return EditorGUI.GetPropertyHeight(property);
+    return EditorGUIUtility.singleLineHeight;
   }
 }
 
@@ -44,10 +35,25 @@ public class ConditionalDrawer : PropertyDrawer
 {
   public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
   {
-    EditorGUI.PropertyField(position, property, label, true);
+    EditorGUI.BeginProperty(position, label, property);
+    var indent = EditorGUI.indentLevel;
+    EditorGUI.indentLevel = 0;
+    var labelWidth = EditorGUIUtility.labelWidth;
+    EditorGUIUtility.labelWidth = 40;
+    var valueRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
+    var conditionsRect = new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight, position.width, EditorGUIUtility.singleLineHeight);
+    EditorGUI.PropertyField(valueRect, property.FindPropertyRelative("value"), new GUIContent("Value"));
+    EditorGUIUtility.labelWidth = labelWidth;
+    EditorGUI.PropertyField(conditionsRect, property.FindPropertyRelative("conditions"), GUIContent.none, true);
+    EditorGUI.indentLevel = indent;
+
+    EditorGUI.EndProperty();
   }
   public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
   {
-    return EditorGUI.GetPropertyHeight(property);
+    float height = EditorGUI.GetPropertyHeight(property.FindPropertyRelative("value"));
+    SerializedProperty conditions = property.FindPropertyRelative("conditions");
+    height += EditorGUI.GetPropertyHeight(conditions);
+    return height;
   }
 }

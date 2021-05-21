@@ -12,8 +12,10 @@ public class SkillDelay
   public float duration;
   public float moveSpeedMultiplier = 0f;
   public float rotationSpeedMultiplier = 0f;
+  public Overrideable<float> testFloatOverrideable;
+  public Overrideable<bool> testBoolOverrideable;
   public Conditional<float> testFloatConditional;
-  public Condition testCondition;
+  public Conditional<bool> testBoolConditional;
 }
 
 [System.Serializable]
