@@ -2,15 +2,39 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+public enum SkillEffectType { OneTime, Continuous }
+
 [System.Serializable]
 public class SkillEffectGroup
 {
   SkillEffect[] skillEffects;
 }
 
+public enum SkillEffectProperty
+{
+  Move,
+  MoveSpeed,
+  TurnSpeed,
+  AdjustStamina,
+
+}
+
+// [System.Serializable]
+// public class SkillEffectProperty
+// {
+//   SkillEffectPropertyType property;
+//   float value;
+// }
+
 [System.Serializable]
 public class SkillEffect
 {
+
+  public SkillEffectType useType;
+  public float duration;
+
+  public SkillEffectPropertyToFloat properties;
+  public AttackSpawn[] weaponSpawns;
   // #if UNITY_EDITOR
   //   [MenuItem("Assets/Create/Skills/SkillEffect")]
   //   public static void CreateSkillEffect()
@@ -25,10 +49,10 @@ public class SkillEffect
   {
 
   }
-  public virtual IEnumerator ActivateSkillEffect(Character owner)
+  public virtual void DoSkillEffect(Character owner)
   {
-    Debug.Log("activating empty skill effect");
-    yield break;
+    Debug.Log("activating skill effect " + owner.currentSkillEffectIndex + ", time: " + owner.timeSpentInSkillEffect);
+    return;
   }
 
   public virtual float GetEffectiveRange()

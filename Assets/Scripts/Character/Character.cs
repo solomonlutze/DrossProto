@@ -253,7 +253,7 @@ public class Character : WorldObject
 
   [Header("Attack Info")]
   public Moveset moveset;
-  public List<CharacterSkillData> characterSkills; // possibly deprecated
+  public List<CharacterSkillData> characterSkills;
   public List<CharacterSkillData> characterSpells;// possibly deprecated
                                                   // public Weapon weaponInstance;
   public CharacterAttackModifiers attackModifiers; // probably deprecated
@@ -290,7 +290,9 @@ public class Character : WorldObject
   public Character critVictimOf = null; // true while subject to crit attack
   public bool usingCrit = false;
   public float damageFlashSpeed = 1.0f;
-  public bool usingSkill = false;
+  public CharacterSkillData activeSkill;
+  public float timeSpentInSkillEffect = 0f;
+  public int currentSkillEffectIndex = 0;
   public bool flying = false;
   public bool blocking = false;
   public bool dashing = false;
@@ -378,7 +380,7 @@ public class Character : WorldObject
     conditionallyActivatedTraitEffects = new List<TraitEffect>();
     ascendingDescendingState = AscendingDescendingState.None;
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
-    characterSkills = CalculateSkills(traits);
+    // characterSkills = CalculateSkills(traits);
     moveset = new Moveset(traits);
     attributes = CalculateAttributes(traits);
     AwarenessTrigger awareness = GetComponentInChildren<AwarenessTrigger>();
@@ -460,18 +462,6 @@ public class Character : WorldObject
     return ret;
   }
 
-  public static bool HasAttackSkill(List<CharacterSkillData> skills)
-  {
-    foreach (CharacterSkillData skill in skills)
-    {
-      if (skill.isAttack)
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
   void InitializeAnimationParameters()
   {
     animator.SetFloat("HeadAnimationType", (int)traits[TraitSlot.Head].bugSpecies);
@@ -486,6 +476,7 @@ public class Character : WorldObject
     HandleHealth();
     HandleFacingDirection();
     HandleTile();
+    HandleSkills();
     HandleCooldowns();
     HandleConditionallyActivatedTraits();
     HandleAscendOrDescend();
@@ -550,18 +541,39 @@ public class Character : WorldObject
         return AttackType.Basic;
     }
   }
-  public void UseSkill(CharacterSkillData skill, bool skipWarmup = false)
+  public void UseSkill(CharacterSkillData skill)
   {
     Debug.Log("using skill " + skill);
-    if (skill != null && !usingSkill)
+    if (skill != null && !UsingSkill())
     {
-      // if (skillCoroutine == null)
-      // {
-      skillCoroutine = StartCoroutine(DoSkill(skill, skipWarmup));
-      // }
+      DoSkill(skill);
     }
   }
 
+  public void AdvanceSkillEffect()
+  {
+    if (currentSkillEffectIndex >= activeSkill.skillEffects.Length - 1)
+    {
+      EndSkill();
+    }
+    else
+    {
+      currentSkillEffectIndex++;
+      timeSpentInSkillEffect = 0;
+    }
+  }
+
+  public void EndSkill()
+  {
+    Debug.Log("ending skill");
+    activeSkill = null;
+    currentSkillEffectIndex = 0;
+    timeSpentInSkillEffect = 0;
+  }
+  public bool UsingSkill()
+  {
+    return activeSkill != null;
+  }
   public bool InCrit()
   {
     return usingCrit || critVictimOf != null;
@@ -574,7 +586,6 @@ public class Character : WorldObject
 
   public IEnumerator UseCritAttack()
   {
-    // Debug.Log("inside useCritAttack");
     Character victim = critTarget;
     victim.SetIsCritVictimOf(this);
     usingCrit = true;
@@ -592,12 +603,10 @@ public class Character : WorldObject
     usingCrit = false;
   }
 
-  public IEnumerator DoSkill(CharacterSkillData skill, bool skipWarmup = false)
+  public void DoSkill(CharacterSkillData skill)
   {
-    usingSkill = true;
-    yield return StartCoroutine(skill.UseSkill(this, skipWarmup));
-    usingSkill = false;
-    skillCoroutine = null;
+    activeSkill = skill;
+    skill.UseSkill(this);
   }
 
 
@@ -676,7 +685,7 @@ public class Character : WorldObject
   void HandleFacingDirection()
   {
     if (
-      (usingSkill || animationPreventsMoving || stunned || carapaceBroken || IsChargingAttack())
+      (UsingSkill() || animationPreventsMoving || stunned || carapaceBroken || IsChargingAttack())
       && !activeMovementAbilities.Contains(CharacterMovementAbility.Halteres)
     // && !InCrit() // crit handles facing direction and overrides a few of these
     )
@@ -986,7 +995,6 @@ public class Character : WorldObject
       || carapaceBroken
       || IsDashingOrRecovering()
       || IsInKnockback()
-      || usingSkill
       || !HasStamina()
       || animationPreventsMoving
     )
@@ -1006,7 +1014,6 @@ public class Character : WorldObject
       || carapaceBroken
       || IsDashing()
       || IsInKnockback()
-      || usingSkill
       || animationPreventsMoving // I guess?
       || !HasStamina()
     )
@@ -1026,7 +1033,7 @@ public class Character : WorldObject
       || carapaceBroken
       || IsDashing()
       || IsInKnockback()
-      || usingSkill
+      || UsingSkill()
       || animationPreventsMoving // I guess?
     )
     {
@@ -1045,7 +1052,7 @@ public class Character : WorldObject
       || molting
       || carapaceBroken
       || IsInKnockback()
-      || usingSkill
+      || UsingSkill()
       || dashAttackQueued
       || !HasStamina()
       || animationPreventsMoving // I guess?
@@ -1064,7 +1071,7 @@ public class Character : WorldObject
       || stunned
       || molting
       || carapaceBroken
-      || usingSkill
+      || UsingSkill()
       || animationPreventsMoving // I guess?
     )
     {
@@ -1423,7 +1430,21 @@ public class Character : WorldObject
   }
   public float GetStat(CharacterStat statToGet)
   {
-    return defaultCharacterData.defaultStats[statToGet];
+    float multiplier = 1.0f;
+
+    if (activeSkill != null)
+    {
+      switch (statToGet)
+      {
+        case CharacterStat.MoveAcceleration:
+          multiplier = activeSkill.GetMultiplierSkillProperty(this, SkillEffectProperty.MoveSpeed);
+          Debug.Log("multiplier: " + multiplier);
+          break;
+        default:
+          break;
+      }
+    }
+    return defaultCharacterData.defaultStats[statToGet] * multiplier;
     // StringToIntDictionary statMods = statModifications[statToGet];
     // int modValue = 0;
     // float returnValue = defaultCharacterData.defaultStats[statToGet];
@@ -1778,6 +1799,19 @@ public class Character : WorldObject
     }
   }
 
+  protected void HandleSkills()
+  {
+    if (UsingSkill())
+    {
+      activeSkill.UseSkill(this);
+      timeSpentInSkillEffect += Time.deltaTime;
+    }
+    else
+    {
+      timeSpentInSkillEffect = 0f;
+    }
+  }
+
   protected void HandleCooldowns()
   {
     if (flying)
@@ -1788,7 +1822,7 @@ public class Character : WorldObject
         EndFly();
       }
     }
-    if (!IsDashingOrRecovering() && !usingSkill)
+    if (!IsDashingOrRecovering() && !UsingSkill())
     {
       AdjustCurrentStamina(GetStaminaRecoveryRate());
       // vitals[CharacterVital.RemainingStamina]
@@ -1812,15 +1846,15 @@ public class Character : WorldObject
     {
       footstepCooldown -= Time.deltaTime;
     }
-    if (IsChargingAttack())
-    {
-      chargeAttackTime += Time.deltaTime;
-      if (chargeAttackTime > GetSkillDataForAttackType(AttackType.Charge).warmup.duration)
-      {
-        chargeAttackTime = 0;
-        UseSkill(GetSkillDataForAttackType(AttackType.Charge), true);
-      }
-    }
+    // if (IsChargingAttack())
+    // {
+    //   chargeAttackTime += Time.deltaTime;
+    //   if (chargeAttackTime > GetSkillDataForAttackType(AttackType.Charge).warmup.duration)
+    //   {
+    //     chargeAttackTime = 0;
+    //     UseSkill(GetSkillDataForAttackType(AttackType.Charge), true);
+    //   }
+    // }
   }
 
   public void QueueDashAttack()

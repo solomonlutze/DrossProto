@@ -17,7 +17,6 @@ public enum AttackType
 [System.Serializable]
 public class AttackSpawn
 {
-  public float delay;
   public Attack attackData;
 
   public WeaponVariable owningWeaponDataWeapon;
@@ -66,7 +65,6 @@ public class AttackSpawn
 public class AttackSkillEffect : SkillEffect
 {
 
-  public AttackSpawn[] weaponSpawns;
   public DamageInfo baseDamage;
 
   public AttackSkillEffect(WeaponVariable weapon)
@@ -76,24 +74,19 @@ public class AttackSkillEffect : SkillEffect
       };
   }
 
-  public override IEnumerator ActivateSkillEffect(Character owner)
+  public override void DoSkillEffect(Character owner)
   {
     // Transform weaponParent = new 
     // owner.weaponPivot.eulerAngles = new Vector3(0, 0, rotationOffset); // shrug?
     List<Weapon> weaponInstances = new List<Weapon>();
     foreach (AttackSpawn weaponSpawn in weaponSpawns)
     {
-      yield return SpawnWeapon(weaponSpawn, owner, weaponInstances);
-    }
-    while (weaponInstances.Count > 0)
-    {
-      yield return null;
+      SpawnWeapon(weaponSpawn, owner, weaponInstances);
     }
   }
 
-  public IEnumerator SpawnWeapon(AttackSpawn weaponSpawn, Character owner, List<Weapon> weaponInstances)
+  public void SpawnWeapon(AttackSpawn weaponSpawn, Character owner, List<Weapon> weaponInstances)
   {
-    yield return new WaitForSeconds(weaponSpawn.delay);
     Quaternion rotationAngle = Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset, Vector3.forward);
     Weapon weaponInstance = GameObject.Instantiate(
       weaponSpawn.weaponObject,

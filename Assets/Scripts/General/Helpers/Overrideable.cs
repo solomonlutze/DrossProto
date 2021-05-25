@@ -8,7 +8,7 @@ public class Overrideable<T>
   public T defaultValue;
   [Tooltip("Overrides resolve from bottom to top")]
   public Conditional<T>[] overrides;
-  public T ResolveValue(Character character)
+  public T Resolve(Character character)
   {
     for (int i = overrides.Length - 1; i >= 0; i--)
     {
@@ -21,6 +21,6 @@ public class Overrideable<T>
   }
   public T get(Character c)
   {
-    return ResolveValue(c);
+    return Resolve(c);
   }
 }

@@ -7,18 +7,6 @@ using UnityEditor;
 using ScriptableObjectArchitecture;
 
 [System.Serializable]
-public class SkillDelay
-{
-  public float duration;
-  public float moveSpeedMultiplier = 0f;
-  public float rotationSpeedMultiplier = 0f;
-  public Overrideable<float> testFloatOverrideable;
-  public Overrideable<bool> testBoolOverrideable;
-  public Conditional<float> testFloatConditional;
-  public Conditional<bool> testBoolConditional;
-}
-
-[System.Serializable]
 public class SkillRangeInfo
 {
 
@@ -47,37 +35,40 @@ public class CharacterSkillData : ScriptableObject
   public string displayName;
   [TextArea]
   public string description;
-  public bool isAttack = false; // TODO: be better than this
-  // public float ai_preferredMinRange; // closer than this and we'd like to back up
-  // public float ai_preferredAttackRangeBuffer; // weapon effectiveRange minus range buffer = ideal attack spot
   public SkillRangeInfo[] skillRangeInfo;
-  public float staminaCost;
-
-  public SkillDelay warmup;
-  public AttackSkillEffect[] skillEffects; // NOTE: Gotta fix this if we want vanilla skillEffects for anything!
-
-  public SkillDelay cooldown;
+  public SkillEffect[] skillEffects; // NOTE: Gotta fix this if we want vanilla skillEffects for anything!
 
   public virtual void Init(WeaponVariable weapon)
   {
-    skillEffects = new AttackSkillEffect[] {
-      new AttackSkillEffect(weapon)
+    skillEffects = new SkillEffect[] {
+      new SkillEffect()
     };
   }
 
-  public virtual IEnumerator UseSkill(Character owner, bool skipWarmup = false)
+  public virtual void UseSkill(Character owner, bool skipWarmup = false)
   {
-    if (!skipWarmup)
+    skillEffects[owner.currentSkillEffectIndex].DoSkillEffect(owner);
+    if (skillEffects[owner.currentSkillEffectIndex].duration < owner.timeSpentInSkillEffect)
     {
-      yield return new WaitForSeconds(warmup.duration);
+      owner.AdvanceSkillEffect();
     }
-    foreach (SkillEffect effect in skillEffects)
-    {
-      owner.AdjustCurrentStamina(-staminaCost);
-      yield return effect.ActivateSkillEffect(owner);
-    }
-    yield return new WaitForSeconds(cooldown.duration);
   }
+
+  public float GetMultiplierSkillProperty(Character owner, SkillEffectProperty property)
+  {
+
+    if (owner.currentSkillEffectIndex >= skillEffects.Length)
+    {
+      Debug.LogError("WARNING: tried to access skill property after skill should have ended");
+      return 1;
+    }
+    if (skillEffects[owner.currentSkillEffectIndex].properties.ContainsKey(property))
+    {
+      return skillEffects[owner.currentSkillEffectIndex].properties[property].Resolve(owner);
+    }
+    return 1;
+  }
+
   public float GetEffectiveRange()
   {
     List<float> effectRanges = new List<float>();

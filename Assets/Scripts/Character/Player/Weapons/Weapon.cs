@@ -84,7 +84,7 @@ public class Weapon : MonoBehaviour
     owningEffectActiveWeapons.Remove(this);
     if (owner != null && attack.objectToSpawn != null && attack.objectToSpawn.attackData != null && attack.spawnObjectOnDestruction)
     {
-      owner.StartCoroutine(owningEffect.SpawnWeapon(attack.objectToSpawn, owner, owningEffectActiveWeapons));
+      owningEffect.SpawnWeapon(attack.objectToSpawn, owner, owningEffectActiveWeapons);
     }
     Destroy(this.gameObject);
   }

@@ -12,7 +12,7 @@ public class AiStateController : Character
   {
     get
     {
-      return waitingToAttack || usingSkill;
+      return waitingToAttack || UsingSkill();
     }
   }
   [HideInInspector] public float timeSpentInState;
@@ -411,7 +411,8 @@ public class AiStateController : Character
 
   public bool HasSufficientStaminaForSelectedAttack()
   {
-    return (GetCharacterVital(CharacterVital.CurrentStamina) > GetSelectedCharacterSkill().staminaCost / 2);
+    return true;
+    // return (GetCharacterVital(CharacterVital.CurrentStamina) > GetSelectedCharacterSkill().staminaCost / 2);
   }
   public void WaitThenAttack()
   {

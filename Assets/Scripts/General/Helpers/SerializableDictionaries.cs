@@ -279,3 +279,5 @@ public class AnimationNameToAnimationClipDictionary : SerializableDictionaryBase
 public class BugSpeciesToBugAnimationDictionary : SerializableDictionaryBase<BugSpecies, BugAnimationData> { }
 [System.Serializable]
 public class BugSkeletonPartToSpriteDictionary : SerializableDictionaryBase<BugSkeletonPart, Sprite> { }
+[System.Serializable]
+public class SkillEffectPropertyToFloat : SerializableDictionaryBase<SkillEffectProperty, Overrideable<float>> { }

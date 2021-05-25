@@ -50,7 +50,7 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
   private void _OnValidate()
   {
 
-    if (this == null || this.gameObject == null) { return; }
+    if (this == null || this.gameObject == null || transform == null) { return; }
     if (objectToSpawn && objectToSpawn != prevObjectToSpawn)
     {
       gameObject.name = objectToSpawn.name + "_Spawner";

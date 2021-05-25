@@ -28,7 +28,7 @@ public class PlayerController : Character
   public string lastActivatedTrait = null;
   public List<ContextualAction> availableContextualActions;
   private int selectedContextualActionIdx = 0;
-  private int selectedSkillIdx = 0;
+  public int selectedSkillIdx = 0;
   private int selectedSpellIdx = 0;
 
   public IntVariable currentFloorLayer;
@@ -272,36 +272,40 @@ public class PlayerController : Character
         {
           if (Input.GetButtonDown("Attack"))
           {
-            if (critTarget != null)
-            {
-              Debug.Log("using crit?");
-              StartCoroutine(UseCritAttack());
-              return;
-            }
-            if (shouldBlock)
-            {
-              UseSkill(GetSkillDataForAttackType(AttackType.Blocking));
-              return;
-            }
-            if (IsDashingOrRecovering())
-            {
-              // set shouldDashAttack
-              Debug.Log("Dash attack!");
-              QueueDashAttack();
-              return;
-            }
-            chargeAttackTime += Time.deltaTime; // incrementing this further is handled in HandleCooldowns
-                                                // UseSkill(GetSkillEffectForAttackType(AttackType.Basic));
+            // if (critTarget != null)
+            // {
+            //   Debug.Log("using crit?");
+            //   StartCoroutine(UseCritAttack());
+            //   return;
+            // }
+            // if (shouldBlock)
+            // {
+            //   UseSkill(GetSkillDataForAttackType(AttackType.Blocking));
+            //   return;
+            // }
+            // if (IsDashingOrRecovering())
+            // {
+            //   // set shouldDashAttack
+            //   Debug.Log("Dash attack!");
+            //   QueueDashAttack();
+            //   return;
+            // }
+            // else
+            // {
+            UseSelectedSkill();
+            // }
+            // chargeAttackTime += Time.deltaTime; // incrementing this further is handled in HandleCooldowns
+            // UseSkill(GetSkillEffectForAttackType(AttackType.Basic));
             return;
           }
           if (Input.GetButtonUp("Attack"))
           {
-            Debug.Log("attack button up?");
-            if (chargeAttackTime < GetSkillDataForAttackType(AttackType.Charge).warmup.duration)
-            {
-              chargeAttackTime = 0;
-              UseSkill(GetSkillDataForAttackType(AttackType.Basic));
-            }
+            // Debug.Log("attack button up?");
+            // if (chargeAttackTime < GetSkillDataForAttackType(AttackType.Charge).warmup.duration)
+            // {
+            //   chargeAttackTime = 0;
+            //   UseSkill(GetSkillDataForAttackType(AttackType.Basic));
+            // }
           }
         }
         if (CanMove())
