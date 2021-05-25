@@ -295,10 +295,9 @@ public class Character : WorldObject
   public int currentSkillEffectIndex = 0;
   public bool flying = false;
   public bool blocking = false;
-  public bool dashing = false;
   public bool molting = false;
   public float dashProgress = 0.0f;
-  public float easedDashProgressIncrement = 0.0f;
+  public float easedSkillMovementProgressIncrement = 0.0f;
   public bool inKnockback = false;
   public float knockbackAmount = 0.0f;
   public Vector2 knockbackHeading = Vector3.zero;
@@ -482,27 +481,14 @@ public class Character : WorldObject
     HandleAscendOrDescend();
   }
 
-  // physics biz
+  // physics biz. phbyzics
   protected virtual void FixedUpdate()
   {
-    HandleDashCooldown(); // it's different ok
+    HandleSkillMovement(); // it's different ok
     HandleKnockbackCooldown(); // it's different ok
     CalculateMovement();
   }
 
-  // WIP: COMBOS
-
-  // How combos should work
-
-  // if you're not attacking, Attack calls BeginAttack and queues your first attack
-  // if you ARE attacking, and haven't queued an attack,
-  //   Attack calls QueueNextAttack and queues a subsequent attack
-  // if you are attacking and HAVE queued an attack,
-  //   Attack resets the coroutine
-  // at the end of an attack, (Weapon.FinishAttack) if a next attack is queued and present, it fires
-  // if an attack is NOT queued, the combo is reset, and attacking is reset to false (Weapon.FinishCombo)
-
-  // called via play input or npc AI
 
   public CharacterSkillData GetSkillDataForAttackType(AttackType attackType)
   {
@@ -541,6 +527,7 @@ public class Character : WorldObject
         return AttackType.Basic;
     }
   }
+
   public void UseSkill(CharacterSkillData skill)
   {
     Debug.Log("using skill " + skill);
@@ -733,7 +720,7 @@ public class Character : WorldObject
   {
     if (CanMove())
     {
-      if (!IsDashing() && !flying && (movementInput == Vector2.zero))
+      if (!UsingMovementSkill() && !flying && (movementInput == Vector2.zero))
       { // should be an approximate equals
         animator.SetBool("IsWalking", false);
         timeStandingStill += Time.deltaTime;
@@ -751,7 +738,7 @@ public class Character : WorldObject
     {
       po.SetMovementInput(knockbackHeading);
     }
-    else if (IsDashing())
+    else if (UsingMovementSkill())
     {
       po.SetMovementInput(orientation.rotation * new Vector3(1, 0, 0));
     }
@@ -797,19 +784,20 @@ public class Character : WorldObject
 
   public bool IsDashingOrRecovering()
   {
-    return IsDashing() || IsRecoveringFromDash();
+    return UsingMovementSkill() || IsRecoveringFromDash();
   }
-  public bool IsDashing()
+
+  public bool UsingMovementSkill()
   {
-    return dashing;
+    return activeSkill && activeSkill.SkillMovesCharacter(this);
   }
   public bool DashingPreventsDamage()
   {
-    return dashing && defaultCharacterData.GetDashAttributeData().GetDashingPreventsDamage(this);
+    return UsingMovementSkill() && defaultCharacterData.GetDashAttributeData().GetDashingPreventsDamage(this);
   }
   public bool DashingPreventsFalling()
   {
-    return dashing && defaultCharacterData.GetDashAttributeData().GetDashingPreventsFalling(this);
+    return UsingMovementSkill() && defaultCharacterData.GetDashAttributeData().GetDashingPreventsFalling(this);
   }
 
   public bool IsInKnockback()
@@ -818,7 +806,7 @@ public class Character : WorldObject
   }
   public bool IsDashingOrInKnockback()
   {
-    return IsDashing() || IsInKnockback();
+    return UsingMovementSkill() || IsInKnockback();
   }
   public bool IsRecoveringFromDash()
   {
@@ -832,38 +820,44 @@ public class Character : WorldObject
 
   public void Dash()
   {
-    BeginDash();
+    // BeginDash();
   }
   private Vector3 dashStartPoint;
-  protected void BeginDash()
+  // protected void BeginDash()
+  // {
+  //   dashing = true;
+  //   // dashStartPoint = transform.position;
+  //   AdjustCurrentStamina(-GetDashStaminaCost());
+  // }
+
+  public float GetEasedSkillMovementProgress()
   {
-    dashing = true;
-    // dashStartPoint = transform.position;
-    AdjustCurrentStamina(-GetDashStaminaCost());
+    if (UsingMovementSkill())
+    {
+      return Easing.Quadratic.Out(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this));
+    }
+    Debug.LogError("somebody's trying to get easedSkillMovementProgress when we aren't dashing");
+    return 0; // try not to do this please
   }
 
-  public float GetEasedDashProgress()
+  public float CalculateEasedDashProgressIncrement()
   {
-    return Easing.Quadratic.Out(dashProgress / GetStat(CharacterStat.DashDuration));
-  }
-
-  public float GetEasedDashProgressIncrement()
-  {
-    return easedDashProgressIncrement;
+    return Easing.Quadratic.Out(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this))
+    - Easing.Quadratic.Out((timeSpentInSkillEffect - Time.fixedDeltaTime) / activeSkill.GetActiveEffectDuration(this));
   }
 
 
-  protected void EndDash()
-  {
-    dashing = false;
-    easedDashProgressIncrement = 0;
-    dashProgress = 0;
-    dashRecoveryTimer = GetStat(CharacterStat.DashRecoveryDuration);
-  }
+  // protected void EndDash()
+  // {
+  //   dashing = false;
+  //   // easedDashProgressIncrement = 0;
+  //   dashProgress = 0;
+  //   dashRecoveryTimer = GetStat(CharacterStat.DashRecoveryDuration);
+  // }
 
   protected void BeginKnockback(Vector3 knockbackMagnitude)
   {
-    EndDash();
+    // EndDash(); TODO: this should probably end some skills
     knockbackAmount = knockbackMagnitude.magnitude;
     knockbackHeading = knockbackMagnitude.normalized;
   }
@@ -888,9 +882,9 @@ public class Character : WorldObject
     {
       return easedKnockbackProgressIncrement;
     }
-    else if (IsDashing())
+    else if (UsingMovementSkill())
     {
-      return easedDashProgressIncrement;
+      return easedSkillMovementProgressIncrement;
     }
     else
     {
@@ -1012,7 +1006,7 @@ public class Character : WorldObject
       || stunned
       || molting
       || carapaceBroken
-      || IsDashing()
+      || UsingMovementSkill()
       || IsInKnockback()
       || animationPreventsMoving // I guess?
       || !HasStamina()
@@ -1031,7 +1025,7 @@ public class Character : WorldObject
       || stunned
       || molting
       || carapaceBroken
-      || IsDashing()
+      || UsingMovementSkill()
       || IsInKnockback()
       || UsingSkill()
       || animationPreventsMoving // I guess?
@@ -1336,7 +1330,7 @@ public class Character : WorldObject
     {
       return GetStat(CharacterStat.BlockingMoveAcceleration);
     }
-    else if (IsDashing())
+    else if (UsingMovementSkill())
     {
       return 0; // ?
                 // return GetStat(CharacterStat.DashAcceleration);
@@ -1861,21 +1855,15 @@ public class Character : WorldObject
   {
     dashAttackQueued = true;
   }
-  public void HandleDashCooldown()
+  public void HandleSkillMovement()
   {
     //Consumed by physics so needs to happen in fixedupdate. Might still suck?
-    if (IsDashing())
+    if (UsingMovementSkill())
     {
-      float oldEasedDashProgress = GetEasedDashProgress();
-      dashProgress += Time.deltaTime;
-      float newEasedDashProgress = GetEasedDashProgress();
-      if (dashProgress >= GetStat(CharacterStat.DashDuration))
-      {
-        dashProgress = GetStat(CharacterStat.DashDuration);
-        newEasedDashProgress = GetEasedDashProgress();
-        EndDash();
-      }
-      easedDashProgressIncrement = (newEasedDashProgress - oldEasedDashProgress) * GetStat(CharacterStat.DashDistance); // kill me a little
+      Debug.Log("handling movement skill");
+      easedSkillMovementProgressIncrement = (CalculateEasedDashProgressIncrement()) * activeSkill.GetMovement(this); // kill me a little
+
+      Debug.Log("easedSkillMovementProgressIncrement is " + easedSkillMovementProgressIncrement);
     }
   }
 

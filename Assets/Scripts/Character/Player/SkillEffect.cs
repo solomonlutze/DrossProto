@@ -14,8 +14,6 @@ public enum SkillEffectProperty
 {
   Move,
   MoveSpeed,
-  TurnSpeed,
-  AdjustStamina,
 
 }
 

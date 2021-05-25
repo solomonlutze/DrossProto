@@ -54,6 +54,25 @@ public class CharacterSkillData : ScriptableObject
     }
   }
 
+  public float GetActiveEffectDuration(Character owner)
+  {
+    return skillEffects[owner.currentSkillEffectIndex].duration;
+
+  }
+  public bool SkillMovesCharacter(Character owner)
+  {
+    return skillEffects[owner.currentSkillEffectIndex].properties.ContainsKey(SkillEffectProperty.Move);
+  }
+
+  public float GetMovement(Character owner)
+  {
+    if (skillEffects[owner.currentSkillEffectIndex].properties.ContainsKey(SkillEffectProperty.Move))
+    {
+      return skillEffects[owner.currentSkillEffectIndex].properties[SkillEffectProperty.Move].Resolve(owner);
+    }
+    return 0;
+  }
+
   public float GetMultiplierSkillProperty(Character owner, SkillEffectProperty property)
   {
 
