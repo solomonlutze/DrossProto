@@ -18,22 +18,15 @@ public enum AttackType
 public class AttackSpawn
 {
   public Attack attackData;
+  public DamageInfo damage;
 
   public WeaponVariable owningWeaponDataWeapon;
 
-  [Tooltip("If not populated, weaponObject is object of parent Weapon data")]
-  public Weapon weaponObjectOverride;
-
-  [HideInInspector]
   public Weapon weaponObject
   {
     get
     {
-      if (weaponObjectOverride != null)
-      {
-        return weaponObjectOverride;
-      }
-      return owningWeaponDataWeapon.Value;
+      return owningWeaponDataWeapon?.Value;
     }
   }
   public float range;
@@ -65,8 +58,6 @@ public class AttackSpawn
 public class AttackSkillEffect : SkillEffect
 {
 
-  public DamageInfo baseDamage;
-
   public AttackSkillEffect(WeaponVariable weapon)
   {
     weaponSpawns = new AttackSpawn[] {
@@ -94,7 +85,7 @@ public class AttackSkillEffect : SkillEffect
       // Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset, Vector3.forward)
       rotationAngle
     );
-    weaponInstance.Init(weaponSpawn.attackData, this, owner, weaponInstances); // weaponInstance.transform.parent = null; // we want to instantiate relative to the weaponPivot and then immediately leave the hierarchy
+    weaponInstance.Init(weaponSpawn, this, owner, weaponInstances); // weaponInstance.transform.parent = null; // we want to instantiate relative to the weaponPivot and then immediately leave the hierarchy
     // owner.StartCoroutine(weaponInstance.PerformWeaponActions());
   }
 

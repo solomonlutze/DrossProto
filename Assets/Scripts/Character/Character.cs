@@ -291,6 +291,7 @@ public class Character : WorldObject
   public bool usingCrit = false;
   public float damageFlashSpeed = 1.0f;
   public CharacterSkillData activeSkill;
+  public bool receivingSkillInput;
   public float timeSpentInSkillEffect = 0f;
   public int currentSkillEffectIndex = 0;
   public bool flying = false;
@@ -1797,7 +1798,7 @@ public class Character : WorldObject
   {
     if (UsingSkill())
     {
-      activeSkill.UseSkill(this);
+      activeSkill.UseSkill(this, timeSpentInSkillEffect < 0.000001); // idk. floats?
       timeSpentInSkillEffect += Time.deltaTime;
     }
     else

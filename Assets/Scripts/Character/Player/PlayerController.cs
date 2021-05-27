@@ -268,6 +268,7 @@ public class PlayerController : Character
         {
           shouldBlock = true;
         }
+        receivingSkillInput = Input.GetButton("Attack"); // NOT used to determine if attacks are happening! used to hold continuous/charge skills
         if (CanAttack())
         {
           if (Input.GetButtonDown("Attack"))

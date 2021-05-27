@@ -9,10 +9,10 @@ public class Weapon : MonoBehaviour
   public Transform weaponBody;
   public Hitbox[] defaultHitboxes;
   Character owner;
-  AttackSkillEffect owningEffect;
+  SkillEffect owningEffect;
   List<Weapon> owningEffectActiveWeapons;
   Attack attack;
-  float timeInCurrentActionGroup = 0;
+  float timeAlive = 0;
   float easedProgress = 0;
   float previousEasedProgress = 0;
   float increment = 0;
@@ -25,49 +25,37 @@ public class Weapon : MonoBehaviour
       CleanUp();
     }
   }
-  public void Init(Attack atk, AttackSkillEffect effect, Character c, List<Weapon> activeWeaponObjects)
+  public void Init(AttackSpawn attackSpawnData, SkillEffect owningEffect, Character c, List<Weapon> activeWeaponObjects)
   {
-    attack = atk;
+    attack = attackSpawnData.attackData;
     owner = c;
-    owningEffect = effect;
+    this.owningEffect = owningEffect;
     owningEffectActiveWeapons = activeWeaponObjects;
     owningEffectActiveWeapons.Add(this);
     defaultHitboxes = GetComponentsInChildren<Hitbox>();
 
     foreach (Hitbox hitbox in defaultHitboxes)
     {
-      hitbox.Init(owner, effect.baseDamage);
+      hitbox.Init(owner, attackSpawnData.damage);
     }
     WorldObject.ChangeLayersRecursively(gameObject.transform, owner.currentFloor);
   }
 
   void FixedUpdate()
   {
-    if (currentActionGroup < attack.weaponActionGroups.Length)
-    {
-      timeInCurrentActionGroup += Time.fixedDeltaTime;
-      if (timeInCurrentActionGroup >= attack.weaponActionGroups[currentActionGroup].duration)
-      {
-        ExecuteWeaponActionGroup(
-          attack.weaponActionGroups[currentActionGroup].duration, // don't allow overstepping of duration
-          attack.weaponActionGroups[currentActionGroup],
-          currentActionGroup == attack.weaponActionGroups.Length - 1
-        );
-        currentActionGroup++;
-        timeInCurrentActionGroup = 0;
-        easedProgress = 0;
-        previousEasedProgress = 0;
-      }
-      else
-      {
-        ExecuteWeaponActionGroup(timeInCurrentActionGroup, attack.weaponActionGroups[currentActionGroup], currentActionGroup == attack.weaponActionGroups.Length - 1);
-      }
-    }
-    else
+    timeAlive += Time.fixedDeltaTime;
+    ExecuteWeaponActions();
+    if (timeAlive > attack.duration)
     {
       CleanUp();
     }
   }
+
+  // else
+  // {
+  //   CleanUp();
+  // }
+  // }
 
   // public IEnumerator PerformWeaponActions()
   // {
@@ -76,7 +64,7 @@ public class Weapon : MonoBehaviour
   //     yield return null;
   //     // yield return ExecuteWeaponActionGroup(attack.weaponActionGroups[i], i == attack.weaponActionGroups.Length - 1);
   //   }
-  //   CleanUp();
+  //   CleanUp();+
   // }
 
   public void CleanUp()
@@ -89,36 +77,19 @@ public class Weapon : MonoBehaviour
     Destroy(this.gameObject);
   }
 
-  public void ExecuteWeaponActionGroup(float t, WeaponActionGroup actionGroup, bool isLast)
+  public void ExecuteWeaponActions()
   {
     previousEasedProgress = easedProgress;
-    easedProgress = isLast ? Easing.Quadratic.Out(t / actionGroup.duration) : Easing.Linear(t / actionGroup.duration); // ease out on last group only
+
+    float cappedTimeAlive = Mathf.Min(timeAlive, attack.duration);
+    easedProgress = cappedTimeAlive / attack.duration; // easing goes here if we have it
     increment = easedProgress - previousEasedProgress;
-    foreach (WeaponAction action in actionGroup.weaponActions)
+    foreach (WeaponAction action in attack.weaponActions)
     {
       ExecuteWeaponAction(action, increment);
     }
   }
 
-  // public IEnumerator ExecuteWeaponActionGroup(WeaponActionGroup actionGroup, bool isLast)
-  // {
-  //   float t = 0;
-  //   float easedProgress = 0;
-  //   float previousEasedProgress = 0;
-  //   float increment = 0;
-  //   while (t <= actionGroup.duration)
-  //   {
-  //     t += Time.deltaTime;
-  //     previousEasedProgress = easedProgress;
-  //     easedProgress = isLast ? Easing.Quadratic.Out(t / actionGroup.duration) : Easing.Linear(t / actionGroup.duration); // ease out on last group only
-  //     increment = easedProgress - previousEasedProgress;
-  //     foreach (WeaponAction action in actionGroup.weaponActions)
-  //     {
-  //       ExecuteWeaponAction(action, increment);
-  //     }
-  //     yield return null;
-  //   }
-  // }
   public void ExecuteWeaponAction(WeaponAction action, float increment)
   {
     switch (action.type)
@@ -168,7 +139,7 @@ public class Weapon : MonoBehaviour
       Weapon weapon = go.GetComponent<Weapon>();
       if (weapon != null)
       {
-        go.GetComponent<Weapon>().Init(attack.objectToSpawn.attackData, owningEffect, owner, owningEffectActiveWeapons);
+        go.GetComponent<Weapon>().Init(attack.objectToSpawn, owningEffect, owner, owningEffectActiveWeapons);
       }
     }
     if (attack.destroyOnContact)

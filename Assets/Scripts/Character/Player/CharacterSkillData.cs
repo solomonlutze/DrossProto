@@ -45,15 +45,34 @@ public class CharacterSkillData : ScriptableObject
     };
   }
 
-  public virtual void UseSkill(Character owner, bool skipWarmup = false)
+  public virtual void UseSkill(Character owner, bool newSkillEffect = false)
   {
-    skillEffects[owner.currentSkillEffectIndex].DoSkillEffect(owner);
-    if (skillEffects[owner.currentSkillEffectIndex].duration < owner.timeSpentInSkillEffect)
+    SkillEffect currentSkillEffect = skillEffects[owner.currentSkillEffectIndex];
+    if (newSkillEffect)
+    {
+      Debug.Log("beginning skill!!");
+      currentSkillEffect.BeginSkillEffect(owner);
+    }
+    else
+    {
+      currentSkillEffect.DoSkillEffect(owner);
+    }
+    if (currentSkillEffect.useType == SkillEffectType.Continuous)
+    {
+      if (
+        // || owner not holding button 
+        currentSkillEffect.duration > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.duration
+        || !owner.receivingSkillInput
+      )
+      {
+        owner.AdvanceSkillEffect();
+      }
+    }
+    else if (owner.timeSpentInSkillEffect > skillEffects[owner.currentSkillEffectIndex].duration)
     {
       owner.AdvanceSkillEffect();
     }
   }
-
   public float GetActiveEffectDuration(Character owner)
   {
     return skillEffects[owner.currentSkillEffectIndex].duration;
@@ -128,4 +147,5 @@ public class CharacterSkillData : ScriptableObject
   {
     CalculateRangeInfos();
   }
+
 }

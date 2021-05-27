@@ -33,19 +33,18 @@ public class SkillEffect
 
   public SkillEffectPropertyToFloat properties;
   public AttackSpawn[] weaponSpawns;
-  // #if UNITY_EDITOR
-  //   [MenuItem("Assets/Create/Skills/SkillEffect")]
-  //   public static void CreateSkillEffect()
-  //   {
-  //     string path = EditorUtility.SaveFilePanelInProject("Save Skill Effect", "New Skill Effect", "Asset", "Save Skill Effect", "Assets/resources/Data/CharacterData/Skills/SkillEffects");
-  //     if (path == "")
-  //       return;
-  //     AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<SkillEffect>(), path);
-  //   }
-  // #endif
   public SkillEffect()
   {
 
+  }
+
+  public virtual void BeginSkillEffect(Character owner)
+  {
+    List<Weapon> weaponInstances = new List<Weapon>();
+    foreach (AttackSpawn weaponSpawn in weaponSpawns)
+    {
+      SpawnWeapon(weaponSpawn, owner, weaponInstances);
+    }
   }
   public virtual void DoSkillEffect(Character owner)
   {
@@ -53,18 +52,44 @@ public class SkillEffect
     return;
   }
 
+  public void SpawnWeapon(AttackSpawn weaponSpawn, Character owner, List<Weapon> weaponInstances)
+  {
+    Quaternion rotationAngle = Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset, Vector3.forward);
+    Weapon weaponInstance = GameObject.Instantiate(
+      weaponSpawn.weaponObject,
+      owner.weaponPivotRoot.position + (rotationAngle * new Vector3(weaponSpawn.range, 0, 0)),
+      rotationAngle
+    );
+    weaponInstance.transform.parent = owner.transform;
+    weaponInstance.Init(weaponSpawn, this, owner, weaponInstances);
+  }
+
   public virtual float GetEffectiveRange()
   {
-    return 0f;
+    List<float> weaponRanges = new List<float>();
+    foreach (AttackSpawn attackSpawn in weaponSpawns)
+    {
+      weaponRanges.Add(attackSpawn.range + attackSpawn.weaponSize + attackSpawn.attackData.GetCumulativeEffectiveWeaponRange());
+    }
+    return Mathf.Max(weaponRanges.ToArray());
   }
 
   public virtual List<SkillRangeInfo> CalculateRangeInfos()
   {
-    return new List<SkillRangeInfo>();
+    List<SkillRangeInfo> infos = new List<SkillRangeInfo>();
+    for (int i = 0; i < weaponSpawns.Length; i++)
+    {
+      SkillRangeInfo info = new SkillRangeInfo(weaponSpawns[i]);
+      // infos.Add(weaponSpawns[i].attackData.GetAttackRangeInfo(ref info, info.maxRange, info.maxAngle));
+    }
+    return infos;
   }
 
   public virtual float CalculateDefaultStaminaCost()
   {
     return 0;
   }
+
+  int _previousAttackSpawnCount = 0;
+
 }
