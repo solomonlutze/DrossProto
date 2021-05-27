@@ -532,11 +532,19 @@ public class Character : WorldObject
   public void UseSkill(CharacterSkillData skill)
   {
     Debug.Log("using skill " + skill);
-    if (skill != null && !UsingSkill())
+    if (skill != null)
     {
-      DoSkill(skill);
+      if (activeSkill != null)
+      {
+        InterruptSkill(skill);
+      }
+      else
+      {
+        DoSkill(skill);
+      }
     }
   }
+
 
   public void AdvanceSkillEffect()
   {
@@ -553,11 +561,12 @@ public class Character : WorldObject
 
   public void EndSkill()
   {
-    Debug.Log("ending skill");
+    activeSkill.CleanUp(this);
     activeSkill = null;
     currentSkillEffectIndex = 0;
     timeSpentInSkillEffect = 0;
   }
+
   public bool UsingSkill()
   {
     return activeSkill != null;
@@ -593,6 +602,14 @@ public class Character : WorldObject
 
   public void DoSkill(CharacterSkillData skill)
   {
+    activeSkill = skill;
+    skill.UseSkill(this);
+  }
+  public void InterruptSkill(CharacterSkillData skill)
+  {
+    activeSkill.CleanUp(this);
+    currentSkillEffectIndex = 0;
+    timeSpentInSkillEffect = 0;
     activeSkill = skill;
     skill.UseSkill(this);
   }
@@ -673,7 +690,7 @@ public class Character : WorldObject
   void HandleFacingDirection()
   {
     if (
-      (UsingSkill() || animationPreventsMoving || stunned || carapaceBroken || IsChargingAttack())
+      (animationPreventsMoving || stunned || carapaceBroken || IsChargingAttack())
       && !activeMovementAbilities.Contains(CharacterMovementAbility.Halteres)
     // && !InCrit() // crit handles facing direction and overrides a few of these
     )
@@ -791,6 +808,11 @@ public class Character : WorldObject
   public bool UsingMovementSkill()
   {
     return activeSkill && activeSkill.SkillMovesCharacter(this);
+  }
+
+  public bool HasMovementAbility(CharacterMovementAbility requiredAbility)
+  {
+    return activeSkill && activeSkill.SkillHasMovementAbility(this, requiredAbility);
   }
   public bool DashingPreventsDamage()
   {
@@ -1037,7 +1059,7 @@ public class Character : WorldObject
     return true;
   }
 
-  protected virtual bool CanAttack()
+  protected virtual bool CanUseSkill()
   {
 
     if (
@@ -1047,7 +1069,7 @@ public class Character : WorldObject
       || molting
       || carapaceBroken
       || IsInKnockback()
-      || UsingSkill()
+      || (UsingSkill() && !activeSkill.SkillIsInterruptable(this))
       || dashAttackQueued
       || !HasStamina()
       || animationPreventsMoving // I guess?
@@ -1346,9 +1368,9 @@ public class Character : WorldObject
   {
     if (blocking)
     {
-      return defaultCharacterData.defaultStats[CharacterStat.BlockingRotationSpeed];
+      return GetStat(CharacterStat.BlockingRotationSpeed);
     }
-    return defaultCharacterData.defaultStats[CharacterStat.RotationSpeed];
+    return GetStat(CharacterStat.RotationSpeed);
   }
 
   public float GetMaxHealthLostPerMolt()
@@ -1434,6 +1456,9 @@ public class Character : WorldObject
         case CharacterStat.MoveAcceleration:
           multiplier = activeSkill.GetMultiplierSkillProperty(this, SkillEffectProperty.MoveSpeed);
           Debug.Log("multiplier: " + multiplier);
+          break;
+        case CharacterStat.RotationSpeed:
+          multiplier = activeSkill.GetMultiplierSkillProperty(this, SkillEffectProperty.RotationSpeed);
           break;
         default:
           break;

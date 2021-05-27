@@ -50,7 +50,6 @@ public class CharacterSkillData : ScriptableObject
     SkillEffect currentSkillEffect = skillEffects[owner.currentSkillEffectIndex];
     if (newSkillEffect)
     {
-      Debug.Log("beginning skill!!");
       currentSkillEffect.BeginSkillEffect(owner);
     }
     else
@@ -73,14 +72,30 @@ public class CharacterSkillData : ScriptableObject
       owner.AdvanceSkillEffect();
     }
   }
+  public void CleanUp(Character owner)
+  {
+    // TO IMPLEMENT! should clean up weapons, at a minimum
+  }
+
   public float GetActiveEffectDuration(Character owner)
   {
     return skillEffects[owner.currentSkillEffectIndex].duration;
 
   }
+  public bool SkillIsInterruptable(Character owner)
+  {
+
+    return skillEffects[owner.currentSkillEffectIndex].interruptable;
+  }
   public bool SkillMovesCharacter(Character owner)
   {
     return skillEffects[owner.currentSkillEffectIndex].properties.ContainsKey(SkillEffectProperty.Move);
+  }
+
+  public bool SkillHasMovementAbility(Character owner, CharacterMovementAbility movementAbility)
+  {
+
+    return skillEffects[owner.currentSkillEffectIndex].movementAbilities.Contains(movementAbility);
   }
 
   public float GetMovement(Character owner)

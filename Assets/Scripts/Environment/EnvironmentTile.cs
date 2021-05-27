@@ -35,6 +35,7 @@ public class EnvironmentTile : Tile
   public EnvironmentalDamageInfo environmentalDamageInfo;
   public bool corrodable;
   public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage;
+  public List<CharacterMovementAbility> movementAbilitiesWhichBypassRespawn;
 
   [HideInInspector]
   public bool changesFloorLayer_old;

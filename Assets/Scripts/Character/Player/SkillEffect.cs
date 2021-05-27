@@ -15,23 +15,20 @@ public enum SkillEffectProperty
   Move,
   MoveSpeed,
 
+  RotationSpeed
 }
-
-// [System.Serializable]
-// public class SkillEffectProperty
-// {
-//   SkillEffectPropertyType property;
-//   float value;
-// }
 
 [System.Serializable]
 public class SkillEffect
 {
 
   public SkillEffectType useType;
+
+  public bool interruptable = false;
   public float duration;
 
   public SkillEffectPropertyToFloat properties;
+  public List<CharacterMovementAbility> movementAbilities;
   public AttackSpawn[] weaponSpawns;
   public SkillEffect()
   {
@@ -60,7 +57,7 @@ public class SkillEffect
       owner.weaponPivotRoot.position + (rotationAngle * new Vector3(weaponSpawn.range, 0, 0)),
       rotationAngle
     );
-    weaponInstance.transform.parent = owner.transform;
+    weaponInstance.transform.parent = owner.weaponPivotRoot;
     weaponInstance.Init(weaponSpawn, this, owner, weaponInstances);
   }
 

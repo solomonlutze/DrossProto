@@ -201,6 +201,13 @@ public class EnvironmentTileInfo
     {
       return true;
     }
+    foreach (CharacterMovementAbility movementAbility in groundTileType.movementAbilitiesWhichBypassRespawn)
+    {
+      if (character.HasMovementAbility(movementAbility))
+      {
+        return true;
+      }
+    }
     foreach (CharacterAttribute attribute in groundTileType.attributesWhichBypassRespawn.Keys)
     {
       if (character.GetAttribute(attribute) > 0
