@@ -45,17 +45,15 @@ public class CharacterSkillData : ScriptableObject
     };
   }
 
-  public virtual void UseSkill(Character owner, bool newSkillEffect = false)
+  public virtual void BeginSkillEffect(Character owner)
+  {
+    skillEffects[owner.currentSkillEffectIndex].BeginSkillEffect(owner);
+  }
+  public virtual void UseSkill(Character owner)
   {
     SkillEffect currentSkillEffect = skillEffects[owner.currentSkillEffectIndex];
-    if (newSkillEffect)
-    {
-      currentSkillEffect.BeginSkillEffect(owner);
-    }
-    else
-    {
-      currentSkillEffect.DoSkillEffect(owner);
-    }
+    currentSkillEffect.DoSkillEffect(owner);
+
     if (currentSkillEffect.useType == SkillEffectType.Continuous)
     {
       if (

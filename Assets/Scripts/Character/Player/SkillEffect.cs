@@ -25,6 +25,7 @@ public class SkillEffect
   public SkillEffectType useType;
 
   public bool interruptable = false;
+  public bool alwaysExecute = true;
   public float duration;
 
   public SkillEffectPropertyToFloat properties;
@@ -45,7 +46,6 @@ public class SkillEffect
   }
   public virtual void DoSkillEffect(Character owner)
   {
-    Debug.Log("activating skill effect " + owner.currentSkillEffectIndex + ", time: " + owner.timeSpentInSkillEffect);
     return;
   }
 

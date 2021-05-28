@@ -269,45 +269,34 @@ public class PlayerController : Character
           shouldBlock = true;
         }
         receivingSkillInput = Input.GetButton("Attack"); // NOT used to determine if attacks are happening! used to hold continuous/charge skills
-        if (CanUseSkill())
+        if (Input.GetButtonDown("Attack"))
         {
-          if (Input.GetButtonDown("Attack"))
-          {
-            // if (critTarget != null)
-            // {
-            //   Debug.Log("using crit?");
-            //   StartCoroutine(UseCritAttack());
-            //   return;
-            // }
-            // if (shouldBlock)
-            // {
-            //   UseSkill(GetSkillDataForAttackType(AttackType.Blocking));
-            //   return;
-            // }
-            // if (IsDashingOrRecovering())
-            // {
-            //   // set shouldDashAttack
-            //   Debug.Log("Dash attack!");
-            //   QueueDashAttack();
-            //   return;
-            // }
-            // else
-            // {
-            UseSelectedSkill();
-            // }
-            // chargeAttackTime += Time.deltaTime; // incrementing this further is handled in HandleCooldowns
-            // UseSkill(GetSkillEffectForAttackType(AttackType.Basic));
-            return;
-          }
-          if (Input.GetButtonUp("Attack"))
-          {
-            // Debug.Log("attack button up?");
-            // if (chargeAttackTime < GetSkillDataForAttackType(AttackType.Charge).warmup.duration)
-            // {
-            //   chargeAttackTime = 0;
-            //   UseSkill(GetSkillDataForAttackType(AttackType.Basic));
-            // }
-          }
+          // if (critTarget != null)
+          // {
+          //   Debug.Log("using crit?");
+          //   StartCoroutine(UseCritAttack());
+          //   return;
+          // }
+          // if (shouldBlock)
+          // {
+          //   UseSkill(GetSkillDataForAttackType(AttackType.Blocking));
+          //   return;
+          // }
+          // if (IsDashingOrRecovering())
+          // {
+          //   // set shouldDashAttack
+          //   Debug.Log("Dash attack!");
+          //   QueueDashAttack();
+          //   return;
+          // }
+          // else
+          // {
+          UseSelectedSkill();
+          // }
+          // chargeAttackTime += Time.deltaTime; // incrementing this further is handled in HandleCooldowns
+          // UseSkill(GetSkillEffectForAttackType(AttackType.Basic));
+          return;
+
         }
         if (CanMove())
         {

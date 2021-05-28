@@ -291,6 +291,7 @@ public class Character : WorldObject
   public bool usingCrit = false;
   public float damageFlashSpeed = 1.0f;
   public CharacterSkillData activeSkill;
+  public CharacterSkillData queuedSkill;
   public bool receivingSkillInput;
   public float timeSpentInSkillEffect = 0f;
   public int currentSkillEffectIndex = 0;
@@ -531,16 +532,22 @@ public class Character : WorldObject
 
   public void UseSkill(CharacterSkillData skill)
   {
-    Debug.Log("using skill " + skill);
-    if (skill != null)
+    if (skill != null && CanUseSkill())
     {
-      if (activeSkill != null)
+      if (UsingSkill())
       {
-        InterruptSkill(skill);
+        if (activeSkill.SkillIsInterruptable(this))
+        {
+          InterruptSkill(skill);
+        }
+        else
+        {
+          QueueSkill(skill);
+        }
       }
       else
       {
-        DoSkill(skill);
+        BeginSkill(skill);
       }
     }
   }
@@ -548,15 +555,18 @@ public class Character : WorldObject
 
   public void AdvanceSkillEffect()
   {
-    if (currentSkillEffectIndex >= activeSkill.skillEffects.Length - 1)
-    {
-      EndSkill();
-    }
-    else
+    timeSpentInSkillEffect = 0;
+    while (currentSkillEffectIndex < activeSkill.skillEffects.Length - 1)
     {
       currentSkillEffectIndex++;
-      timeSpentInSkillEffect = 0;
-    }
+      if (activeSkill.skillEffects[currentSkillEffectIndex].alwaysExecute || activeSkill == queuedSkill)
+      {
+        activeSkill.BeginSkillEffect(this);
+        queuedSkill = null;
+        return;
+      }
+    };
+    EndSkill();
   }
 
   public void EndSkill()
@@ -600,20 +610,25 @@ public class Character : WorldObject
     usingCrit = false;
   }
 
-  public void DoSkill(CharacterSkillData skill)
+  public void BeginSkill(CharacterSkillData skill)
   {
+    queuedSkill = null;
     activeSkill = skill;
-    skill.UseSkill(this);
+    skill.BeginSkillEffect(this);
   }
+
   public void InterruptSkill(CharacterSkillData skill)
   {
     activeSkill.CleanUp(this);
     currentSkillEffectIndex = 0;
     timeSpentInSkillEffect = 0;
-    activeSkill = skill;
-    skill.UseSkill(this);
+    BeginSkill(skill);
   }
 
+  public void QueueSkill(CharacterSkillData skill)
+  {
+    queuedSkill = skill;
+  }
 
   public void SetBlocking(bool blockingFlag)
   {
@@ -1069,7 +1084,6 @@ public class Character : WorldObject
       || molting
       || carapaceBroken
       || IsInKnockback()
-      || (UsingSkill() && !activeSkill.SkillIsInterruptable(this))
       || dashAttackQueued
       || !HasStamina()
       || animationPreventsMoving // I guess?
@@ -1823,7 +1837,7 @@ public class Character : WorldObject
   {
     if (UsingSkill())
     {
-      activeSkill.UseSkill(this, timeSpentInSkillEffect < 0.000001); // idk. floats?
+      activeSkill.UseSkill(this);
       timeSpentInSkillEffect += Time.deltaTime;
     }
     else
