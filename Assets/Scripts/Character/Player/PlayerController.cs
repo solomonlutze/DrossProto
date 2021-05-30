@@ -158,7 +158,7 @@ public class PlayerController : Character
   {
     if (characterSkills[selectedSkillIdx] != null)
     {
-      UseSkill(characterSkills[selectedSkillIdx]);
+      HandleSkillInput(characterSkills[selectedSkillIdx]);
     }
   }
 
@@ -183,7 +183,7 @@ public class PlayerController : Character
   {
     if (characterSpells.Count > 0 && characterSpells[selectedSpellIdx] != null)
     {
-      UseSkill(characterSpells[selectedSpellIdx]);
+      HandleSkillInput(characterSpells[selectedSpellIdx]);
     }
   }
 

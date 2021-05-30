@@ -10,12 +10,17 @@ public class SkillEffectGroup
   SkillEffect[] skillEffects;
 }
 
-public enum SkillEffectProperty
+public enum SkillEffectFloatProperty
 {
-  Move,
   MoveSpeed,
 
   RotationSpeed
+}
+
+public enum SkillEffectCurveProperty
+{
+  MoveForward,
+  MoveUp,
 }
 
 [System.Serializable]
@@ -23,12 +28,17 @@ public class SkillEffect
 {
 
   public SkillEffectType useType;
-
+  [Tooltip("Defines whether any skill should be able to interrupt (cancel) this effect and subsequent effects")]
   public bool interruptable = false;
+
+  [Tooltip("Defines whether an input of this skill should end this effect and move to the next")]
+  public bool advanceable = false;
   public bool alwaysExecute = true;
   public float duration;
+  public bool canUseInMidair = false;
 
   public SkillEffectPropertyToFloat properties;
+  public SkillEffectPropertyToCurve movement;
   public List<CharacterMovementAbility> movementAbilities;
   public AttackSpawn[] weaponSpawns;
   public SkillEffect()

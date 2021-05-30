@@ -78,34 +78,45 @@ public class CharacterSkillData : ScriptableObject
   public float GetActiveEffectDuration(Character owner)
   {
     return skillEffects[owner.currentSkillEffectIndex].duration;
-
   }
+
+  public bool SkillIsAdvanceable(Character owner)
+  {
+    return skillEffects[owner.currentSkillEffectIndex].advanceable && owner.currentSkillEffectIndex < skillEffects.Length - 1; //shouldn't need that last condition. don't mark the last skill effect advanceable!!
+  }
+
   public bool SkillIsInterruptable(Character owner)
   {
-
     return skillEffects[owner.currentSkillEffectIndex].interruptable;
   }
   public bool SkillMovesCharacter(Character owner)
   {
-    return skillEffects[owner.currentSkillEffectIndex].properties.ContainsKey(SkillEffectProperty.Move);
+    return skillEffects[owner.currentSkillEffectIndex].movement.Count > 0;
   }
-
+  public bool SkillMovesCharacterForward(Character owner)
+  {
+    return skillEffects[owner.currentSkillEffectIndex].movement.ContainsKey(SkillEffectCurveProperty.MoveForward);
+  }
+  public bool SkillMovesCharacterVertically(Character owner)
+  {
+    return skillEffects[owner.currentSkillEffectIndex].movement.ContainsKey(SkillEffectCurveProperty.MoveUp);
+  }
   public bool SkillHasMovementAbility(Character owner, CharacterMovementAbility movementAbility)
   {
 
     return skillEffects[owner.currentSkillEffectIndex].movementAbilities.Contains(movementAbility);
   }
 
-  public float GetMovement(Character owner)
+  public AnimationCurve GetMovement(Character owner, SkillEffectCurveProperty movementProperty)
   {
-    if (skillEffects[owner.currentSkillEffectIndex].properties.ContainsKey(SkillEffectProperty.Move))
+    if (skillEffects[owner.currentSkillEffectIndex].movement.ContainsKey(movementProperty))
     {
-      return skillEffects[owner.currentSkillEffectIndex].properties[SkillEffectProperty.Move].Resolve(owner);
+      return skillEffects[owner.currentSkillEffectIndex].movement[movementProperty].Resolve(owner);
     }
-    return 0;
+    return null;
   }
 
-  public float GetMultiplierSkillProperty(Character owner, SkillEffectProperty property)
+  public float GetMultiplierSkillProperty(Character owner, SkillEffectFloatProperty property)
   {
 
     if (owner.currentSkillEffectIndex >= skillEffects.Length)

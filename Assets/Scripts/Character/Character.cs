@@ -299,7 +299,8 @@ public class Character : WorldObject
   public bool blocking = false;
   public bool molting = false;
   public float dashProgress = 0.0f;
-  public float easedSkillMovementProgressIncrement = 0.0f;
+  public float easedSkillForwardMovementProgressIncrement = 0.0f;
+  public float easedSkillUpwardMovementProgressIncrement = 0.0f;
   public bool inKnockback = false;
   public float knockbackAmount = 0.0f;
   public Vector2 knockbackHeading = Vector3.zero;
@@ -530,27 +531,61 @@ public class Character : WorldObject
     }
   }
 
-  public void UseSkill(CharacterSkillData skill)
+  public void HandleSkillInput(CharacterSkillData skill)
   {
-    if (skill != null && CanUseSkill())
+    Debug.Log("receiving input for skill " + skill);
+    QueueSkill(skill);
+    if (!UsingSkill())
     {
-      if (UsingSkill())
-      {
-        if (activeSkill.SkillIsInterruptable(this))
-        {
-          InterruptSkill(skill);
-        }
-        else
-        {
-          QueueSkill(skill);
-        }
-      }
-      else
+      if (CanUseSkill(skill))
       {
         BeginSkill(skill);
       }
+      queuedSkill = null;
     }
+    else if (activeSkill.SkillIsAdvanceable(this) && queuedSkill == activeSkill)
+    {
+      if (CanUseSkill(skill, currentSkillEffectIndex + 1))
+      {
+        AdvanceSkillEffect();
+      }
+      queuedSkill = null;
+    }
+    else if (activeSkill.SkillIsInterruptable(this))
+    {
+      if (CanUseSkill(skill))
+      {
+        InterruptSkill(skill);
+      }
+      queuedSkill = null;
+    }
+    // Otherwise: we ARE using a skill, and we aren't interrupting its effect. Leave queued skill alone.
   }
+
+  // if (skill == activeSkill && activeSkill.SkillIsAdvanceable(this))
+  //   {
+  //     Debug.Log("advancing skill effect...");
+  //     AdvanceSkillEffect();
+  //   }
+  //   if (skill != null && CanUseSkill(skill))
+  //   {
+  //     if (UsingSkill())
+  //     {
+  //       if (activeSkill.SkillIsInterruptable(this))
+  //       {
+  //         InterruptSkill(skill);
+  //       }
+  //       else
+  //       {
+  //         QueueSkill(skill);
+  //       }
+  //     }
+  //     else
+  //     {
+  //       BeginSkill(skill);
+  //     }
+  //   }
+  // }
 
 
   public void AdvanceSkillEffect()
@@ -558,21 +593,27 @@ public class Character : WorldObject
     timeSpentInSkillEffect = 0;
     while (currentSkillEffectIndex < activeSkill.skillEffects.Length - 1)
     {
+      Debug.Log("increasing skill effect index...");
       currentSkillEffectIndex++;
-      if (activeSkill.skillEffects[currentSkillEffectIndex].alwaysExecute || activeSkill == queuedSkill)
+      if (CanUseSkill(activeSkill, currentSkillEffectIndex))
       {
+        Debug.Log("advancing to " + currentSkillEffectIndex);
         activeSkill.BeginSkillEffect(this);
         queuedSkill = null;
         return;
       }
+      Debug.Log("couldn't use skill effect at index " + currentSkillEffectIndex);
     };
     EndSkill();
   }
 
   public void EndSkill()
   {
-    activeSkill.CleanUp(this);
-    activeSkill = null;
+    if (UsingSkill())
+    {
+      activeSkill.CleanUp(this);
+      activeSkill = null;
+    }
     currentSkillEffectIndex = 0;
     timeSpentInSkillEffect = 0;
   }
@@ -598,7 +639,7 @@ public class Character : WorldObject
     usingCrit = true;
     orientation.rotation = GetDirectionAngle(critTarget.transform.position);
     victim.orientation.rotation = victim.GetDirectionAngle(transform.position);
-    UseSkill(GetSkillDataForAttackType(AttackType.Critical));
+    HandleSkillInput(GetSkillDataForAttackType(AttackType.Critical));
     while (skillCoroutine != null)
     {
       yield return null;
@@ -824,6 +865,10 @@ public class Character : WorldObject
   {
     return activeSkill && activeSkill.SkillMovesCharacter(this);
   }
+  public bool UsingVerticalMovementSkill()
+  {
+    return activeSkill && activeSkill.SkillMovesCharacterVertically(this);
+  }
 
   public bool HasMovementAbility(CharacterMovementAbility requiredAbility)
   {
@@ -868,30 +913,21 @@ public class Character : WorldObject
   //   AdjustCurrentStamina(-GetDashStaminaCost());
   // }
 
-  public float GetEasedSkillMovementProgress()
-  {
-    if (UsingMovementSkill())
-    {
-      return Easing.Quadratic.Out(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this));
-    }
-    Debug.LogError("somebody's trying to get easedSkillMovementProgress when we aren't dashing");
-    return 0; // try not to do this please
-  }
-
-  public float CalculateEasedDashProgressIncrement()
-  {
-    return Easing.Quadratic.Out(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this))
-    - Easing.Quadratic.Out((timeSpentInSkillEffect - Time.fixedDeltaTime) / activeSkill.GetActiveEffectDuration(this));
-  }
-
-
-  // protected void EndDash()
+  // public float GetEasedSkillMovementProgress()
   // {
-  //   dashing = false;
-  //   // easedDashProgressIncrement = 0;
-  //   dashProgress = 0;
-  //   dashRecoveryTimer = GetStat(CharacterStat.DashRecoveryDuration);
+  //   if (UsingMovementSkill())
+  //   {
+  //     return Easing.Quadratic.Out(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this));
+  //   }
+  //   Debug.LogError("somebody's trying to get easedSkillMovementProgress when we aren't dashing");
+  //   return 0; // try not to do this please
   // }
+
+  public float CalculateMovementProgressIncrement(AnimationCurve movementCurve)
+  {
+    return movementCurve.Evaluate(Mathf.Min(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this), 1))
+    - movementCurve.Evaluate(Mathf.Max((timeSpentInSkillEffect - Time.fixedDeltaTime) / activeSkill.GetActiveEffectDuration(this), 0));
+  }
 
   protected void BeginKnockback(Vector3 knockbackMagnitude)
   {
@@ -922,7 +958,7 @@ public class Character : WorldObject
     }
     else if (UsingMovementSkill())
     {
-      return easedSkillMovementProgressIncrement;
+      return easedSkillForwardMovementProgressIncrement;
     }
     else
     {
@@ -993,8 +1029,18 @@ public class Character : WorldObject
     }
   }
 
+  public bool IsMidair()
+  {
+    return ascendingDescendingState != AscendingDescendingState.None || (Math.Abs(transform.position.z) % 1 > .01f);
+  }
+
   public void HandleAscendOrDescend()
   {
+    if (!ascending && !descending && IsMidair() && !UsingVerticalMovementSkill())
+    {
+      Debug.Log("force setting state to descending");
+      ascendingDescendingState = AscendingDescendingState.Descending;
+    }
     if (ascending)
     {
       Debug.Log("should be ascending?");
@@ -1009,7 +1055,6 @@ public class Character : WorldObject
     else if (descending)
     {
       transform.position += new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
-      // Debug.Log("descending distance: " + (GridManager.GetZOffsetForFloor(gameObject.layer) - transform.position.z));
       if (GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - transform.position.z < .01)
       {
         transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
@@ -1018,7 +1063,7 @@ public class Character : WorldObject
     }
   }
 
-  // Can use move UDLR on current floor
+  // Can move UDLR on current floor
   protected virtual bool CanMove()
   {
     if ((ascending && !flying)
@@ -1074,12 +1119,13 @@ public class Character : WorldObject
     return true;
   }
 
-  protected virtual bool CanUseSkill()
+  protected virtual bool CanUseSkill(CharacterSkillData skillData, int idx = 0)
   {
-
+    Debug.Log("queuedSkill: " + queuedSkill);
+    Debug.Log("canUseInMidair: " + skillData.skillEffects[idx].canUseInMidair);
     if (
-      ascending
-      || descending
+      (!skillData.skillEffects[idx].alwaysExecute && activeSkill != queuedSkill)
+      || (IsMidair() && !skillData.skillEffects[idx].canUseInMidair)
       || stunned
       || molting
       || carapaceBroken
@@ -1468,11 +1514,11 @@ public class Character : WorldObject
       switch (statToGet)
       {
         case CharacterStat.MoveAcceleration:
-          multiplier = activeSkill.GetMultiplierSkillProperty(this, SkillEffectProperty.MoveSpeed);
+          multiplier = activeSkill.GetMultiplierSkillProperty(this, SkillEffectFloatProperty.MoveSpeed);
           Debug.Log("multiplier: " + multiplier);
           break;
         case CharacterStat.RotationSpeed:
-          multiplier = activeSkill.GetMultiplierSkillProperty(this, SkillEffectProperty.RotationSpeed);
+          multiplier = activeSkill.GetMultiplierSkillProperty(this, SkillEffectFloatProperty.RotationSpeed);
           break;
         default:
           break;
@@ -1687,6 +1733,7 @@ public class Character : WorldObject
   {
     if (
         activeMovementAbilities.Contains(CharacterMovementAbility.Hover)
+          || UsingVerticalMovementSkill()
           || sticking
           || flying
           || ascending
@@ -1762,6 +1809,7 @@ public class Character : WorldObject
 
   protected void RespawnCharacterAtLastSafeLocation()
   {
+    EndSkill();
     transform.position =
       new Vector3(lastSafeTileLocation.cellCenterWorldPosition.x, lastSafeTileLocation.cellCenterWorldPosition.y, GridManager.GetZOffsetForGameObjectLayer(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
     if (currentFloor != lastSafeTileLocation.floorLayer)
@@ -1869,7 +1917,7 @@ public class Character : WorldObject
       {
         dashAttackQueued = false;
         dashRecoveryTimer = -.001f;
-        UseSkill(GetSkillDataForAttackType(AttackType.Dash));
+        HandleSkillInput(GetSkillDataForAttackType(AttackType.Dash));
       }
       else
       {
@@ -1898,12 +1946,14 @@ public class Character : WorldObject
   public void HandleSkillMovement()
   {
     //Consumed by physics so needs to happen in fixedupdate. Might still suck?
-    if (UsingMovementSkill())
+    if (UsingSkill() && activeSkill.SkillMovesCharacterForward(this))
     {
-      Debug.Log("handling movement skill");
-      easedSkillMovementProgressIncrement = (CalculateEasedDashProgressIncrement()) * activeSkill.GetMovement(this); // kill me a little
-
-      Debug.Log("easedSkillMovementProgressIncrement is " + easedSkillMovementProgressIncrement);
+      easedSkillForwardMovementProgressIncrement = (CalculateMovementProgressIncrement(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveForward)));
+    }
+    if (UsingSkill() && activeSkill.SkillMovesCharacterVertically(this))
+    {
+      easedSkillUpwardMovementProgressIncrement = (CalculateMovementProgressIncrement(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp)));
+      transform.position -= new Vector3(0, 0, easedSkillUpwardMovementProgressIncrement);
     }
   }
 

@@ -280,4 +280,6 @@ public class BugSpeciesToBugAnimationDictionary : SerializableDictionaryBase<Bug
 [System.Serializable]
 public class BugSkeletonPartToSpriteDictionary : SerializableDictionaryBase<BugSkeletonPart, Sprite> { }
 [System.Serializable]
-public class SkillEffectPropertyToFloat : SerializableDictionaryBase<SkillEffectProperty, Overrideable<float>> { }
+public class SkillEffectPropertyToFloat : SerializableDictionaryBase<SkillEffectFloatProperty, Overrideable<float>> { }
+[System.Serializable]
+public class SkillEffectPropertyToCurve : SerializableDictionaryBase<SkillEffectCurveProperty, Overrideable<AnimationCurve>> { }

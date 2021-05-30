@@ -432,7 +432,7 @@ public class AiStateController : Character
     }
     else
     {
-      UseSkill(GetSelectedCharacterSkill()); // todo: fix this????
+      HandleSkillInput(GetSelectedCharacterSkill()); // todo: fix this????
     }
     waitingToAttack = false;
   }

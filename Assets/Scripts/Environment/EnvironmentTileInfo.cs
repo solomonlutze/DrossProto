@@ -201,6 +201,10 @@ public class EnvironmentTileInfo
     {
       return true;
     }
+    if (character.IsMidair())
+    {
+      return true;
+    }
     foreach (CharacterMovementAbility movementAbility in groundTileType.movementAbilitiesWhichBypassRespawn)
     {
       if (character.HasMovementAbility(movementAbility))
