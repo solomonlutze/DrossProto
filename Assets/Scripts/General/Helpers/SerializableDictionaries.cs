@@ -282,4 +282,4 @@ public class BugSkeletonPartToSpriteDictionary : SerializableDictionaryBase<BugS
 [System.Serializable]
 public class SkillEffectPropertyToFloat : SerializableDictionaryBase<SkillEffectFloatProperty, Overrideable<float>> { }
 [System.Serializable]
-public class SkillEffectPropertyToCurve : SerializableDictionaryBase<SkillEffectCurveProperty, Overrideable<AnimationCurve>> { }
+public class SkillEffectPropertyToCurve : SerializableDictionaryBase<SkillEffectCurveProperty, NormalizedCurve> { }

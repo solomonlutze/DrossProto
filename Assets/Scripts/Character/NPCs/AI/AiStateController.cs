@@ -152,10 +152,10 @@ public class AiStateController : Character
     }
     else
     {
-      if (GetCamouflageRange() > 0)
-      {
-        Debug.Log("currentOpacity: " + currentOpacity);
-      }
+      // if (GetCamouflageRange() > 0)
+      // {
+      //   Debug.Log("currentOpacity: " + currentOpacity);
+      // }
       if (!LayerRenderer.FinishedChangingOpacity(shouldBeVisible, currentOpacity))
       {
         currentOpacity += Time.deltaTime / camouflageFadeTime * (shouldBeVisible ? 1 : -1);

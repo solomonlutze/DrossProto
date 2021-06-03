@@ -141,7 +141,7 @@ public class CustomPhysicsController : MonoBehaviour
 
     // maxVelocity = moveAcceleration - drag * Time.deltaTime;
     Vector2 desiredMovement;
-    if (owningCharacter.IsDashingOrInKnockback()) // Ignore velocity + drag; move manually
+    if (owningCharacter.IsInKnockback()) // Ignore velocity + drag; move manually
     {
       desiredMovement = (movementInput.normalized * owningCharacter.GetEasedMovementProgressIncrement());
       Vector2 xMove = new Vector2(desiredMovement.x, 0);
@@ -162,21 +162,26 @@ public class CustomPhysicsController : MonoBehaviour
     }
     else
     {
+      // Debug.Log("physics trying to move us");
       Vector2 orientedAnimationInput = Vector2.zero;
       if (orientation != null) { orientedAnimationInput = orientation.rotation * animationInput; }
       desiredMovement = ((movementInput.normalized * moveAcceleration + orientedAnimationInput) - (drag * velocity)) * Time.deltaTime;
+      // Debug.Log("desiredMovement: " + desiredMovement);
       Vector2 xMove = new Vector2(velocity.x + desiredMovement.x, 0);
+      // Debug.Log("xMove: " + xMove);
       if (!ignoreCollisionPhysics)
       {
         xMove = CalculateCollisionForAxis(xMove);
       }
       velocity.x = xMove.x;
       Vector2 yMove = new Vector2(0, velocity.y + desiredMovement.y);
+      // Debug.Log("yMove: " + yMove);
       if (!ignoreCollisionPhysics)
       {
         yMove = CalculateCollisionForAxis(yMove);
       }
       velocity.y = yMove.y;
+      // Debug.Log("velocity: " + velocity);
       if (velocity.magnitude < velocityMin) { velocity = Vector2.zero; }
       // transform.position += new Vector3(velocity.x, velocity.y, 0);
       rb.MovePosition(rb.position + velocity);

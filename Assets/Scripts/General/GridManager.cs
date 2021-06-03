@@ -222,6 +222,7 @@ public class TileLocation
 public class GridManager : Singleton<GridManager>
 {
 
+  public bool DEBUG_IgnoreLighting;
   public Grid levelGrid;
   public Material semiTransparentMaterial;
   public Material fullyOpaqueMaterial;
@@ -313,7 +314,11 @@ public class GridManager : Singleton<GridManager>
       }
       // }
     }
-    InitializeLighting(litTiles, currentTilesToLight);
+    if (!DEBUG_IgnoreLighting)
+    {
+      InitializeLighting(litTiles, currentTilesToLight);
+
+    }
     foreach (EnvironmentTileInfo source in lightSources)
     {
       AddIlluminationSourceToNeighbors(source);
@@ -464,7 +469,7 @@ public class GridManager : Singleton<GridManager>
       info.wallObject = Instantiate(defaultWallObject);
       info.wallObject.transform.position = loc.cellCenterWorldPosition;
       info.wallObject.Init(loc, objectTile.sprite);
-      info.wallObject.transform.parent = groundTilemap.transform.parent;
+      // info.wallObject.transform.parent = groundTilemap.transform.parent;
     }
     worldGrid[loc.floorLayer][CoordsToKey(loc.tilemapCoordinates)] = info;
     return info;

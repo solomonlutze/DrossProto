@@ -103,15 +103,14 @@ public class CharacterSkillData : ScriptableObject
   }
   public bool SkillHasMovementAbility(Character owner, CharacterMovementAbility movementAbility)
   {
-
     return skillEffects[owner.currentSkillEffectIndex].movementAbilities.Contains(movementAbility);
   }
 
-  public AnimationCurve GetMovement(Character owner, SkillEffectCurveProperty movementProperty)
+  public NormalizedCurve GetMovement(Character owner, SkillEffectCurveProperty movementProperty)
   {
     if (skillEffects[owner.currentSkillEffectIndex].movement.ContainsKey(movementProperty))
     {
-      return skillEffects[owner.currentSkillEffectIndex].movement[movementProperty].Resolve(owner);
+      return skillEffects[owner.currentSkillEffectIndex].movement[movementProperty];
     }
     return null;
   }

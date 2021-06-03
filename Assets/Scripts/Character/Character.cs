@@ -812,10 +812,6 @@ public class Character : WorldObject
     {
       po.SetMovementInput(knockbackHeading);
     }
-    else if (UsingMovementSkill())
-    {
-      po.SetMovementInput(orientation.rotation * new Vector3(1, 0, 0));
-    }
     else if (CanMove())
     {
       po.SetMovementInput(new Vector2(movementInput.x, movementInput.y));
@@ -852,13 +848,6 @@ public class Character : WorldObject
   {
     AdjustCurrentMoltCount(1);
     AdjustCurrentCarapace(100);
-  }
-
-  // Traits activated on dash are handled in HandleConditionallyActivatedTraits()
-
-  public bool IsDashingOrRecovering()
-  {
-    return UsingMovementSkill() || IsRecoveringFromDash();
   }
 
   public bool UsingMovementSkill()
@@ -923,10 +912,10 @@ public class Character : WorldObject
   //   return 0; // try not to do this please
   // }
 
-  public float CalculateMovementProgressIncrement(AnimationCurve movementCurve)
+  public float CalculateMovementProgressIncrement(NormalizedCurve movementCurve)
   {
-    return movementCurve.Evaluate(Mathf.Min(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this), 1))
-    - movementCurve.Evaluate(Mathf.Max((timeSpentInSkillEffect - Time.fixedDeltaTime) / activeSkill.GetActiveEffectDuration(this), 0));
+    return movementCurve.Evaluate(this, Mathf.Min(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this), 1))
+    - movementCurve.Evaluate(this, Mathf.Max((timeSpentInSkillEffect - Time.fixedDeltaTime) / activeSkill.GetActiveEffectDuration(this), 0));
   }
 
   protected void BeginKnockback(Vector3 knockbackMagnitude)
@@ -1022,7 +1011,6 @@ public class Character : WorldObject
   {
     if (ascendingDescendingState != AscendingDescendingState.None) { return; }
     ascendingDescendingState = ascendOrDescend;
-    Debug.Log("set ascendingDescendingState to " + ascendingDescendingState);
     if (descending)
     {
       SetCurrentFloor(currentFloor - 1);
@@ -1038,28 +1026,29 @@ public class Character : WorldObject
   {
     if (!ascending && !descending && IsMidair() && !UsingVerticalMovementSkill())
     {
-      Debug.Log("force setting state to descending");
       ascendingDescendingState = AscendingDescendingState.Descending;
     }
     if (ascending)
     {
-      Debug.Log("should be ascending?");
       transform.position -= new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
-      if (transform.position.z - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer + 1) < .01)
-      {
-        transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
-        ascendingDescendingState = AscendingDescendingState.None;
-        SetCurrentFloor(currentFloor + 1);
-      }
     }
     else if (descending)
     {
       transform.position += new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
-      if (GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - transform.position.z < .01)
-      {
-        transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
-        ascendingDescendingState = AscendingDescendingState.None;
-      }
+    }
+    // if we're above our current floor by > 1, change our floor
+    if (transform.position.z - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) < -1) // add ceiling check
+    {
+      SetCurrentFloor(currentFloor + 1);
+    }
+    else if (transform.position.z - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) > 0) // add floor check
+    {
+      SetCurrentFloor(currentFloor - 1);
+    }
+    if ((transform.position.z % 1) > .9 && !UsingVerticalMovementSkill())
+    {
+      transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
+      ascendingDescendingState = AscendingDescendingState.None;
     }
   }
 
@@ -1070,7 +1059,6 @@ public class Character : WorldObject
       || stunned
       || molting
       || carapaceBroken
-      || IsDashingOrRecovering()
       || IsInKnockback()
       || !HasStamina()
       || animationPreventsMoving
@@ -1413,11 +1401,6 @@ public class Character : WorldObject
     {
       return GetStat(CharacterStat.BlockingMoveAcceleration);
     }
-    else if (UsingMovementSkill())
-    {
-      return 0; // ?
-                // return GetStat(CharacterStat.DashAcceleration);
-    }
     else
     {
       return GetStat(CharacterStat.MoveAcceleration) * GetMoveSpeedMultiplier();
@@ -1525,66 +1508,7 @@ public class Character : WorldObject
       }
     }
     return defaultCharacterData.defaultStats[statToGet] * multiplier;
-    // StringToIntDictionary statMods = statModifications[statToGet];
-    // int modValue = 0;
-    // float returnValue = defaultCharacterData.defaultStats[statToGet];
-    // foreach (int modMagnitude in statMods.Values)
-    // {
-    //   modValue += modMagnitude;
-    // }
-    // modValue = Mathf.Clamp(-12, modValue, 12);
-    // if (modValue >= 0)
-    // {
-    //   returnValue *= ((3 + modValue) / 3);
-    // }
-    // else
-    // {
-    //   returnValue *= (3f / (3 + Mathf.Abs(modValue)));
-    // }
-    // return returnValue;
   }
-
-
-  // public void ApplyStatMod(CharacterStatModification mod)
-  // {
-  //     if (mod.duration > 0)
-  //     {
-  //         StartCoroutine(ApplyTemporaryStatMod(mod));
-  //     }
-  //     else
-  //     {
-  //         AddStatMod(mod);
-  //     }
-  // }
-
-  // public IEnumerator ApplyTemporaryStatMod(CharacterStatModification mod)
-  // {
-  //     AddStatMod(mod);
-  //     yield return new WaitForSeconds(mod.duration);
-  //     RemoveStatMod(mod.source);
-  // }
-
-  // public void AddStatMod(CharacterStatModification mod)
-  // {
-  //     AddStatMod(mod.statToModify, mod.magnitude, mod.source);
-  // }
-
-  // public void AddStatMod(CharacterStat statToMod, int magnitude, string source)
-  // {
-  //     statModifications[statToMod][source] = magnitude;
-  // }
-
-  // public void RemoveStatMod(string source)
-  // {
-  //     foreach (CharacterStat stat in (CharacterStat[])Enum.GetValues(typeof(CharacterStat)))
-  //     {
-  //         StringToIntDictionary statMods = statModifications[stat];
-  //         if (statMods.ContainsKey(source))
-  //         {
-  //             statMods.Remove(source);
-  //         }
-  //     }
-  // }
 
   public void AddMovementAbility(CharacterMovementAbility movementAbility)
   {
@@ -1600,7 +1524,6 @@ public class Character : WorldObject
   //VITALS GETTERS/SETTERS
   public void AdjustCurrentHealth(float adjustment, bool isNonlethal = false)
   {
-    // Debug.Log("Adjusting current health - nonlethal: " + isNonlethal);
     vitals[CharacterVital.CurrentHealth] =
       Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, isNonlethal ? 1 : 0, GetCurrentMaxHealth());
   }
@@ -1637,7 +1560,6 @@ public class Character : WorldObject
       if (!AllTilesOnTargetFloorEmpty(newFloorLayer))
       {
         flying = false;
-        Debug.Log("clearing flying flag");
         ascendingDescendingState = AscendingDescendingState.Descending;
         return;
       }
@@ -1809,6 +1731,7 @@ public class Character : WorldObject
 
   protected void RespawnCharacterAtLastSafeLocation()
   {
+    Debug.Log("Got respawned????");
     EndSkill();
     transform.position =
       new Vector3(lastSafeTileLocation.cellCenterWorldPosition.x, lastSafeTileLocation.cellCenterWorldPosition.y, GridManager.GetZOffsetForGameObjectLayer(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
@@ -1904,7 +1827,7 @@ public class Character : WorldObject
         EndFly();
       }
     }
-    if (!IsDashingOrRecovering() && !UsingSkill())
+    if (!UsingSkill())
     {
       AdjustCurrentStamina(GetStaminaRecoveryRate());
       // vitals[CharacterVital.RemainingStamina]

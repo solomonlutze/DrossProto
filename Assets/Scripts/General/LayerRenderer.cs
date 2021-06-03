@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using ScriptableObjectArchitecture;
 
-[ExecuteInEditMode]
+// [ExecuteInEditMode]
 public class LayerRenderer : MonoBehaviour
 {
   public float fadeDampTime = 0.005f;
