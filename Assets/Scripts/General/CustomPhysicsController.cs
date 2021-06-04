@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -157,15 +157,27 @@ public class CustomPhysicsController : MonoBehaviour
       }
       desiredMovement.y = yMove.y;
       rb.MovePosition(rb.position + desiredMovement);
-      // transform.position += new Vector3(desiredMovement.x, desiredMovement.y, 0);
-      // desiredMovement = ((movementInput.normalized * moveAcceleration + orientedAnimationInput)) * Time.deltaTime;
+    }
+    else if (owningCharacter.UsingForwardMovementSkill()) // TODO: maybe someday we want to allow forward movement + regular movement in same skill? ehh
+    {
+      desiredMovement = (orientation.rotation * new Vector2(owningCharacter.GetEasedMovementProgressIncrement(), 0));
+      Vector2 xMove = new Vector2(desiredMovement.x, 0);
+      if (!ignoreCollisionPhysics)
+      {
+        xMove = CalculateCollisionForAxis(xMove);
+      }
+      desiredMovement.x = xMove.x;
+      Vector2 yMove = new Vector2(0, desiredMovement.y);
+      if (!ignoreCollisionPhysics)
+      {
+        yMove = CalculateCollisionForAxis(yMove);
+      }
+      desiredMovement.y = yMove.y;
+      rb.MovePosition(rb.position + desiredMovement);
     }
     else
     {
-      // Debug.Log("physics trying to move us");
-      Vector2 orientedAnimationInput = Vector2.zero;
-      if (orientation != null) { orientedAnimationInput = orientation.rotation * animationInput; }
-      desiredMovement = ((movementInput.normalized * moveAcceleration + orientedAnimationInput) - (drag * velocity)) * Time.deltaTime;
+      desiredMovement = (movementInput.normalized * moveAcceleration - (drag * velocity)) * Time.deltaTime;
       // Debug.Log("desiredMovement: " + desiredMovement);
       Vector2 xMove = new Vector2(velocity.x + desiredMovement.x, 0);
       // Debug.Log("xMove: " + xMove);

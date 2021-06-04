@@ -854,6 +854,10 @@ public class Character : WorldObject
   {
     return activeSkill && activeSkill.SkillMovesCharacter(this);
   }
+  public bool UsingForwardMovementSkill()
+  {
+    return activeSkill && activeSkill.SkillMovesCharacterForward(this);
+  }
   public bool UsingVerticalMovementSkill()
   {
     return activeSkill && activeSkill.SkillMovesCharacterVertically(this);
@@ -876,7 +880,7 @@ public class Character : WorldObject
   {
     return knockbackAmount > 0;
   }
-  public bool IsDashingOrInKnockback()
+  public bool IsUsingMovementSkillOrInKnockback()
   {
     return UsingMovementSkill() || IsInKnockback();
   }
@@ -939,6 +943,10 @@ public class Character : WorldObject
     return easedKnockbackProgressIncrement;
   }
 
+  public float GetEasedSkillForwardMovementProgressIncrement()
+  {
+    return easedSkillForwardMovementProgressIncrement;
+  }
   public float GetEasedMovementProgressIncrement()
   {
     if (IsInKnockback())
