@@ -70,7 +70,12 @@ public class PlayerController : Character
   {
     if (!InCrit())
     {
-      orientTowards = GameMaster.Instance.camera2D.ScreenToWorldPoint(Input.mousePosition);
+      // orientTowards = GameMaster.Instance.camera2D.ScreenToWorldPoint(Input.mousePosition);
+      if (movementInput != Vector2.zero)
+      {
+
+        orientTowards = movementInput;
+      }
     }
     base.Update();
     PopulateContextualActions();

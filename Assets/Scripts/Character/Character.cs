@@ -366,7 +366,8 @@ public class Character : WorldObject
   protected virtual void Start()
   {
     Debug.Log("character Start");
-    movementInput = new Vector2(0, 0);
+    movementInput = Vector2.zero;
+    orientTowards = Vector3.zero;
     if (po == null)
     {
       Debug.LogError("No physics controller component on Character object: " + gameObject.name);
@@ -476,7 +477,10 @@ public class Character : WorldObject
   protected virtual void Update()
   {
     HandleHealth();
-    HandleFacingDirection();
+    if (timeMoving > 0) // better way to do this??
+    {
+      HandleFacingDirection();
+    }
     HandleTile();
     HandleSkills();
     HandleCooldowns();
@@ -772,7 +776,7 @@ public class Character : WorldObject
   // potential culprit.
   public Quaternion GetDirectionAngle(Vector3 targetPoint)
   {
-    Vector2 target = targetPoint - transform.position;
+    Vector2 target = targetPoint;
     float angle = Mathf.Atan2(target.y, target.x) * Mathf.Rad2Deg;
     return Quaternion.AngleAxis(angle, Vector3.forward);
   }
