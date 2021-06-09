@@ -36,22 +36,34 @@ public class CharacterSkillData : ScriptableObject
   [TextArea]
   public string description;
   public SkillRangeInfo[] skillRangeInfo;
-  public SkillEffect[] skillEffects; // NOTE: Gotta fix this if we want vanilla skillEffects for anything!
+  public SkillEffectSet[] skillEffectSets;
+  // public SkillEffect[] skillEffects_old;
 
   public virtual void Init(WeaponVariable weapon)
   {
-    skillEffects = new SkillEffect[] {
-      new SkillEffect()
-    };
+    // skillEffects_old = new SkillEffect[] {
+    //   new SkillEffect()
+    // };
   }
 
   public virtual void BeginSkillEffect(Character owner)
   {
-    skillEffects[owner.currentSkillEffectIndex].BeginSkillEffect(owner);
+    GetActiveSkillEffect(owner).BeginSkillEffect(owner);
   }
+
+  public SkillEffectSet GetActiveSkillEffectSet(Character owner)
+  {
+    return skillEffectSets[owner.currentSkillEffectSetIndex];
+  }
+
+  public SkillEffect GetActiveSkillEffect(Character owner)
+  {
+    return GetActiveSkillEffectSet(owner).skillEffects[owner.currentSkillEffectIndex];
+  }
+
   public virtual void UseSkill(Character owner)
   {
-    SkillEffect currentSkillEffect = skillEffects[owner.currentSkillEffectIndex];
+    SkillEffect currentSkillEffect = GetActiveSkillEffect(owner);
     currentSkillEffect.DoSkillEffect(owner);
 
     if (currentSkillEffect.useType == SkillEffectType.Continuous)
@@ -65,7 +77,7 @@ public class CharacterSkillData : ScriptableObject
         owner.AdvanceSkillEffect();
       }
     }
-    else if (owner.timeSpentInSkillEffect > skillEffects[owner.currentSkillEffectIndex].duration)
+    else if (owner.timeSpentInSkillEffect > currentSkillEffect.duration)
     {
       owner.AdvanceSkillEffect();
     }
@@ -77,83 +89,78 @@ public class CharacterSkillData : ScriptableObject
 
   public float GetActiveEffectDuration(Character owner)
   {
-    return skillEffects[owner.currentSkillEffectIndex].duration;
+    return GetActiveSkillEffect(owner).duration;
   }
 
-  public bool SkillIsAdvanceable(Character owner)
+  //NOTE: This is kind of weird.
+  // a skill _EFFECT_ is advancable, but the effect _SET_ is what gets advanced.
+  public bool CanAdvanceSkillEffectSet(Character owner)
   {
-    return skillEffects[owner.currentSkillEffectIndex].advanceable && owner.currentSkillEffectIndex < skillEffects.Length - 1; //shouldn't need that last condition. don't mark the last skill effect advanceable!!
+    return GetActiveSkillEffect(owner).advanceable && owner.currentSkillEffectSetIndex < skillEffectSets.Length - 1; //shouldn't need that last condition. don't mark the last skill effect advanceable!!
   }
 
+  // a skill _EFFECT_ is interruptable, but the ENTIRE SKILL gets interrupted.
   public bool SkillIsInterruptable(Character owner)
   {
-    return skillEffects[owner.currentSkillEffectIndex].interruptable;
+    return GetActiveSkillEffect(owner).interruptable;
   }
   public bool SkillMovesCharacter(Character owner)
   {
-    return skillEffects[owner.currentSkillEffectIndex].movement.Count > 0;
+    return GetActiveSkillEffect(owner).movement.Count > 0;
   }
   public bool SkillMovesCharacterForward(Character owner)
   {
-    return skillEffects[owner.currentSkillEffectIndex].movement.ContainsKey(SkillEffectCurveProperty.MoveForward);
+    return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectCurveProperty.MoveForward);
   }
   public bool SkillMovesCharacterVertically(Character owner)
   {
-    return skillEffects[owner.currentSkillEffectIndex].movement.ContainsKey(SkillEffectCurveProperty.MoveUp);
+    return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectCurveProperty.MoveUp);
   }
   public bool SkillHasMovementAbility(Character owner, CharacterMovementAbility movementAbility)
   {
-    return skillEffects[owner.currentSkillEffectIndex].movementAbilities.Contains(movementAbility);
+    return GetActiveSkillEffect(owner).movementAbilities.Contains(movementAbility);
   }
 
   public NormalizedCurve GetMovement(Character owner, SkillEffectCurveProperty movementProperty)
   {
-    if (skillEffects[owner.currentSkillEffectIndex].movement.ContainsKey(movementProperty))
+    if (GetActiveSkillEffect(owner).movement.ContainsKey(movementProperty))
     {
-      return skillEffects[owner.currentSkillEffectIndex].movement[movementProperty];
+      return GetActiveSkillEffect(owner).movement[movementProperty];
     }
     return null;
   }
 
   public float GetMultiplierSkillProperty(Character owner, SkillEffectFloatProperty property)
   {
-
-    if (owner.currentSkillEffectIndex >= skillEffects.Length)
+    if (GetActiveSkillEffect(owner).properties.ContainsKey(property))
     {
-      Debug.LogError("WARNING: tried to access skill property after skill should have ended");
-      return 1;
-    }
-    if (skillEffects[owner.currentSkillEffectIndex].properties.ContainsKey(property))
-    {
-      return skillEffects[owner.currentSkillEffectIndex].properties[property].Resolve(owner);
+      return GetActiveSkillEffect(owner).properties[property].Resolve(owner);
     }
     return 1;
   }
 
-  public float GetEffectiveRange()
+  public float GetEffectiveRange(Character owner)
   {
     List<float> effectRanges = new List<float>();
-    foreach (SkillEffect effect in skillEffects)
+    foreach (SkillEffectSet effectSet in skillEffectSets)
     {
-      effectRanges.Add(effect.GetEffectiveRange());
+      foreach (SkillEffect effect in effectSet.skillEffects)
+      {
+        effectRanges.Add(effect.GetEffectiveRange(owner));
+      }
     }
     return Mathf.Max(effectRanges.ToArray());
   }
 
-  public void CalculateRangeInfos()
-  {
-    List<SkillRangeInfo> rangeInfo = new List<SkillRangeInfo>();
-    if (skillEffects.Length > 0)
-    {
-      rangeInfo = skillEffects[0].CalculateRangeInfos();
-    }
-    skillRangeInfo = rangeInfo.ToArray();
-  }
-
-  public virtual IEnumerator PerformSkillCycle(Character owner)
-  {
-    yield break;
-  }
+  // public void CalculateRangeInfos(Character owner)
+  // {
+  //   List<SkillRangeInfo> rangeInfo = new List<SkillRangeInfo>();
+  //   if (skillEffects_old.Length > 0)
+  //   {
+  //     rangeInfo = skillEffects_old[0].CalculateRangeInfos(owner);
+  //   }
+  //   skillRangeInfo = rangeInfo.ToArray();
+  // }
 
 #if UNITY_EDITOR
   [MenuItem("Assets/Create/Skills/CharacterSkillData")]
@@ -166,9 +173,9 @@ public class CharacterSkillData : ScriptableObject
   }
 #endif
 
-  public void OnValidate()
-  {
-    CalculateRangeInfos();
-  }
+  //  public void OnValidate()
+  //  {
+  //CalculateRangeInfos();
+  // }
 
 }

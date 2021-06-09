@@ -13,8 +13,8 @@ public class Weapon : MonoBehaviour
   List<Weapon> owningEffectActiveWeapons;
   Attack attack;
   float timeAlive = 0;
-  float easedProgress = 0;
-  float previousEasedProgress = 0;
+  float progress = 0;
+  float previousProgress = 0;
   float increment = 0;
   int currentActionGroup = 0;
 
@@ -44,28 +44,12 @@ public class Weapon : MonoBehaviour
   void FixedUpdate()
   {
     timeAlive += Time.fixedDeltaTime;
-    ExecuteWeaponActions();
+    ExecuteWeaponActions(owner);
     if (timeAlive > attack.duration)
     {
       CleanUp();
     }
   }
-
-  // else
-  // {
-  //   CleanUp();
-  // }
-  // }
-
-  // public IEnumerator PerformWeaponActions()
-  // {
-  //   for (int i = 0; i < attack.weaponActionGroups.Length; i++)
-  //   {
-  //     yield return null;
-  //     // yield return ExecuteWeaponActionGroup(attack.weaponActionGroups[i], i == attack.weaponActionGroups.Length - 1);
-  //   }
-  //   CleanUp();+
-  // }
 
   public void CleanUp()
   {
@@ -77,28 +61,28 @@ public class Weapon : MonoBehaviour
     Destroy(this.gameObject);
   }
 
-  public void ExecuteWeaponActions()
+  public void ExecuteWeaponActions(Character owner)
   {
-    previousEasedProgress = easedProgress;
+    previousProgress = progress;
 
     float cappedTimeAlive = Mathf.Min(timeAlive, attack.duration);
-    easedProgress = cappedTimeAlive / attack.duration; // easing goes here if we have it
-    increment = easedProgress - previousEasedProgress;
+    progress = cappedTimeAlive / attack.duration; // easing goes here if we have it
+    increment = progress - previousProgress;
     foreach (WeaponAction action in attack.weaponActions)
     {
-      ExecuteWeaponAction(action, increment);
+      ExecuteWeaponAction(action, owner, increment);
     }
   }
 
-  public void ExecuteWeaponAction(WeaponAction action, float increment)
+  public void ExecuteWeaponAction(WeaponAction action, Character owner, float increment)
   {
     switch (action.type)
     {
       case WeaponActionType.Move:
-        MoveWeaponAction(action, increment);
+        MoveWeaponAction(action, owner, increment);
         break;
       case WeaponActionType.RotateRelative:
-        RotateWeaponRelativeAction(action, increment);
+        RotateWeaponRelativeAction(action, owner, increment);
         break;
       case WeaponActionType.Wait:
         WaitWeaponAction(action, increment);
@@ -109,16 +93,16 @@ public class Weapon : MonoBehaviour
     }
   }
 
-  public void MoveWeaponAction(WeaponAction action, float increment)
+  public void MoveWeaponAction(WeaponAction action, Character owner, float increment)
   {
-    transform.position += transform.rotation * new Vector3(action.magnitude * increment, 0, 0);
+    transform.position += transform.rotation * new Vector3(action.motion.EvaluateIncrement(owner, progress, previousProgress), 0, 0);
   }
 
   // Rotate weapon relative to owner - think of a sword swing
-  public void RotateWeaponRelativeAction(WeaponAction action, float increment)
+  public void RotateWeaponRelativeAction(WeaponAction action, Character owner, float increment)
   {
     Vector3 direction = transform.position - owner.transform.position;
-    transform.RotateAround(owner.transform.position, Vector3.forward, action.magnitude * increment);
+    transform.RotateAround(owner.transform.position, Vector3.forward, action.motion.EvaluateIncrement(owner, progress, previousProgress));
   }
   public void WaitWeaponAction(WeaponAction action, float increment)
   {

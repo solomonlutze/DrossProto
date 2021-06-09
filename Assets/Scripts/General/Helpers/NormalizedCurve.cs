@@ -12,4 +12,9 @@ public class NormalizedCurve
   {
     return curve.Resolve(c).Evaluate(t) * magnitude.Resolve(c);
   }
+
+  public float EvaluateIncrement(Character c, float tCurrent, float tPrevious)
+  {
+    return (curve.Resolve(c).Evaluate(tCurrent) - curve.Resolve(c).Evaluate(tPrevious)) * magnitude.Resolve(c);
+  }
 }

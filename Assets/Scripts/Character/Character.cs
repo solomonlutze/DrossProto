@@ -294,6 +294,7 @@ public class Character : WorldObject
   public CharacterSkillData queuedSkill;
   public bool receivingSkillInput;
   public float timeSpentInSkillEffect = 0f;
+  public int currentSkillEffectSetIndex = 0;
   public int currentSkillEffectIndex = 0;
   public bool flying = false;
   public bool blocking = false;
@@ -547,11 +548,11 @@ public class Character : WorldObject
       }
       queuedSkill = null;
     }
-    else if (activeSkill.SkillIsAdvanceable(this) && queuedSkill == activeSkill)
+    else if (activeSkill.CanAdvanceSkillEffectSet(this) && queuedSkill == activeSkill)
     {
       if (CanUseSkill(skill, currentSkillEffectIndex + 1))
       {
-        AdvanceSkillEffect();
+        AdvanceSkillEffectSet();
       }
       queuedSkill = null;
     }
@@ -592,23 +593,48 @@ public class Character : WorldObject
   // }
 
 
-  public void AdvanceSkillEffect()
+  // TODO: Differentiate between advancing the skill effect itself
+  // and advancing the skill effect set.
+  // When the current effect expires, 
+  // -if there's more effects in the set, advance to the next effect
+  // -else, determine whether we should advance to the next set
+  // the below method is probably closer to AdvanceSkillEffectSet
+  public void AdvanceSkillEffectSet()
   {
-    timeSpentInSkillEffect = 0;
-    while (currentSkillEffectIndex < activeSkill.skillEffects.Length - 1)
+    currentSkillEffectIndex = 0;
+    while (currentSkillEffectSetIndex < activeSkill.skillEffectSets.Length - 1)
     {
-      Debug.Log("increasing skill effect index...");
-      currentSkillEffectIndex++;
-      if (CanUseSkill(activeSkill, currentSkillEffectIndex))
+      currentSkillEffectSetIndex++;
+      if (CanUseSkill(activeSkill, currentSkillEffectSetIndex))
       {
-        Debug.Log("advancing to " + currentSkillEffectIndex);
         activeSkill.BeginSkillEffect(this);
         queuedSkill = null;
         return;
       }
-      Debug.Log("couldn't use skill effect at index " + currentSkillEffectIndex);
     };
     EndSkill();
+  }
+
+  public void AdvanceSkillEffect()
+  {
+    currentSkillEffectIndex++;
+    if (currentSkillEffectIndex <= activeSkill.GetActiveSkillEffectSet(this).skillEffects.Length - 1)
+    {
+      if (queuedSkill == activeSkill && activeSkill.CanAdvanceSkillEffectSet(this))
+      {
+        AdvanceSkillEffectSet();
+        return;
+      }
+      BeginSkillEffect();
+      return;
+    };
+    AdvanceSkillEffectSet();
+  }
+
+  public void BeginSkillEffect()
+  {
+    timeSpentInSkillEffect = 0;
+    activeSkill.BeginSkillEffect(this);
   }
 
   public void EndSkill()
@@ -618,6 +644,7 @@ public class Character : WorldObject
       activeSkill.CleanUp(this);
       activeSkill = null;
     }
+    currentSkillEffectSetIndex = 0;
     currentSkillEffectIndex = 0;
     timeSpentInSkillEffect = 0;
   }
@@ -696,11 +723,11 @@ public class Character : WorldObject
 
   public float GetAttackRange(AttackType attack)
   {
-    return GetSkillDataForAttackType(attack).GetEffectiveRange();
+    return GetSkillDataForAttackType(attack).GetEffectiveRange(this);
   }
   public float GetAttackRange()
   {
-    return GetSelectedCharacterSkill().GetEffectiveRange();
+    return GetSelectedCharacterSkill().GetEffectiveRange(this);
   }
 
   public SkillRangeInfo[] GetAttackRangeInfo(AttackType attack)
@@ -1119,13 +1146,15 @@ public class Character : WorldObject
     return true;
   }
 
-  protected virtual bool CanUseSkill(CharacterSkillData skillData, int idx = 0)
+  protected bool ShouldUseSkillEffectSet(CharacterSkillData skillData, int idx = 0)
   {
-    Debug.Log("queuedSkill: " + queuedSkill);
-    Debug.Log("canUseInMidair: " + skillData.skillEffects[idx].canUseInMidair);
+    return
+      (skillData.skillEffectSets[idx].alwaysExecute || activeSkill != queuedSkill);
+  }
+  protected virtual bool CanUseSkill(CharacterSkillData skillData, int effectSetIndex = 0)
+  {
     if (
-      (!skillData.skillEffects[idx].alwaysExecute && activeSkill != queuedSkill)
-      || (IsMidair() && !skillData.skillEffects[idx].canUseInMidair)
+      (IsMidair() && !skillData.skillEffectSets[effectSetIndex].canUseInMidair)
       || stunned
       || molting
       || carapaceBroken

@@ -89,23 +89,23 @@ public class AttackSkillEffect : SkillEffect
     // owner.StartCoroutine(weaponInstance.PerformWeaponActions());
   }
 
-  public override float GetEffectiveRange()
+  public override float GetEffectiveRange(Character owner)
   {
     List<float> weaponRanges = new List<float>();
     foreach (AttackSpawn attackSpawn in weaponSpawns)
     {
-      weaponRanges.Add(attackSpawn.range + attackSpawn.weaponSize + attackSpawn.attackData.GetCumulativeEffectiveWeaponRange());
+      weaponRanges.Add(attackSpawn.range + attackSpawn.weaponSize + attackSpawn.attackData.GetCumulativeEffectiveWeaponRange(owner));
     }
     return Mathf.Max(weaponRanges.ToArray());
   }
 
-  public override List<SkillRangeInfo> CalculateRangeInfos()
+  public override List<SkillRangeInfo> CalculateRangeInfos(Character owner)
   {
     List<SkillRangeInfo> infos = new List<SkillRangeInfo>();
     for (int i = 0; i < weaponSpawns.Length; i++)
     {
       SkillRangeInfo info = new SkillRangeInfo(weaponSpawns[i]);
-      infos.Add(weaponSpawns[i].attackData.GetAttackRangeInfo(ref info, info.maxRange, info.maxAngle));
+      infos.Add(weaponSpawns[i].attackData.GetAttackRangeInfo(ref info, owner, info.maxRange, info.maxAngle));
     }
     return infos;
   }

@@ -60,7 +60,9 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
         List<SpriteRenderer> srs = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>());
         while (srs.Count < newSrs.Length)
         {
-          srs.Add(Instantiate(spawnerSpritePrefab, transform));
+          SpriteRenderer sprite = Instantiate(spawnerSpritePrefab, transform);
+          sprite.name = gameObject.name;
+          srs.Add(sprite);
         }
         for (int i = 0; i < newSrs.Length; i++)
         {

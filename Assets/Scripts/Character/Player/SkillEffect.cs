@@ -24,6 +24,17 @@ public enum SkillEffectCurveProperty
 }
 
 [System.Serializable]
+public class SkillEffectSet
+{
+  [Tooltip("Defines whether this effect set should always be executed every time the skill is used")]
+  public bool alwaysExecute = true;
+  public bool canUseInMidair = false;
+
+  public SkillEffect[] skillEffects;
+
+}
+
+[System.Serializable]
 public class SkillEffect
 {
 
@@ -33,9 +44,9 @@ public class SkillEffect
 
   [Tooltip("Defines whether an input of this skill should end this effect and move to the next")]
   public bool advanceable = false;
-  public bool alwaysExecute = true;
+  [Tooltip("This effect is bypassed if the skillEffect is queued when this effect is reached. Good for eg pauses between attacks")]
+  public bool skipIfQueued = false;
   public float duration;
-  public bool canUseInMidair = false;
 
   public SkillEffectPropertyToFloat properties;
   public SkillEffectPropertyToCurve movement;
@@ -71,17 +82,17 @@ public class SkillEffect
     weaponInstance.Init(weaponSpawn, this, owner, weaponInstances);
   }
 
-  public virtual float GetEffectiveRange()
+  public virtual float GetEffectiveRange(Character owner)
   {
     List<float> weaponRanges = new List<float>();
     foreach (AttackSpawn attackSpawn in weaponSpawns)
     {
-      weaponRanges.Add(attackSpawn.range + attackSpawn.weaponSize + attackSpawn.attackData.GetCumulativeEffectiveWeaponRange());
+      weaponRanges.Add(attackSpawn.range + attackSpawn.weaponSize + attackSpawn.attackData.GetCumulativeEffectiveWeaponRange(owner));
     }
     return Mathf.Max(weaponRanges.ToArray());
   }
 
-  public virtual List<SkillRangeInfo> CalculateRangeInfos()
+  public virtual List<SkillRangeInfo> CalculateRangeInfos(Character owner)
   {
     List<SkillRangeInfo> infos = new List<SkillRangeInfo>();
     for (int i = 0; i < weaponSpawns.Length; i++)
