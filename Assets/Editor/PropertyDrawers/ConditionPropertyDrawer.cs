@@ -17,7 +17,15 @@ public class ConditionDrawer : PropertyDrawer
     var labelWidth = EditorGUIUtility.labelWidth;
     EditorGUIUtility.labelWidth = 30;
     EditorGUI.PropertyField(conditionRect, property.FindPropertyRelative("conditionType"), new GUIContent("if"));
-    EditorGUI.PropertyField(conditionValueRect, property.FindPropertyRelative("_tileType"), new GUIContent("is"));
+    switch ((ConditionType)property.FindPropertyRelative("conditionType").enumValueIndex)
+    {
+      case ConditionType.TileType:
+        EditorGUI.PropertyField(conditionValueRect, property.FindPropertyRelative("_tileType"), new GUIContent("is"));
+        break;
+      case ConditionType.TouchingTileWithTag:
+        EditorGUI.PropertyField(conditionValueRect, property.FindPropertyRelative("_touchingTileType"), new GUIContent("is"));
+        break;
+    }
 
     EditorGUIUtility.labelWidth = labelWidth;
     EditorGUI.indentLevel = indent;

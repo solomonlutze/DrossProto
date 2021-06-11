@@ -10,7 +10,7 @@ using UnityEditor;
 // Interaction tile heights. If characters are in the air they ignore interactions iwth anything on a lower height than them.
 public enum FloorLayer { B6, B5, B4, B3, B2, B1, F1, F2, F3, F4, F5, F6 }
 public enum TileDurability { Delicate, Soft, Medium, Hard, Indestructable }
-public enum TileTag { Ground, Water }
+public enum TileTag { Ground, Water, Climbable }
 public enum FloorTilemapType { Ground, Object, Visibility }
 public enum LightPattern { Constant, Flicker }
 

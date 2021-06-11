@@ -2,13 +2,14 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public enum ConditionType { TileType }
+public enum ConditionType { TileType, TouchingTileWithTag }
 
 [System.Serializable]
 public class Condition
 {
   public ConditionType conditionType;
   public TileTag _tileType;
+  public TileTag _touchingTileType;
 }
 
 // NOTE: Conditionals and conditions will look uggo if you use them by themselves.
@@ -27,7 +28,14 @@ public class Conditional<T>
       switch (condition.conditionType)
       {
         case ConditionType.TileType:
+          Debug.Log("evaluating tiletype condition; groundTileTags contains " + condition._tileType + ": " + c.currentTile.groundTileTags.Contains(condition._tileType));
           if (!c.currentTile.groundTileTags.Contains(condition._tileType))
+          {
+            return false;
+          }
+          break;
+        case ConditionType.TouchingTileWithTag:
+          if (!c.TouchingTileWithTag(condition._touchingTileType))
           {
             return false;
           }

@@ -78,6 +78,7 @@ public class PlayerController : Character
       }
     }
     base.Update();
+    Debug.Log("touching climbable tile: " + TouchingTileWithTag(TileTag.Climbable));
     PopulateContextualActions();
     // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.Left), Color.red);
     // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerLeft), Color.yellow);
@@ -164,6 +165,23 @@ public class PlayerController : Character
     if (characterSkills[selectedSkillIdx] != null)
     {
       HandleSkillInput(characterSkills[selectedSkillIdx]);
+    }
+  }
+
+  public void PreviousSelectedSkill()
+  {
+    if (characterSkills.Count > 0)
+    {
+      selectedSkillIdx = selectedSkillIdx - 1;
+      if (selectedSkillIdx < 0)
+      {
+        selectedSkillIdx = characterSkills.Count - 1;
+      }
+      Debug.Log("selected skill: " + characterSkills[selectedSkillIdx]);
+    }
+    else
+    {
+      selectedSkillIdx = 0;
     }
   }
 
@@ -432,6 +450,11 @@ public class PlayerController : Character
         else if (Input.GetButtonDown("AdvanceSkill"))
         {
           AdvanceSelectedSkill();
+          return;
+        }
+        else if (Input.GetButtonDown("PreviousSkill"))
+        {
+          PreviousSelectedSkill();
           return;
         }
         else if (Input.GetButtonDown("AdvanceSpell"))

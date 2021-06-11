@@ -195,6 +195,11 @@ public class EnvironmentTileInfo
     return groundTileType != null && groundTileType.shouldRespawnPlayer;
   }
 
+  public bool HasTileTag(TileTag tag)
+  {
+    return (groundTileTags.Contains(tag) || objectTileTags.Contains(tag));
+  }
+
   public bool CharacterCanCrossTile(Character character)
   {
     if (!CanRespawnPlayer())

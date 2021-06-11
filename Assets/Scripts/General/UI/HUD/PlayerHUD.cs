@@ -20,7 +20,8 @@ public class PlayerHUD : MonoBehaviour
 
   // private SuperTextMesh activatedAbilityText;
 
-  // public TextMeshProUGUI selectedSkillText;
+  public SuperTextMesh selectedSkillText;
+  public SuperTextMesh selectedSkillDescriptionText;
   // public TextMeshProUGUI skill1ValueText;
   // public TextMeshProUGUI skill2TitleText;
   // public TextMeshProUGUI skill2ValueText;
@@ -48,6 +49,9 @@ public class PlayerHUD : MonoBehaviour
       healthBar.character = playerController; //todo: anywhere but update please!
       carapaceBar.character = playerController;
       staminaBar.character = playerController;
+      Debug.Log("display name: " + playerController.characterSkills[playerController.selectedSkillIdx].displayName);
+      selectedSkillText.text = playerController.characterSkills[playerController.selectedSkillIdx].displayName;
+      selectedSkillDescriptionText.text = playerController.characterSkills[playerController.selectedSkillIdx].description;
       if (playerController.GetCharacterVital(CharacterVital.CurrentHealth) > 0 && diedText.text != " ")
       {
         diedText.text = " ";

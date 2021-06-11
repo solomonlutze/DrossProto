@@ -280,6 +280,7 @@ public class Character : WorldObject
 
   public CircleCollider2D circleCollider;
   public BoxCollider2D boxCollider; // used for calculating collisions w/ tiles while changing floor layer
+  public PolygonCollider2D polygonCollider; // used for calculating collisions w/ tiles while changing floor layer
   public CharacterVisuals characterVisuals;
   // public AnimatorController animatorController;
 
@@ -355,6 +356,7 @@ public class Character : WorldObject
     orientation = transform.Find("Orientation");
     circleCollider = GetComponent<CircleCollider2D>();
     boxCollider = GetComponent<BoxCollider2D>();
+    polygonCollider = GetComponent<PolygonCollider2D>();
     animator = characterVisuals.GetComponent<Animator>();
     Debug.Log("character awake");
     if (orientation == null)
@@ -550,8 +552,10 @@ public class Character : WorldObject
     }
     else if (activeSkill.CanAdvanceSkillEffectSet(this) && queuedSkill == activeSkill)
     {
+      Debug.Log("receiving input");
       if (CanUseSkill(skill, currentSkillEffectIndex + 1))
       {
+        Debug.Log("can use skill, advancing");
         AdvanceSkillEffectSet();
       }
       queuedSkill = null;
@@ -604,10 +608,11 @@ public class Character : WorldObject
     currentSkillEffectIndex = 0;
     while (currentSkillEffectSetIndex < activeSkill.skillEffectSets.Length - 1)
     {
+      Debug.Log("advance skill effect set");
       currentSkillEffectSetIndex++;
-      if (CanUseSkill(activeSkill, currentSkillEffectSetIndex))
+      if (ShouldUseSkillEffectSet(activeSkill, currentSkillEffectSetIndex) && CanUseSkill(activeSkill, currentSkillEffectSetIndex))
       {
-        activeSkill.BeginSkillEffect(this);
+        BeginSkillEffect();
         queuedSkill = null;
         return;
       }
@@ -834,7 +839,6 @@ public class Character : WorldObject
       else
       {
         animator.SetBool("IsWalking", true);
-        AdjustCurrentStamina(-GetMovementStaminaCost());
         timeMoving += Time.deltaTime;
         timeStandingStill = 0f;
       }
@@ -947,8 +951,12 @@ public class Character : WorldObject
   //   return 0; // try not to do this please
   // }
 
-  public float CalculateMovementProgressIncrement(NormalizedCurve movementCurve)
+  public float CalculateMovementProgressIncrement(NormalizedCurve movementCurve, bool isContinuous = false)
   {
+    if (isContinuous)
+    {
+      return movementCurve.magnitude.Resolve(this) * Time.fixedDeltaTime;
+    }
     return movementCurve.Evaluate(this, Mathf.Min(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this), 1))
     - movementCurve.Evaluate(this, Mathf.Max((timeSpentInSkillEffect - Time.fixedDeltaTime) / activeSkill.GetActiveEffectDuration(this), 0));
   }
@@ -1067,14 +1075,6 @@ public class Character : WorldObject
     {
       ascendingDescendingState = AscendingDescendingState.Descending;
     }
-    if (ascending)
-    {
-      transform.position -= new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
-    }
-    else if (descending)
-    {
-      transform.position += new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
-    }
     // if we're above our current floor by > 1, change our floor
     if (transform.position.z - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) < -1) // add ceiling check
     {
@@ -1088,6 +1088,14 @@ public class Character : WorldObject
     {
       transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
       ascendingDescendingState = AscendingDescendingState.None;
+    }
+    if (ascending)
+    {
+      transform.position -= new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
+    }
+    else if (descending)
+    {
+      transform.position += new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
     }
   }
 
@@ -1149,7 +1157,7 @@ public class Character : WorldObject
   protected bool ShouldUseSkillEffectSet(CharacterSkillData skillData, int idx = 0)
   {
     return
-      (skillData.skillEffectSets[idx].alwaysExecute || activeSkill != queuedSkill);
+      (skillData.skillEffectSets[idx].alwaysExecute || activeSkill == queuedSkill);
   }
   protected virtual bool CanUseSkill(CharacterSkillData skillData, int effectSetIndex = 0)
   {
@@ -1657,12 +1665,37 @@ public class Character : WorldObject
 
   protected HashSet<EnvironmentTileInfo> GetTouchingTiles(FloorLayer layerToConsider)
   {
-    return new HashSet<EnvironmentTileInfo> {
-      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider)
-    };
+    // return new HashSet<EnvironmentTileInfo> {
+    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
+    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
+    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
+    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider)
+    // };
+    HashSet<EnvironmentTileInfo> touchingTiles = new HashSet<EnvironmentTileInfo>();
+    foreach (Vector2 point in polygonCollider.points)
+    {
+      touchingTiles.Add(GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(point.x, point.y, transform.position.z), layerToConsider));
+    }
+    return touchingTiles;
+    // return new HashSet<EnvironmentTileInfo> {
+    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
+    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
+    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
+    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider)
+    // };
+  }
+
+  public bool TouchingTileWithTag(TileTag tag)
+  {
+    HashSet<EnvironmentTileInfo> touchingTiles = GetTouchingTiles(currentFloor);
+    foreach (EnvironmentTileInfo tile in touchingTiles)
+    {
+      if (tile.HasTileTag(tag))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   protected virtual bool AllTilesOnTargetFloorEmpty(FloorLayer targetFloor)
@@ -1912,11 +1945,12 @@ public class Character : WorldObject
     //Consumed by physics so needs to happen in fixedupdate. Might still suck?
     if (UsingSkill() && activeSkill.SkillMovesCharacterForward(this))
     {
-      easedSkillForwardMovementProgressIncrement = (CalculateMovementProgressIncrement(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveForward)));
+      easedSkillForwardMovementProgressIncrement = (CalculateMovementProgressIncrement(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveForward), activeSkill.IsContinuous(this)));
     }
     if (UsingSkill() && activeSkill.SkillMovesCharacterVertically(this))
     {
-      easedSkillUpwardMovementProgressIncrement = (CalculateMovementProgressIncrement(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp)));
+      easedSkillUpwardMovementProgressIncrement = (CalculateMovementProgressIncrement(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp), activeSkill.IsContinuous(this)));
+      Debug.Log("move up? " + easedSkillUpwardMovementProgressIncrement);
       transform.position -= new Vector3(0, 0, easedSkillUpwardMovementProgressIncrement);
     }
   }

@@ -98,7 +98,10 @@ public class CharacterSkillData : ScriptableObject
   {
     return GetActiveSkillEffect(owner).advanceable && owner.currentSkillEffectSetIndex < skillEffectSets.Length - 1; //shouldn't need that last condition. don't mark the last skill effect advanceable!!
   }
-
+  public bool IsContinuous(Character owner)
+  {
+    return GetActiveSkillEffect(owner).useType == SkillEffectType.Continuous;
+  }
   // a skill _EFFECT_ is interruptable, but the ENTIRE SKILL gets interrupted.
   public bool SkillIsInterruptable(Character owner)
   {
