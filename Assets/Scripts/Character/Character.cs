@@ -280,7 +280,8 @@ public class Character : WorldObject
 
   public CircleCollider2D circleCollider;
   public BoxCollider2D boxCollider; // used for calculating collisions w/ tiles while changing floor layer
-  public PolygonCollider2D polygonCollider; // used for calculating collisions w/ tiles while changing floor layer
+  public PolygonCollider2D physicsCollider; // used for calculating collisions w/ actual objects
+  public PolygonCollider2D touchingCollider; // used for eg. deciding if we're touching a wall
   public CharacterVisuals characterVisuals;
   // public AnimatorController animatorController;
 
@@ -356,9 +357,8 @@ public class Character : WorldObject
     orientation = transform.Find("Orientation");
     circleCollider = GetComponent<CircleCollider2D>();
     boxCollider = GetComponent<BoxCollider2D>();
-    polygonCollider = GetComponent<PolygonCollider2D>();
+    physicsCollider = GetComponent<PolygonCollider2D>();
     animator = characterVisuals.GetComponent<Animator>();
-    Debug.Log("character awake");
     if (orientation == null)
     {
       Debug.LogError("No object named 'Orientation' on Character object: " + gameObject.name);
@@ -489,13 +489,14 @@ public class Character : WorldObject
     HandleCooldowns();
     HandleConditionallyActivatedTraits();
     HandleAscendOrDescend();
+    HandleVerticalMotion(); // it's DIFFERENT OK
   }
 
   // physics biz. phbyzics
   protected virtual void FixedUpdate()
   {
-    HandleSkillMovement(); // it's different ok
-    HandleKnockbackCooldown(); // it's different ok
+    HandleSkillMovement();
+    HandleKnockbackCooldown();
     CalculateMovement();
   }
 
@@ -1071,34 +1072,91 @@ public class Character : WorldObject
 
   public void HandleAscendOrDescend()
   {
-    if (!ascending && !descending && IsMidair() && !UsingVerticalMovementSkill())
-    {
-      ascendingDescendingState = AscendingDescendingState.Descending;
-    }
-    // if we're above our current floor by > 1, change our floor
-    if (transform.position.z - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) < -1) // add ceiling check
-    {
-      SetCurrentFloor(currentFloor + 1);
-    }
-    else if (transform.position.z - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) > 0) // add floor check
-    {
-      SetCurrentFloor(currentFloor - 1);
-    }
-    if ((transform.position.z % 1) > .9 && !UsingVerticalMovementSkill())
-    {
-      transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
-      ascendingDescendingState = AscendingDescendingState.None;
-    }
+
+    float increment = (1 / ascendDescendSpeed * Time.deltaTime);
     if (ascending)
     {
-      transform.position -= new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
+      if ((transform.position.z - increment) - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) < -1)
+      {
+        // we will have arrived!
+        SetCurrentFloor(currentFloor + 1);
+        transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
+        ascendingDescendingState = AscendingDescendingState.None;
+        return;
+      }
+      transform.position -= new Vector3(0, 0, increment);
     }
     else if (descending)
     {
-      transform.position += new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
+      if ((transform.position.z + increment) - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) > 0)
+      {
+        // we will have arrived!
+        transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
+        ascendingDescendingState = AscendingDescendingState.None;
+        return;
+      }
+      transform.position += new Vector3(0, 0, increment);
     }
+
+
   }
 
+  // TODO: probably a lot
+  // - DRY up checking for arrival at next floor and rounding position if so
+  // - include skill motion
+  // - make sure there's ceiling checks on everything
+  // test this??
+  public void HandleVerticalMotion()
+  {
+    if (ShouldFall())
+    {
+      if (transform.position.z % 1 == 0)
+      {
+        SetCurrentFloor(currentFloor - 1);
+      }
+      transform.position += new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
+    }
+
+    // // if we're above our current floor by > 1, change our floor
+    // if (transform.position.z - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) < -1)
+    // {
+
+    //   if (AllTilesOnTargetFloorEmpty(currentFloor + 1)) // ceiling check
+    //   {
+    //     SetCurrentFloor(currentFloor + 1);
+    //   }
+    //   else
+    //   {
+    //     EndSkill();
+    //   }
+    // }
+    // else if (transform.position.z - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) > 0)
+    // {
+    //   if (AllTilesOnTargetFloorEmpty(currentFloor)) // floor check
+    //   {
+    //     SetCurrentFloor(currentFloor - 1);
+    //     transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
+    //     ascendingDescendingState = AscendingDescendingState.None;
+    //   }
+    //   else
+    //   {
+    //     EndSkill();
+    //   }
+    // }
+    // if ((transform.position.z % 1) > .9 && !UsingVerticalMovementSkill())
+    // {
+    //   transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
+    //   ascendingDescendingState = AscendingDescendingState.None;
+    // }
+    // if (ascending)
+    // {
+    //   transform.position -= new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
+    // }
+    // else if (descending)
+    // {
+    //   transform.position += new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
+    // }
+  }
   // Can move UDLR on current floor
   protected virtual bool CanMove()
   {
@@ -1663,26 +1721,26 @@ public class Character : WorldObject
     }
   }
 
+  // Returns tiles we are "in contact with" but not necessarily overlapping
   protected HashSet<EnvironmentTileInfo> GetTouchingTiles(FloorLayer layerToConsider)
   {
-    // return new HashSet<EnvironmentTileInfo> {
-    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider)
-    // };
     HashSet<EnvironmentTileInfo> touchingTiles = new HashSet<EnvironmentTileInfo>();
-    foreach (Vector2 point in polygonCollider.points)
+    foreach (Vector2 point in touchingCollider.points)
     {
       touchingTiles.Add(GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(point.x, point.y, transform.position.z), layerToConsider));
     }
     return touchingTiles;
-    // return new HashSet<EnvironmentTileInfo> {
-    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-    //   GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider)
-    // };
+  }
+
+  // Returns tiles we are, or would be, overlapping
+  protected HashSet<EnvironmentTileInfo> GetOverlappingTiles(FloorLayer layerToConsider)
+  {
+    HashSet<EnvironmentTileInfo> overlappingTiles = new HashSet<EnvironmentTileInfo>();
+    foreach (Vector2 point in physicsCollider.points)
+    {
+      overlappingTiles.Add(GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(point.x, point.y, transform.position.z), layerToConsider));
+    }
+    return overlappingTiles;
   }
 
   public bool TouchingTileWithTag(TileTag tag)
@@ -1702,8 +1760,8 @@ public class Character : WorldObject
   {
     // if we're flying, every tile above us needs to be empty.
 
-    HashSet<EnvironmentTileInfo> touchingTiles = GetTouchingTiles(targetFloor);
-    foreach (EnvironmentTileInfo tile in touchingTiles)
+    HashSet<EnvironmentTileInfo> overlappingTiles = GetOverlappingTiles(targetFloor);
+    foreach (EnvironmentTileInfo tile in overlappingTiles)
     {
 
       if (!tile.IsEmpty())
@@ -1717,15 +1775,15 @@ public class Character : WorldObject
   protected virtual bool AllTilesOnTargetFloorClearOfObjects(FloorLayer targetFloor)
   {
 
-    HashSet<EnvironmentTileInfo> touchingTiles = GetTouchingTiles(targetFloor);
-    foreach (EnvironmentTileInfo tile in touchingTiles)
+    HashSet<EnvironmentTileInfo> overlappingTiles = GetOverlappingTiles(targetFloor);
+    foreach (EnvironmentTileInfo tile in overlappingTiles)
     {
       if (tile.HasSolidObject()) { return false; }
     }
     return true;
   }
 
-  protected virtual void HandleFalling() // we have removed sticking!! make it stick yourself!!!
+  protected virtual bool ShouldFall() // we have removed sticking!! make it stick yourself!!!
   {
     if (
         activeMovementAbilities.Contains(CharacterMovementAbility.Hover)
@@ -1737,18 +1795,21 @@ public class Character : WorldObject
           || DashingPreventsFalling()
         )
     {
-      return; // abilities prevent falling!
+      return false; // abilities prevent falling!
     }
-    if (InCrit()) { return; }
-    HashSet<EnvironmentTileInfo> touchingTiles = GetTouchingTiles(currentFloor);
-    foreach (EnvironmentTileInfo tile in touchingTiles)
+    if (transform.position.z % 1 != 0)
+    {
+      return true;
+    }
+    HashSet<EnvironmentTileInfo> overlappingTiles = GetOverlappingTiles(currentFloor);
+    foreach (EnvironmentTileInfo tile in overlappingTiles)
     {
       if (tile.objectTileType != null || tile.groundTileType != null)
       {
-        return; // At least one corner is on a tile
+        return false; // At least one corner is on a tile
       }
     }
-    DescendOneFloor();
+    return true;
   }
 
   protected virtual void HandleTile()
@@ -1767,10 +1828,10 @@ public class Character : WorldObject
       currentTile = tile;
     }
 
-    if (currentTile.IsEmpty())
-    {
-      HandleFalling();
-    }
+    // if (currentTile.IsEmpty())
+    // {
+    //   ShouldFall();
+    // }
     TileLocation nowTileLocation = CalculateCurrentTileLocation();
     if (currentTileLocation != nowTileLocation)
     {
