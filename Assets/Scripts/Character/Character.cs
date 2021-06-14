@@ -368,7 +368,6 @@ public class Character : WorldObject
 
   protected virtual void Start()
   {
-    Debug.Log("character Start");
     movementInput = Vector2.zero;
     orientTowards = Vector3.zero;
     if (po == null)
@@ -381,7 +380,6 @@ public class Character : WorldObject
 
   protected virtual void Init()
   {
-    Debug.Log("character init");
     sourceInvulnerabilities = new List<string>();
     conditionallyActivatedTraitEffects = new List<TraitEffect>();
     ascendingDescendingState = AscendingDescendingState.None;
@@ -488,13 +486,13 @@ public class Character : WorldObject
     HandleSkills();
     HandleCooldowns();
     HandleConditionallyActivatedTraits();
-    HandleAscendOrDescend();
-    HandleVerticalMotion(); // it's DIFFERENT OK
   }
 
   // physics biz. phbyzics
   protected virtual void FixedUpdate()
   {
+    HandleAscendOrDescend();
+    HandleVerticalMotion(); // it's DIFFERENT OK
     HandleSkillMovement();
     HandleKnockbackCooldown();
     CalculateMovement();
@@ -541,7 +539,6 @@ public class Character : WorldObject
 
   public void HandleSkillInput(CharacterSkillData skill)
   {
-    Debug.Log("receiving input for skill " + skill);
     QueueSkill(skill);
     if (!UsingSkill())
     {
@@ -553,10 +550,8 @@ public class Character : WorldObject
     }
     else if (activeSkill.CanAdvanceSkillEffectSet(this) && queuedSkill == activeSkill)
     {
-      Debug.Log("receiving input");
       if (CanUseSkill(skill, currentSkillEffectIndex + 1))
       {
-        Debug.Log("can use skill, advancing");
         AdvanceSkillEffectSet();
       }
       queuedSkill = null;
@@ -609,7 +604,6 @@ public class Character : WorldObject
     currentSkillEffectIndex = 0;
     while (currentSkillEffectSetIndex < activeSkill.skillEffectSets.Length - 1)
     {
-      Debug.Log("advance skill effect set");
       currentSkillEffectSetIndex++;
       if (ShouldUseSkillEffectSet(activeSkill, currentSkillEffectSetIndex) && CanUseSkill(activeSkill, currentSkillEffectSetIndex))
       {
@@ -1067,7 +1061,7 @@ public class Character : WorldObject
 
   public bool IsMidair()
   {
-    return ascendingDescendingState != AscendingDescendingState.None || (Math.Abs(transform.position.z) % 1 > .01f);
+    return ascendingDescendingState != AscendingDescendingState.None || GetZOffsetFromCurrentFloor() != 0;
   }
 
   // Note: increment should be positive for ascent, and negative for descent.
@@ -1080,19 +1074,20 @@ public class Character : WorldObject
     { // attempting to go down a floor
       if (!CanPassThroughFloorLayer(currentFloor))
       {
-        Debug.Log("trying to pass through floor but can't");
+        transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
         return;
       }
+      SetCurrentFloor(currentFloor - 1);
     }
     else if (GetZOffsetFromCurrentFloor(increment) > 1)
     {
       if (!CanPassThroughFloorLayer(currentFloor + 1))
       {
-        Debug.Log("trying to pass through ceiling but can't");
+        EndSkill();
         return;
       }
+      SetCurrentFloor(currentFloor + 1);
     }
-    Debug.Log("adjusting vertical by " + (-increment));
     transform.position += new Vector3(0, 0, -increment);
   }
 
@@ -1143,37 +1138,32 @@ public class Character : WorldObject
     float increment = 0;
     if (ShouldFall())
     {
-      Debug.Log("should fall");
       increment = -1 / ascendDescendSpeed * Time.deltaTime;
-      // if (transform.position.z % 1 == 0)
-      // {
-      //   SetCurrentFloor(currentFloor - 1);
-      // }
     }
-    else if (UsingSkill() && activeSkill.SkillMovesCharacterVertically(this))
+    if (UsingSkill() && activeSkill.SkillMovesCharacterVertically(this))
     {
       easedSkillUpwardMovementProgressIncrement = (CalculateMovementProgressIncrement(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp), activeSkill.IsContinuous(this)));
       increment = easedSkillUpwardMovementProgressIncrement;
     }
-    if (increment != 0)
-    {
-      if (increment < 0) // going down
-      {
-        if (transform.position.z % 1 == 0)
-        {
-          SetCurrentFloor(currentFloor - 1);
-        }
-      }
-      else
-      { // going up
-        if (GetZOffsetFromCurrentFloor(increment) > 1)
-        {
-          SetCurrentFloor(currentFloor + 1);
-        }
-      }
+    // if (increment != 0)
+    // {
+    // if (increment < 0) // going down
+    // {
+    //   if (transform.position.z % 1 == 0)
+    //   {
+    //     SetCurrentFloor(currentFloor - 1);
+    //   }
+    // }
+    // else
+    // { // going up
+    //   if (GetZOffsetFromCurrentFloor(increment) > 1)
+    //   {
+    //     SetCurrentFloor(currentFloor + 1);
+    //   }
+    // }
 
-      AdjustVerticalPosition(increment);
-    }
+    AdjustVerticalPosition(increment);
+    // }
 
     // // if we're above our current floor by > 1, change our floor
     // if (transform.position.z - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) < -1)
@@ -1322,7 +1312,6 @@ public class Character : WorldObject
     if (usingCrit) { return; }
     if (DashingPreventsDamage())
     {
-      Debug.Log("Dashing prevents damage!");
       return;
     }
     if (damageSource.isCritAttack && !damageSource.IsOwnedBy(critVictimOf)) { return; }
@@ -1331,7 +1320,6 @@ public class Character : WorldObject
       && !damageSource.ignoresInvulnerability)
     { return; }
     float damageAfterResistances = damageSource.CalculateDamageAfterResistances(this);
-    Debug.Log("damage before resist: " + damageSource.damageAmount + "; damage after: " + damageAfterResistances);
     if (
       damageAfterResistances <= 0
       && damageSource.damageAmount > 0
@@ -1419,7 +1407,6 @@ public class Character : WorldObject
     if (invulnerabilityDuration <= 0) { yield break; }
     if (damageSource as EnvironmentalDamage != null)
     {
-      Debug.Log("modifying invulnerability duration");
       invulnerabilityDuration *= GetHazardImmunityDurationMultiplier();
     }
     string src = damageSource.sourceString;
@@ -1663,7 +1650,6 @@ public class Character : WorldObject
       {
         case CharacterStat.MoveAcceleration:
           multiplier = activeSkill.GetMultiplierSkillProperty(this, SkillEffectFloatProperty.MoveSpeed);
-          Debug.Log("multiplier: " + multiplier);
           break;
         case CharacterStat.RotationSpeed:
           multiplier = activeSkill.GetMultiplierSkillProperty(this, SkillEffectFloatProperty.RotationSpeed);
@@ -1747,7 +1733,6 @@ public class Character : WorldObject
     EnvironmentTileInfo et = GridManager.Instance.GetTileAtLocation(currentTileLocation);
     if (et.ChangesFloorLayer())
     {
-      Debug.Log("starting ascent or descent? " + et.AscendsOrDescends());
       StartAscentOrDescent(et.AscendsOrDescends());
     }
   }
@@ -1873,7 +1858,7 @@ public class Character : WorldObject
 
   bool CanPassThroughFloorLayer(FloorLayer targetFloor)
   {
-    HashSet<EnvironmentTileInfo> overlappingTiles = GetOverlappingTiles(currentFloor);
+    HashSet<EnvironmentTileInfo> overlappingTiles = GetOverlappingTiles(targetFloor);
     foreach (EnvironmentTileInfo tile in overlappingTiles)
     {
       if (tile.objectTileType != null || tile.groundTileType != null)
@@ -1938,7 +1923,6 @@ public class Character : WorldObject
 
   protected void RespawnCharacterAtLastSafeLocation()
   {
-    Debug.Log("Got respawned????");
     EndSkill();
     transform.position =
       new Vector3(lastSafeTileLocation.cellCenterWorldPosition.x, lastSafeTileLocation.cellCenterWorldPosition.y, GridManager.GetZOffsetForGameObjectLayer(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
