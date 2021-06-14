@@ -1070,13 +1070,45 @@ public class Character : WorldObject
     return ascendingDescendingState != AscendingDescendingState.None || (Math.Abs(transform.position.z) % 1 > .01f);
   }
 
+  // Note: increment should be positive for ascent, and negative for descent.
+  // You know, what we expect!
+  // this function will handle translating that into the fucked-up reality of our level layout situation
+  void AdjustVerticalPosition(float increment)
+  {
+    if (increment == 0) { return; }
+    if (GetZOffsetFromCurrentFloor(increment) < 0)
+    { // attempting to go down a floor
+      if (!CanPassThroughFloorLayer(currentFloor))
+      {
+        Debug.Log("trying to pass through floor but can't");
+        return;
+      }
+    }
+    else if (GetZOffsetFromCurrentFloor(increment) > 1)
+    {
+      if (!CanPassThroughFloorLayer(currentFloor + 1))
+      {
+        Debug.Log("trying to pass through ceiling but can't");
+        return;
+      }
+    }
+    Debug.Log("adjusting vertical by " + (-increment));
+    transform.position += new Vector3(0, 0, -increment);
+  }
+
+  // again this returns numbers you'd expect - positive if above, negative if below.
+  float GetZOffsetFromCurrentFloor(float withIncrement = 0)
+  {
+    return GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - (transform.position.z - withIncrement);
+  }
+
   public void HandleAscendOrDescend()
   {
 
     float increment = (1 / ascendDescendSpeed * Time.deltaTime);
     if (ascending)
     {
-      if ((transform.position.z - increment) - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) < -1)
+      if (GetZOffsetFromCurrentFloor(increment) > 1)
       {
         // we will have arrived!
         SetCurrentFloor(currentFloor + 1);
@@ -1084,18 +1116,18 @@ public class Character : WorldObject
         ascendingDescendingState = AscendingDescendingState.None;
         return;
       }
-      transform.position -= new Vector3(0, 0, increment);
+      AdjustVerticalPosition(increment);
     }
     else if (descending)
     {
-      if ((transform.position.z + increment) - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) > 0)
+      if (GetZOffsetFromCurrentFloor(-increment) < 0)
       {
         // we will have arrived!
         transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
         ascendingDescendingState = AscendingDescendingState.None;
         return;
       }
-      transform.position += new Vector3(0, 0, increment);
+      AdjustVerticalPosition(-increment);
     }
 
 
@@ -1108,13 +1140,39 @@ public class Character : WorldObject
   // test this??
   public void HandleVerticalMotion()
   {
+    float increment = 0;
     if (ShouldFall())
     {
-      if (transform.position.z % 1 == 0)
+      Debug.Log("should fall");
+      increment = -1 / ascendDescendSpeed * Time.deltaTime;
+      // if (transform.position.z % 1 == 0)
+      // {
+      //   SetCurrentFloor(currentFloor - 1);
+      // }
+    }
+    else if (UsingSkill() && activeSkill.SkillMovesCharacterVertically(this))
+    {
+      easedSkillUpwardMovementProgressIncrement = (CalculateMovementProgressIncrement(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp), activeSkill.IsContinuous(this)));
+      increment = easedSkillUpwardMovementProgressIncrement;
+    }
+    if (increment != 0)
+    {
+      if (increment < 0) // going down
       {
-        SetCurrentFloor(currentFloor - 1);
+        if (transform.position.z % 1 == 0)
+        {
+          SetCurrentFloor(currentFloor - 1);
+        }
       }
-      transform.position += new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
+      else
+      { // going up
+        if (GetZOffsetFromCurrentFloor(increment) > 1)
+        {
+          SetCurrentFloor(currentFloor + 1);
+        }
+      }
+
+      AdjustVerticalPosition(increment);
     }
 
     // // if we're above our current floor by > 1, change our floor
@@ -1797,10 +1855,24 @@ public class Character : WorldObject
     {
       return false; // abilities prevent falling!
     }
-    if (transform.position.z % 1 != 0)
+    if (IsMidair())
     {
       return true;
     }
+    return CanPassThroughFloorLayer(currentFloor);
+    // HashSet<EnvironmentTileInfo> overlappingTiles = GetOverlappingTiles(currentFloor);
+    // foreach (EnvironmentTileInfo tile in overlappingTiles)
+    // {
+    //   if (tile.objectTileType != null || tile.groundTileType != null)
+    //   {
+    //     return false; // At least one corner is on a tile
+    //   }
+    // }
+    // return true;
+  }
+
+  bool CanPassThroughFloorLayer(FloorLayer targetFloor)
+  {
     HashSet<EnvironmentTileInfo> overlappingTiles = GetOverlappingTiles(currentFloor);
     foreach (EnvironmentTileInfo tile in overlappingTiles)
     {
@@ -2007,12 +2079,6 @@ public class Character : WorldObject
     if (UsingSkill() && activeSkill.SkillMovesCharacterForward(this))
     {
       easedSkillForwardMovementProgressIncrement = (CalculateMovementProgressIncrement(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveForward), activeSkill.IsContinuous(this)));
-    }
-    if (UsingSkill() && activeSkill.SkillMovesCharacterVertically(this))
-    {
-      easedSkillUpwardMovementProgressIncrement = (CalculateMovementProgressIncrement(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp), activeSkill.IsContinuous(this)));
-      Debug.Log("move up? " + easedSkillUpwardMovementProgressIncrement);
-      transform.position -= new Vector3(0, 0, easedSkillUpwardMovementProgressIncrement);
     }
   }
 
