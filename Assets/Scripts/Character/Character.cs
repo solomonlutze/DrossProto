@@ -1835,7 +1835,6 @@ public class Character : WorldObject
           || flying
           || ascending
           || descending
-          || DashingPreventsFalling()
         )
     {
       return false; // abilities prevent falling!
@@ -1844,6 +1843,7 @@ public class Character : WorldObject
     {
       return true;
     }
+
     return CanPassThroughFloorLayer(currentFloor);
     // HashSet<EnvironmentTileInfo> overlappingTiles = GetOverlappingTiles(currentFloor);
     // foreach (EnvironmentTileInfo tile in overlappingTiles)

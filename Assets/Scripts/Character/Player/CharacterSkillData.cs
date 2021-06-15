@@ -117,8 +117,10 @@ public class CharacterSkillData : ScriptableObject
   }
   public bool SkillMovesCharacterVertically(Character owner)
   {
-    return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectCurveProperty.MoveUp);
+    return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectCurveProperty.MoveUp)
+    && (GetActiveSkillEffect(owner).movement[SkillEffectCurveProperty.MoveUp].magnitude.Resolve(owner) > 0);
   }
+
   public bool SkillHasMovementAbility(Character owner, CharacterMovementAbility movementAbility)
   {
     return GetActiveSkillEffect(owner).movementAbilities.Contains(movementAbility);
