@@ -7,7 +7,7 @@ parent:
 ---
 Hey, not gonna do a whole thing in here. 
 
-You can find each of the three enemies through the exits, and you can see the readme for how to play stuff. 
+Use WASD to move. Press Z and X to cycle skills, and left click to activate them. Explore a little - there's no enemies right now, it's pretty relaxed.
 
 Good luck!
 ===

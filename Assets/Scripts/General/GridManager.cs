@@ -302,6 +302,7 @@ public class GridManager : Singleton<GridManager>
       groundTilemap = layerFloor.groundTilemap;
       objectTilemap = layerFloor.objectTilemap;
       visibilityTilemap = layerFloor.visibilityTilemap;
+      visibilityTilemap.gameObject.SetActive(false);
       for (int x = minXAcrossAllFloors; x < maxXAcrossAllFloors; x++)
       {
         // for (int y = minYAcrossAllFloors; y < maxYAcrossAllFloors; y++)

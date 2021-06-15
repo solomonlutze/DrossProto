@@ -457,12 +457,12 @@ public class PlayerController : Character
           PreviousSelectedSkill();
           return;
         }
-        else if (Input.GetButtonDown("AdvanceSpell"))
-        {
-          Debug.Log("advance spell??");
-          AdvanceSelectedSpell();
-          return;
-        }
+        // else if (Input.GetButtonDown("AdvanceSpell"))
+        // {
+        //   Debug.Log("advance spell??");
+        //   AdvanceSelectedSpell();
+        //   return;
+        // }
         else if (Input.GetButtonDown("AdvanceSelectedAction"))
         {
           AdvanceSelectedContextualAction();
