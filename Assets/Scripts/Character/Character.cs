@@ -1845,15 +1845,6 @@ public class Character : WorldObject
     }
 
     return CanPassThroughFloorLayer(currentFloor);
-    // HashSet<EnvironmentTileInfo> overlappingTiles = GetOverlappingTiles(currentFloor);
-    // foreach (EnvironmentTileInfo tile in overlappingTiles)
-    // {
-    //   if (tile.objectTileType != null || tile.groundTileType != null)
-    //   {
-    //     return false; // At least one corner is on a tile
-    //   }
-    // }
-    // return true;
   }
 
   bool CanPassThroughFloorLayer(FloorLayer targetFloor)
