@@ -1136,14 +1136,19 @@ public class Character : WorldObject
   public void HandleVerticalMotion()
   {
     float increment = 0;
+    float animationValue = 0;
     if (ShouldFall())
     {
+      animationValue = .3f;
       increment = -1 / ascendDescendSpeed * Time.deltaTime;
     }
     if (UsingSkill() && activeSkill.SkillMovesCharacterVertically(this))
     {
+      // animationValue = CalculateVerticalMovementAnimationSpeed(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp), activeSkill.IsContinuous(this));
       easedSkillUpwardMovementProgressIncrement = (CalculateMovementProgressIncrement(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp), activeSkill.IsContinuous(this)));
       increment = easedSkillUpwardMovementProgressIncrement;
+      animationValue = Mathf.Lerp(.5f, 1.5f, increment / Time.deltaTime);
+      Debug.Log("animationValue: " + animationValue);
     }
     // if (increment != 0)
     // {
@@ -1162,6 +1167,7 @@ public class Character : WorldObject
     //   }
     // }
 
+    animator.SetFloat("VerticalMovementSpeed", animationValue);
     AdjustVerticalPosition(increment);
     // }
 
