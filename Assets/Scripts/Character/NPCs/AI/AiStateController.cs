@@ -102,12 +102,6 @@ public class AiStateController : Character
     }
   }
 
-  /*
-  * CHARACTER LOGIC
-  */
-  // Move in a straight line towards target, if able.
-  // Otherwise, seek pathfinding help
-
 
   protected override void HandleTile()
   {
@@ -426,14 +420,14 @@ public class AiStateController : Character
 
     yield return null;
     // yield return new WaitForSeconds(Random.Range(0.4f, 1.1f));
-    if (selectedAttackType == AttackType.Critical)
-    {
-      StartCoroutine(UseCritAttack());
-    }
-    else
-    {
-      HandleSkillInput(GetSelectedCharacterSkill()); // todo: fix this????
-    }
+    // if (selectedAttackType == AttackType.Critical)
+    // {
+    //   StartCoroutine(UseCritAttack());
+    // }
+    // else
+    // {
+    // HandleSkillInput(GetSelectedCharacterSkill()); // todo: fix this????
+    // }
     waitingToAttack = false;
   }
 

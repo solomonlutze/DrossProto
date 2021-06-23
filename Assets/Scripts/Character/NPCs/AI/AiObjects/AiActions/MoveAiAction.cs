@@ -61,7 +61,7 @@ public class MoveAiAction : AiAction
       if ((distanceFromTarget + .3f) > controller.minDistanceFromTarget)
       {
         movementInput = (targetWorldLocation.transform.position - controller.transform.position).normalized;
-        MaybeDash(controller, targetWorldLocation);
+        // MaybeDash(controller, targetWorldLocation);
       }
     }
     else

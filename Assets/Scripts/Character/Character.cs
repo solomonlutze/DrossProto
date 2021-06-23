@@ -539,6 +539,7 @@ public class Character : WorldObject
 
   public void HandleSkillInput(CharacterSkillData skill)
   {
+    Debug.Log("trying to use skill " + skill);
     QueueSkill(skill);
     if (!UsingSkill())
     {
@@ -1561,7 +1562,7 @@ public class Character : WorldObject
     }
     else
     {
-      return GetStat(CharacterStat.MoveAcceleration) * GetMoveSpeedMultiplier();
+      return GetStat(CharacterStat.MoveAcceleration); // * GetMoveSpeedMultiplier();
     }
   }
 
