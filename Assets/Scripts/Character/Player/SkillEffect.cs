@@ -98,7 +98,7 @@ public class SkillEffect
     for (int i = 0; i < weaponSpawns.Length; i++)
     {
       SkillRangeInfo info = new SkillRangeInfo(weaponSpawns[i]);
-      // infos.Add(weaponSpawns[i].attackData.GetAttackRangeInfo(ref info, info.maxRange, info.maxAngle));
+      infos.Add(weaponSpawns[i].attackData.GetAttackRangeInfo(ref info, owner, info.maxRange, info.maxAngle));
     }
     return infos;
   }

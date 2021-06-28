@@ -335,11 +335,11 @@ public class PlayerController : Character
               AscendOneFloor();
               return;
             }
-            else if (!flying && GetCanFly())
-            {
-              Fly();
-              return;
-            }
+            // else if (!flying && GetCanFly())
+            // {
+            //   Fly();
+            //   return;
+            // }
           }
           else if (Input.GetButtonDown("Descend"))
           {

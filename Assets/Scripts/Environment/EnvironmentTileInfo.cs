@@ -217,15 +217,15 @@ public class EnvironmentTileInfo
         return true;
       }
     }
-    foreach (CharacterAttribute attribute in groundTileType.attributesWhichBypassRespawn.Keys)
-    {
-      if (character.GetAttribute(attribute) > 0
-          && character.GetAttribute(attribute) >= groundTileType.attributesWhichBypassRespawn[attribute]
-      )
-      {
-        return true;
-      }
-    }
+    // foreach (CharacterAttribute attribute in groundTileType.attributesWhichBypassRespawn.Keys)
+    // {
+    //   if (character.GetAttribute(attribute) > 0
+    //       && character.GetAttribute(attribute) >= groundTileType.attributesWhichBypassRespawn[attribute]
+    //   )
+    //   {
+    //     return true;
+    //   }
+    // }
     return false;
   }
 

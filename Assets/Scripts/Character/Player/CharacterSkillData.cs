@@ -35,7 +35,8 @@ public class CharacterSkillData : ScriptableObject
   public string displayName;
   [TextArea]
   public string description;
-  public SkillRangeInfo[] skillRangeInfo;
+
+  bool isAttack = false;
   public SkillEffectSet[] skillEffectSets;
   // public SkillEffect[] skillEffects_old;
 
@@ -126,6 +127,11 @@ public class CharacterSkillData : ScriptableObject
     return GetActiveSkillEffect(owner).movementAbilities.Contains(movementAbility);
   }
 
+  public bool IsAttack()
+  {
+    return isAttack;
+  }
+
   public NormalizedCurve GetMovement(Character owner, SkillEffectCurveProperty movementProperty)
   {
     if (GetActiveSkillEffect(owner).movement.ContainsKey(movementProperty))
@@ -144,6 +150,25 @@ public class CharacterSkillData : ScriptableObject
     return 1;
   }
 
+  // We don't precalculate range info bc it may depend on character overrides
+  // When determining whether to use an attack we should examine the range of that specific skill effect set
+  // (the first set when deciding to use the attack, or the next set after the current one when deciding to continue a combo)
+  public SkillRangeInfo[] CalculateRangeInfosForSkillEffectSet(Character owner, int skillEffectSetIdx = 0)
+  {
+    List<SkillRangeInfo> effectRangeInfos = new List<SkillRangeInfo>();
+    if (skillEffectSetIdx < skillEffectSets.Length)
+    {
+      foreach (SkillEffect effect in skillEffectSets[skillEffectSetIdx].skillEffects)
+      {
+        effectRangeInfos.AddRange(effect.CalculateRangeInfos(owner));
+      }
+    }
+    return effectRangeInfos.ToArray();
+  }
+
+  // This may not be useful but could be used to determine whether we're "close enough" in an abstract way,
+  // vs specifically within range and angle of a particular attack effect.
+  // Also tho it's probably broken
   public float GetEffectiveRange(Character owner)
   {
     List<float> effectRanges = new List<float>();
@@ -157,15 +182,21 @@ public class CharacterSkillData : ScriptableObject
     return Mathf.Max(effectRanges.ToArray());
   }
 
-  // public void CalculateRangeInfos(Character owner)
-  // {
-  //   List<SkillRangeInfo> rangeInfo = new List<SkillRangeInfo>();
-  //   if (skillEffects_old.Length > 0)
-  //   {
-  //     rangeInfo = skillEffects_old[0].CalculateRangeInfos(owner);
-  //   }
-  //   skillRangeInfo = rangeInfo.ToArray();
-  // }
+  void SetIsAttack()
+  {
+    foreach (SkillEffectSet set in skillEffectSets)
+    {
+      foreach (SkillEffect effect in set.skillEffects)
+      {
+        if (effect.weaponSpawns.Length > 0)
+        {
+          isAttack = true;
+          return;
+        }
+      }
+    }
+    isAttack = false;
+  }
 
 #if UNITY_EDITOR
   [MenuItem("Assets/Create/Skills/CharacterSkillData")]
@@ -178,9 +209,9 @@ public class CharacterSkillData : ScriptableObject
   }
 #endif
 
-  //  public void OnValidate()
-  //  {
-  //CalculateRangeInfos();
-  // }
+  public void OnValidate()
+  {
+    SetIsAttack();
+  }
 
 }

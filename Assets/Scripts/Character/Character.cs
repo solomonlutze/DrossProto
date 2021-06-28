@@ -722,24 +722,20 @@ public class Character : WorldObject
     return characterSkills[idx].name;
   }
 
-  public float GetAttackRange(AttackType attack)
+  public SkillRangeInfo[] GetAttackRangeForSkill(CharacterSkillData skillData)
   {
-    return GetSkillDataForAttackType(attack).GetEffectiveRange(this);
-  }
-  public float GetAttackRange()
-  {
-    return GetSelectedCharacterSkill().GetEffectiveRange(this);
+    return skillData.CalculateRangeInfosForSkillEffectSet(this, activeSkill == skillData ? currentSkillEffectIndex + 1 : 0);
   }
 
-  public SkillRangeInfo[] GetAttackRangeInfo(AttackType attack)
-  {
-    return GetSkillDataForAttackType(attack).skillRangeInfo;
-  }
+  // public SkillRangeInfo[] GetAttackRangeInfo(AttackType attack)
+  // {
+  //   return GetSkillDataForAttackType(attack).skillRangeInfo;
+  // }
 
-  public SkillRangeInfo[] GetAttackRangeInfo()
-  {
-    return GetSelectedCharacterSkill().skillRangeInfo;
-  }
+  // public SkillRangeInfo[] GetAttackRangeInfo()
+  // {
+  //   return GetSelectedCharacterSkill().CalculateRangeInfosForSkillEffectSet(this, 0);
+  // }
 
   public int GetAttackRadiusInDegrees(int skillIdxForAttack)
   {
