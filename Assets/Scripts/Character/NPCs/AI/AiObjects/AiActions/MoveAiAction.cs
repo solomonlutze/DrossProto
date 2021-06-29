@@ -8,6 +8,9 @@ public class MoveAiAction : AiAction
   [Tooltip("angle between each step in movement option calculation, in degrees")]
   public int movementOptionsAngleInterval = 15;
 
+  [Tooltip("Distance to project out each option radius to check for hazards")]
+  public float movementOptionProjectRange = .5f;
+
   [Tooltip("max stamina * minimumRemainingStaminaProportion = the amount that has to be left after dashing")]
   float minimumRemainingStaminaProportionForDash = .4f;
   float maxAngleFromDashTarget = 5f;
@@ -53,6 +56,7 @@ public class MoveAiAction : AiAction
     {
       return;
     }
+    MoveLocally(controller, targetWorldLocation.transform.position);
     controller.lineToTargetIsClear = PathfindingSystem.Instance.IsPathClearOfHazards(
       targetWorldLocation.transform.position,
       targetWorldLocation.GetFloorLayer(),
@@ -95,9 +99,9 @@ public class MoveAiAction : AiAction
   }
 
 
-  void MoveLocally(AiStateController controller)
+  void MoveLocally(AiStateController controller, Vector3 targetWorldLocation)
   {
-
+    CalculateWeightedMovementOptions(controller, targetWorldLocation);
   }
 
   void CalculateWeightedMovementOptions(AiStateController controller, Vector3 targetPosition)
@@ -109,15 +113,20 @@ public class MoveAiAction : AiAction
     while (angle < 360)
     {
       Quaternion rot = Quaternion.AngleAxis(angle, Vector3.forward);
+      angle += movementOptionsAngleInterval;
       Vector3 possibleMovementDirection = rot * towardsTarget;
+      if (!PathfindingSystem.Instance.IsPathClearOfHazards(possibleMovementDirection.normalized * movementOptionProjectRange, controller.currentFloor, controller))
+      {
+        Debug.DrawLine(controller.transform.position, possibleMovementDirection.normalized * .5f, Color.red);
+        continue;
+      }
       float dotNormalized = (Vector3.Dot(towardsTarget, possibleMovementDirection) + 1) / 2;
-      Debug.DrawLine(controller.transform.position, possibleMovementDirection.normalized * dotNormalized * 2, Color.green);
+      Debug.DrawLine(controller.transform.position, possibleMovementDirection.normalized * dotNormalized, Color.green);
       if (dotNormalized > bestFitWeight)
       {
         bestFitAngle = angle;
         bestFitWeight = dotNormalized;
       }
-      angle += movementOptionsAngleInterval;
     }
 
   }

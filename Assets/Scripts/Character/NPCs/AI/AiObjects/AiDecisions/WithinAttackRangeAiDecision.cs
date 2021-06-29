@@ -23,7 +23,7 @@ public class WithinAttackRangeAiDecision : AiDecision
   {
     List<CharacterSkillData> viableAttacks = new List<CharacterSkillData>();
     // loop over attacks...
-    Debug.Log("Range from target: " + (controller.transform.position - controller.objectOfInterest.transform.position).magnitude);
+    // Debug.Log("Range from target: " + (controller.transform.position - controller.objectOfInterest.transform.position).magnitude);
     foreach (CharacterSkillData skillData in controller.attackSkills)
     {
       SkillRangeInfo[] rangeInfos = skillData.CalculateRangeInfosForSkillEffectSet(controller);
