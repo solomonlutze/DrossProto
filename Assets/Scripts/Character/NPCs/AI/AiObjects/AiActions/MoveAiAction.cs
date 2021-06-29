@@ -39,6 +39,9 @@ public class MoveAiAction : AiAction
   protected void MoveTowardsObjectOfInterest(AiStateController controller)
   {
     Vector2 movementInput = Vector2.zero;
+
+    // MoveLocally(controller, GameMaster.Instance.GetPlayerController().transform.position);
+    // return;
     WorldObject targetWorldLocation;
     if (controller.overrideDestination != null)
     {
@@ -56,7 +59,7 @@ public class MoveAiAction : AiAction
     {
       return;
     }
-    MoveLocally(controller, targetWorldLocation.transform.position);
+
     controller.lineToTargetIsClear = PathfindingSystem.Instance.IsPathClearOfHazards(
       targetWorldLocation.transform.position,
       targetWorldLocation.GetFloorLayer(),
@@ -99,7 +102,7 @@ public class MoveAiAction : AiAction
   }
 
 
-  void MoveLocally(AiStateController controller, Vector3 targetWorldLocation)
+  public void MoveLocally(AiStateController controller, Vector3 targetWorldLocation)
   {
     CalculateWeightedMovementOptions(controller, targetWorldLocation);
   }
@@ -107,27 +110,29 @@ public class MoveAiAction : AiAction
   void CalculateWeightedMovementOptions(AiStateController controller, Vector3 targetPosition)
   {
     int angle = 0;
-    int bestFitAngle = 0;
+    Vector2 bestFitInput = Vector2.zero;
     float bestFitWeight = 0;
-    Vector3 towardsTarget = controller.transform.position - targetPosition;
+    Vector3 towardsTarget = targetPosition - controller.transform.position;
+    Debug.DrawLine(targetPosition, controller.transform.position, Color.cyan);
     while (angle < 360)
     {
       Quaternion rot = Quaternion.AngleAxis(angle, Vector3.forward);
       angle += movementOptionsAngleInterval;
       Vector3 possibleMovementDirection = rot * towardsTarget;
-      if (!PathfindingSystem.Instance.IsPathClearOfHazards(possibleMovementDirection.normalized * movementOptionProjectRange, controller.currentFloor, controller))
+      if (!PathfindingSystem.Instance.IsPathClearOfHazards(controller.transform.position + possibleMovementDirection.normalized * movementOptionProjectRange, controller.currentFloor, controller))
       {
-        Debug.DrawLine(controller.transform.position, possibleMovementDirection.normalized * .5f, Color.red);
+        Debug.DrawLine(controller.transform.position, controller.transform.position + possibleMovementDirection.normalized * .5f, Color.red);
         continue;
       }
       float dotNormalized = (Vector3.Dot(towardsTarget, possibleMovementDirection) + 1) / 2;
-      Debug.DrawLine(controller.transform.position, possibleMovementDirection.normalized * dotNormalized, Color.green);
+      Debug.DrawLine(controller.transform.position, controller.transform.position + possibleMovementDirection.normalized * dotNormalized, Color.green);
       if (dotNormalized > bestFitWeight)
       {
-        bestFitAngle = angle;
+        bestFitInput = new Vector2(possibleMovementDirection.normalized.x, possibleMovementDirection.normalized.y);
         bestFitWeight = dotNormalized;
       }
     }
+    controller.SetMoveInput(bestFitInput);
 
   }
   void MaybeDash(AiStateController controller, WorldObject targetWorldLocation)

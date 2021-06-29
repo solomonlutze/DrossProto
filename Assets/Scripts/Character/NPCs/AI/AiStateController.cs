@@ -20,6 +20,7 @@ public class AiStateController : Character
   [Header("AI Attributes")]
   public bool DEBUGStopRecalculatingPath = false;
   public float attackAngleInDegrees = 45f;
+  public AiSettings aiSettings;
   public float maxTargetDistanceFromSpawnPoint = 15;
   public float minDistanceFromPathNode = .15f;
 
@@ -300,6 +301,15 @@ public class AiStateController : Character
       && (pathToTarget != null || lineToTargetIsClear || isCalculatingPath);
   }
 
+  public bool LineToTargetIsClear(WorldObject target)
+  {
+    return
+      PathfindingSystem.Instance.IsPathClearOfHazards(
+        target.transform.position,
+        target.GetFloorLayer(),
+        this
+      );
+  }
   public bool ObjectOfInterestWithinRangeOfSpawnPoint()
   {
     return
@@ -347,6 +357,18 @@ public class AiStateController : Character
     )
     {
       Debug.Log("too close to target - min range " + min);
+      return true;
+    }
+    return false;
+  }
+
+  public bool TooFarFromTarget(WorldObject target)
+  {
+
+    if ((transform.position - target.transform.position).sqrMagnitude < aiSettings.maxCombatDistance * aiSettings.maxCombatDistance
+    )
+    {
+      Debug.Log("too far from target - max range " + aiSettings.maxCombatDistance);
       return true;
     }
     return false;
