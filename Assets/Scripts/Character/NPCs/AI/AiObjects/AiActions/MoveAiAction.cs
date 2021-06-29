@@ -4,6 +4,10 @@ using UnityEngine;
 public class MoveAiAction : AiAction
 {
   public int hazardCrossingCost = -1;
+
+  [Tooltip("angle between each step in movement option calculation, in degrees")]
+  public int movementOptionsAngleInterval = 15;
+
   [Tooltip("max stamina * minimumRemainingStaminaProportion = the amount that has to be left after dashing")]
   float minimumRemainingStaminaProportionForDash = .4f;
   float maxAngleFromDashTarget = 5f;
@@ -90,6 +94,33 @@ public class MoveAiAction : AiAction
     controller.SetMoveInput(movementInput);
   }
 
+
+  void MoveLocally(AiStateController controller)
+  {
+
+  }
+
+  void CalculateWeightedMovementOptions(AiStateController controller, Vector3 targetPosition)
+  {
+    int angle = 0;
+    int bestFitAngle = 0;
+    float bestFitWeight = 0;
+    Vector3 towardsTarget = controller.transform.position - targetPosition;
+    while (angle < 360)
+    {
+      Quaternion rot = Quaternion.AngleAxis(angle, Vector3.forward);
+      Vector3 possibleMovementDirection = rot * towardsTarget;
+      float dotNormalized = (Vector3.Dot(towardsTarget, possibleMovementDirection) + 1) / 2;
+      Debug.DrawLine(controller.transform.position, possibleMovementDirection.normalized * dotNormalized * 2, Color.green);
+      if (dotNormalized > bestFitWeight)
+      {
+        bestFitAngle = angle;
+        bestFitWeight = dotNormalized;
+      }
+      angle += movementOptionsAngleInterval;
+    }
+
+  }
   void MaybeDash(AiStateController controller, WorldObject targetWorldLocation)
   {
     // if dashing keeps us above the stamina % threshold,
