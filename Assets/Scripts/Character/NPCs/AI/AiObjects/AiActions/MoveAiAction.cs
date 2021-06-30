@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 // Extend, don't instantiate
 public class MoveAiAction : AiAction
@@ -107,35 +108,49 @@ public class MoveAiAction : AiAction
     CalculateWeightedMovementOptions(controller, targetWorldLocation);
   }
 
+  // at each of these angles,
+  // 
   void CalculateWeightedMovementOptions(AiStateController controller, Vector3 targetPosition)
   {
     int angle = 0;
     Vector2 bestFitInput = Vector2.zero;
     float bestFitWeight = 0;
     Vector3 towardsTarget = targetPosition - controller.transform.position;
-    Vector3 desiredAngle = Quaternion.AngleAxis(controller.aiSettings.localMovementWeights[0].movementAngles[0], Vector3.forward) * towardsTarget;
-    Debug.DrawLine(desiredAngle.normalized * 1.25f + controller.transform.position, controller.transform.position, Color.cyan);
+    float normalizedDistance = (controller.transform.position - targetPosition).magnitude / controller.aiSettings.maxCombatDistance;
+    float weightSum = 0;
+    foreach (AiLocalMovementWeight movementWeight in controller.aiSettings.localMovementWeights)
+    {
+      weightSum += movementWeight.weightCurve.Evaluate(normalizedDistance);
+    }
     while (angle < 360)
     {
       Quaternion rot = Quaternion.AngleAxis(angle, Vector3.forward);
       angle += movementOptionsAngleInterval;
-      Vector3 possibleMovementDirection = rot * desiredAngle;
+      Vector3 possibleMovementDirection = rot * towardsTarget;
       if (!PathfindingSystem.Instance.IsPathClearOfHazards(controller.transform.position + possibleMovementDirection.normalized * movementOptionProjectRange, controller.currentFloor, controller))
       {
-        // Debug.DrawLine(controller.transform.position, controller.transform.position + possibleMovementDirection.normalized * .5f, Color.red);
         continue;
       }
-      float dotNormalized = (Vector3.Dot(desiredAngle.normalized, possibleMovementDirection.normalized) + 1) / 2;
-      // Debug.DrawLine(controller.transform.position, controller.transform.position + possibleMovementDirection.normalized * dotNormalized, Color.green);
-      if (dotNormalized > bestFitWeight)
+      float angleWeight = 0;
+      foreach (AiLocalMovementWeight movementWeight in controller.aiSettings.localMovementWeights)
+      {
+        float maxNormalDot = 0;
+        foreach (int movementAngle in movementWeight.movementAngles)
+        {
+          maxNormalDot = Mathf.Max(maxNormalDot, Vector3.Dot((Quaternion.AngleAxis(movementAngle, Vector3.forward) * towardsTarget).normalized, possibleMovementDirection.normalized) + 1) / 2;
+        }
+        angleWeight += maxNormalDot * movementWeight.weightCurve.Evaluate(normalizedDistance);
+      }
+      if (angleWeight > bestFitWeight)
       {
         bestFitInput = new Vector2(possibleMovementDirection.normalized.x, possibleMovementDirection.normalized.y);
-        bestFitWeight = dotNormalized;
+        bestFitWeight = angleWeight;
       }
+
     }
     controller.SetMoveInput(bestFitInput);
-
   }
+
   void MaybeDash(AiStateController controller, WorldObject targetWorldLocation)
   {
     // if dashing keeps us above the stamina % threshold,
