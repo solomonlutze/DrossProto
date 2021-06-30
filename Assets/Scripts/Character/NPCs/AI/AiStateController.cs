@@ -268,7 +268,6 @@ public class AiStateController : Character
 
   public void SetMoveInput(Vector2 newMoveInput)
   {
-    Debug.Log("setting movement input to " + newMoveInput);
     movementInput = newMoveInput;
   }
   public Vector2 GetMovementInput()

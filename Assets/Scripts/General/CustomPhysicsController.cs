@@ -231,59 +231,60 @@ public class CustomPhysicsController : MonoBehaviour
   {
     results = new RaycastHit2D[20];
     Collider2D[] cols = GetComponentsInChildren<Collider2D>();
+    Collider2D col = owningCharacter.physicsCollider;
     int hits = 0;
-    foreach (Collider2D col in cols)
+    // foreach (Collider2D col in cols)
+    // {
+    if (!col.isTrigger)
     {
-      if (!col.isTrigger)
+      RaycastHit2D[] res = new RaycastHit2D[4];
+      int myHits = col.Cast(castVector, contactFilter, res, castVector.magnitude, true);
+      int nonTriggerHits = 0;
+      for (int i = 0; i < 20 - hits && i < myHits; i++)
       {
-        RaycastHit2D[] res = new RaycastHit2D[4];
-        int myHits = col.Cast(castVector, contactFilter, res, castVector.magnitude, true);
-        int nonTriggerHits = 0;
-        for (int i = 0; i < 20 - hits && i < myHits; i++)
+        CustomPhysicsController otherPhysics = res[i].collider.gameObject.GetComponent<CustomPhysicsController>();
+        bool otherIgnoresCollisions = false;
+        if (otherPhysics != null)
         {
-          CustomPhysicsController otherPhysics = res[i].collider.gameObject.GetComponent<CustomPhysicsController>();
-          bool otherIgnoresCollisions = false;
-          if (otherPhysics != null)
+          otherIgnoresCollisions = otherPhysics.ignoreCollisionPhysics;
+          if (objectsToIgnore.Contains(otherPhysics.gameObject)) { continue; }
+        }
+        if (res[i].collider.GetComponentInChildren<Tilemap>() != null)
+        { // TODO: this is... probably not great
+          Vector3 hitPos = Vector3.zero;
+          hitPos.x = res[i].point.x - 0.01f * res[i].normal.x;
+          hitPos.y = res[i].point.y - 0.01f * res[i].normal.y;
+          Vector3 offset = Vector3.zero;
+          EnvironmentTileInfo tile1;
+          EnvironmentTileInfo tile2;
+          if (hitPos.x - Mathf.Floor(hitPos.x) <= 0.0001)
           {
-            otherIgnoresCollisions = otherPhysics.ignoreCollisionPhysics;
-            if (objectsToIgnore.Contains(otherPhysics.gameObject)) { continue; }
+            offset.x += .0001f;
           }
-          if (res[i].collider.GetComponentInChildren<Tilemap>() != null)
-          { // TODO: this is... probably not great
-            Vector3 hitPos = Vector3.zero;
-            hitPos.x = res[i].point.x - 0.01f * res[i].normal.x;
-            hitPos.y = res[i].point.y - 0.01f * res[i].normal.y;
-            Vector3 offset = Vector3.zero;
-            EnvironmentTileInfo tile1;
-            EnvironmentTileInfo tile2;
-            if (hitPos.x - Mathf.Floor(hitPos.x) <= 0.0001)
-            {
-              offset.x += .0001f;
-            }
-            if (hitPos.y - Mathf.Floor(hitPos.y) <= 0.0001)
-            {
-              offset.y += .0001f;
-            }
-            tile1 = GridManager.Instance.GetTileAtLocation(new TileLocation(hitPos + offset, currentFloor));
-            tile2 = GridManager.Instance.GetTileAtLocation(new TileLocation(hitPos - offset, currentFloor));
-            if (owningCharacter != null)
-            {
-              owningCharacter.HandleTileCollision(tile1);
-              if (tile1 != tile2)
-              {
-                owningCharacter.HandleTileCollision(tile2);
-              }
-            }
-          }
-          if (!res[i].collider.isTrigger && !otherIgnoresCollisions && !Physics2D.GetIgnoreCollision(res[i].collider, col))
+          if (hitPos.y - Mathf.Floor(hitPos.y) <= 0.0001)
           {
-            results[hits + nonTriggerHits] = res[i];
-            nonTriggerHits++;
+            offset.y += .0001f;
+          }
+          tile1 = GridManager.Instance.GetTileAtLocation(new TileLocation(hitPos + offset, currentFloor));
+          tile2 = GridManager.Instance.GetTileAtLocation(new TileLocation(hitPos - offset, currentFloor));
+          if (owningCharacter != null)
+          {
+            owningCharacter.HandleTileCollision(tile1);
+            if (tile1 != tile2)
+            {
+              owningCharacter.HandleTileCollision(tile2);
+            }
           }
         }
-        hits += nonTriggerHits;
+        if (!res[i].collider.isTrigger && !otherIgnoresCollisions && !Physics2D.GetIgnoreCollision(res[i].collider, col))
+        {
+          results[hits + nonTriggerHits] = res[i];
+          nonTriggerHits++;
+        }
       }
+      hits += nonTriggerHits;
     }
+    // }
     return hits;
   }
 

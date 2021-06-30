@@ -793,7 +793,7 @@ public class Character : WorldObject
   Quaternion GetTargetDirection()
   {
     return GetDirectionAngle(movementInput);
-    return GetDirectionAngle(orientTowards);
+    // return GetDirectionAngle(orientTowards);
   }
 
   // Rotate character smoothly towards a particular orientation around the Z axis.

@@ -114,7 +114,6 @@ public class MoveAiAction : AiAction
     float bestFitWeight = 0;
     Vector3 towardsTarget = targetPosition - controller.transform.position;
     Vector3 desiredAngle = Quaternion.AngleAxis(controller.aiSettings.localMovementWeights[0].movementAngles[0], Vector3.forward) * towardsTarget;
-    Debug.Log("target angle: " + controller.aiSettings.localMovementWeights[0].movementAngles[0]);
     Debug.DrawLine(desiredAngle.normalized * 1.25f + controller.transform.position, controller.transform.position, Color.cyan);
     while (angle < 360)
     {
@@ -126,7 +125,7 @@ public class MoveAiAction : AiAction
         // Debug.DrawLine(controller.transform.position, controller.transform.position + possibleMovementDirection.normalized * .5f, Color.red);
         continue;
       }
-      float dotNormalized = (Vector3.Dot(desiredAngle, possibleMovementDirection) + 1) / 2;
+      float dotNormalized = (Vector3.Dot(desiredAngle.normalized, possibleMovementDirection.normalized) + 1) / 2;
       // Debug.DrawLine(controller.transform.position, controller.transform.position + possibleMovementDirection.normalized * dotNormalized, Color.green);
       if (dotNormalized > bestFitWeight)
       {
