@@ -184,8 +184,10 @@ public class CharacterSkillData : ScriptableObject
 
   void SetIsAttack()
   {
+    if (skillEffectSets == null) { return; }
     foreach (SkillEffectSet set in skillEffectSets)
     {
+      if (set.skillEffects == null) { continue; }
       foreach (SkillEffect effect in set.skillEffects)
       {
         if (effect.weaponSpawns.Length > 0)
