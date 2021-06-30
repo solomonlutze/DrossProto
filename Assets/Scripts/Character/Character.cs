@@ -792,6 +792,7 @@ public class Character : WorldObject
   // potential culprit.
   Quaternion GetTargetDirection()
   {
+    return GetDirectionAngle(movementInput);
     return GetDirectionAngle(orientTowards);
   }
 

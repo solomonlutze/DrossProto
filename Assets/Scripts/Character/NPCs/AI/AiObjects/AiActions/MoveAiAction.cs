@@ -113,19 +113,21 @@ public class MoveAiAction : AiAction
     Vector2 bestFitInput = Vector2.zero;
     float bestFitWeight = 0;
     Vector3 towardsTarget = targetPosition - controller.transform.position;
-    Debug.DrawLine(targetPosition, controller.transform.position, Color.cyan);
+    Vector3 desiredAngle = Quaternion.AngleAxis(controller.aiSettings.localMovementWeights[0].movementAngles[0], Vector3.forward) * towardsTarget;
+    Debug.Log("target angle: " + controller.aiSettings.localMovementWeights[0].movementAngles[0]);
+    Debug.DrawLine(desiredAngle.normalized * 1.25f + controller.transform.position, controller.transform.position, Color.cyan);
     while (angle < 360)
     {
       Quaternion rot = Quaternion.AngleAxis(angle, Vector3.forward);
       angle += movementOptionsAngleInterval;
-      Vector3 possibleMovementDirection = rot * towardsTarget;
+      Vector3 possibleMovementDirection = rot * desiredAngle;
       if (!PathfindingSystem.Instance.IsPathClearOfHazards(controller.transform.position + possibleMovementDirection.normalized * movementOptionProjectRange, controller.currentFloor, controller))
       {
-        Debug.DrawLine(controller.transform.position, controller.transform.position + possibleMovementDirection.normalized * .5f, Color.red);
+        // Debug.DrawLine(controller.transform.position, controller.transform.position + possibleMovementDirection.normalized * .5f, Color.red);
         continue;
       }
-      float dotNormalized = (Vector3.Dot(towardsTarget, possibleMovementDirection) + 1) / 2;
-      Debug.DrawLine(controller.transform.position, controller.transform.position + possibleMovementDirection.normalized * dotNormalized, Color.green);
+      float dotNormalized = (Vector3.Dot(desiredAngle, possibleMovementDirection) + 1) / 2;
+      // Debug.DrawLine(controller.transform.position, controller.transform.position + possibleMovementDirection.normalized * dotNormalized, Color.green);
       if (dotNormalized > bestFitWeight)
       {
         bestFitInput = new Vector2(possibleMovementDirection.normalized.x, possibleMovementDirection.normalized.y);

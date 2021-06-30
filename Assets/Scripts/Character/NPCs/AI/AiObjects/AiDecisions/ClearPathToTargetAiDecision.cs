@@ -11,12 +11,6 @@ public class ClearPathToTargetAiDecision : AiDecision
       return true;
     }
     return false;
-    // if (controller.CanReachObjectOfInterest() && controller.ObjectOfInterestWithinRangeOfSpawnPoint())
-    // {
-    //   return true;
-    // }
-    // controller.objectOfInterest = null;
-    // return false;
   }
 
 }

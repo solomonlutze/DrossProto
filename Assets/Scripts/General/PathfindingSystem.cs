@@ -307,13 +307,16 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(tileLocation);
       if (eti == null || eti.dealsDamage)
       {
+        UnityEngine.Debug.DrawLine(targetPosition, character.transform.position, Color.yellow);
         return false;
       }
       if (!CanPassOverTile(eti, character))
       {
+        UnityEngine.Debug.DrawLine(targetPosition, character.transform.position, Color.red);
         return false;
       }
     }
+    UnityEngine.Debug.DrawLine(targetPosition, character.transform.position, Color.green);
     return true;
   }
   //idk if this is good for anything

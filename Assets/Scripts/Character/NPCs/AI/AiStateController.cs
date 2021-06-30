@@ -268,6 +268,7 @@ public class AiStateController : Character
 
   public void SetMoveInput(Vector2 newMoveInput)
   {
+    Debug.Log("setting movement input to " + newMoveInput);
     movementInput = newMoveInput;
   }
   public Vector2 GetMovementInput()
@@ -365,7 +366,7 @@ public class AiStateController : Character
   public bool TooFarFromTarget(WorldObject target)
   {
 
-    if ((transform.position - target.transform.position).sqrMagnitude < aiSettings.maxCombatDistance * aiSettings.maxCombatDistance
+    if ((transform.position - target.transform.position).sqrMagnitude > aiSettings.maxCombatDistance * aiSettings.maxCombatDistance
     )
     {
       Debug.Log("too far from target - max range " + aiSettings.maxCombatDistance);
