@@ -683,7 +683,7 @@ public class Character : WorldObject
     usingCrit = false;
   }
 
-  public void BeginSkill(CharacterSkillData skill)
+  public virtual void BeginSkill(CharacterSkillData skill)
   {
     queuedSkill = null;
     activeSkill = skill;
@@ -806,12 +806,12 @@ public class Character : WorldObject
     return Quaternion.AngleAxis(angle, Vector3.forward);
   }
 
-  // used to calculate how far our facing direction is from our target facing direction.
-  // Useful for e.g. deciding if an enemy is facing a player enough for attacking to be a good idea.
-  public float GetAngleToTarget()
-  {
-    return Quaternion.Angle(GetTargetDirection(), orientation.rotation);
-  }
+  // // used to calculate how far our facing direction is from our target facing direction.
+  // // Useful for e.g. deciding if an enemy is facing a player enough for attacking to be a good idea.
+  // public float GetAngleToTarget(Vector3 targetPoint)
+  // {
+  //   return Quaternion.Angle(GetTargetDirection(), orientation.rotation);
+  // }
 
   public float GetAngleToDirection(Vector3 targetPoint)
   {

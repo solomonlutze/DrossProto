@@ -5,13 +5,6 @@ using System.Collections.Generic;
 public class MoveAiAction : AiAction
 {
   public int hazardCrossingCost = -1;
-
-  [Tooltip("angle between each step in movement option calculation, in degrees")]
-  public int movementOptionsAngleInterval = 15;
-
-  [Tooltip("Distance to project out each option radius to check for hazards")]
-  public float movementOptionProjectRange = .5f;
-
   [Tooltip("max stamina * minimumRemainingStaminaProportion = the amount that has to be left after dashing")]
   float minimumRemainingStaminaProportionForDash = .4f;
   float maxAngleFromDashTarget = 5f;
@@ -103,53 +96,6 @@ public class MoveAiAction : AiAction
   }
 
 
-  public void MoveLocally(AiStateController controller, Vector3 targetWorldLocation)
-  {
-    CalculateWeightedMovementOptions(controller, targetWorldLocation);
-  }
-
-  // at each of these angles,
-  // 
-  void CalculateWeightedMovementOptions(AiStateController controller, Vector3 targetPosition)
-  {
-    int angle = 0;
-    Vector2 bestFitInput = Vector2.zero;
-    float bestFitWeight = 0;
-    Vector3 towardsTarget = targetPosition - controller.transform.position;
-    float normalizedDistance = (controller.transform.position - targetPosition).magnitude / controller.aiSettings.maxCombatDistance;
-    float weightSum = 0;
-    foreach (AiLocalMovementWeight movementWeight in controller.aiSettings.localMovementWeights)
-    {
-      weightSum += movementWeight.weightCurve.Evaluate(normalizedDistance);
-    }
-    while (angle < 360)
-    {
-      Quaternion rot = Quaternion.AngleAxis(angle, Vector3.forward);
-      angle += movementOptionsAngleInterval;
-      Vector3 possibleMovementDirection = rot * towardsTarget;
-      if (!PathfindingSystem.Instance.IsPathClearOfHazards(controller.transform.position + possibleMovementDirection.normalized * movementOptionProjectRange, controller.currentFloor, controller))
-      {
-        continue;
-      }
-      float angleWeight = 0;
-      foreach (AiLocalMovementWeight movementWeight in controller.aiSettings.localMovementWeights)
-      {
-        float maxNormalDot = 0;
-        foreach (int movementAngle in movementWeight.movementAngles)
-        {
-          maxNormalDot = Mathf.Max(maxNormalDot, Vector3.Dot((Quaternion.AngleAxis(movementAngle, Vector3.forward) * towardsTarget).normalized, possibleMovementDirection.normalized) + 1) / 2;
-        }
-        angleWeight += maxNormalDot * movementWeight.weightCurve.Evaluate(normalizedDistance);
-      }
-      if (angleWeight > bestFitWeight)
-      {
-        bestFitInput = new Vector2(possibleMovementDirection.normalized.x, possibleMovementDirection.normalized.y);
-        bestFitWeight = angleWeight;
-      }
-
-    }
-    controller.SetMoveInput(bestFitInput);
-  }
 
   void MaybeDash(AiStateController controller, WorldObject targetWorldLocation)
   {

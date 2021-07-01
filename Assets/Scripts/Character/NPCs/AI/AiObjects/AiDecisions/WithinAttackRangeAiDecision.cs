@@ -5,8 +5,6 @@ public class WithinAttackRangeAiDecision : AiDecision
 {
   public override bool Decide(AiStateController controller)
   {
-    // Debug.Log("correct distance: " + (Vector2.Distance(controller.objectOfInterest.transform.position, controller.transform.position) < controller.GetMaxPreferredAttackRange()));
-    // Debug.Log("correct angle: " + (controller.GetAngleToTarget() < controller.attackAngleInDegrees));
     if (controller.objectOfInterest == null) { return false; }
     List<CharacterSkillData> attacksInRange = GetAttacksInRange(controller);
     if (attacksInRange.Count > 0)
@@ -22,8 +20,6 @@ public class WithinAttackRangeAiDecision : AiDecision
   public List<CharacterSkillData> GetAttacksInRange(AiStateController controller)
   {
     List<CharacterSkillData> viableAttacks = new List<CharacterSkillData>();
-    // loop over attacks...
-    // Debug.Log("Range from target: " + (controller.transform.position - controller.objectOfInterest.transform.position).magnitude);
     foreach (CharacterSkillData skillData in controller.attackSkills)
     {
       SkillRangeInfo[] rangeInfos = skillData.CalculateRangeInfosForSkillEffectSet(controller);

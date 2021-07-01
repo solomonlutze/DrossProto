@@ -7,7 +7,7 @@ using Yarn.Unity;
 // Not in use yet; will be used to handle things like input state, etc.
 public class GameMaster : Singleton<GameMaster>
 {
-
+  public bool DebugEnabled = false;
   public Constants.GameState startingGameStatus;
   public CanvasHandler canvasHandler;
   public ParticleSystemMaster particleSystemMaster;

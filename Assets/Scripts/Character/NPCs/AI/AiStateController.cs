@@ -16,6 +16,7 @@ public class AiStateController : Character
     }
   }
   [HideInInspector] public float timeSpentInState;
+  [HideInInspector] public float attackCooldownTimer;
 
   [Header("AI Attributes")]
   public bool DEBUGStopRecalculatingPath = false;
@@ -91,6 +92,7 @@ public class AiStateController : Character
   {
     base.Update();
     timeSpentInState += Time.deltaTime;
+    attackCooldownTimer += Time.deltaTime;
   }
 
   protected override void FixedUpdate()
@@ -100,6 +102,15 @@ public class AiStateController : Character
     currentState.UpdateState(this);
   }
 
+
+  public override void BeginSkill(CharacterSkillData skill)
+  {
+    if (skill.IsAttack())
+    {
+      attackCooldownTimer = 0;
+    }
+    base.BeginSkill(skill);
+  }
   /*
   *STATE LOGIC
   */
@@ -350,6 +361,25 @@ public class AiStateController : Character
     return overallMin;
   }
 
+
+  public (float, float) GetMinAndMaxPreferredAttackRange()
+  {
+    float overallMin = 1000f;
+    float overallMax = -1000f;
+    foreach (CharacterSkillData skillData in attackSkills)
+    {
+      foreach (SkillRangeInfo range in skillData.CalculateRangeInfosForSkillEffectSet(this))
+      {
+        float min = range.minRange;
+        min += (range.maxRange - min) * minDistanceToAttackBuffer;
+        overallMin = Mathf.Min(min, overallMin);
+        float max = range.maxRange;
+        overallMax = Mathf.Max(max, overallMax);
+      }
+    }
+    return (overallMin, overallMax);
+  }
+
   public bool TooCloseToTarget(WorldObject target)
   {
     float min = GetMinPreferredAttackRange();
@@ -395,7 +425,9 @@ public class AiStateController : Character
 
   public bool WithinAttackAngle(WorldObject target, SkillRangeInfo[] rangeInfos)
   {
-    return Mathf.Abs(GetAngleToTarget()) < 15f;
+    Vector3 targetDirection = target.transform.position - transform.position;
+    Debug.Log("target: " + target.name + ",target position: " + target.transform.position + ", rotationAngle: " + orientation.rotation.eulerAngles + ", attack angle: " + GetAngleToDirection(targetDirection));
+    return Mathf.Abs(GetAngleToDirection(targetDirection)) < aiSettings.minAttackAngle;
 
     foreach (SkillRangeInfo range in rangeInfos)
     {
@@ -423,13 +455,13 @@ public class AiStateController : Character
       }
       else if (max > 180f)
       {
-        return GetAngleToTarget() >= min || max - 360 > GetAngleToTarget();
+        return GetAngleToDirection(targetDirection) >= min || max - 360 > GetAngleToDirection(targetDirection);
       }
       else if (min < -180f)
       {
-        return GetAngleToTarget() >= min + 360 || max > GetAngleToTarget();
+        return GetAngleToDirection(targetDirection) >= min + 360 || max > GetAngleToDirection(targetDirection);
       }
-      else if (GetAngleToTarget() >= min && GetAngleToTarget() <= max)
+      else if (GetAngleToDirection(targetDirection) >= min && GetAngleToDirection(targetDirection) <= max)
       {
         return true;
       }
