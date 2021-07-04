@@ -22,6 +22,7 @@ public enum CharacterVital
   CurrentEnvironmentalDamageCooldown,
   CurrentStamina,
   CurrentCarapace, // Carapace might be "balance" sometime
+  CurrentMaxHealth,
   CurrentMoltCount
 }
 
@@ -44,7 +45,8 @@ public enum CharacterStat
   Carapace = 10,
   MoltDuration = 11,
   BlockingMoveAcceleration = 12,
-  BlockingRotationSpeed = 13
+  BlockingRotationSpeed = 13,
+  MaxHealth = 14
 }
 
 public enum CharacterAttribute
@@ -411,6 +413,7 @@ public class Character : WorldObject
       activeMovementAbilities.AddRange(dataInstance.movementAbilities);
     }
     vitals = new CharacterVitalToFloatDictionary();
+    vitals[CharacterVital.CurrentMaxHealth] = defaultCharacterData.defaultStats[CharacterStat.MaxHealth];
     vitals[CharacterVital.CurrentHealth] = GetCurrentMaxHealth();
     vitals[CharacterVital.CurrentStamina] = GetMaxStamina();
     vitals[CharacterVital.CurrentCarapace] = GetMaxCarapace();
@@ -944,14 +947,15 @@ public class Character : WorldObject
   //   return 0; // try not to do this please
   // }
 
-  public float CalculateMovementProgressIncrement(NormalizedCurve movementCurve, bool isContinuous = false)
+  public float CalculateCurveProgressIncrement(NormalizedCurve curve, bool forMovement, bool isContinuous = false)
   {
-    if (isContinuous)
+    float timestep = forMovement ? Time.fixedDeltaTime : Time.deltaTime;
+    if (activeSkill.GetActiveEffectDuration(this) == 0 && isContinuous)
     {
-      return movementCurve.magnitude.Resolve(this) * Time.fixedDeltaTime;
+      return curve.magnitude.Resolve(this) * timestep;
     }
-    return movementCurve.Evaluate(this, Mathf.Min(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this), 1))
-    - movementCurve.Evaluate(this, Mathf.Max((timeSpentInSkillEffect - Time.fixedDeltaTime) / activeSkill.GetActiveEffectDuration(this), 0));
+    return curve.Evaluate(this, Mathf.Min(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this), 1))
+    - curve.Evaluate(this, Mathf.Max((timeSpentInSkillEffect - timestep) / activeSkill.GetActiveEffectDuration(this), 0));
   }
 
   protected void BeginKnockback(Vector3 knockbackMagnitude)
@@ -1143,7 +1147,7 @@ public class Character : WorldObject
     if (UsingSkill() && activeSkill.SkillMovesCharacterVertically(this))
     {
       // animationValue = CalculateVerticalMovementAnimationSpeed(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp), activeSkill.IsContinuous(this));
-      easedSkillUpwardMovementProgressIncrement = (CalculateMovementProgressIncrement(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp), activeSkill.IsContinuous(this)));
+      easedSkillUpwardMovementProgressIncrement = (CalculateCurveProgressIncrement(activeSkill.GetMovement(this, SkillEffectMovementProperty.MoveUp), true, activeSkill.IsContinuous(this)));
       increment = easedSkillUpwardMovementProgressIncrement;
       animationValue = Mathf.Lerp(.5f, 1.5f, increment / Time.deltaTime);
       Debug.Log("animationValue: " + animationValue);
@@ -1487,17 +1491,12 @@ public class Character : WorldObject
   // STAT GETTERS
   public float GetCurrentMaxHealth()
   {
-    return 100;
-    return
-        GetMaxHealth()
-        - (GetMaxHealthLostPerMolt() * GetCharacterVital(CharacterVital.CurrentMoltCount));
+    return GetCharacterVital(CharacterVital.CurrentMaxHealth);
   }
 
-  public float GetMaxHealth()
+  public float GetTrueMaxHealth()
   {
-    return defaultCharacterData
-      .GetHealthAttributeData()
-      .GetMaxHealth(this);
+    return defaultCharacterData.defaultStats[CharacterStat.MaxHealth];
   }
 
   public float GetMaxStamina()
@@ -1683,6 +1682,12 @@ public class Character : WorldObject
       Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, isNonlethal ? 1 : 0, GetCurrentMaxHealth());
   }
 
+  public void AdjustCurrentMaxHealth(float adjustment)
+  {
+    vitals[CharacterVital.CurrentMaxHealth] =
+     Mathf.Clamp(vitals[CharacterVital.CurrentMaxHealth] + adjustment, 0, GetTrueMaxHealth());
+    AdjustCurrentHealth(0);
+  }
   public void AdjustCurrentCarapace(float adjustment)
   {
     vitals[CharacterVital.CurrentCarapace] =
@@ -1763,7 +1768,7 @@ public class Character : WorldObject
       renderer.color = Color.Lerp(
         damagedColor,
         Color.white,
-        vitals[CharacterVital.CurrentHealth] / GetMaxHealth()
+        vitals[CharacterVital.CurrentHealth] / GetCurrentMaxHealth()
       );
     }
   }
@@ -2057,7 +2062,7 @@ public class Character : WorldObject
     //Consumed by physics so needs to happen in fixedupdate. Might still suck?
     if (UsingSkill() && activeSkill.SkillMovesCharacterForward(this))
     {
-      easedSkillForwardMovementProgressIncrement = (CalculateMovementProgressIncrement(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveForward), activeSkill.IsContinuous(this)));
+      easedSkillForwardMovementProgressIncrement = (CalculateCurveProgressIncrement(activeSkill.GetMovement(this, SkillEffectMovementProperty.MoveForward), true, activeSkill.IsContinuous(this)));
     }
   }
 

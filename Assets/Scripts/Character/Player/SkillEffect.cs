@@ -17,7 +17,7 @@ public enum SkillEffectFloatProperty
   RotationSpeed
 }
 
-public enum SkillEffectCurveProperty
+public enum SkillEffectMovementProperty
 {
   MoveForward,
   MoveUp,
@@ -49,7 +49,8 @@ public class SkillEffect
   public float duration;
 
   public SkillEffectPropertyToFloat properties;
-  public SkillEffectPropertyToCurve movement;
+  public SkillEffectMovementPropertyToCurve movement;
+  public CharacterVitalToCurveDictionary vitalChanges;
   public List<CharacterMovementAbility> movementAbilities;
   public AttackSpawn[] weaponSpawns;
   public SkillEffect()
@@ -67,6 +68,18 @@ public class SkillEffect
   }
   public virtual void DoSkillEffect(Character owner)
   {
+    foreach (KeyValuePair<CharacterVital, NormalizedCurve> vitalChange in vitalChanges)
+    {
+      switch (vitalChange.Key)
+      {
+        case CharacterVital.CurrentHealth:
+          owner.AdjustCurrentHealth(owner.CalculateCurveProgressIncrement(vitalChange.Value, false, useType == SkillEffectType.Continuous));
+          break;
+        case CharacterVital.CurrentMaxHealth:
+          owner.AdjustCurrentMaxHealth(owner.CalculateCurveProgressIncrement(vitalChange.Value, false, useType == SkillEffectType.Continuous));
+          break;
+      }
+    }
     return;
   }
 

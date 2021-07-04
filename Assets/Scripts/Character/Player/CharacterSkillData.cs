@@ -114,12 +114,12 @@ public class CharacterSkillData : ScriptableObject
   }
   public bool SkillMovesCharacterForward(Character owner)
   {
-    return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectCurveProperty.MoveForward);
+    return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectMovementProperty.MoveForward);
   }
   public bool SkillMovesCharacterVertically(Character owner)
   {
-    return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectCurveProperty.MoveUp)
-    && (GetActiveSkillEffect(owner).movement[SkillEffectCurveProperty.MoveUp].magnitude.Resolve(owner) > 0);
+    return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectMovementProperty.MoveUp)
+    && (GetActiveSkillEffect(owner).movement[SkillEffectMovementProperty.MoveUp].magnitude.Resolve(owner) > 0);
   }
 
   public bool SkillHasMovementAbility(Character owner, CharacterMovementAbility movementAbility)
@@ -132,7 +132,7 @@ public class CharacterSkillData : ScriptableObject
     return isAttack;
   }
 
-  public NormalizedCurve GetMovement(Character owner, SkillEffectCurveProperty movementProperty)
+  public NormalizedCurve GetMovement(Character owner, SkillEffectMovementProperty movementProperty)
   {
     if (GetActiveSkillEffect(owner).movement.ContainsKey(movementProperty))
     {
