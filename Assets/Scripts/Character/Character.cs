@@ -296,6 +296,7 @@ public class Character : WorldObject
   public float damageFlashSpeed = 1.0f;
   public CharacterSkillData activeSkill;
   public CharacterSkillData queuedSkill;
+  public CharacterSkillData pressingSkill;
   public bool receivingSkillInput;
   public float timeSpentInSkillEffect = 0f;
   public int currentSkillEffectSetIndex = 0;
@@ -544,6 +545,7 @@ public class Character : WorldObject
   {
     Debug.Log("trying to use skill " + skill);
     QueueSkill(skill);
+    PressSkill(skill);
     if (!UsingSkill())
     {
       if (CanUseSkill(skill))
@@ -704,6 +706,11 @@ public class Character : WorldObject
   public void QueueSkill(CharacterSkillData skill)
   {
     queuedSkill = skill;
+  }
+
+  public void PressSkill(CharacterSkillData skill)
+  {
+    pressingSkill = skill;
   }
 
   public void SetBlocking(bool blockingFlag)
@@ -1271,7 +1278,7 @@ public class Character : WorldObject
   protected bool ShouldUseSkillEffectSet(CharacterSkillData skillData, int idx = 0)
   {
     return
-      (skillData.skillEffectSets[idx].alwaysExecute || activeSkill == queuedSkill);
+      (skillData.skillEffectSets[idx].alwaysExecute || activeSkill == pressingSkill || activeSkill == queuedSkill);
   }
   protected virtual bool CanUseSkill(CharacterSkillData skillData, int effectSetIndex = 0)
   {
