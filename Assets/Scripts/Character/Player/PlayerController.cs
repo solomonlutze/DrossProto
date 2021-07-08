@@ -291,7 +291,7 @@ public class PlayerController : Character
         {
           shouldBlock = true;
         }
-        receivingSkillInput = Input.GetButton("Attack"); // NOT used to determine if attacks are happening! used to hold continuous/charge skills
+        // receivingSkillInput = Input.GetButton("Attack") || Input.GetButton; // NOT used to determine if attacks are happening! used to hold continuous/charge skills
         if (Input.GetButtonDown("Attack"))
         {
           UseSelectedSkill();
@@ -299,11 +299,28 @@ public class PlayerController : Character
           // chargeAttackTime += Time.deltaTime; // incrementing this further is handled in HandleCooldowns
           // UseSkill(GetSkillEffectForAttackType(AttackType.Basic));
           return;
-
         }
         if (Input.GetButtonUp("Attack"))
         {
-          pressingSkill = null;
+          if (pressingSkill != moltSkill)
+          {
+            pressingSkill = null;
+          }
+        }
+        if (Input.GetButtonDown("Molt"))
+        {
+          HandleSkillInput(moltSkill);
+          // }
+          // chargeAttackTime += Time.deltaTime; // incrementing this further is handled in HandleCooldowns
+          // UseSkill(GetSkillEffectForAttackType(AttackType.Basic));
+          return;
+        }
+        if (Input.GetButtonUp("Molt"))
+        {
+          if (pressingSkill == moltSkill)
+          {
+            pressingSkill = null;
+          }
         }
         if (CanMove())
         {

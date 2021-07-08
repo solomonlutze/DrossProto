@@ -71,8 +71,6 @@ public class HealthBar : MonoBehaviour
     // }
     healthBarContainer.alpha += Time.deltaTime / healthBarFadeTime;
     healthBarContainer.alpha = Mathf.Min(1, healthBarContainer.alpha);
-    Debug.Log("max health " + maxHealth + ", trueMaxHealth " + trueMaxHealth);
-    Debug.Log("healthBarMaxFill scale should be " + (trueMaxHealth - maxHealth) / trueMaxHealth);
     healthBarMaxFill.localScale = new Vector3((trueMaxHealth - maxHealth) / trueMaxHealth, healthBarMaxFill.localScale.y, 0);
     healthBarContentsFill.localScale = new Vector3(currentHealth / trueMaxHealth, healthBarContentsFill.localScale.y, 0);
   }

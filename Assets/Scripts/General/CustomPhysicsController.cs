@@ -179,7 +179,14 @@ public class CustomPhysicsController : MonoBehaviour
     {
       // desiredMovement = (movementInput.normalized * moveAcceleration - (drag * velocity)) * Time.deltaTime;
       Vector2 orientedMovement = orientation.rotation * (movementInput == Vector2.zero ? Vector2.zero : Vector2.right);
-      desiredMovement = (orientedMovement * moveAcceleration - (drag * velocity)) * Time.deltaTime;
+      if (owningCharacter.GetRotationSpeed() > 0)
+      {
+        desiredMovement = (orientedMovement * moveAcceleration - (drag * velocity)) * Time.deltaTime;
+      }
+      else
+      {
+        desiredMovement = (movementInput * moveAcceleration - (drag * velocity)) * Time.deltaTime;
+      }
       // Debug.Log("desiredMovement: " + desiredMovement);
       Vector2 xMove = new Vector2(velocity.x + desiredMovement.x, 0);
       // Debug.Log("xMove: " + xMove);

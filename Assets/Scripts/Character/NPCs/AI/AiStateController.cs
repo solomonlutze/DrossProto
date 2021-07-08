@@ -427,7 +427,6 @@ public class AiStateController : Character
   public bool WithinAttackAngle(WorldObject target, SkillRangeInfo[] rangeInfos)
   {
     Vector3 targetDirection = target.transform.position - transform.position;
-    Debug.Log("target: " + target.name + ",target position: " + target.transform.position + ", rotationAngle: " + orientation.rotation.eulerAngles + ", attack angle: " + GetAngleToDirection(targetDirection));
     return Mathf.Abs(GetAngleToDirection(targetDirection)) < aiSettings.minAttackAngle;
 
     foreach (SkillRangeInfo range in rangeInfos)

@@ -256,6 +256,7 @@ public class Character : WorldObject
   [Header("Attack Info")]
   public Moveset moveset;
   public List<CharacterSkillData> characterSkills;
+  public CharacterSkillData moltSkill;
   public List<CharacterSkillData> characterSpells;// possibly deprecated
                                                   // public Weapon weaponInstance;
   public CharacterAttackModifiers attackModifiers; // probably deprecated
@@ -297,7 +298,7 @@ public class Character : WorldObject
   public CharacterSkillData activeSkill;
   public CharacterSkillData queuedSkill;
   public CharacterSkillData pressingSkill;
-  public bool receivingSkillInput;
+  // public bool receivingSkillInput;
   public float timeSpentInSkillEffect = 0f;
   public int currentSkillEffectSetIndex = 0;
   public int currentSkillEffectIndex = 0;
@@ -436,6 +437,7 @@ public class Character : WorldObject
   {
 
     CharacterAttributeToIntDictionary ret = new CharacterAttributeToIntDictionary(true);
+    return ret;
     foreach (Trait trait in traits.Values)
     {
       if (trait == null) { continue; }
@@ -444,7 +446,6 @@ public class Character : WorldObject
         ret[attribute] += trait.attributeModifiers[attribute];
       }
     }
-    return ret;
   }
 
   public virtual CharacterSkillData GetSelectedCharacterSkill()
@@ -550,6 +551,7 @@ public class Character : WorldObject
     {
       if (CanUseSkill(skill))
       {
+        Debug.Log("beginning skill " + skill);
         BeginSkill(skill);
       }
       queuedSkill = null;
@@ -559,14 +561,6 @@ public class Character : WorldObject
       if (CanUseSkill(skill, currentSkillEffectIndex + 1))
       {
         AdvanceSkillEffectSet();
-      }
-      queuedSkill = null;
-    }
-    else if (activeSkill.SkillIsInterruptable(this))
-    {
-      if (CanUseSkill(skill))
-      {
-        InterruptSkill(skill);
       }
       queuedSkill = null;
     }
@@ -607,6 +601,10 @@ public class Character : WorldObject
   // the below method is probably closer to AdvanceSkillEffectSet
   public void AdvanceSkillEffectSet()
   {
+    Debug.Log("trying to advance skill " + activeSkill);
+
+    Debug.Log("pressedSkill " + pressingSkill);
+    Debug.Log("queuedSkill " + queuedSkill);
     currentSkillEffectIndex = 0;
     while (currentSkillEffectSetIndex < activeSkill.skillEffectSets.Length - 1)
     {
@@ -645,11 +643,13 @@ public class Character : WorldObject
 
   public void EndSkill()
   {
+    Debug.Log("ending skill " + activeSkill);
     if (UsingSkill())
     {
       activeSkill.CleanUp(this);
       activeSkill = null;
     }
+    pressingSkill = null;
     currentSkillEffectSetIndex = 0;
     currentSkillEffectIndex = 0;
     timeSpentInSkillEffect = 0;
@@ -791,9 +791,12 @@ public class Character : WorldObject
     {
       return;
     }
-    Quaternion targetDirection = GetTargetDirection();
-    // orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
-    orientation.rotation = Quaternion.RotateTowards(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
+    if (movementInput != Vector2.zero)
+    {
+      Quaternion targetDirection = GetTargetDirection();
+      // orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
+      orientation.rotation = Quaternion.RotateTowards(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
+    }
     // Debug.Log("rotation: " + orientation.rotation.eulerAngles + ", targetDirection: " + targetDirection.eulerAngles);
   }
 
@@ -1157,7 +1160,6 @@ public class Character : WorldObject
       easedSkillUpwardMovementProgressIncrement = (CalculateCurveProgressIncrement(activeSkill.GetMovement(this, SkillEffectMovementProperty.MoveUp), true, activeSkill.IsContinuous(this)));
       increment = easedSkillUpwardMovementProgressIncrement;
       animationValue = Mathf.Lerp(.5f, 1.5f, increment / Time.deltaTime);
-      Debug.Log("animationValue: " + animationValue);
     }
     // if (increment != 0)
     // {
@@ -1364,6 +1366,10 @@ public class Character : WorldObject
       }
     }
     characterVisuals.DamageFlash(damageFlashColor);
+    if (damageAfterResistances > 0 && activeSkill != null && activeSkill.SkillIsInterruptable(this))
+    {
+      EndSkill();
+    }
     InterruptAnimation();
     // Debug.Log("taking " + damageToHealth + " damage");
     AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
