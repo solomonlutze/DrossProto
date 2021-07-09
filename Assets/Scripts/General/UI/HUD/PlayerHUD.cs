@@ -49,8 +49,8 @@ public class PlayerHUD : MonoBehaviour
     if (playerController != null)
     {
       healthBar.character = playerController; //todo: anywhere but update please!
-      carapaceBar.character = playerController;
-      staminaBar.character = playerController;
+      // carapaceBar.character = playerController;
+      // staminaBar.character = playerController;
       Debug.Log("display name: " + playerController.characterSkills[playerController.selectedSkillIdx].displayName);
       selectedSkillText.text = playerController.characterSkills[playerController.selectedSkillIdx].displayName;
       selectedSkillDescriptionText.text = playerController.characterSkills[playerController.selectedSkillIdx].description;
