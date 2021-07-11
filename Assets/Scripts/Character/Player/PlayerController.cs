@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using ScriptableObjectArchitecture;
+using Rewired;
 
 public struct ContextualAction
 {
@@ -19,6 +20,8 @@ public struct ContextualAction
 public class PlayerController : Character
 {
 
+  public int rewiredPlayerId = 0;
+  private Rewired.Player rewiredPlayer;
   private List<GameObject> interactables;
   private Inventory inventory;
 
@@ -45,6 +48,7 @@ public class PlayerController : Character
   // Use this for initialization
   override protected void Start()
   {
+    rewiredPlayer = ReInput.players.GetPlayer(rewiredPlayerId);
     base.Start();
   }
 
@@ -252,30 +256,33 @@ public class PlayerController : Character
   void HandleMovementInput()
   {
     Vector3 newPos = transform.position;
-    if (Input.GetKey("w"))
-    {
-      movementInput.y = 1;
-    }
-    else if (Input.GetKey("s"))
-    {
-      movementInput.y = -1;
-    }
-    else
-    {
-      movementInput.y = 0;
-    }
-    if (Input.GetKey("d"))
-    {
-      movementInput.x = 1;
-    }
-    else if (Input.GetKey("a"))
-    {
-      movementInput.x = -1;
-    }
-    else
-    {
-      movementInput.x = 0;
-    }
+    movementInput.x = rewiredPlayer.GetAxis("Move Horizontal");
+    movementInput.y = rewiredPlayer.GetAxis("Move Vertical");
+    Debug.Log("movement input: " + movementInput);
+    // if (Input.GetKey("w"))
+    // {
+    //   movementInput.y = 1;
+    // }
+    // else if (Input.GetKey("s"))
+    // {
+    //   movementInput.y = -1;
+    // }
+    // else
+    // {
+    //   movementInput.y = 0;
+    // }
+    // if (Input.GetKey("d"))
+    // {
+    //   movementInput.x = 1;
+    // }
+    // else if (Input.GetKey("a"))
+    // {
+    //   movementInput.x = -1;
+    // }
+    // else
+    // {
+    //   movementInput.x = 0;
+    // }
   }
 
   void HandleActionInput()
@@ -292,7 +299,7 @@ public class PlayerController : Character
           shouldBlock = true;
         }
         // receivingSkillInput = Input.GetButton("Attack") || Input.GetButton; // NOT used to determine if attacks are happening! used to hold continuous/charge skills
-        if (Input.GetButtonDown("Attack"))
+        if (rewiredPlayer.GetButtonDown("Use Skill"))
         {
           UseSelectedSkill();
           // }
@@ -300,14 +307,14 @@ public class PlayerController : Character
           // UseSkill(GetSkillEffectForAttackType(AttackType.Basic));
           return;
         }
-        if (Input.GetButtonUp("Attack"))
+        if (rewiredPlayer.GetButtonUp("Use Skill"))
         {
           if (pressingSkill != moltSkill)
           {
             pressingSkill = null;
           }
         }
-        if (Input.GetButtonDown("Molt"))
+        if (rewiredPlayer.GetButtonDown("Molt"))
         {
           HandleSkillInput(moltSkill);
           // }
@@ -315,7 +322,7 @@ public class PlayerController : Character
           // UseSkill(GetSkillEffectForAttackType(AttackType.Basic));
           return;
         }
-        if (Input.GetButtonUp("Molt"))
+        if (rewiredPlayer.GetButtonUp("Molt"))
         {
           if (pressingSkill == moltSkill)
           {
@@ -448,12 +455,12 @@ public class PlayerController : Character
           }
           return;
         }
-        else if (Input.GetButtonDown("AdvanceSkill"))
+        else if (rewiredPlayer.GetButtonDown("Next Skill"))
         {
           AdvanceSelectedSkill();
           return;
         }
-        else if (Input.GetButtonDown("PreviousSkill"))
+        else if (rewiredPlayer.GetButtonDown("Previous Skill"))
         {
           PreviousSelectedSkill();
           return;
