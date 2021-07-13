@@ -39,8 +39,10 @@ public class SkillEffect
 {
 
   public SkillEffectType useType;
-  [Tooltip("Defines whether any skill should be able to interrupt (cancel) this effect and subsequent effects")]
+  [Tooltip("Defines whether taking damage should interrupt/end this effect and subsequent effects")]
   public bool interruptable = false;
+  [Tooltip("Defines whether this (or another) skill can be used to interrupt this effect and subsequent effects")]
+  public bool cancelable = false;
 
   [Tooltip("Defines whether an input of this skill should end this effect and move to the next")]
   public bool advanceable = false;

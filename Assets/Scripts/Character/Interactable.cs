@@ -4,11 +4,13 @@ using UnityEngine;
 
 // At some point this may contain shared logic; for now it's enough
 // that it identifies an object as being something the player can interact with
-public class Interactable : MonoBehaviour {
+public class Interactable : WorldObject
+{
 
-    public virtual string interactableText {get; set;}
-    public virtual void OnRemove() {
+  public virtual string interactableText { get; set; }
+  public virtual void OnRemove()
+  {
 
-    }
-    public bool isInteractable = true;
+  }
+  public bool isInteractable = true;
 }

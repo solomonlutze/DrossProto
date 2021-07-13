@@ -38,7 +38,7 @@ public class MoveLocalAiAction : AiAction
     float bestFitWeight = 0;
     Vector3 towardsTarget = targetPosition - controller.transform.position;
     (float, float) minAndMaxAttackRange = controller.GetMinAndMaxPreferredAttackRange();
-    Debug.Log("min range: " + minAndMaxAttackRange.Item1 + ", maxRange: " + minAndMaxAttackRange.Item2);
+    // Debug.Log("min range: " + minAndMaxAttackRange.Item1 + ", maxRange: " + minAndMaxAttackRange.Item2);
     float normalizedDistance = ((controller.transform.position - targetPosition).magnitude - minAndMaxAttackRange.Item1) / (minAndMaxAttackRange.Item2 - minAndMaxAttackRange.Item1);
 
     // Debug.Log("normalizedDistance: " + normalizedDistance + ", actual distance: " + (controller.transform.position - targetPosition).magnitude);

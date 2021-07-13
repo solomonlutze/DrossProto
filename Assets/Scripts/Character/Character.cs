@@ -564,6 +564,14 @@ public class Character : WorldObject
       }
       queuedSkill = null;
     }
+    else if (activeSkill.SkillIsCancelable(this))
+    {
+      if (CanUseSkill(skill))
+      {
+        InterruptSkill(skill);
+      }
+      queuedSkill = null;
+    }
     // Otherwise: we ARE using a skill, and we aren't interrupting its effect. Leave queued skill alone.
   }
 

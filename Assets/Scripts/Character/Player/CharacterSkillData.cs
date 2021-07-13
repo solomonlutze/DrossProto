@@ -109,6 +109,12 @@ public class CharacterSkillData : ScriptableObject
   {
     return GetActiveSkillEffect(owner).interruptable;
   }
+
+  // a skill _EFFECT_ is cancelable, but the ENTIRE SKILL gets interrupted.
+  public bool SkillIsCancelable(Character owner)
+  {
+    return GetActiveSkillEffect(owner).cancelable;
+  }
   public bool SkillMovesCharacter(Character owner)
   {
     return GetActiveSkillEffect(owner).movement.Count > 0;

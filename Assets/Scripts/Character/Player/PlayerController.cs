@@ -49,6 +49,7 @@ public class PlayerController : Character
   override protected void Start()
   {
     rewiredPlayer = ReInput.players.GetPlayer(rewiredPlayerId);
+    trophyGrubCount.Value = 0;
     base.Start();
   }
 
@@ -258,7 +259,6 @@ public class PlayerController : Character
     Vector3 newPos = transform.position;
     movementInput.x = rewiredPlayer.GetAxis("Move Horizontal");
     movementInput.y = rewiredPlayer.GetAxis("Move Vertical");
-    Debug.Log("movement input: " + movementInput);
     // if (Input.GetKey("w"))
     // {
     //   movementInput.y = 1;
@@ -362,20 +362,20 @@ public class PlayerController : Character
               // DescendOneFloor(); // maybe descend??
             }
           }
-          else if (Input.GetButtonDown("Activate"))
+          else if (rewiredPlayer.GetButtonDown("Interact"))
           {
-            Debug.Log("activate?");
+            Debug.Log("Interact?");
             if (availableContextualActions.Count > 0)
             {
               GetSelectedContextualAction().actionToCall();
               return;
             }
           }
-          else if (Input.GetButtonDown("Molt"))
-          {
-            StartCoroutine(Molt());
-            return;
-          }
+          // else if (Input.GetButtonDown("Molt"))
+          // {
+          //   StartCoroutine(Molt());
+          //   return;
+          // }
         }
         // if (CanAct())
         // {
@@ -549,6 +549,8 @@ public class PlayerController : Character
     if (item.itemType == InventoryItemType.Currency)
     {
       trophyGrubCount.Value += item.quantity;
+      Debug.Log("trophyGrubCount: " + trophyGrubCount.Value);
+      Debug.Log("item quantity: " + item.quantity);
       changedTrophyGrubCountEvent.Raise();
     }
     else

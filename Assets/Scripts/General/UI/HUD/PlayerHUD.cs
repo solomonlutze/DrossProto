@@ -80,6 +80,7 @@ public class PlayerHUD : MonoBehaviour
 
   public void SetGrubCount()
   {
+    Debug.Log("setting grub count text to " + grubCount.Value);
     grubCountText.text = "" + grubCount.Value;
   }
 

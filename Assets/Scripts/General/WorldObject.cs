@@ -110,11 +110,19 @@ public class WorldObject : MonoBehaviour
   private void _OnValidate()
   {
     if (this == null || this.gameObject == null) { return; }
-    if (gameObject.layer != prevLayer)
+    int targetLayer = gameObject.layer;
+    if (transform.parent != null)
     {
-      prevLayer = gameObject.layer;
-      ChangeLayersRecursively(transform, LayerMask.LayerToName(gameObject.layer));
+      targetLayer = transform.parent.gameObject.layer;
+      Debug.Log("target layer for " + gameObject + "should be " + LayerMask.LayerToName(targetLayer));
     }
+    if (targetLayer != prevLayer)
+    {
+      Debug.Log("changing target layer for " + gameObject + "to " + LayerMask.LayerToName(targetLayer));
+      prevLayer = targetLayer;
+      ChangeLayersRecursively(transform, LayerMask.LayerToName(targetLayer));
+    }
+    transform.localPosition = new Vector3(transform.position.x, transform.position.y, 0f);
   }
   [MenuItem("CustomTools/ChangeLayersRecursively")]
   public static void ChangeLayersRecursivelyForSelected()

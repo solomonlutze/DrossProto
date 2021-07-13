@@ -2,9 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using Yarn.Unity;
 
-// Not in use yet; will be used to handle things like input state, etc.
 public class GameMaster : Singleton<GameMaster>
 {
   public bool DebugEnabled = false;
@@ -37,7 +37,6 @@ public class GameMaster : Singleton<GameMaster>
     Time.fixedDeltaTime = 1 / 60f;
     pathfinding = GetComponent<PathfindingSystem>();
     SetGameStatus(startingGameStatus);
-    Shader.EnableKeyword("EDITOR");
     switch (GetGameStatus())
     {
       case Constants.GameState.Play:
@@ -65,6 +64,11 @@ public class GameMaster : Singleton<GameMaster>
   // Update is called once per frame
   void Update()
   {
+    // Debug.Log("eventSystem current: " + EventSystem.current);
+    if (EventSystem.current != null)
+    {
+      Debug.Log("eventSystem currently selected: " + EventSystem.current.currentSelectedGameObject);
+    }
     HandleInput();
   }
 
