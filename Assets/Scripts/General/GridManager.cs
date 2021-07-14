@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 using UnityEngine.Tilemaps;
 
 // this sucks
@@ -269,6 +270,7 @@ public class GridManager : Singleton<GridManager>
     Tilemap groundTilemap;
     Tilemap objectTilemap;
     Tilemap visibilityTilemap;
+    Tilemap infoTilemap;
     maxXAcrossAllFloors = -5000;
     minXAcrossAllFloors = 5000;
     minYAcrossAllFloors = 5000;
@@ -301,6 +303,8 @@ public class GridManager : Singleton<GridManager>
       LayerFloor layerFloor = layerFloors[layer];
       groundTilemap = layerFloor.groundTilemap;
       objectTilemap = layerFloor.objectTilemap;
+      infoTilemap = layerFloor.infoTilemap;
+      if (infoTilemap != null) { infoTilemap.gameObject.SetActive(false); }
       visibilityTilemap = layerFloor.visibilityTilemap;
       visibilityTilemap.gameObject.SetActive(false);
       for (int x = minXAcrossAllFloors; x < maxXAcrossAllFloors; x++)
@@ -310,7 +314,7 @@ public class GridManager : Singleton<GridManager>
         {
           //get both object and ground tile, build an environmentTileInfo out of them, and put it into our worldGrid
           TileLocation loc = new TileLocation(new Vector2Int(x, y), layer);
-          ConstructAndSetEnvironmentTileInfo(loc, groundTilemap, objectTilemap, visibilityTilemap, litTiles, currentTilesToLight);
+          ConstructAndSetEnvironmentTileInfo(loc, groundTilemap, objectTilemap, visibilityTilemap, infoTilemap, litTiles, currentTilesToLight);
         }
       }
       // }
@@ -422,6 +426,7 @@ public class GridManager : Singleton<GridManager>
     Tilemap groundTilemap,
     Tilemap objectTilemap,
     Tilemap visibilityTilemap,
+    Tilemap infoTilemap,
     HashSet<EnvironmentTileInfo> litTiles = null,
     HashSet<EnvironmentTileInfo> currentTilesToLight = null
     )
@@ -431,11 +436,13 @@ public class GridManager : Singleton<GridManager>
     visibilityTilemap.SetTile(v3pos, visibilityTile);
     EnvironmentTile objectTile = objectTilemap.GetTile(v3pos) as EnvironmentTile;
     EnvironmentTile groundTile = groundTilemap.GetTile(v3pos) as EnvironmentTile;
+    InfoTile infoTile = infoTilemap.GetTile(v3pos) as InfoTile;
 
     info.Init(
       loc,
       groundTile,
-      objectTile
+      objectTile,
+      infoTile
     );
     if (info.isLightSource)
     {
@@ -983,7 +990,7 @@ public class GridManager : Singleton<GridManager>
     }
     Tilemap levelTilemap = replacementTile != null && replacementTile.floorTilemapType == FloorTilemapType.Ground ? layerFloor.groundTilemap : layerFloor.objectTilemap;
     levelTilemap.SetTile(new Vector3Int(location.tilemapCoordinates.x, location.tilemapCoordinates.y, 0), replacementTile);
-    return ConstructAndSetEnvironmentTileInfo(location, layerFloor.groundTilemap, layerFloor.objectTilemap, layerFloor.visibilityTilemap);
+    return ConstructAndSetEnvironmentTileInfo(location, layerFloor.groundTilemap, layerFloor.objectTilemap, layerFloor.visibilityTilemap, layerFloor.infoTilemap);
   }
 
   public void MarkTileToDestroyOnPlayerRespawn(EnvironmentTileInfo tile, EnvironmentTile replacementTile)
@@ -1126,6 +1133,10 @@ public class GridManager : Singleton<GridManager>
   public void PlayerChangedTile(TileLocation newPlayerTileLocation, int sightRange, DarkVisionInfo[] darkVisionInfos)
   {
     currentPlayerLocation = newPlayerTileLocation;
+    if (GetTileAtLocation(newPlayerTileLocation).infoTileType != null)
+    {
+      Debug.Log(GetTileAtLocation(newPlayerTileLocation).infoTileType.areaName);
+    }
     // RecalculateVisibility(currentPlayerLocation, sightRange, darkVisionInfos);
     // if (_recalculateVisiblityCoroutine != null)
     // {
@@ -1254,4 +1265,19 @@ public class GridManager : Singleton<GridManager>
     // }
 
   }
+
+#if UNITY_EDITOR
+  [MenuItem("CustomTools/ToggleInfoTilemaps")]
+  public static void ToggleInfoTilemaps()
+  {
+
+    foreach (LayerFloor layerFloor in GridManager.Instance.layerFloors.Values)
+    {
+      if (layerFloor.infoTilemap != null && layerFloor.infoTilemap.GetComponent<TilemapRenderer>() != null)
+      {
+        layerFloor.infoTilemap.GetComponent<TilemapRenderer>().enabled = !layerFloor.infoTilemap.GetComponent<TilemapRenderer>().enabled;
+      }
+    }
+  }
+#endif
 }

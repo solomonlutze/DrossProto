@@ -9,6 +9,7 @@ public class LayerFloor : MonoBehaviour
   public Tilemap groundTilemap;
   public Tilemap objectTilemap;
   public Tilemap visibilityTilemap;
+  public Tilemap infoTilemap;
   public Transform interestObjects;
   void Update()
   {
@@ -53,6 +54,16 @@ public class LayerFloor : MonoBehaviour
         {
           objectTilemap.gameObject.layer = LayerMask.NameToLayer(gameObject.name);
           visibilityTilemap = transform.Find(gameObject.name + "_Visibility").GetComponent<Tilemap>();
+        }
+      }
+      if (infoTilemap == null)
+      {
+        Debug.Log("info tilemap null");
+        if (transform.Find(gameObject.name + "_Info") != null)
+        {
+          Debug.Log("found tilemap");
+          infoTilemap = transform.Find(gameObject.name + "_Info").GetComponent<Tilemap>();
+          infoTilemap.gameObject.layer = LayerMask.NameToLayer(gameObject.name);
         }
       }
       else

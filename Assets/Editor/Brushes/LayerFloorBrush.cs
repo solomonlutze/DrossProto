@@ -113,34 +113,32 @@ namespace UnityEditor.Tilemaps
       Tilemap selectedTilemap = tilemapToPaint ? tilemapToPaint.GetComponent<Tilemap>() : null;
       if (cell != null && selectedTilemap != null)
       {
-        EnvironmentTile selectedTile = cell.tile as EnvironmentTile;
-        if (selectedTile != null)
+        FloorTilemapType floorTilemapType = (cell.tile as EnvironmentTile)?.floorTilemapType ?? (cell.tile as InfoTile)?.floorTilemapType ?? FloorTilemapType.Ground;
+
+        // TilemapEditorTool.SetActiveEditorTool(typeof(EraseTool));
+        Tilemap desiredTilemap;
+        if (floorTilemapType == FloorTilemapType.Ground)
         {
-          // TilemapEditorTool.SetActiveEditorTool(typeof(EraseTool));
-          Tilemap desiredTilemap;
-          if (selectedTile.floorTilemapType == FloorTilemapType.Ground)
-          {
-            desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().groundTilemap;
-          }
-          else if (selectedTile.floorTilemapType == FloorTilemapType.Object)
-          {
-            desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().objectTilemap;
-          }
-          else
-          {
-            desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().visibilityTilemap;
-          }
-          if (selectedTilemap != desiredTilemap)
-          {
-            GameObject[] go = new GameObject[] { desiredTilemap.gameObject };
-            Selection.objects = go;
-          }
+          desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().groundTilemap;
+        }
+        else if (floorTilemapType == FloorTilemapType.Object)
+        {
+          desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().objectTilemap;
+        }
+        else if (floorTilemapType == FloorTilemapType.Info)
+        {
+          desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().infoTilemap;
         }
         else
         {
-          // Debug.Log("selected tile is null! " + selectedTile);
-          // TilemapEditorTool.SetActiveEditorTool(typeof(EraseTool));
+          desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().visibilityTilemap;
         }
+        if (selectedTilemap != desiredTilemap)
+        {
+          GameObject[] go = new GameObject[] { desiredTilemap.gameObject };
+          Selection.objects = go;
+        }
+
       }
     }
 
