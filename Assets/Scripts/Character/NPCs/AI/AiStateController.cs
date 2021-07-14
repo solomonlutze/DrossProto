@@ -16,10 +16,12 @@ public class AiStateController : Character
     }
   }
   [HideInInspector] public float timeSpentInState;
+  [HideInInspector] public float attackCooldownTimer;
 
   [Header("AI Attributes")]
   public bool DEBUGStopRecalculatingPath = false;
   public float attackAngleInDegrees = 45f;
+  public AiSettings aiSettings;
   public float maxTargetDistanceFromSpawnPoint = 15;
   public float minDistanceFromPathNode = .15f;
 
@@ -41,9 +43,10 @@ public class AiStateController : Character
   public float currentOpacity = 1;
   public bool shouldBeVisible = true;
   public float camouflageFadeTime = .25f; //maybe this should live on defaultCharacterData
+  public List<CharacterSkillData> attackSkills;
 
   [HideInInspector] public Vector2 spawnLocation;
-  public AttackType selectedAttackType;
+  // public AttackType selectedAttackType;
   /*
   * Travel variables
    */
@@ -73,11 +76,23 @@ public class AiStateController : Character
     spawnLocation = transform.position;
     Init();
   }
+  protected override void Init()
+  {
+    base.Init();
+    attackSkills = new List<CharacterSkillData>();
+    foreach (CharacterSkillData skill in characterSkills)
+    {
+      if (skill.IsAttack())
+      {
+        attackSkills.Add(skill);
+      }
+    }
+  }
   protected override void Update()
   {
     base.Update();
     timeSpentInState += Time.deltaTime;
-    HandleVisibility();
+    attackCooldownTimer += Time.deltaTime;
   }
 
   protected override void FixedUpdate()
@@ -87,6 +102,16 @@ public class AiStateController : Character
     currentState.UpdateState(this);
   }
 
+
+  public override void BeginSkill(CharacterSkillData skill)
+  {
+    if (skill.IsAttack())
+    {
+      attackCooldownTimer = 0;
+    }
+    base.BeginSkill(skill);
+    pressingSkill = null;
+  }
   /*
   *STATE LOGIC
   */
@@ -133,47 +158,47 @@ public class AiStateController : Character
   // - not camouflaged (controlled by AI), and
   // - not above the player (controlled by layerRenderer)
 
-  void HandleVisibility()
-  {
-    CalculateTargetOpacity();
-    if (!layerRenderer.shouldBeVisible)
-    {
-      if (GetCamouflageRange() > 0)
-      {
-        Debug.Log("layer renderer handling visibility for " + gameObject.name);
-      }
-      return; // LayerRenderer handles visability if it thinks the character should be invisible
-    }
-    else
-    {
-      // if (GetCamouflageRange() > 0)
-      // {
-      //   Debug.Log("currentOpacity: " + currentOpacity);
-      // }
-      if (!LayerRenderer.FinishedChangingOpacity(shouldBeVisible, currentOpacity))
-      {
-        currentOpacity += Time.deltaTime / camouflageFadeTime * (shouldBeVisible ? 1 : -1);
-      }
-      LayerRenderer.ChangeOpacityRecursively(transform, currentOpacity);
-    }
-  }
+  // void HandleVisibility()
+  // {
+  //   CalculateTargetOpacity();
+  //   if (!layerRenderer.shouldBeVisible)
+  //   {
+  //     if (GetCamouflageRange() > 0)
+  //     {
+  //       Debug.Log("layer renderer handling visibility for " + gameObject.name);
+  //     }
+  //     return; // LayerRenderer handles visability if it thinks the character should be invisible
+  //   }
+  //   else
+  //   {
+  //     // if (GetCamouflageRange() > 0)
+  //     // {
+  //     //   Debug.Log("currentOpacity: " + currentOpacity);
+  //     // }
+  //     if (!LayerRenderer.FinishedChangingOpacity(shouldBeVisible, currentOpacity))
+  //     {
+  //       currentOpacity += Time.deltaTime / camouflageFadeTime * (shouldBeVisible ? 1 : -1);
+  //     }
+  //     LayerRenderer.ChangeOpacityRecursively(transform, currentOpacity);
+  //   }
+  // }
 
-  void CalculateTargetOpacity()
-  {
-    PlayerController player = GameMaster.Instance.GetPlayerController();
-    if (player == null || GetCamouflageRange() <= 0)
-    {
-      shouldBeVisible = true;
-      return;
-    }
-    float distanceFromPlayer = Vector2.SqrMagnitude(transform.position - player.transform.position);
-    if (distanceFromPlayer > Mathf.Pow(GetCamouflageRange(), 2))
-    {
-      shouldBeVisible = false;
-      return;
-    }
-    shouldBeVisible = true;
-  }
+  // void CalculateTargetOpacity()
+  // {
+  //   PlayerController player = GameMaster.Instance.GetPlayerController();
+  //   if (player == null || GetCamouflageRange() <= 0)
+  //   {
+  //     shouldBeVisible = true;
+  //     return;
+  //   }
+  //   float distanceFromPlayer = Vector2.SqrMagnitude(transform.position - player.transform.position);
+  //   if (distanceFromPlayer > Mathf.Pow(GetCamouflageRange(), 2))
+  //   {
+  //     shouldBeVisible = false;
+  //     return;
+  //   }
+  //   shouldBeVisible = true;
+  // }
 
   public override void SetCurrentFloor(FloorLayer newFloorLayer)
   {
@@ -288,6 +313,15 @@ public class AiStateController : Character
       && (pathToTarget != null || lineToTargetIsClear || isCalculatingPath);
   }
 
+  public bool LineToTargetIsClear(WorldObject target)
+  {
+    return
+      PathfindingSystem.Instance.IsPathClearOfHazards(
+        target.transform.position,
+        target.GetFloorLayer(),
+        this
+      );
+  }
   public bool ObjectOfInterestWithinRangeOfSpawnPoint()
   {
     return
@@ -311,37 +345,70 @@ public class AiStateController : Character
   //   return attackRange - attackRange * preferredAttackRangeBuffer;
   // }
 
+  // closer than this and _none_ of our attacks are a good idea,
+  // and we should back up
   public float GetMinPreferredAttackRange()
   {
     float overallMin = 1000f;
-    foreach (SkillRangeInfo range in GetAttackRangeInfo())
+    foreach (CharacterSkillData skillData in attackSkills)
     {
-      float min = range.minRange;
-      min += (range.maxRange - min) * minDistanceToAttackBuffer;
-      overallMin = Mathf.Min(min, overallMin);
+      foreach (SkillRangeInfo range in skillData.CalculateRangeInfosForSkillEffectSet(this))
+      {
+        float min = range.minRange;
+        min += (range.maxRange - min) * minDistanceToAttackBuffer;
+        overallMin = Mathf.Min(min, overallMin);
+      }
     }
     return overallMin;
   }
 
+
+  public (float, float) GetMinAndMaxPreferredAttackRange()
+  {
+    float overallMin = 1000f;
+    float overallMax = -1000f;
+    foreach (CharacterSkillData skillData in attackSkills)
+    {
+      foreach (SkillRangeInfo range in skillData.CalculateRangeInfosForSkillEffectSet(this))
+      {
+        float min = range.minRange;
+        min += (range.maxRange - min) * minDistanceToAttackBuffer;
+        overallMin = Mathf.Min(min, overallMin);
+        float max = range.maxRange;
+        overallMax = Mathf.Max(max, overallMax);
+      }
+    }
+    return (overallMin, overallMax);
+  }
+
   public bool TooCloseToTarget(WorldObject target)
   {
-    foreach (SkillRangeInfo range in GetAttackRangeInfo())
+    float min = GetMinPreferredAttackRange();
+    if ((transform.position - target.transform.position).sqrMagnitude < min * min
+    )
     {
-      float min = range.minRange;
-      min += (range.maxRange - min) * minDistanceToAttackBuffer;
-      if ((transform.position - target.transform.position).sqrMagnitude < min * min
-      )
-      {
-        return true;
-      }
+      Debug.Log("too close to target - min range " + min);
+      return true;
+    }
+    return false;
+  }
+
+  public bool TooFarFromTarget(WorldObject target)
+  {
+
+    if ((transform.position - target.transform.position).sqrMagnitude > aiSettings.maxCombatDistance * aiSettings.maxCombatDistance
+    )
+    {
+      Debug.Log("too far from target - max range " + aiSettings.maxCombatDistance);
+      return true;
     }
     return false;
   }
 
 
-  public bool WithinAttackRange(WorldObject target)
+  public bool WithinAttackRange(WorldObject target, SkillRangeInfo[] rangeInfos)
   {
-    foreach (SkillRangeInfo range in GetAttackRangeInfo())
+    foreach (SkillRangeInfo range in rangeInfos)
     {
       float min = range.minRange;
       float max = range.maxRange;
@@ -357,14 +424,13 @@ public class AiStateController : Character
     return false;
   }
 
-  public bool WithinAttackAngle()
+  public bool WithinAttackAngle(WorldObject target, SkillRangeInfo[] rangeInfos)
   {
-    foreach (SkillRangeInfo range in GetAttackRangeInfo())
+    Vector3 targetDirection = target.transform.position - transform.position;
+    return Mathf.Abs(GetAngleToDirection(targetDirection)) < aiSettings.minAttackAngle;
+
+    foreach (SkillRangeInfo range in rangeInfos)
     {
-      // if (selectedAttackType == AttackType.Critical)
-      // {
-      //   return true; // we auto-line up for crits 
-      // }
       float min = range.minAngle;
       float max = range.maxAngle;
       if (Mathf.Abs(max - min) < minimumAttackAngle)
@@ -389,13 +455,13 @@ public class AiStateController : Character
       }
       else if (max > 180f)
       {
-        return GetAngleToTarget() >= min || max - 360 > GetAngleToTarget();
+        return GetAngleToDirection(targetDirection) >= min || max - 360 > GetAngleToDirection(targetDirection);
       }
       else if (min < -180f)
       {
-        return GetAngleToTarget() >= min + 360 || max > GetAngleToTarget();
+        return GetAngleToDirection(targetDirection) >= min + 360 || max > GetAngleToDirection(targetDirection);
       }
-      else if (GetAngleToTarget() >= min && GetAngleToTarget() <= max)
+      else if (GetAngleToDirection(targetDirection) >= min && GetAngleToDirection(targetDirection) <= max)
       {
         return true;
       }
@@ -408,16 +474,13 @@ public class AiStateController : Character
     return true;
     // return (GetCharacterVital(CharacterVital.CurrentStamina) > GetSelectedCharacterSkill().staminaCost / 2);
   }
-  public void WaitThenAttack()
+  public void WaitThenAttack(CharacterSkillData attack)
   {
     waitingToAttack = true;
-    StartCoroutine(WaitThenAttackCoroutine());
+    StartCoroutine(WaitThenAttackCoroutine(attack));
   }
-  public IEnumerator WaitThenAttackCoroutine()
+  public IEnumerator WaitThenAttackCoroutine(CharacterSkillData attack)
   {
-    blocking = selectedAttackType == AttackType.Blocking; // block if using block attack, force unblock otherwise
-    Debug.Log("using attack " + selectedAttackType);
-
     yield return null;
     // yield return new WaitForSeconds(Random.Range(0.4f, 1.1f));
     // if (selectedAttackType == AttackType.Critical)
@@ -425,9 +488,9 @@ public class AiStateController : Character
     //   StartCoroutine(UseCritAttack());
     // }
     // else
-    // {
-    // HandleSkillInput(GetSelectedCharacterSkill()); // todo: fix this????
-    // }
+    {
+      HandleSkillInput(attack);
+    }
     waitingToAttack = false;
   }
 
@@ -440,10 +503,10 @@ public class AiStateController : Character
     base.TakeDamage(damageSource);
   }
 
-  public override CharacterSkillData GetSelectedCharacterSkill()
-  {
-    return GetSkillDataForAttackType(selectedAttackType);
-  }
+  // public override CharacterSkillData GetSelectedCharacterSkill()
+  // {
+  //   return GetSkillDataForAttackType(selectedAttackType);
+  // }
 
   private void SpawnDroppedItems()
   {

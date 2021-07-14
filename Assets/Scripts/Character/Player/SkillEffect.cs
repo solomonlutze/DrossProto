@@ -17,7 +17,7 @@ public enum SkillEffectFloatProperty
   RotationSpeed
 }
 
-public enum SkillEffectCurveProperty
+public enum SkillEffectMovementProperty
 {
   MoveForward,
   MoveUp,
@@ -39,8 +39,10 @@ public class SkillEffect
 {
 
   public SkillEffectType useType;
-  [Tooltip("Defines whether any skill should be able to interrupt (cancel) this effect and subsequent effects")]
+  [Tooltip("Defines whether taking damage should interrupt/end this effect and subsequent effects")]
   public bool interruptable = false;
+  [Tooltip("Defines whether this (or another) skill can be used to interrupt this effect and subsequent effects")]
+  public bool cancelable = false;
 
   [Tooltip("Defines whether an input of this skill should end this effect and move to the next")]
   public bool advanceable = false;
@@ -49,7 +51,8 @@ public class SkillEffect
   public float duration;
 
   public SkillEffectPropertyToFloat properties;
-  public SkillEffectPropertyToCurve movement;
+  public SkillEffectMovementPropertyToCurve movement;
+  public CharacterVitalToCurveDictionary vitalChanges;
   public List<CharacterMovementAbility> movementAbilities;
   public AttackSpawn[] weaponSpawns;
   public SkillEffect()
@@ -67,6 +70,18 @@ public class SkillEffect
   }
   public virtual void DoSkillEffect(Character owner)
   {
+    foreach (KeyValuePair<CharacterVital, NormalizedCurve> vitalChange in vitalChanges)
+    {
+      switch (vitalChange.Key)
+      {
+        case CharacterVital.CurrentHealth:
+          owner.AdjustCurrentHealth(owner.CalculateCurveProgressIncrement(vitalChange.Value, false, useType == SkillEffectType.Continuous));
+          break;
+        case CharacterVital.CurrentMaxHealth:
+          owner.AdjustCurrentMaxHealth(owner.CalculateCurveProgressIncrement(vitalChange.Value, false, useType == SkillEffectType.Continuous));
+          break;
+      }
+    }
     return;
   }
 
@@ -98,7 +113,7 @@ public class SkillEffect
     for (int i = 0; i < weaponSpawns.Length; i++)
     {
       SkillRangeInfo info = new SkillRangeInfo(weaponSpawns[i]);
-      // infos.Add(weaponSpawns[i].attackData.GetAttackRangeInfo(ref info, info.maxRange, info.maxAngle));
+      infos.Add(weaponSpawns[i].attackData.GetAttackRangeInfo(ref info, owner, info.maxRange, info.maxAngle));
     }
     return infos;
   }

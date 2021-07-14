@@ -93,6 +93,7 @@ public class CanvasHandler : MonoBehaviour
   public void DisplaySelectBugScreen()
   {
     SetAllCanvasesInactive();
+    startingBugSelectScreen.Init();
     startingBugSelectScreen.gameObject.SetActive(true);
   }
 

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using ScriptableObjectArchitecture;
+using Rewired;
 
 public struct ContextualAction
 {
@@ -19,6 +20,8 @@ public struct ContextualAction
 public class PlayerController : Character
 {
 
+  public int rewiredPlayerId = 0;
+  private Rewired.Player rewiredPlayer;
   private List<GameObject> interactables;
   private Inventory inventory;
 
@@ -45,6 +48,8 @@ public class PlayerController : Character
   // Use this for initialization
   override protected void Start()
   {
+    rewiredPlayer = ReInput.players.GetPlayer(rewiredPlayerId);
+    trophyGrubCount.Value = 0;
     base.Start();
   }
 
@@ -252,30 +257,32 @@ public class PlayerController : Character
   void HandleMovementInput()
   {
     Vector3 newPos = transform.position;
-    if (Input.GetKey("w"))
-    {
-      movementInput.y = 1;
-    }
-    else if (Input.GetKey("s"))
-    {
-      movementInput.y = -1;
-    }
-    else
-    {
-      movementInput.y = 0;
-    }
-    if (Input.GetKey("d"))
-    {
-      movementInput.x = 1;
-    }
-    else if (Input.GetKey("a"))
-    {
-      movementInput.x = -1;
-    }
-    else
-    {
-      movementInput.x = 0;
-    }
+    movementInput.x = rewiredPlayer.GetAxis("Move Horizontal");
+    movementInput.y = rewiredPlayer.GetAxis("Move Vertical");
+    // if (Input.GetKey("w"))
+    // {
+    //   movementInput.y = 1;
+    // }
+    // else if (Input.GetKey("s"))
+    // {
+    //   movementInput.y = -1;
+    // }
+    // else
+    // {
+    //   movementInput.y = 0;
+    // }
+    // if (Input.GetKey("d"))
+    // {
+    //   movementInput.x = 1;
+    // }
+    // else if (Input.GetKey("a"))
+    // {
+    //   movementInput.x = -1;
+    // }
+    // else
+    // {
+    //   movementInput.x = 0;
+    // }
   }
 
   void HandleActionInput()
@@ -291,35 +298,36 @@ public class PlayerController : Character
         {
           shouldBlock = true;
         }
-        receivingSkillInput = Input.GetButton("Attack"); // NOT used to determine if attacks are happening! used to hold continuous/charge skills
-        if (Input.GetButtonDown("Attack"))
+        // receivingSkillInput = Input.GetButton("Attack") || Input.GetButton; // NOT used to determine if attacks are happening! used to hold continuous/charge skills
+        if (rewiredPlayer.GetButtonDown("Use Skill"))
         {
-          // if (critTarget != null)
-          // {
-          //   Debug.Log("using crit?");
-          //   StartCoroutine(UseCritAttack());
-          //   return;
-          // }
-          // if (shouldBlock)
-          // {
-          //   UseSkill(GetSkillDataForAttackType(AttackType.Blocking));
-          //   return;
-          // }
-          // if (IsDashingOrRecovering())
-          // {
-          //   // set shouldDashAttack
-          //   Debug.Log("Dash attack!");
-          //   QueueDashAttack();
-          //   return;
-          // }
-          // else
-          // {
           UseSelectedSkill();
           // }
           // chargeAttackTime += Time.deltaTime; // incrementing this further is handled in HandleCooldowns
           // UseSkill(GetSkillEffectForAttackType(AttackType.Basic));
           return;
-
+        }
+        if (rewiredPlayer.GetButtonUp("Use Skill"))
+        {
+          if (pressingSkill != moltSkill)
+          {
+            pressingSkill = null;
+          }
+        }
+        if (rewiredPlayer.GetButtonDown("Molt"))
+        {
+          HandleSkillInput(moltSkill);
+          // }
+          // chargeAttackTime += Time.deltaTime; // incrementing this further is handled in HandleCooldowns
+          // UseSkill(GetSkillEffectForAttackType(AttackType.Basic));
+          return;
+        }
+        if (rewiredPlayer.GetButtonUp("Molt"))
+        {
+          if (pressingSkill == moltSkill)
+          {
+            pressingSkill = null;
+          }
         }
         if (CanMove())
         {
@@ -335,11 +343,11 @@ public class PlayerController : Character
               AscendOneFloor();
               return;
             }
-            else if (!flying && GetCanFly())
-            {
-              Fly();
-              return;
-            }
+            // else if (!flying && GetCanFly())
+            // {
+            //   Fly();
+            //   return;
+            // }
           }
           else if (Input.GetButtonDown("Descend"))
           {
@@ -354,20 +362,20 @@ public class PlayerController : Character
               // DescendOneFloor(); // maybe descend??
             }
           }
-          else if (Input.GetButtonDown("Activate"))
+          else if (rewiredPlayer.GetButtonDown("Interact"))
           {
-            Debug.Log("activate?");
+            Debug.Log("Interact?");
             if (availableContextualActions.Count > 0)
             {
               GetSelectedContextualAction().actionToCall();
               return;
             }
           }
-          else if (Input.GetButtonDown("Molt"))
-          {
-            StartCoroutine(Molt());
-            return;
-          }
+          // else if (Input.GetButtonDown("Molt"))
+          // {
+          //   StartCoroutine(Molt());
+          //   return;
+          // }
         }
         // if (CanAct())
         // {
@@ -447,12 +455,12 @@ public class PlayerController : Character
           }
           return;
         }
-        else if (Input.GetButtonDown("AdvanceSkill"))
+        else if (rewiredPlayer.GetButtonDown("Next Skill"))
         {
           AdvanceSelectedSkill();
           return;
         }
-        else if (Input.GetButtonDown("PreviousSkill"))
+        else if (rewiredPlayer.GetButtonDown("Previous Skill"))
         {
           PreviousSelectedSkill();
           return;
@@ -541,6 +549,8 @@ public class PlayerController : Character
     if (item.itemType == InventoryItemType.Currency)
     {
       trophyGrubCount.Value += item.quantity;
+      Debug.Log("trophyGrubCount: " + trophyGrubCount.Value);
+      Debug.Log("item quantity: " + item.quantity);
       changedTrophyGrubCountEvent.Raise();
     }
     else

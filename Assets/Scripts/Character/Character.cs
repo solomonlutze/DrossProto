@@ -22,6 +22,7 @@ public enum CharacterVital
   CurrentEnvironmentalDamageCooldown,
   CurrentStamina,
   CurrentCarapace, // Carapace might be "balance" sometime
+  CurrentMaxHealth,
   CurrentMoltCount
 }
 
@@ -44,7 +45,8 @@ public enum CharacterStat
   Carapace = 10,
   MoltDuration = 11,
   BlockingMoveAcceleration = 12,
-  BlockingRotationSpeed = 13
+  BlockingRotationSpeed = 13,
+  MaxHealth = 14
 }
 
 public enum CharacterAttribute
@@ -254,6 +256,7 @@ public class Character : WorldObject
   [Header("Attack Info")]
   public Moveset moveset;
   public List<CharacterSkillData> characterSkills;
+  public CharacterSkillData moltSkill;
   public List<CharacterSkillData> characterSpells;// possibly deprecated
                                                   // public Weapon weaponInstance;
   public CharacterAttackModifiers attackModifiers; // probably deprecated
@@ -294,7 +297,8 @@ public class Character : WorldObject
   public float damageFlashSpeed = 1.0f;
   public CharacterSkillData activeSkill;
   public CharacterSkillData queuedSkill;
-  public bool receivingSkillInput;
+  public CharacterSkillData pressingSkill;
+  // public bool receivingSkillInput;
   public float timeSpentInSkillEffect = 0f;
   public int currentSkillEffectSetIndex = 0;
   public int currentSkillEffectIndex = 0;
@@ -411,6 +415,7 @@ public class Character : WorldObject
       activeMovementAbilities.AddRange(dataInstance.movementAbilities);
     }
     vitals = new CharacterVitalToFloatDictionary();
+    vitals[CharacterVital.CurrentMaxHealth] = defaultCharacterData.defaultStats[CharacterStat.MaxHealth];
     vitals[CharacterVital.CurrentHealth] = GetCurrentMaxHealth();
     vitals[CharacterVital.CurrentStamina] = GetMaxStamina();
     vitals[CharacterVital.CurrentCarapace] = GetMaxCarapace();
@@ -432,6 +437,7 @@ public class Character : WorldObject
   {
 
     CharacterAttributeToIntDictionary ret = new CharacterAttributeToIntDictionary(true);
+    return ret;
     foreach (Trait trait in traits.Values)
     {
       if (trait == null) { continue; }
@@ -440,7 +446,6 @@ public class Character : WorldObject
         ret[attribute] += trait.attributeModifiers[attribute];
       }
     }
-    return ret;
   }
 
   public virtual CharacterSkillData GetSelectedCharacterSkill()
@@ -541,10 +546,12 @@ public class Character : WorldObject
   {
     Debug.Log("trying to use skill " + skill);
     QueueSkill(skill);
+    PressSkill(skill);
     if (!UsingSkill())
     {
       if (CanUseSkill(skill))
       {
+        Debug.Log("beginning skill " + skill);
         BeginSkill(skill);
       }
       queuedSkill = null;
@@ -557,7 +564,7 @@ public class Character : WorldObject
       }
       queuedSkill = null;
     }
-    else if (activeSkill.SkillIsInterruptable(this))
+    else if (activeSkill.SkillIsCancelable(this))
     {
       if (CanUseSkill(skill))
       {
@@ -602,6 +609,10 @@ public class Character : WorldObject
   // the below method is probably closer to AdvanceSkillEffectSet
   public void AdvanceSkillEffectSet()
   {
+    Debug.Log("trying to advance skill " + activeSkill);
+
+    Debug.Log("pressedSkill " + pressingSkill);
+    Debug.Log("queuedSkill " + queuedSkill);
     currentSkillEffectIndex = 0;
     while (currentSkillEffectSetIndex < activeSkill.skillEffectSets.Length - 1)
     {
@@ -640,11 +651,13 @@ public class Character : WorldObject
 
   public void EndSkill()
   {
+    Debug.Log("ending skill " + activeSkill);
     if (UsingSkill())
     {
       activeSkill.CleanUp(this);
       activeSkill = null;
     }
+    pressingSkill = null;
     currentSkillEffectSetIndex = 0;
     currentSkillEffectIndex = 0;
     timeSpentInSkillEffect = 0;
@@ -683,7 +696,7 @@ public class Character : WorldObject
     usingCrit = false;
   }
 
-  public void BeginSkill(CharacterSkillData skill)
+  public virtual void BeginSkill(CharacterSkillData skill)
   {
     queuedSkill = null;
     activeSkill = skill;
@@ -701,6 +714,11 @@ public class Character : WorldObject
   public void QueueSkill(CharacterSkillData skill)
   {
     queuedSkill = skill;
+  }
+
+  public void PressSkill(CharacterSkillData skill)
+  {
+    pressingSkill = skill;
   }
 
   public void SetBlocking(bool blockingFlag)
@@ -722,24 +740,20 @@ public class Character : WorldObject
     return characterSkills[idx].name;
   }
 
-  public float GetAttackRange(AttackType attack)
+  public SkillRangeInfo[] GetAttackRangeForSkill(CharacterSkillData skillData)
   {
-    return GetSkillDataForAttackType(attack).GetEffectiveRange(this);
-  }
-  public float GetAttackRange()
-  {
-    return GetSelectedCharacterSkill().GetEffectiveRange(this);
+    return skillData.CalculateRangeInfosForSkillEffectSet(this, activeSkill == skillData ? currentSkillEffectIndex + 1 : 0);
   }
 
-  public SkillRangeInfo[] GetAttackRangeInfo(AttackType attack)
-  {
-    return GetSkillDataForAttackType(attack).skillRangeInfo;
-  }
+  // public SkillRangeInfo[] GetAttackRangeInfo(AttackType attack)
+  // {
+  //   return GetSkillDataForAttackType(attack).skillRangeInfo;
+  // }
 
-  public SkillRangeInfo[] GetAttackRangeInfo()
-  {
-    return GetSelectedCharacterSkill().skillRangeInfo;
-  }
+  // public SkillRangeInfo[] GetAttackRangeInfo()
+  // {
+  //   return GetSelectedCharacterSkill().CalculateRangeInfosForSkillEffectSet(this, 0);
+  // }
 
   public int GetAttackRadiusInDegrees(int skillIdxForAttack)
   {
@@ -785,9 +799,12 @@ public class Character : WorldObject
     {
       return;
     }
-    Quaternion targetDirection = GetTargetDirection();
-    // orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
-    orientation.rotation = Quaternion.RotateTowards(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
+    if (movementInput != Vector2.zero)
+    {
+      Quaternion targetDirection = GetTargetDirection();
+      // orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
+      orientation.rotation = Quaternion.RotateTowards(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
+    }
     // Debug.Log("rotation: " + orientation.rotation.eulerAngles + ", targetDirection: " + targetDirection.eulerAngles);
   }
 
@@ -796,7 +813,8 @@ public class Character : WorldObject
   // potential culprit.
   Quaternion GetTargetDirection()
   {
-    return GetDirectionAngle(orientTowards);
+    return GetDirectionAngle(movementInput);
+    // return GetDirectionAngle(orientTowards);
   }
 
   // Rotate character smoothly towards a particular orientation around the Z axis.
@@ -809,12 +827,12 @@ public class Character : WorldObject
     return Quaternion.AngleAxis(angle, Vector3.forward);
   }
 
-  // used to calculate how far our facing direction is from our target facing direction.
-  // Useful for e.g. deciding if an enemy is facing a player enough for attacking to be a good idea.
-  public float GetAngleToTarget()
-  {
-    return Quaternion.Angle(GetTargetDirection(), orientation.rotation);
-  }
+  // // used to calculate how far our facing direction is from our target facing direction.
+  // // Useful for e.g. deciding if an enemy is facing a player enough for attacking to be a good idea.
+  // public float GetAngleToTarget(Vector3 targetPoint)
+  // {
+  //   return Quaternion.Angle(GetTargetDirection(), orientation.rotation);
+  // }
 
   public float GetAngleToDirection(Vector3 targetPoint)
   {
@@ -947,14 +965,15 @@ public class Character : WorldObject
   //   return 0; // try not to do this please
   // }
 
-  public float CalculateMovementProgressIncrement(NormalizedCurve movementCurve, bool isContinuous = false)
+  public float CalculateCurveProgressIncrement(NormalizedCurve curve, bool forMovement, bool isContinuous = false)
   {
-    if (isContinuous)
+    float timestep = forMovement ? Time.fixedDeltaTime : Time.deltaTime;
+    if (activeSkill.GetActiveEffectDuration(this) == 0 && isContinuous)
     {
-      return movementCurve.magnitude.Resolve(this) * Time.fixedDeltaTime;
+      return curve.magnitude.Resolve(this) * timestep;
     }
-    return movementCurve.Evaluate(this, Mathf.Min(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this), 1))
-    - movementCurve.Evaluate(this, Mathf.Max((timeSpentInSkillEffect - Time.fixedDeltaTime) / activeSkill.GetActiveEffectDuration(this), 0));
+    return curve.Evaluate(this, Mathf.Min(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this), 1))
+    - curve.Evaluate(this, Mathf.Max((timeSpentInSkillEffect - timestep) / activeSkill.GetActiveEffectDuration(this), 0));
   }
 
   protected void BeginKnockback(Vector3 knockbackMagnitude)
@@ -1146,10 +1165,9 @@ public class Character : WorldObject
     if (UsingSkill() && activeSkill.SkillMovesCharacterVertically(this))
     {
       // animationValue = CalculateVerticalMovementAnimationSpeed(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp), activeSkill.IsContinuous(this));
-      easedSkillUpwardMovementProgressIncrement = (CalculateMovementProgressIncrement(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp), activeSkill.IsContinuous(this)));
+      easedSkillUpwardMovementProgressIncrement = (CalculateCurveProgressIncrement(activeSkill.GetMovement(this, SkillEffectMovementProperty.MoveUp), true, activeSkill.IsContinuous(this)));
       increment = easedSkillUpwardMovementProgressIncrement;
       animationValue = Mathf.Lerp(.5f, 1.5f, increment / Time.deltaTime);
-      Debug.Log("animationValue: " + animationValue);
     }
     // if (increment != 0)
     // {
@@ -1270,7 +1288,7 @@ public class Character : WorldObject
   protected bool ShouldUseSkillEffectSet(CharacterSkillData skillData, int idx = 0)
   {
     return
-      (skillData.skillEffectSets[idx].alwaysExecute || activeSkill == queuedSkill);
+      (skillData.skillEffectSets[idx].alwaysExecute || activeSkill == pressingSkill || activeSkill == queuedSkill);
   }
   protected virtual bool CanUseSkill(CharacterSkillData skillData, int effectSetIndex = 0)
   {
@@ -1356,6 +1374,10 @@ public class Character : WorldObject
       }
     }
     characterVisuals.DamageFlash(damageFlashColor);
+    if (damageAfterResistances > 0 && activeSkill != null && activeSkill.SkillIsInterruptable(this))
+    {
+      EndSkill();
+    }
     InterruptAnimation();
     // Debug.Log("taking " + damageToHealth + " damage");
     AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
@@ -1490,17 +1512,12 @@ public class Character : WorldObject
   // STAT GETTERS
   public float GetCurrentMaxHealth()
   {
-    return 100;
-    return
-        GetMaxHealth()
-        - (GetMaxHealthLostPerMolt() * GetCharacterVital(CharacterVital.CurrentMoltCount));
+    return GetCharacterVital(CharacterVital.CurrentMaxHealth);
   }
 
-  public float GetMaxHealth()
+  public float GetTrueMaxHealth()
   {
-    return defaultCharacterData
-      .GetHealthAttributeData()
-      .GetMaxHealth(this);
+    return defaultCharacterData.defaultStats[CharacterStat.MaxHealth];
   }
 
   public float GetMaxStamina()
@@ -1686,6 +1703,12 @@ public class Character : WorldObject
       Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, isNonlethal ? 1 : 0, GetCurrentMaxHealth());
   }
 
+  public void AdjustCurrentMaxHealth(float adjustment)
+  {
+    vitals[CharacterVital.CurrentMaxHealth] =
+     Mathf.Clamp(vitals[CharacterVital.CurrentMaxHealth] + adjustment, 0, GetTrueMaxHealth());
+    AdjustCurrentHealth(0);
+  }
   public void AdjustCurrentCarapace(float adjustment)
   {
     vitals[CharacterVital.CurrentCarapace] =
@@ -1766,7 +1789,7 @@ public class Character : WorldObject
       renderer.color = Color.Lerp(
         damagedColor,
         Color.white,
-        vitals[CharacterVital.CurrentHealth] / GetMaxHealth()
+        vitals[CharacterVital.CurrentHealth] / GetCurrentMaxHealth()
       );
     }
   }
@@ -2060,7 +2083,7 @@ public class Character : WorldObject
     //Consumed by physics so needs to happen in fixedupdate. Might still suck?
     if (UsingSkill() && activeSkill.SkillMovesCharacterForward(this))
     {
-      easedSkillForwardMovementProgressIncrement = (CalculateMovementProgressIncrement(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveForward), activeSkill.IsContinuous(this)));
+      easedSkillForwardMovementProgressIncrement = (CalculateCurveProgressIncrement(activeSkill.GetMovement(this, SkillEffectMovementProperty.MoveForward), true, activeSkill.IsContinuous(this)));
     }
   }
 

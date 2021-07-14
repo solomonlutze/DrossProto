@@ -1,8 +1,9 @@
 using System;
 using System.Linq;
-using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 
 // Should be populated with a set of attributes
@@ -20,10 +21,16 @@ public class StartingBugSelectScreen : MonoBehaviour
 
   public CharacterVisuals_Old visuals;
 
-  int highlightedBug;
+  public int highlightedBug;
 
-  public void Awake()
+  public void Init()
   {
+    Debug.Log("init");
+    foreach (Transform child in selectStartingBugButtonContainer.transform)
+    {
+      Debug.Log("destroy child");
+      Destroy(child.gameObject);
+    }
     for (int i = 0; i < startingBugs.Length; i++)
     {
       SelectStartingBugButton btn = Instantiate(selectStartingBugButton, selectStartingBugButtonContainer);
@@ -31,11 +38,30 @@ public class StartingBugSelectScreen : MonoBehaviour
       btn.idx = i;
       btn.text.text = startingBugs[i].displayName;
     }
-    visuals.ClearCharacterVisuals();
+    // visuals.ClearCharacterVisuals();
+  }
+  public void OnEnable()
+  {
+    Debug.Log("enabled starting bug select screen");
+    StartCoroutine(SelectFirstButton());
+  }
+
+  // Required bc the button cannot be selected the same frame it's created!!
+  // Do not ask me about it!!
+  // Do not delete it!!
+  private IEnumerator SelectFirstButton()
+  {
+    yield return null;
+    EventSystem.current.SetSelectedGameObject(selectStartingBugButtonContainer.GetChild(0).gameObject);
   }
 
   public void HighlightBug(int idx)
   {
+    // if (EventSystem.current.currentSelectedGameObject == null)
+    // {
+    EventSystem.current.SetSelectedGameObject(selectStartingBugButtonContainer.GetChild(idx).gameObject);
+    Debug.Log("selected bug");
+    // }
     highlightedBug = idx;
     descriptionText.text = startingBugs[idx].description;
     visuals.SetCharacterVisuals(startingBugs[idx].loadout);

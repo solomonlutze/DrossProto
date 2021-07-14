@@ -21,6 +21,7 @@ public class SkillRangeInfo
 
   public SkillRangeInfo(AttackSpawn spawn)
   {
+    Debug.Log("weapon size is " + spawn.weaponSize);
     minRange = spawn.range;
     maxRange = spawn.range + spawn.weaponSize;
     minAngle = spawn.rotationOffset;
@@ -35,7 +36,8 @@ public class CharacterSkillData : ScriptableObject
   public string displayName;
   [TextArea]
   public string description;
-  public SkillRangeInfo[] skillRangeInfo;
+
+  bool isAttack = false;
   public SkillEffectSet[] skillEffectSets;
   // public SkillEffect[] skillEffects_old;
 
@@ -71,7 +73,7 @@ public class CharacterSkillData : ScriptableObject
       if (
         // || owner not holding button 
         currentSkillEffect.duration > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.duration
-        || !owner.receivingSkillInput
+        || !owner.pressingSkill == this
       )
       {
         owner.AdvanceSkillEffect();
@@ -107,18 +109,24 @@ public class CharacterSkillData : ScriptableObject
   {
     return GetActiveSkillEffect(owner).interruptable;
   }
+
+  // a skill _EFFECT_ is cancelable, but the ENTIRE SKILL gets interrupted.
+  public bool SkillIsCancelable(Character owner)
+  {
+    return GetActiveSkillEffect(owner).cancelable;
+  }
   public bool SkillMovesCharacter(Character owner)
   {
     return GetActiveSkillEffect(owner).movement.Count > 0;
   }
   public bool SkillMovesCharacterForward(Character owner)
   {
-    return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectCurveProperty.MoveForward);
+    return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectMovementProperty.MoveForward);
   }
   public bool SkillMovesCharacterVertically(Character owner)
   {
-    return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectCurveProperty.MoveUp)
-    && (GetActiveSkillEffect(owner).movement[SkillEffectCurveProperty.MoveUp].magnitude.Resolve(owner) > 0);
+    return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectMovementProperty.MoveUp)
+    && (GetActiveSkillEffect(owner).movement[SkillEffectMovementProperty.MoveUp].magnitude.Resolve(owner) > 0);
   }
 
   public bool SkillHasMovementAbility(Character owner, CharacterMovementAbility movementAbility)
@@ -126,7 +134,12 @@ public class CharacterSkillData : ScriptableObject
     return GetActiveSkillEffect(owner).movementAbilities.Contains(movementAbility);
   }
 
-  public NormalizedCurve GetMovement(Character owner, SkillEffectCurveProperty movementProperty)
+  public bool IsAttack()
+  {
+    return isAttack;
+  }
+
+  public NormalizedCurve GetMovement(Character owner, SkillEffectMovementProperty movementProperty)
   {
     if (GetActiveSkillEffect(owner).movement.ContainsKey(movementProperty))
     {
@@ -144,6 +157,25 @@ public class CharacterSkillData : ScriptableObject
     return 1;
   }
 
+  // We don't precalculate range info bc it may depend on character overrides
+  // When determining whether to use an attack we should examine the range of that specific skill effect set
+  // (the first set when deciding to use the attack, or the next set after the current one when deciding to continue a combo)
+  public SkillRangeInfo[] CalculateRangeInfosForSkillEffectSet(Character owner, int skillEffectSetIdx = 0)
+  {
+    List<SkillRangeInfo> effectRangeInfos = new List<SkillRangeInfo>();
+    if (skillEffectSetIdx < skillEffectSets.Length)
+    {
+      foreach (SkillEffect effect in skillEffectSets[skillEffectSetIdx].skillEffects)
+      {
+        effectRangeInfos.AddRange(effect.CalculateRangeInfos(owner));
+      }
+    }
+    return effectRangeInfos.ToArray();
+  }
+
+  // This may not be useful but could be used to determine whether we're "close enough" in an abstract way,
+  // vs specifically within range and angle of a particular attack effect.
+  // Also tho it's probably broken
   public float GetEffectiveRange(Character owner)
   {
     List<float> effectRanges = new List<float>();
@@ -157,15 +189,23 @@ public class CharacterSkillData : ScriptableObject
     return Mathf.Max(effectRanges.ToArray());
   }
 
-  // public void CalculateRangeInfos(Character owner)
-  // {
-  //   List<SkillRangeInfo> rangeInfo = new List<SkillRangeInfo>();
-  //   if (skillEffects_old.Length > 0)
-  //   {
-  //     rangeInfo = skillEffects_old[0].CalculateRangeInfos(owner);
-  //   }
-  //   skillRangeInfo = rangeInfo.ToArray();
-  // }
+  void SetIsAttack()
+  {
+    if (skillEffectSets == null) { return; }
+    foreach (SkillEffectSet set in skillEffectSets)
+    {
+      if (set.skillEffects == null) { continue; }
+      foreach (SkillEffect effect in set.skillEffects)
+      {
+        if (effect.weaponSpawns.Length > 0)
+        {
+          isAttack = true;
+          return;
+        }
+      }
+    }
+    isAttack = false;
+  }
 
 #if UNITY_EDITOR
   [MenuItem("Assets/Create/Skills/CharacterSkillData")]
@@ -178,9 +218,9 @@ public class CharacterSkillData : ScriptableObject
   }
 #endif
 
-  //  public void OnValidate()
-  //  {
-  //CalculateRangeInfos();
-  // }
+  public void OnValidate()
+  {
+    SetIsAttack();
+  }
 
 }

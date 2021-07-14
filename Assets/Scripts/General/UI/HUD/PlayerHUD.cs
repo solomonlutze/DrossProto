@@ -22,6 +22,8 @@ public class PlayerHUD : MonoBehaviour
 
   public SuperTextMesh selectedSkillText;
   public SuperTextMesh selectedSkillDescriptionText;
+  public SuperTextMesh moltText;
+  public SuperTextMesh moltDescriptionText;
   // public TextMeshProUGUI skill1ValueText;
   // public TextMeshProUGUI skill2TitleText;
   // public TextMeshProUGUI skill2ValueText;
@@ -47,11 +49,13 @@ public class PlayerHUD : MonoBehaviour
     if (playerController != null)
     {
       healthBar.character = playerController; //todo: anywhere but update please!
-      carapaceBar.character = playerController;
-      staminaBar.character = playerController;
+      // carapaceBar.character = playerController;
+      // staminaBar.character = playerController;
       Debug.Log("display name: " + playerController.characterSkills[playerController.selectedSkillIdx].displayName);
       selectedSkillText.text = playerController.characterSkills[playerController.selectedSkillIdx].displayName;
       selectedSkillDescriptionText.text = playerController.characterSkills[playerController.selectedSkillIdx].description;
+      moltText.text = playerController.moltSkill.displayName;
+      moltDescriptionText.text = playerController.moltSkill.description;
       if (playerController.GetCharacterVital(CharacterVital.CurrentHealth) > 0 && diedText.text != " ")
       {
         diedText.text = " ";
@@ -76,6 +80,7 @@ public class PlayerHUD : MonoBehaviour
 
   public void SetGrubCount()
   {
+    Debug.Log("setting grub count text to " + grubCount.Value);
     grubCountText.text = "" + grubCount.Value;
   }
 

@@ -6,9 +6,9 @@ using TMPro;
 
 public class EnemyHUD : MonoBehaviour
 {
-  public CarapaceBar carapaceBar;
+  // public CarapaceBar carapaceBar;
   public HealthBar healthBar;
-  public StaminaBar staminaBar;
+  // public StaminaBar staminaBar;
 
 
   // STAMINA
@@ -34,8 +34,8 @@ public class EnemyHUD : MonoBehaviour
     if (character != null)
     {
       healthBar.character = character; //todo: anywhere but update please!
-      carapaceBar.character = character;
-      staminaBar.character = character;
+      // carapaceBar.character = character;
+      // staminaBar.character = character;
     }
   }
 

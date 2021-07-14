@@ -37,11 +37,11 @@ public class LayerRenderer : MonoBehaviour
       {
         // WARNING: AI and LayerRenderer tightly coupled for camouflage.
         // See AiStateController.HandleVisibility. 
-        AiStateController ai = GetComponent<AiStateController>();
-        if (ai != null && shouldBeVisible) // AI handling opacity
-        {
-          return;
-        }
+        // AiStateController ai = GetComponent<AiStateController>();
+        // if (ai != null && shouldBeVisible) // AI handling opacity
+        // {
+        //   return;
+        // }
         currentOpacity += Time.deltaTime / fadeTime * (shouldBeVisible ? 1 : -1);
         ChangeOpacityRecursively(transform, currentOpacity);
       }
