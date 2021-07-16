@@ -1132,18 +1132,33 @@ public class GridManager : Singleton<GridManager>
 
   public void PlayerChangedTile(TileLocation newPlayerTileLocation, int sightRange, DarkVisionInfo[] darkVisionInfos)
   {
-    currentPlayerLocation = newPlayerTileLocation;
+    List<MusicStem> oldStems = new List<MusicStem>();
+    if (currentPlayerLocation != null && GetTileAtLocation(currentPlayerLocation).infoTileType != null)
+    {
+      Debug.Log(GetTileAtLocation(currentPlayerLocation).infoTileType.areaName);
+      oldStems = GetTileAtLocation(currentPlayerLocation).infoTileType.musicStems;
+    }
+    List<MusicStem> newStems = new List<MusicStem>();
     if (GetTileAtLocation(newPlayerTileLocation).infoTileType != null)
     {
       Debug.Log(GetTileAtLocation(newPlayerTileLocation).infoTileType.areaName);
+      newStems = GetTileAtLocation(newPlayerTileLocation).infoTileType.musicStems;
     }
-    // RecalculateVisibility(currentPlayerLocation, sightRange, darkVisionInfos);
-    // if (_recalculateVisiblityCoroutine != null)
-    // {
-    //   StopCoroutine(_recalculateVisiblityCoroutine);
-    // }
-    // _recalculateVisiblityCoroutine = StartCoroutine(RecalculateVisibility(newPlayerTileLocation));
-    // }
+    currentPlayerLocation = newPlayerTileLocation;
+    foreach (MusicStem oldStem in oldStems)
+    {
+      if (!newStems.Contains(oldStem))
+      {
+        AkSoundEngine.PostEvent(oldStem.ToString() + "_FadeOut", gameObject);
+      }
+    }
+    foreach (MusicStem newStem in newStems)
+    {
+      if (!oldStems.Contains(newStem))
+      {
+        AkSoundEngine.PostEvent(newStem.ToString() + "_FadeIn", gameObject);
+      }
+    }
   }
 
   void RecalculateVisibility(DarkVisionInfo[] darkVisionInfos)

@@ -62,6 +62,18 @@ public class PlayerController : Character
     }
     characterVisuals.SetCharacterVisuals(traits);
     base.Init();
+    currentTile = GridManager.Instance.GetTileAtLocation(CalculateCurrentTileLocation());
+    if (currentTile.infoTileType != null)
+    {
+      foreach (MusicStem stem in Enum.GetValues(typeof(MusicStem)))
+      {
+        if (!currentTile.infoTileType.musicStems.Contains(stem))
+        {
+          AkSoundEngine.PostEvent(stem.ToString() + "_Mute", GameMaster.Instance.gameObject);
+        }
+        AkSoundEngine.PostEvent("PlayClergyLoop", GameMaster.Instance.gameObject);
+      }
+    }
     availableContextualActions = new List<ContextualAction>();
     interactables = new List<GameObject>();
     inventory = GetComponent<Inventory>();

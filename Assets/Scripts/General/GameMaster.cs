@@ -4,10 +4,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Yarn.Unity;
+using Rewired;
 
 public class GameMaster : Singleton<GameMaster>
 {
   public bool DebugEnabled = false;
+  public int rewiredPlayerId = 0;
+  private Rewired.Player rewiredPlayer;
   public Constants.GameState startingGameStatus;
   public CanvasHandler canvasHandler;
   public ParticleSystemMaster particleSystemMaster;
@@ -33,6 +36,7 @@ public class GameMaster : Singleton<GameMaster>
   // Use this for initialization
   void Start()
   {
+    rewiredPlayer = ReInput.players.GetPlayer(rewiredPlayerId);
     // Debug.unityLogger.logEnabled = false;
     Time.fixedDeltaTime = 1 / 60f;
     pathfinding = GetComponent<PathfindingSystem>();
@@ -80,19 +84,22 @@ public class GameMaster : Singleton<GameMaster>
         HandleDeadInput();
         break;
       case Constants.GameState.Play:
-        if (Input.GetKeyDown("=") && playerController != null)
+        Debug.Log("gameState: play, pc: " + playerController);
+        Debug.Log("Pause buttondown:" + rewiredPlayer.GetButtonDown("Pause"));
+        Debug.Log("Restart buttondown:" + rewiredPlayer.GetButtonDown("Restart"));
+        if (rewiredPlayer.GetButtonDown("Restart") && playerController != null)
         {
           playerController.Die();
           SetGameStatus(Constants.GameState.ChooseBug);
           canvasHandler.DisplaySelectBugScreen();
         }
-        else if (Input.GetKeyDown(KeyCode.Escape))
+        else if (rewiredPlayer.GetButtonDown("Pause"))
         {
           SetGamePaused();
         }
         break;
       case Constants.GameState.Pause:
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (rewiredPlayer.GetButtonDown("Pause"))
         {
           SetGameUnpaused();
         }
@@ -102,7 +109,7 @@ public class GameMaster : Singleton<GameMaster>
 
   private void HandleDeadInput()
   {
-    if (Input.GetButtonDown("Respawn"))
+    if (rewiredPlayer.GetButtonDown("Respawn"))
     {
       Respawn(cachedPupa);
     }
