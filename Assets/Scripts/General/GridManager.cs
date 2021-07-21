@@ -1290,7 +1290,7 @@ public class GridManager : Singleton<GridManager>
     {
       if (layerFloor.infoTilemap != null && layerFloor.infoTilemap.GetComponent<TilemapRenderer>() != null)
       {
-        layerFloor.infoTilemap.GetComponent<TilemapRenderer>().enabled = !layerFloor.infoTilemap.GetComponent<TilemapRenderer>().enabled;
+        layerFloor.infoTilemap.gameObject.SetActive(!layerFloor.infoTilemap.gameObject.activeSelf);
       }
     }
   }

@@ -22,6 +22,8 @@ public class PlayerHUD : MonoBehaviour
 
   public SuperTextMesh selectedSkillText;
   public SuperTextMesh selectedSkillDescriptionText;
+  public SuperTextMesh selectedAttackSkillText;
+  public SuperTextMesh selectedAttackSkillDescriptionText;
   public SuperTextMesh moltText;
   public SuperTextMesh moltDescriptionText;
   // public TextMeshProUGUI skill1ValueText;
@@ -54,6 +56,8 @@ public class PlayerHUD : MonoBehaviour
       Debug.Log("display name: " + playerController.characterSkills[playerController.selectedSkillIdx].displayName);
       selectedSkillText.text = playerController.characterSkills[playerController.selectedSkillIdx].displayName;
       selectedSkillDescriptionText.text = playerController.characterSkills[playerController.selectedSkillIdx].description;
+      selectedAttackSkillText.text = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx].displayName;
+      selectedAttackSkillDescriptionText.text = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx].description;
       moltText.text = playerController.moltSkill.displayName;
       moltDescriptionText.text = playerController.moltSkill.description;
       if (playerController.GetCharacterVital(CharacterVital.CurrentHealth) > 0 && diedText.text != " ")

@@ -256,6 +256,7 @@ public class Character : WorldObject
   [Header("Attack Info")]
   public Moveset moveset;
   public List<CharacterSkillData> characterSkills;
+  public List<CharacterSkillData> characterAttackSkills;
   public CharacterSkillData moltSkill;
   public List<CharacterSkillData> characterSpells;// possibly deprecated
                                                   // public Weapon weaponInstance;

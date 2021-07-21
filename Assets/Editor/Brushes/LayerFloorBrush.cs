@@ -37,6 +37,7 @@ namespace UnityEditor.Tilemaps
       }
       base.BoxFill(gridLayout, brushTarget, position);
     }
+
     public override void BoxErase(GridLayout gridLayout, GameObject brushTarget, BoundsInt position)
     {
       Tilemap targetTilemap = brushTarget.GetComponent<Tilemap>();
@@ -85,12 +86,17 @@ namespace UnityEditor.Tilemaps
         {
           Tilemap groundTilemap = parentLayerFloor.groundTilemap;
           Tilemap objectTilemap = parentLayerFloor.objectTilemap;
+          Tilemap infoTilemap = parentLayerFloor.infoTilemap;
           Tilemap tilemap;
           foreach (Vector3Int pos in position.allPositionsWithin)
           {
             Vector3Int brushPosition = new Vector3Int(pos.x - position.x, pos.y - position.y, 0);
             tilemap = groundTilemap;
-            if (objectTilemap.GetTile(pos) != null)
+            if (infoTilemap.gameObject.activeSelf && infoTilemap.GetTile(pos) != null)
+            {
+              tilemap = infoTilemap;
+            }
+            else if (objectTilemap.GetTile(pos) != null)
             {
               tilemap = objectTilemap;
             }

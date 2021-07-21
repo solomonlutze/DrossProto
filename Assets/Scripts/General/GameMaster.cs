@@ -5,12 +5,14 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using Yarn.Unity;
 using Rewired;
+using ScriptableObjectArchitecture;
 
 public class GameMaster : Singleton<GameMaster>
 {
   public bool DebugEnabled = false;
   public int rewiredPlayerId = 0;
   private Rewired.Player rewiredPlayer;
+  public IntVariable trophyGrubCount;
   public Constants.GameState startingGameStatus;
   public CanvasHandler canvasHandler;
   public ParticleSystemMaster particleSystemMaster;
@@ -32,11 +34,13 @@ public class GameMaster : Singleton<GameMaster>
   public Camera camera2D; // god save me
   public bool isPaused = false;
   public bool playerObliterated;
+  bool musicPlaying = false;
 
   // Use this for initialization
   void Start()
   {
     rewiredPlayer = ReInput.players.GetPlayer(rewiredPlayerId);
+    trophyGrubCount.Value = 0;
     // Debug.unityLogger.logEnabled = false;
     Time.fixedDeltaTime = 1 / 60f;
     pathfinding = GetComponent<PathfindingSystem>();
@@ -84,9 +88,6 @@ public class GameMaster : Singleton<GameMaster>
         HandleDeadInput();
         break;
       case Constants.GameState.Play:
-        Debug.Log("gameState: play, pc: " + playerController);
-        Debug.Log("Pause buttondown:" + rewiredPlayer.GetButtonDown("Pause"));
-        Debug.Log("Restart buttondown:" + rewiredPlayer.GetButtonDown("Restart"));
         if (rewiredPlayer.GetButtonDown("Restart") && playerController != null)
         {
           playerController.Die();
@@ -165,6 +166,20 @@ public class GameMaster : Singleton<GameMaster>
     }
     playerController.SetCurrentFloor(playerController.currentFloor);
     playerController.Init(overrideTraits);
+
+
+    AkSoundEngine.PostEvent("StopClergyInstant", GameMaster.Instance.gameObject);
+    if (playerController.currentTile.infoTileType != null)
+    {
+      foreach (MusicStem stem in Enum.GetValues(typeof(MusicStem)))
+      {
+        if (!playerController.currentTile.infoTileType.musicStems.Contains(stem))
+        {
+          AkSoundEngine.PostEvent(stem.ToString() + "_Mute", GameMaster.Instance.gameObject);
+        }
+      }
+    }
+    AkSoundEngine.PostEvent("PlayClergyLoop", GameMaster.Instance.gameObject);
     DoActivateOnPlayerRespawn();
     DoDestroyOnPlayerRespawn();
     SetGameStatus(Constants.GameState.Play);
