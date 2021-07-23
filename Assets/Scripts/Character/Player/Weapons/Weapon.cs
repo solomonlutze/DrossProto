@@ -7,6 +7,7 @@ public class Weapon : MonoBehaviour
 {
   [Tooltip("Used to determine weapon range. Use the primary transform of the weapon with the largest X size.")]
   public Transform weaponBody;
+  public Rigidbody2D rigidbody2D;
   public Hitbox[] defaultHitboxes;
   Character owner;
   SkillEffect owningEffect;
@@ -95,6 +96,7 @@ public class Weapon : MonoBehaviour
 
   public void MoveWeaponAction(WeaponAction action, Character owner, float increment)
   {
+    // rigidbody2D.MovePosition(transform.position + new Vector3(action.motion.EvaluateIncrement(owner, progress, previousProgress), 0, 0));
     transform.position += transform.rotation * new Vector3(action.motion.EvaluateIncrement(owner, progress, previousProgress), 0, 0);
   }
 
@@ -102,6 +104,7 @@ public class Weapon : MonoBehaviour
   public void RotateWeaponRelativeAction(WeaponAction action, Character owner, float increment)
   {
     Vector3 direction = transform.position - owner.transform.position;
+    // rigidbody2D.MoveRotation
     transform.RotateAround(owner.transform.position, Vector3.forward, action.motion.EvaluateIncrement(owner, progress, previousProgress));
   }
   public void WaitWeaponAction(WeaponAction action, float increment)

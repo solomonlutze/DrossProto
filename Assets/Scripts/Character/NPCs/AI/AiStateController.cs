@@ -510,6 +510,7 @@ public class AiStateController : Character
 
   private void SpawnDroppedItems()
   {
+    if (GameMaster.Instance.DEBUG_dontDropItems) { return; }
     if (alreadyDroppedItems) { return; }
     alreadyDroppedItems = true;
     foreach (PickupItem item in itemDrops)

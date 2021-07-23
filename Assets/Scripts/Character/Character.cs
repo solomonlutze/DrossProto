@@ -301,6 +301,8 @@ public class Character : WorldObject
   public CharacterSkillData pressingSkill;
   // public bool receivingSkillInput;
   public float timeSpentInSkillEffect = 0f;
+  public float totalVertDistance = 0f;
+  public float fixedTimeSpentInSkillEffect = 0f;
   public int currentSkillEffectSetIndex = 0;
   public int currentSkillEffectIndex = 0;
   public bool flying = false;
@@ -497,6 +499,11 @@ public class Character : WorldObject
   // physics biz. phbyzics
   protected virtual void FixedUpdate()
   {
+    if (UsingSkill())
+    {
+
+      fixedTimeSpentInSkillEffect += Time.fixedDeltaTime;
+    }
     HandleAscendOrDescend();
     HandleVerticalMotion(); // it's DIFFERENT OK
     HandleSkillMovement();
@@ -646,7 +653,10 @@ public class Character : WorldObject
 
   public void BeginSkillEffect()
   {
+    Debug.Log("timeSpentInSkillEffect " + timeSpentInSkillEffect);
+    Debug.Log("fixedTimeSpentInSkillEffect " + fixedTimeSpentInSkillEffect);
     timeSpentInSkillEffect = 0;
+    fixedTimeSpentInSkillEffect = 0;
     activeSkill.BeginSkillEffect(this);
   }
 
@@ -662,6 +672,7 @@ public class Character : WorldObject
     currentSkillEffectSetIndex = 0;
     currentSkillEffectIndex = 0;
     timeSpentInSkillEffect = 0;
+    fixedTimeSpentInSkillEffect = 0;
   }
 
   public bool UsingSkill()
@@ -701,6 +712,7 @@ public class Character : WorldObject
   {
     queuedSkill = null;
     activeSkill = skill;
+    totalVertDistance = 0;
     skill.BeginSkillEffect(this);
   }
 
@@ -709,6 +721,7 @@ public class Character : WorldObject
     activeSkill.CleanUp(this);
     currentSkillEffectIndex = 0;
     timeSpentInSkillEffect = 0;
+    fixedTimeSpentInSkillEffect = 0;
     BeginSkill(skill);
   }
 
@@ -969,6 +982,7 @@ public class Character : WorldObject
   public float CalculateCurveProgressIncrement(NormalizedCurve curve, bool forMovement, bool isContinuous = false)
   {
     float timestep = forMovement ? Time.fixedDeltaTime : Time.deltaTime;
+    // timestep = Time.deltaTime;
     if (activeSkill.GetActiveEffectDuration(this) == 0 && isContinuous)
     {
       return curve.magnitude.Resolve(this) * timestep;
@@ -1090,12 +1104,14 @@ public class Character : WorldObject
   // this function will handle translating that into the fucked-up reality of our level layout situation
   void AdjustVerticalPosition(float increment)
   {
+    Debug.Log("trying to adjustvertical");
     if (increment == 0) { return; }
     if (GetZOffsetFromCurrentFloor(increment) < 0)
     { // attempting to go down a floor
       if (!CanPassThroughFloorLayer(currentFloor))
       {
         transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
+        Debug.Log("adjustvertical early out - failing to pass through floor");
         return;
       }
       SetCurrentFloor(currentFloor - 1);
@@ -1105,10 +1121,12 @@ public class Character : WorldObject
       if (!CanPassThroughFloorLayer(currentFloor + 1))
       {
         EndSkill();
+        Debug.Log("adjustvertical early out - failing to pass through ceiling");
         return;
       }
       SetCurrentFloor(currentFloor + 1);
     }
+    Debug.Log("successfully adjustvertical");
     transform.position += new Vector3(0, 0, -increment);
   }
 
@@ -1132,6 +1150,7 @@ public class Character : WorldObject
         ascendingDescendingState = AscendingDescendingState.None;
         return;
       }
+      Debug.Log("adjusting verticalposition from ascending!");
       AdjustVerticalPosition(increment);
     }
     else if (descending)
@@ -1143,6 +1162,7 @@ public class Character : WorldObject
         ascendingDescendingState = AscendingDescendingState.None;
         return;
       }
+      Debug.Log("adjusting verticalposition from ascending!");
       AdjustVerticalPosition(-increment);
     }
 
@@ -1158,18 +1178,20 @@ public class Character : WorldObject
   {
     float increment = 0;
     float animationValue = 0;
-    if (ShouldFall())
-    {
-      animationValue = .3f;
-      increment = -1 / ascendDescendSpeed * Time.deltaTime;
-    }
+    // if (ShouldFall())
+    // {
+    //   animationValue = .3f;
+    //   increment = -1 / ascendDescendSpeed * Time.fixedDeltaTime;
+    // }
     if (UsingSkill() && activeSkill.SkillMovesCharacterVertically(this))
     {
       // animationValue = CalculateVerticalMovementAnimationSpeed(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp), activeSkill.IsContinuous(this));
       easedSkillUpwardMovementProgressIncrement = (CalculateCurveProgressIncrement(activeSkill.GetMovement(this, SkillEffectMovementProperty.MoveUp), true, activeSkill.IsContinuous(this)));
       increment = easedSkillUpwardMovementProgressIncrement;
-      animationValue = Mathf.Lerp(.5f, 1.5f, increment / Time.deltaTime);
+      animationValue = Mathf.Lerp(.5f, 1.5f, increment / Time.fixedDeltaTime);
     }
+    totalVertDistance += increment;
+    Debug.Log("totalVertDistance" + totalVertDistance);
     // if (increment != 0)
     // {
     // if (increment < 0) // going down
@@ -1329,9 +1351,11 @@ public class Character : WorldObject
   // DAMAGE FUNCTIONS
   protected virtual void TakeDamage(IDamageSource damageSource)
   {
+    // FIXME FIXME FIXME
+    if (IsMidair()) { return; }
+    // ENDFIXME ENDFIXME
     if (damageSource.IsOwnedBy(this)) { return; }
     if (damageSource.IsSameOwnerType(this)) { return; }
-
     // Crit damage:
     // -If you're using a crit, you don't take damage
     // -If you aren't critVictimOf the damageSource owner, don't take damage
@@ -2023,10 +2047,12 @@ public class Character : WorldObject
     {
       activeSkill.UseSkill(this);
       timeSpentInSkillEffect += Time.deltaTime;
+      // fixedTimeSpentInSkillEffect += Time.fixedDeltaTime;
     }
     else
     {
       timeSpentInSkillEffect = 0f;
+      fixedTimeSpentInSkillEffect = 0f;
     }
   }
 

@@ -10,6 +10,7 @@ using ScriptableObjectArchitecture;
 public class GameMaster : Singleton<GameMaster>
 {
   public bool DebugEnabled = false;
+  public bool DEBUG_dontDropItems = false;
   public int rewiredPlayerId = 0;
   private Rewired.Player rewiredPlayer;
   public IntVariable trophyGrubCount;
