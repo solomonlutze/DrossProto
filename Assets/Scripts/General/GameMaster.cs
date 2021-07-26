@@ -10,6 +10,7 @@ using ScriptableObjectArchitecture;
 public class GameMaster : Singleton<GameMaster>
 {
   public bool DebugEnabled = false;
+  public bool DEBUG_dontDropItems = false;
   public int rewiredPlayerId = 0;
   private Rewired.Player rewiredPlayer;
   public IntVariable trophyGrubCount;
@@ -72,11 +73,7 @@ public class GameMaster : Singleton<GameMaster>
   // Update is called once per frame
   void Update()
   {
-    // Debug.Log("eventSystem current: " + EventSystem.current);
-    if (EventSystem.current != null)
-    {
-      Debug.Log("eventSystem currently selected: " + EventSystem.current.currentSelectedGameObject);
-    }
+
     HandleInput();
   }
 

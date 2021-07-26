@@ -46,7 +46,7 @@ public class PlayerCharacterHUD : MonoBehaviour
       if (pc.availableContextualActions.Count > 0)
       {
         contextualActionObject.SetActive(true);
-        selectedContextualActionText.text = "e: " + pc.GetSelectedContextualAction().actionName;
+        selectedContextualActionText.text = pc.GetSelectedContextualAction().actionName;
       }
       else
       {

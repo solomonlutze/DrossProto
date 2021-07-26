@@ -95,7 +95,6 @@ public class PlayerController : Character
       }
     }
     base.Update();
-    Debug.Log("touching climbable tile: " + TouchingTileWithTag(TileTag.Climbable));
     PopulateContextualActions();
     // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.Left), Color.red);
     // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerLeft), Color.yellow);
