@@ -32,6 +32,7 @@ public class PlayerController : Character
   public List<ContextualAction> availableContextualActions;
   private int selectedContextualActionIdx = 0;
   public int selectedSkillIdx = 0;
+  public int selectedAttackSkillIdx = 0;
   private int selectedSpellIdx = 0;
 
   public IntVariable currentFloorLayer;
@@ -49,7 +50,6 @@ public class PlayerController : Character
   override protected void Start()
   {
     rewiredPlayer = ReInput.players.GetPlayer(rewiredPlayerId);
-    trophyGrubCount.Value = 0;
     base.Start();
   }
 
@@ -62,6 +62,18 @@ public class PlayerController : Character
     }
     characterVisuals.SetCharacterVisuals(traits);
     base.Init();
+    currentTile = GridManager.Instance.GetTileAtLocation(CalculateCurrentTileLocation());
+    if (currentTile.infoTileType != null)
+    {
+      foreach (MusicStem stem in Enum.GetValues(typeof(MusicStem)))
+      {
+        if (!currentTile.infoTileType.musicStems.Contains(stem))
+        {
+          AkSoundEngine.PostEvent(stem.ToString() + "_Mute", GameMaster.Instance.gameObject);
+        }
+        AkSoundEngine.PostEvent("PlayClergyLoop", GameMaster.Instance.gameObject);
+      }
+    }
     availableContextualActions = new List<ContextualAction>();
     interactables = new List<GameObject>();
     inventory = GetComponent<Inventory>();
@@ -83,7 +95,6 @@ public class PlayerController : Character
       }
     }
     base.Update();
-    Debug.Log("touching climbable tile: " + TouchingTileWithTag(TileTag.Climbable));
     PopulateContextualActions();
     // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.Left), Color.red);
     // GridManager.Instance.DEBUGHighlightTile(GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerLeft), Color.yellow);
@@ -172,7 +183,13 @@ public class PlayerController : Character
       HandleSkillInput(characterSkills[selectedSkillIdx]);
     }
   }
-
+  public void UseSelectedAttackSkill()
+  {
+    if (characterAttackSkills[selectedAttackSkillIdx] != null)
+    {
+      HandleSkillInput(characterAttackSkills[selectedAttackSkillIdx]);
+    }
+  }
   public void PreviousSelectedSkill()
   {
     if (characterSkills.Count > 0)
@@ -182,7 +199,6 @@ public class PlayerController : Character
       {
         selectedSkillIdx = characterSkills.Count - 1;
       }
-      Debug.Log("selected skill: " + characterSkills[selectedSkillIdx]);
     }
     else
     {
@@ -199,7 +215,6 @@ public class PlayerController : Character
       {
         selectedSkillIdx = 0;
       }
-      Debug.Log("selected skill: " + characterSkills[selectedSkillIdx]);
     }
     else
     {
@@ -207,6 +222,37 @@ public class PlayerController : Character
     }
   }
 
+  public void PreviousSelectedAttack()
+  {
+    if (characterAttackSkills.Count > 0)
+    {
+      selectedAttackSkillIdx = selectedAttackSkillIdx - 1;
+      if (selectedAttackSkillIdx < 0)
+      {
+        selectedAttackSkillIdx = characterAttackSkills.Count - 1;
+      }
+    }
+    else
+    {
+      selectedAttackSkillIdx = 0;
+    }
+  }
+
+  public void AdvanceSelectedAttack()
+  {
+    if (characterAttackSkills.Count > 0)
+    {
+      selectedAttackSkillIdx = selectedAttackSkillIdx + 1;
+      if (selectedAttackSkillIdx >= characterAttackSkills.Count)
+      {
+        selectedAttackSkillIdx = 0;
+      }
+    }
+    else
+    {
+      selectedAttackSkillIdx = 0;
+    }
+  }
   public void UseSelectedSpell()
   {
     if (characterSpells.Count > 0 && characterSpells[selectedSpellIdx] != null)
@@ -308,6 +354,21 @@ public class PlayerController : Character
           return;
         }
         if (rewiredPlayer.GetButtonUp("Use Skill"))
+        {
+          if (pressingSkill != moltSkill)
+          {
+            pressingSkill = null;
+          }
+        }
+        if (rewiredPlayer.GetButtonDown("Use Attack"))
+        {
+          UseSelectedAttackSkill();
+          // }
+          // chargeAttackTime += Time.deltaTime; // incrementing this further is handled in HandleCooldowns
+          // UseSkill(GetSkillEffectForAttackType(AttackType.Basic));
+          return;
+        }
+        if (rewiredPlayer.GetButtonUp("Use Attack"))
         {
           if (pressingSkill != moltSkill)
           {
@@ -465,12 +526,17 @@ public class PlayerController : Character
           PreviousSelectedSkill();
           return;
         }
-        // else if (Input.GetButtonDown("AdvanceSpell"))
-        // {
-        //   Debug.Log("advance spell??");
-        //   AdvanceSelectedSpell();
-        //   return;
-        // }
+
+        else if (rewiredPlayer.GetButtonDown("Next Attack"))
+        {
+          AdvanceSelectedAttack();
+          return;
+        }
+        else if (rewiredPlayer.GetButtonDown("Previous Attack"))
+        {
+          PreviousSelectedAttack();
+          return;
+        }
         else if (Input.GetButtonDown("AdvanceSelectedAction"))
         {
           AdvanceSelectedContextualAction();

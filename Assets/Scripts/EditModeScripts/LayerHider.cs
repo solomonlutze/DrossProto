@@ -7,6 +7,7 @@ public class LayerHider : MonoBehaviour
 {
   bool inEditMode = false;
 
+#if UNITY_EDITOR
   void Update()
   {
     if (PlayStateNotifier.inEditMode != inEditMode)
@@ -15,4 +16,5 @@ public class LayerHider : MonoBehaviour
       Debug.Log("inEditMode: " + inEditMode);
     }
   }
+#endif
 }

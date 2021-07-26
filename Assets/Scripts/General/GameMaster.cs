@@ -4,10 +4,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Yarn.Unity;
+using Rewired;
+using ScriptableObjectArchitecture;
 
 public class GameMaster : Singleton<GameMaster>
 {
   public bool DebugEnabled = false;
+  public bool DEBUG_dontDropItems = false;
+  public int rewiredPlayerId = 0;
+  private Rewired.Player rewiredPlayer;
+  public IntVariable trophyGrubCount;
   public Constants.GameState startingGameStatus;
   public CanvasHandler canvasHandler;
   public ParticleSystemMaster particleSystemMaster;
@@ -29,10 +35,13 @@ public class GameMaster : Singleton<GameMaster>
   public Camera camera2D; // god save me
   public bool isPaused = false;
   public bool playerObliterated;
+  bool musicPlaying = false;
 
   // Use this for initialization
   void Start()
   {
+    rewiredPlayer = ReInput.players.GetPlayer(rewiredPlayerId);
+    trophyGrubCount.Value = 0;
     // Debug.unityLogger.logEnabled = false;
     Time.fixedDeltaTime = 1 / 60f;
     pathfinding = GetComponent<PathfindingSystem>();
@@ -64,11 +73,7 @@ public class GameMaster : Singleton<GameMaster>
   // Update is called once per frame
   void Update()
   {
-    // Debug.Log("eventSystem current: " + EventSystem.current);
-    if (EventSystem.current != null)
-    {
-      Debug.Log("eventSystem currently selected: " + EventSystem.current.currentSelectedGameObject);
-    }
+
     HandleInput();
   }
 
@@ -80,19 +85,19 @@ public class GameMaster : Singleton<GameMaster>
         HandleDeadInput();
         break;
       case Constants.GameState.Play:
-        if (Input.GetKeyDown("=") && playerController != null)
+        if (rewiredPlayer.GetButtonDown("Restart") && playerController != null)
         {
           playerController.Die();
           SetGameStatus(Constants.GameState.ChooseBug);
           canvasHandler.DisplaySelectBugScreen();
         }
-        else if (Input.GetKeyDown(KeyCode.Escape))
+        else if (rewiredPlayer.GetButtonDown("Pause"))
         {
           SetGamePaused();
         }
         break;
       case Constants.GameState.Pause:
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (rewiredPlayer.GetButtonDown("Pause"))
         {
           SetGameUnpaused();
         }
@@ -102,7 +107,7 @@ public class GameMaster : Singleton<GameMaster>
 
   private void HandleDeadInput()
   {
-    if (Input.GetButtonDown("Respawn"))
+    if (rewiredPlayer.GetButtonDown("Respawn"))
     {
       Respawn(cachedPupa);
     }
@@ -158,6 +163,20 @@ public class GameMaster : Singleton<GameMaster>
     }
     playerController.SetCurrentFloor(playerController.currentFloor);
     playerController.Init(overrideTraits);
+
+
+    AkSoundEngine.PostEvent("StopClergyInstant", GameMaster.Instance.gameObject);
+    if (playerController.currentTile.infoTileType != null)
+    {
+      foreach (MusicStem stem in Enum.GetValues(typeof(MusicStem)))
+      {
+        if (!playerController.currentTile.infoTileType.musicStems.Contains(stem))
+        {
+          AkSoundEngine.PostEvent(stem.ToString() + "_Mute", GameMaster.Instance.gameObject);
+        }
+      }
+    }
+    AkSoundEngine.PostEvent("PlayClergyLoop", GameMaster.Instance.gameObject);
     DoActivateOnPlayerRespawn();
     DoDestroyOnPlayerRespawn();
     SetGameStatus(Constants.GameState.Play);

@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEditor;
-
+#if UNITY_EDITOR
 [InitializeOnLoad]
 public class PlayStateNotifier
 {
@@ -26,3 +26,5 @@ public class PlayStateNotifier
     //else if (playModeState == PlayStateModeChange.)
   }
 }
+
+#endif

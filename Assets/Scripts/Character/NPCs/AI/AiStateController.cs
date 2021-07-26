@@ -43,7 +43,6 @@ public class AiStateController : Character
   public float currentOpacity = 1;
   public bool shouldBeVisible = true;
   public float camouflageFadeTime = .25f; //maybe this should live on defaultCharacterData
-  public List<CharacterSkillData> attackSkills;
 
   [HideInInspector] public Vector2 spawnLocation;
   // public AttackType selectedAttackType;
@@ -76,18 +75,18 @@ public class AiStateController : Character
     spawnLocation = transform.position;
     Init();
   }
-  protected override void Init()
-  {
-    base.Init();
-    attackSkills = new List<CharacterSkillData>();
-    foreach (CharacterSkillData skill in characterSkills)
-    {
-      if (skill.IsAttack())
-      {
-        attackSkills.Add(skill);
-      }
-    }
-  }
+  // protected override void Init()
+  // {
+  //   base.Init();
+  //   // attackSkills = new List<CharacterSkillData>();
+  //   // foreach (CharacterSkillData skill in characterSkills)
+  //   // {
+  //   //   if (skill.IsAttack())
+  //   //   {
+  //   //     attackSkills.Add(skill);
+  //   //   }
+  //   // }
+  // }
   protected override void Update()
   {
     base.Update();
@@ -105,7 +104,7 @@ public class AiStateController : Character
 
   public override void BeginSkill(CharacterSkillData skill)
   {
-    if (skill.IsAttack())
+    if (characterAttackSkills.Contains(skill))
     {
       attackCooldownTimer = 0;
     }
@@ -135,7 +134,7 @@ public class AiStateController : Character
     if (tile.HasSolidObject())
     {
       GridManager.Instance.DEBUGHighlightTile(tile.tileLocation, Color.magenta);
-      Debug.Log("bugstuck");
+      // Debug.Log("bugstuck");
       // Debug.Break();
     }
     if (tile.ChangesFloorLayer()
@@ -350,7 +349,7 @@ public class AiStateController : Character
   public float GetMinPreferredAttackRange()
   {
     float overallMin = 1000f;
-    foreach (CharacterSkillData skillData in attackSkills)
+    foreach (CharacterSkillData skillData in characterAttackSkills)
     {
       foreach (SkillRangeInfo range in skillData.CalculateRangeInfosForSkillEffectSet(this))
       {
@@ -367,7 +366,7 @@ public class AiStateController : Character
   {
     float overallMin = 1000f;
     float overallMax = -1000f;
-    foreach (CharacterSkillData skillData in attackSkills)
+    foreach (CharacterSkillData skillData in characterAttackSkills)
     {
       foreach (SkillRangeInfo range in skillData.CalculateRangeInfosForSkillEffectSet(this))
       {
@@ -510,6 +509,7 @@ public class AiStateController : Character
 
   private void SpawnDroppedItems()
   {
+    if (GameMaster.Instance.DEBUG_dontDropItems) { return; }
     if (alreadyDroppedItems) { return; }
     alreadyDroppedItems = true;
     foreach (PickupItem item in itemDrops)

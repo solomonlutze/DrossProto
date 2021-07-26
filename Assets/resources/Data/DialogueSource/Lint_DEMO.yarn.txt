@@ -5,9 +5,11 @@ colorID: 0
 position: 0,0
 parent: 
 ---
-Hey, not gonna do a whole thing in here. 
+Hey, not gonna do a whole thing in here. Please consult the readme for instructions!
 
-Use WASD to move. Press Z and X to cycle skills, and left click to activate them. Explore a little - there's no enemies right now, it's pretty relaxed.
+You can find trophy grubs around this area. Use your skills to collect all ten!
+
+I mean. Ten's a good number, right? There could be thirteen or something but ten feels rounder and more complete. Don't exert yourself.
 
 Good luck!
 ===

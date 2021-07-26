@@ -256,6 +256,7 @@ public class Character : WorldObject
   [Header("Attack Info")]
   public Moveset moveset;
   public List<CharacterSkillData> characterSkills;
+  public List<CharacterSkillData> characterAttackSkills;
   public CharacterSkillData moltSkill;
   public List<CharacterSkillData> characterSpells;// possibly deprecated
                                                   // public Weapon weaponInstance;
@@ -491,13 +492,13 @@ public class Character : WorldObject
     HandleSkills();
     HandleCooldowns();
     HandleConditionallyActivatedTraits();
+    HandleVerticalMotion(); // it's DIFFERENT OK
   }
 
   // physics biz. phbyzics
   protected virtual void FixedUpdate()
   {
     HandleAscendOrDescend();
-    HandleVerticalMotion(); // it's DIFFERENT OK
     HandleSkillMovement();
     HandleKnockbackCooldown();
     CalculateMovement();
@@ -876,8 +877,8 @@ public class Character : WorldObject
   protected void CenterCharacterOnCurrentTile()
   {
     transform.position = new Vector3(
-      currentTileLocation.worldPosition.x + .5f,
-      currentTileLocation.worldPosition.y + .5f,
+      currentTileLocation.cellCenterWorldPosition.x,
+      currentTileLocation.cellCenterWorldPosition.y,
       transform.position.z
     );
   }
@@ -965,9 +966,9 @@ public class Character : WorldObject
   //   return 0; // try not to do this please
   // }
 
-  public float CalculateCurveProgressIncrement(NormalizedCurve curve, bool forMovement, bool isContinuous = false)
+  public float CalculateCurveProgressIncrement(NormalizedCurve curve, bool usePhysicsTimestep, bool isContinuous = false)
   {
-    float timestep = forMovement ? Time.fixedDeltaTime : Time.deltaTime;
+    float timestep = usePhysicsTimestep ? Time.fixedDeltaTime : Time.deltaTime;
     if (activeSkill.GetActiveEffectDuration(this) == 0 && isContinuous)
     {
       return curve.magnitude.Resolve(this) * timestep;
@@ -1071,6 +1072,7 @@ public class Character : WorldObject
 
   public void StartAscentOrDescent(AscendingDescendingState ascendOrDescend)
   {
+    CenterCharacterOnCurrentTile();
     if (ascendingDescendingState != AscendingDescendingState.None) { return; }
     ascendingDescendingState = ascendOrDescend;
     if (descending)
@@ -1165,7 +1167,7 @@ public class Character : WorldObject
     if (UsingSkill() && activeSkill.SkillMovesCharacterVertically(this))
     {
       // animationValue = CalculateVerticalMovementAnimationSpeed(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp), activeSkill.IsContinuous(this));
-      easedSkillUpwardMovementProgressIncrement = (CalculateCurveProgressIncrement(activeSkill.GetMovement(this, SkillEffectMovementProperty.MoveUp), true, activeSkill.IsContinuous(this)));
+      easedSkillUpwardMovementProgressIncrement = (CalculateCurveProgressIncrement(activeSkill.GetMovement(this, SkillEffectMovementProperty.MoveUp), false, activeSkill.IsContinuous(this)));
       increment = easedSkillUpwardMovementProgressIncrement;
       animationValue = Mathf.Lerp(.5f, 1.5f, increment / Time.deltaTime);
     }
@@ -1330,6 +1332,10 @@ public class Character : WorldObject
   {
     if (damageSource.IsOwnedBy(this)) { return; }
     if (damageSource.IsSameOwnerType(this)) { return; }
+
+    // !!!FIXME FIXME FIXME!!!!
+    if (IsMidair()) { return; }
+    // !!!FIXME FIXME FIXME!!!!
 
     // Crit damage:
     // -If you're using a crit, you don't take damage
@@ -1924,7 +1930,7 @@ public class Character : WorldObject
         TakeDamage(envDamage);
       }
     }
-    if (footstepCooldown <= 0 && timeMoving > 0)
+    if (footstepCooldown <= 0 && timeMoving > 0 && !IsMidair())
     {
       footstepCooldown = tile.HandleFootstep(this);
     }
