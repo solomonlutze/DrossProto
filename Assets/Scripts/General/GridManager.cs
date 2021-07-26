@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 using UnityEngine.Tilemaps;
 
 // this sucks
@@ -222,6 +223,7 @@ public class TileLocation
 public class GridManager : Singleton<GridManager>
 {
 
+  public bool DEBUG_IgnoreLighting;
   public Grid levelGrid;
   public Material semiTransparentMaterial;
   public Material fullyOpaqueMaterial;
@@ -268,6 +270,7 @@ public class GridManager : Singleton<GridManager>
     Tilemap groundTilemap;
     Tilemap objectTilemap;
     Tilemap visibilityTilemap;
+    Tilemap infoTilemap;
     maxXAcrossAllFloors = -5000;
     minXAcrossAllFloors = 5000;
     minYAcrossAllFloors = 5000;
@@ -300,7 +303,10 @@ public class GridManager : Singleton<GridManager>
       LayerFloor layerFloor = layerFloors[layer];
       groundTilemap = layerFloor.groundTilemap;
       objectTilemap = layerFloor.objectTilemap;
+      infoTilemap = layerFloor.infoTilemap;
+      if (infoTilemap != null) { infoTilemap.gameObject.SetActive(false); }
       visibilityTilemap = layerFloor.visibilityTilemap;
+      visibilityTilemap.gameObject.SetActive(false);
       for (int x = minXAcrossAllFloors; x < maxXAcrossAllFloors; x++)
       {
         // for (int y = minYAcrossAllFloors; y < maxYAcrossAllFloors; y++)
@@ -308,12 +314,16 @@ public class GridManager : Singleton<GridManager>
         {
           //get both object and ground tile, build an environmentTileInfo out of them, and put it into our worldGrid
           TileLocation loc = new TileLocation(new Vector2Int(x, y), layer);
-          ConstructAndSetEnvironmentTileInfo(loc, groundTilemap, objectTilemap, visibilityTilemap, litTiles, currentTilesToLight);
+          ConstructAndSetEnvironmentTileInfo(loc, groundTilemap, objectTilemap, visibilityTilemap, infoTilemap, litTiles, currentTilesToLight);
         }
       }
       // }
     }
-    InitializeLighting(litTiles, currentTilesToLight);
+    if (!DEBUG_IgnoreLighting)
+    {
+      InitializeLighting(litTiles, currentTilesToLight);
+
+    }
     foreach (EnvironmentTileInfo source in lightSources)
     {
       AddIlluminationSourceToNeighbors(source);
@@ -416,6 +426,7 @@ public class GridManager : Singleton<GridManager>
     Tilemap groundTilemap,
     Tilemap objectTilemap,
     Tilemap visibilityTilemap,
+    Tilemap infoTilemap,
     HashSet<EnvironmentTileInfo> litTiles = null,
     HashSet<EnvironmentTileInfo> currentTilesToLight = null
     )
@@ -425,11 +436,13 @@ public class GridManager : Singleton<GridManager>
     visibilityTilemap.SetTile(v3pos, visibilityTile);
     EnvironmentTile objectTile = objectTilemap.GetTile(v3pos) as EnvironmentTile;
     EnvironmentTile groundTile = groundTilemap.GetTile(v3pos) as EnvironmentTile;
+    InfoTile infoTile = infoTilemap.GetTile(v3pos) as InfoTile;
 
     info.Init(
       loc,
       groundTile,
-      objectTile
+      objectTile,
+      infoTile
     );
     if (info.isLightSource)
     {
@@ -464,7 +477,7 @@ public class GridManager : Singleton<GridManager>
       info.wallObject = Instantiate(defaultWallObject);
       info.wallObject.transform.position = loc.cellCenterWorldPosition;
       info.wallObject.Init(loc, objectTile.sprite);
-      info.wallObject.transform.parent = groundTilemap.transform.parent;
+      // info.wallObject.transform.parent = groundTilemap.transform.parent;
     }
     worldGrid[loc.floorLayer][CoordsToKey(loc.tilemapCoordinates)] = info;
     return info;
@@ -977,7 +990,7 @@ public class GridManager : Singleton<GridManager>
     }
     Tilemap levelTilemap = replacementTile != null && replacementTile.floorTilemapType == FloorTilemapType.Ground ? layerFloor.groundTilemap : layerFloor.objectTilemap;
     levelTilemap.SetTile(new Vector3Int(location.tilemapCoordinates.x, location.tilemapCoordinates.y, 0), replacementTile);
-    return ConstructAndSetEnvironmentTileInfo(location, layerFloor.groundTilemap, layerFloor.objectTilemap, layerFloor.visibilityTilemap);
+    return ConstructAndSetEnvironmentTileInfo(location, layerFloor.groundTilemap, layerFloor.objectTilemap, layerFloor.visibilityTilemap, layerFloor.infoTilemap);
   }
 
   public void MarkTileToDestroyOnPlayerRespawn(EnvironmentTileInfo tile, EnvironmentTile replacementTile)
@@ -1119,14 +1132,33 @@ public class GridManager : Singleton<GridManager>
 
   public void PlayerChangedTile(TileLocation newPlayerTileLocation, int sightRange, DarkVisionInfo[] darkVisionInfos)
   {
+    List<MusicStem> oldStems = new List<MusicStem>();
+    if (currentPlayerLocation != null && GetTileAtLocation(currentPlayerLocation).infoTileType != null)
+    {
+      Debug.Log(GetTileAtLocation(currentPlayerLocation).infoTileType.areaName);
+      oldStems = GetTileAtLocation(currentPlayerLocation).infoTileType.musicStems;
+    }
+    List<MusicStem> newStems = new List<MusicStem>();
+    if (GetTileAtLocation(newPlayerTileLocation).infoTileType != null)
+    {
+      Debug.Log(GetTileAtLocation(newPlayerTileLocation).infoTileType.areaName);
+      newStems = GetTileAtLocation(newPlayerTileLocation).infoTileType.musicStems;
+    }
     currentPlayerLocation = newPlayerTileLocation;
-    // RecalculateVisibility(currentPlayerLocation, sightRange, darkVisionInfos);
-    // if (_recalculateVisiblityCoroutine != null)
-    // {
-    //   StopCoroutine(_recalculateVisiblityCoroutine);
-    // }
-    // _recalculateVisiblityCoroutine = StartCoroutine(RecalculateVisibility(newPlayerTileLocation));
-    // }
+    foreach (MusicStem oldStem in oldStems)
+    {
+      if (!newStems.Contains(oldStem))
+      {
+        AkSoundEngine.PostEvent(oldStem.ToString() + "_FadeOut", gameObject);
+      }
+    }
+    foreach (MusicStem newStem in newStems)
+    {
+      if (!oldStems.Contains(newStem))
+      {
+        AkSoundEngine.PostEvent(newStem.ToString() + "_FadeIn", gameObject);
+      }
+    }
   }
 
   void RecalculateVisibility(DarkVisionInfo[] darkVisionInfos)
@@ -1248,4 +1280,19 @@ public class GridManager : Singleton<GridManager>
     // }
 
   }
+
+#if UNITY_EDITOR
+  [MenuItem("CustomTools/ToggleInfoTilemaps")]
+  public static void ToggleInfoTilemaps()
+  {
+
+    foreach (LayerFloor layerFloor in GridManager.Instance.layerFloors.Values)
+    {
+      if (layerFloor.infoTilemap != null && layerFloor.infoTilemap.GetComponent<TilemapRenderer>() != null)
+      {
+        layerFloor.infoTilemap.gameObject.SetActive(!layerFloor.infoTilemap.gameObject.activeSelf);
+      }
+    }
+  }
+#endif
 }

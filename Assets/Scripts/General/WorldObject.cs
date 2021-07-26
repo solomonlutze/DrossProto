@@ -21,8 +21,12 @@ public class WorldObject : MonoBehaviour
     {FloorLayer.F4, 18},
     {FloorLayer.F5, 19},
     {FloorLayer.F6, 20},
-
   };
+
+  void Awake()
+  {
+    transform.position = new Vector3(transform.position.x, transform.position.y, GridManager.GetZOffsetForGameObjectLayer(gameObject.layer));
+  }
   public Collider2D col
   {
     get
@@ -31,7 +35,7 @@ public class WorldObject : MonoBehaviour
     }
   }
 
-  private int prevLayer;
+  private FloorLayer _prevFloor;
   public TileLocation GetTileLocation()
   {
     return new TileLocation(
@@ -110,11 +114,25 @@ public class WorldObject : MonoBehaviour
   private void _OnValidate()
   {
     if (this == null || this.gameObject == null) { return; }
-    if (gameObject.layer != prevLayer)
+    if (_prevFloor != currentFloor)
     {
-      prevLayer = gameObject.layer;
-      ChangeLayersRecursively(transform, LayerMask.LayerToName(gameObject.layer));
+      _prevFloor = currentFloor;
+      ChangeLayersRecursively(transform, currentFloor);
     }
+    transform.position = new Vector3(transform.position.x, transform.position.y, GridManager.GetZOffsetForGameObjectLayer(gameObject.layer));
+    // int targetLayer = gameObject.layer;
+    // if (transform.parent != null && LayerMask.LayerToName(transform.parent.gameObject.layer) != "Default")
+    // {
+    //   targetLayer = transform.parent.gameObject.layer;
+    //   Debug.Log("target layer for " + gameObject + "should be " + LayerMask.LayerToName(targetLayer));
+    // }
+    // if (targetLayer != prevLayer)
+    // {
+    //   Debug.Log("changing target layer for " + gameObject + "to " + LayerMask.LayerToName(targetLayer));
+    //   prevLayer = targetLayer;
+    //   ChangeLayersRecursively(transform, LayerMask.LayerToName(targetLayer));
+    // }
+    transform.position = new Vector3(transform.position.x, transform.position.y, GridManager.GetZOffsetForGameObjectLayer(gameObject.layer));
   }
   [MenuItem("CustomTools/ChangeLayersRecursively")]
   public static void ChangeLayersRecursivelyForSelected()

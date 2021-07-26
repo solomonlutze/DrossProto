@@ -79,6 +79,7 @@ public class EnvironmentTileInfo
   public TileLocation tileLocation;
   public EnvironmentTile groundTileType;
   public EnvironmentTile objectTileType;
+  public InfoTile infoTileType;
   public List<TileTag> groundTileTags;
   public List<TileTag> objectTileTags;
   public bool isInteractable = false;
@@ -100,11 +101,12 @@ public class EnvironmentTileInfo
 
   public IlluminationInfo illuminationInfo;
 
-  public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile)
+  public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile, InfoTile infoTile)
   {
     tileLocation = location;
     groundTileType = groundTile;
     objectTileType = objectTile;
+    infoTileType = infoTile;
     groundTileTags = new List<TileTag>();
     objectTileTags = new List<TileTag>();
     dealsDamage = false;
@@ -195,21 +197,37 @@ public class EnvironmentTileInfo
     return groundTileType != null && groundTileType.shouldRespawnPlayer;
   }
 
+  public bool HasTileTag(TileTag tag)
+  {
+    return (groundTileTags.Contains(tag) || objectTileTags.Contains(tag));
+  }
+
   public bool CharacterCanCrossTile(Character character)
   {
     if (!CanRespawnPlayer())
     {
       return true;
     }
-    foreach (CharacterAttribute attribute in groundTileType.attributesWhichBypassRespawn.Keys)
+    if (character.IsMidair())
     {
-      if (character.GetAttribute(attribute) > 0
-          && character.GetAttribute(attribute) >= groundTileType.attributesWhichBypassRespawn[attribute]
-      )
+      return true;
+    }
+    foreach (CharacterMovementAbility movementAbility in groundTileType.movementAbilitiesWhichBypassRespawn)
+    {
+      if (character.HasMovementAbility(movementAbility))
       {
         return true;
       }
     }
+    // foreach (CharacterAttribute attribute in groundTileType.attributesWhichBypassRespawn.Keys)
+    // {
+    //   if (character.GetAttribute(attribute) > 0
+    //       && character.GetAttribute(attribute) >= groundTileType.attributesWhichBypassRespawn[attribute]
+    //   )
+    //   {
+    //     return true;
+    //   }
+    // }
     return false;
   }
 

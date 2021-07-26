@@ -7,14 +7,6 @@ using UnityEditor;
 using ScriptableObjectArchitecture;
 
 [System.Serializable]
-public class SkillDelay
-{
-  public float duration;
-  public float moveSpeedMultiplier = 0f;
-  public float rotationSpeedMultiplier = 0f;
-}
-
-[System.Serializable]
 public class SkillRangeInfo
 {
 
@@ -29,6 +21,7 @@ public class SkillRangeInfo
 
   public SkillRangeInfo(AttackSpawn spawn)
   {
+    Debug.Log("weapon size is " + spawn.weaponSize);
     minRange = spawn.range;
     maxRange = spawn.range + spawn.weaponSize;
     minAngle = spawn.rotationOffset;
@@ -43,60 +36,175 @@ public class CharacterSkillData : ScriptableObject
   public string displayName;
   [TextArea]
   public string description;
-  public bool isAttack = false; // TODO: be better than this
-  // public float ai_preferredMinRange; // closer than this and we'd like to back up
-  // public float ai_preferredAttackRangeBuffer; // weapon effectiveRange minus range buffer = ideal attack spot
-  public SkillRangeInfo[] skillRangeInfo;
-  public float staminaCost;
 
-  public SkillDelay warmup;
-  public AttackSkillEffect[] skillEffects; // NOTE: Gotta fix this if we want vanilla skillEffects for anything!
-
-  public SkillDelay cooldown;
+  bool isAttack = false;
+  public SkillEffectSet[] skillEffectSets;
+  // public SkillEffect[] skillEffects_old;
 
   public virtual void Init(WeaponVariable weapon)
   {
-    skillEffects = new AttackSkillEffect[] {
-      new AttackSkillEffect(weapon)
-    };
+    // skillEffects_old = new SkillEffect[] {
+    //   new SkillEffect()
+    // };
   }
 
-  public virtual IEnumerator UseSkill(Character owner, bool skipWarmup = false)
+  public virtual void BeginSkillEffect(Character owner)
   {
-    if (!skipWarmup)
-    {
-      yield return new WaitForSeconds(warmup.duration);
-    }
-    foreach (SkillEffect effect in skillEffects)
-    {
-      owner.AdjustCurrentStamina(-staminaCost);
-      yield return effect.ActivateSkillEffect(owner);
-    }
-    yield return new WaitForSeconds(cooldown.duration);
+    GetActiveSkillEffect(owner).BeginSkillEffect(owner);
   }
-  public float GetEffectiveRange()
+
+  public SkillEffectSet GetActiveSkillEffectSet(Character owner)
+  {
+    return skillEffectSets[owner.currentSkillEffectSetIndex];
+  }
+
+  public SkillEffect GetActiveSkillEffect(Character owner)
+  {
+    return GetActiveSkillEffectSet(owner).skillEffects[owner.currentSkillEffectIndex];
+  }
+
+  public virtual void UseSkill(Character owner)
+  {
+    SkillEffect currentSkillEffect = GetActiveSkillEffect(owner);
+    currentSkillEffect.DoSkillEffect(owner);
+
+    if (currentSkillEffect.useType == SkillEffectType.Continuous)
+    {
+      if (
+        // || owner not holding button 
+        currentSkillEffect.duration > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.duration
+        || !owner.pressingSkill == this
+      )
+      {
+        owner.AdvanceSkillEffect();
+      }
+    }
+    else if (owner.timeSpentInSkillEffect > currentSkillEffect.duration)
+    {
+      owner.AdvanceSkillEffect();
+    }
+  }
+  public void CleanUp(Character owner)
+  {
+    // TO IMPLEMENT! should clean up weapons, at a minimum
+  }
+
+  public float GetActiveEffectDuration(Character owner)
+  {
+    return GetActiveSkillEffect(owner).duration;
+  }
+
+  //NOTE: This is kind of weird.
+  // a skill _EFFECT_ is advancable, but the effect _SET_ is what gets advanced.
+  public bool CanAdvanceSkillEffectSet(Character owner)
+  {
+    return GetActiveSkillEffect(owner).advanceable && owner.currentSkillEffectSetIndex < skillEffectSets.Length - 1; //shouldn't need that last condition. don't mark the last skill effect advanceable!!
+  }
+  public bool IsContinuous(Character owner)
+  {
+    return GetActiveSkillEffect(owner).useType == SkillEffectType.Continuous;
+  }
+  // a skill _EFFECT_ is interruptable, but the ENTIRE SKILL gets interrupted.
+  public bool SkillIsInterruptable(Character owner)
+  {
+    return GetActiveSkillEffect(owner).interruptable;
+  }
+
+  // a skill _EFFECT_ is cancelable, but the ENTIRE SKILL gets interrupted.
+  public bool SkillIsCancelable(Character owner)
+  {
+    return GetActiveSkillEffect(owner).cancelable;
+  }
+  public bool SkillMovesCharacter(Character owner)
+  {
+    return GetActiveSkillEffect(owner).movement.Count > 0;
+  }
+  public bool SkillMovesCharacterForward(Character owner)
+  {
+    return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectMovementProperty.MoveForward);
+  }
+  public bool SkillMovesCharacterVertically(Character owner)
+  {
+    return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectMovementProperty.MoveUp)
+    && (GetActiveSkillEffect(owner).movement[SkillEffectMovementProperty.MoveUp].magnitude.Resolve(owner) > 0);
+  }
+
+  public bool SkillHasMovementAbility(Character owner, CharacterMovementAbility movementAbility)
+  {
+    return GetActiveSkillEffect(owner).movementAbilities.Contains(movementAbility);
+  }
+
+  public bool IsAttack()
+  {
+    return isAttack;
+  }
+
+  public NormalizedCurve GetMovement(Character owner, SkillEffectMovementProperty movementProperty)
+  {
+    if (GetActiveSkillEffect(owner).movement.ContainsKey(movementProperty))
+    {
+      return GetActiveSkillEffect(owner).movement[movementProperty];
+    }
+    return null;
+  }
+
+  public float GetMultiplierSkillProperty(Character owner, SkillEffectFloatProperty property)
+  {
+    if (GetActiveSkillEffect(owner).properties.ContainsKey(property))
+    {
+      return GetActiveSkillEffect(owner).properties[property].Resolve(owner);
+    }
+    return 1;
+  }
+
+  // We don't precalculate range info bc it may depend on character overrides
+  // When determining whether to use an attack we should examine the range of that specific skill effect set
+  // (the first set when deciding to use the attack, or the next set after the current one when deciding to continue a combo)
+  public SkillRangeInfo[] CalculateRangeInfosForSkillEffectSet(Character owner, int skillEffectSetIdx = 0)
+  {
+    List<SkillRangeInfo> effectRangeInfos = new List<SkillRangeInfo>();
+    if (skillEffectSetIdx < skillEffectSets.Length)
+    {
+      foreach (SkillEffect effect in skillEffectSets[skillEffectSetIdx].skillEffects)
+      {
+        effectRangeInfos.AddRange(effect.CalculateRangeInfos(owner));
+      }
+    }
+    return effectRangeInfos.ToArray();
+  }
+
+  // This may not be useful but could be used to determine whether we're "close enough" in an abstract way,
+  // vs specifically within range and angle of a particular attack effect.
+  // Also tho it's probably broken
+  public float GetEffectiveRange(Character owner)
   {
     List<float> effectRanges = new List<float>();
-    foreach (SkillEffect effect in skillEffects)
+    foreach (SkillEffectSet effectSet in skillEffectSets)
     {
-      effectRanges.Add(effect.GetEffectiveRange());
+      foreach (SkillEffect effect in effectSet.skillEffects)
+      {
+        effectRanges.Add(effect.GetEffectiveRange(owner));
+      }
     }
     return Mathf.Max(effectRanges.ToArray());
   }
 
-  public void CalculateRangeInfos()
+  void SetIsAttack()
   {
-    List<SkillRangeInfo> rangeInfo = new List<SkillRangeInfo>();
-    if (skillEffects.Length > 0)
+    if (skillEffectSets == null) { return; }
+    foreach (SkillEffectSet set in skillEffectSets)
     {
-      rangeInfo = skillEffects[0].CalculateRangeInfos();
+      if (set.skillEffects == null) { continue; }
+      foreach (SkillEffect effect in set.skillEffects)
+      {
+        if (effect.weaponSpawns.Length > 0)
+        {
+          isAttack = true;
+          return;
+        }
+      }
     }
-    skillRangeInfo = rangeInfo.ToArray();
-  }
-
-  public virtual IEnumerator PerformSkillCycle(Character owner)
-  {
-    yield break;
+    isAttack = false;
   }
 
 #if UNITY_EDITOR
@@ -112,6 +220,7 @@ public class CharacterSkillData : ScriptableObject
 
   public void OnValidate()
   {
-    CalculateRangeInfos();
+    SetIsAttack();
   }
+
 }

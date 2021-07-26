@@ -9,6 +9,7 @@ public class LayerFloor : MonoBehaviour
   public Tilemap groundTilemap;
   public Tilemap objectTilemap;
   public Tilemap visibilityTilemap;
+  public Tilemap infoTilemap;
   public Transform interestObjects;
   void Update()
   {
@@ -61,6 +62,23 @@ public class LayerFloor : MonoBehaviour
         visibilityTilemap.gameObject.name = gameObject.name + "_Visibility";
         visibilityTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
         visibilityTilemap.GetComponent<TilemapRenderer>().sortingOrder = 100;
+      }
+      if (infoTilemap == null)
+      {
+        Debug.Log("info tilemap null");
+        if (transform.Find(gameObject.name + "_Info") != null)
+        {
+          Debug.Log("found tilemap");
+          infoTilemap = transform.Find(gameObject.name + "_Info").GetComponent<Tilemap>();
+          infoTilemap.gameObject.layer = LayerMask.NameToLayer(gameObject.name);
+        }
+      }
+      else
+      {
+        infoTilemap.gameObject.layer = LayerMask.NameToLayer(gameObject.name);
+        infoTilemap.gameObject.name = gameObject.name + "_Info";
+        infoTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
+        infoTilemap.GetComponent<TilemapRenderer>().sortingOrder = 1;
       }
     }
   }

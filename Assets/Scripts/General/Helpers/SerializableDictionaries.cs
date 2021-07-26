@@ -164,6 +164,7 @@ public class CharacterVitalToFloatDictionary : SerializableDictionaryBase<Charac
     Add(CharacterVital.CurrentMoltCount, 0);
     Add(CharacterVital.CurrentStamina, 0);
     Add(CharacterVital.CurrentCarapace, 0);
+    Add(CharacterVital.CurrentMaxHealth, 100);
     // Add(CharacterVital.CurrentDashCooldown, 0f);
   }
 }
@@ -279,3 +280,9 @@ public class AnimationNameToAnimationClipDictionary : SerializableDictionaryBase
 public class BugSpeciesToBugAnimationDictionary : SerializableDictionaryBase<BugSpecies, BugAnimationData> { }
 [System.Serializable]
 public class BugSkeletonPartToSpriteDictionary : SerializableDictionaryBase<BugSkeletonPart, Sprite> { }
+[System.Serializable]
+public class SkillEffectPropertyToFloat : SerializableDictionaryBase<SkillEffectFloatProperty, Overrideable<float>> { }
+[System.Serializable]
+public class SkillEffectMovementPropertyToCurve : SerializableDictionaryBase<SkillEffectMovementProperty, NormalizedCurve> { }
+[System.Serializable]
+public class CharacterVitalToCurveDictionary : SerializableDictionaryBase<CharacterVital, NormalizedCurve> { }

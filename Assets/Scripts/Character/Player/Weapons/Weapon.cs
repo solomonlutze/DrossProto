@@ -7,14 +7,15 @@ public class Weapon : MonoBehaviour
 {
   [Tooltip("Used to determine weapon range. Use the primary transform of the weapon with the largest X size.")]
   public Transform weaponBody;
+  public Rigidbody2D rigidbody2D;
   public Hitbox[] defaultHitboxes;
   Character owner;
-  AttackSkillEffect owningEffect;
+  SkillEffect owningEffect;
   List<Weapon> owningEffectActiveWeapons;
   Attack attack;
-  float timeInCurrentActionGroup = 0;
-  float easedProgress = 0;
-  float previousEasedProgress = 0;
+  float timeAlive = 0;
+  float progress = 0;
+  float previousProgress = 0;
   float increment = 0;
   int currentActionGroup = 0;
 
@@ -25,109 +26,64 @@ public class Weapon : MonoBehaviour
       CleanUp();
     }
   }
-  public void Init(Attack atk, AttackSkillEffect effect, Character c, List<Weapon> activeWeaponObjects)
+  public void Init(AttackSpawn attackSpawnData, SkillEffect owningEffect, Character c, List<Weapon> activeWeaponObjects)
   {
-    attack = atk;
+    attack = attackSpawnData.attackData;
     owner = c;
-    owningEffect = effect;
+    this.owningEffect = owningEffect;
     owningEffectActiveWeapons = activeWeaponObjects;
     owningEffectActiveWeapons.Add(this);
     defaultHitboxes = GetComponentsInChildren<Hitbox>();
 
     foreach (Hitbox hitbox in defaultHitboxes)
     {
-      hitbox.Init(owner, effect.baseDamage);
+      hitbox.Init(owner, attackSpawnData.damage);
     }
     WorldObject.ChangeLayersRecursively(gameObject.transform, owner.currentFloor);
   }
 
   void FixedUpdate()
   {
-    if (currentActionGroup < attack.weaponActionGroups.Length)
-    {
-      timeInCurrentActionGroup += Time.fixedDeltaTime;
-      if (timeInCurrentActionGroup >= attack.weaponActionGroups[currentActionGroup].duration)
-      {
-        ExecuteWeaponActionGroup(
-          attack.weaponActionGroups[currentActionGroup].duration, // don't allow overstepping of duration
-          attack.weaponActionGroups[currentActionGroup],
-          currentActionGroup == attack.weaponActionGroups.Length - 1
-        );
-        currentActionGroup++;
-        timeInCurrentActionGroup = 0;
-        easedProgress = 0;
-        previousEasedProgress = 0;
-      }
-      else
-      {
-        ExecuteWeaponActionGroup(timeInCurrentActionGroup, attack.weaponActionGroups[currentActionGroup], currentActionGroup == attack.weaponActionGroups.Length - 1);
-      }
-    }
-    else
+    timeAlive += Time.fixedDeltaTime;
+    ExecuteWeaponActions(owner);
+    if (timeAlive > attack.duration)
     {
       CleanUp();
     }
   }
-
-  // public IEnumerator PerformWeaponActions()
-  // {
-  //   for (int i = 0; i < attack.weaponActionGroups.Length; i++)
-  //   {
-  //     yield return null;
-  //     // yield return ExecuteWeaponActionGroup(attack.weaponActionGroups[i], i == attack.weaponActionGroups.Length - 1);
-  //   }
-  //   CleanUp();
-  // }
 
   public void CleanUp()
   {
     owningEffectActiveWeapons.Remove(this);
     if (owner != null && attack.objectToSpawn != null && attack.objectToSpawn.attackData != null && attack.spawnObjectOnDestruction)
     {
-      owner.StartCoroutine(owningEffect.SpawnWeapon(attack.objectToSpawn, owner, owningEffectActiveWeapons));
+      owningEffect.SpawnWeapon(attack.objectToSpawn, owner, owningEffectActiveWeapons);
     }
     Destroy(this.gameObject);
   }
 
-  public void ExecuteWeaponActionGroup(float t, WeaponActionGroup actionGroup, bool isLast)
+  public void ExecuteWeaponActions(Character owner)
   {
-    previousEasedProgress = easedProgress;
-    easedProgress = isLast ? Easing.Quadratic.Out(t / actionGroup.duration) : Easing.Linear(t / actionGroup.duration); // ease out on last group only
-    increment = easedProgress - previousEasedProgress;
-    foreach (WeaponAction action in actionGroup.weaponActions)
+    previousProgress = progress;
+
+    float cappedTimeAlive = Mathf.Min(timeAlive, attack.duration);
+    progress = cappedTimeAlive / attack.duration; // easing goes here if we have it
+    increment = progress - previousProgress;
+    foreach (WeaponAction action in attack.weaponActions)
     {
-      ExecuteWeaponAction(action, increment);
+      ExecuteWeaponAction(action, owner, increment);
     }
   }
 
-  // public IEnumerator ExecuteWeaponActionGroup(WeaponActionGroup actionGroup, bool isLast)
-  // {
-  //   float t = 0;
-  //   float easedProgress = 0;
-  //   float previousEasedProgress = 0;
-  //   float increment = 0;
-  //   while (t <= actionGroup.duration)
-  //   {
-  //     t += Time.deltaTime;
-  //     previousEasedProgress = easedProgress;
-  //     easedProgress = isLast ? Easing.Quadratic.Out(t / actionGroup.duration) : Easing.Linear(t / actionGroup.duration); // ease out on last group only
-  //     increment = easedProgress - previousEasedProgress;
-  //     foreach (WeaponAction action in actionGroup.weaponActions)
-  //     {
-  //       ExecuteWeaponAction(action, increment);
-  //     }
-  //     yield return null;
-  //   }
-  // }
-  public void ExecuteWeaponAction(WeaponAction action, float increment)
+  public void ExecuteWeaponAction(WeaponAction action, Character owner, float increment)
   {
     switch (action.type)
     {
       case WeaponActionType.Move:
-        MoveWeaponAction(action, increment);
+        MoveWeaponAction(action, owner, increment);
         break;
       case WeaponActionType.RotateRelative:
-        RotateWeaponRelativeAction(action, increment);
+        RotateWeaponRelativeAction(action, owner, increment);
         break;
       case WeaponActionType.Wait:
         WaitWeaponAction(action, increment);
@@ -138,16 +94,18 @@ public class Weapon : MonoBehaviour
     }
   }
 
-  public void MoveWeaponAction(WeaponAction action, float increment)
+  public void MoveWeaponAction(WeaponAction action, Character owner, float increment)
   {
-    transform.position += transform.rotation * new Vector3(action.magnitude * increment, 0, 0);
+    // rigidbody2D.MovePosition(transform.position + new Vector3(action.motion.EvaluateIncrement(owner, progress, previousProgress), 0, 0));
+    transform.position += transform.rotation * new Vector3(action.motion.EvaluateIncrement(owner, progress, previousProgress), 0, 0);
   }
 
   // Rotate weapon relative to owner - think of a sword swing
-  public void RotateWeaponRelativeAction(WeaponAction action, float increment)
+  public void RotateWeaponRelativeAction(WeaponAction action, Character owner, float increment)
   {
     Vector3 direction = transform.position - owner.transform.position;
-    transform.RotateAround(owner.transform.position, Vector3.forward, action.magnitude * increment);
+    // rigidbody2D.MoveRotation
+    transform.RotateAround(owner.transform.position, Vector3.forward, action.motion.EvaluateIncrement(owner, progress, previousProgress));
   }
   public void WaitWeaponAction(WeaponAction action, float increment)
   {
@@ -168,7 +126,7 @@ public class Weapon : MonoBehaviour
       Weapon weapon = go.GetComponent<Weapon>();
       if (weapon != null)
       {
-        go.GetComponent<Weapon>().Init(attack.objectToSpawn.attackData, owningEffect, owner, owningEffectActiveWeapons);
+        go.GetComponent<Weapon>().Init(attack.objectToSpawn, owningEffect, owner, owningEffectActiveWeapons);
       }
     }
     if (attack.destroyOnContact)

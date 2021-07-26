@@ -20,7 +20,12 @@ public class PlayerHUD : MonoBehaviour
 
   // private SuperTextMesh activatedAbilityText;
 
-  // public TextMeshProUGUI selectedSkillText;
+  public SuperTextMesh selectedSkillText;
+  public SuperTextMesh selectedSkillDescriptionText;
+  public SuperTextMesh selectedAttackSkillText;
+  public SuperTextMesh selectedAttackSkillDescriptionText;
+  public SuperTextMesh moltText;
+  public SuperTextMesh moltDescriptionText;
   // public TextMeshProUGUI skill1ValueText;
   // public TextMeshProUGUI skill2TitleText;
   // public TextMeshProUGUI skill2ValueText;
@@ -46,8 +51,14 @@ public class PlayerHUD : MonoBehaviour
     if (playerController != null)
     {
       healthBar.character = playerController; //todo: anywhere but update please!
-      carapaceBar.character = playerController;
-      staminaBar.character = playerController;
+      // carapaceBar.character = playerController;
+      // staminaBar.character = playerController;
+      selectedSkillText.text = playerController.characterSkills[playerController.selectedSkillIdx].displayName;
+      selectedSkillDescriptionText.text = playerController.characterSkills[playerController.selectedSkillIdx].description;
+      selectedAttackSkillText.text = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx].displayName;
+      selectedAttackSkillDescriptionText.text = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx].description;
+      moltText.text = playerController.moltSkill.displayName;
+      moltDescriptionText.text = playerController.moltSkill.description;
       if (playerController.GetCharacterVital(CharacterVital.CurrentHealth) > 0 && diedText.text != " ")
       {
         diedText.text = " ";
@@ -72,6 +83,7 @@ public class PlayerHUD : MonoBehaviour
 
   public void SetGrubCount()
   {
+    Debug.Log("setting grub count text to " + grubCount.Value);
     grubCountText.text = "" + grubCount.Value;
   }
 

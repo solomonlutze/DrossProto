@@ -1,11 +1,11 @@
 
-title: Sentinel
+title: Sentinel.Start
 tags: 
 colorID: 0
 position: 0,0
 parent: 
 ---
-<<if not visited("Sentinel")>>
+<<if not visited("Sentinel.Start")>>
 
 Welcome, and congratulations!
 This is the intended end of the demo level.

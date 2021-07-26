@@ -12,6 +12,22 @@ public class CustomCamera : MonoBehaviour
   void Start()
   {
     ownCamera = GetComponent<Camera>();
+    int firstFloorLayerIndex = LayerMask.NameToLayer("B6");
+    int mask = 0;
+    for (
+        int i = firstFloorLayerIndex;
+        i < firstFloorLayerIndex + Constants.numberOfFloorLayers;
+        i++
+    )
+    {
+      int layerValue = 1;
+      mask |= layerValue << i;
+      //   i <= firstFloorLayerIndex + (int)floorLayer + 1 // NOTE: This +1 makes the layer above you visible!!
+      //                                                   // i <= firstFloorLayerIndex + (int)floorLayer
+      //   ? 1 : 0;
+      // mask |= layerValue << i;
+    }
+    ownCamera.cullingMask = mask;
   }
 
   // Update is called once per frame
@@ -29,21 +45,7 @@ public class CustomCamera : MonoBehaviour
       {
         ownCamera.fieldOfView = sightRangeValueToFOV[player.GetAttribute(CharacterAttribute.SightRange)];
       }
-      floorLayer = player.currentFloor;
-      int mask = 0;
-      for (
-          int i = firstFloorLayerIndex;
-          i < firstFloorLayerIndex + Constants.numberOfFloorLayers;
-          i++
-      )
-      {
-        int layerValue =
-          i <= firstFloorLayerIndex + (int)floorLayer + 1 // NOTE: This +1 makes the layer above you visible!!
-                                                          // i <= firstFloorLayerIndex + (int)floorLayer
-          ? 1 : 0;
-        mask |= layerValue << i;
-      }
-      ownCamera.cullingMask = mask;
+
     }
   }
 }

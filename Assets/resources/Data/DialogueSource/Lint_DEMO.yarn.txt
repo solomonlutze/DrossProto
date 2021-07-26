@@ -5,9 +5,11 @@ colorID: 0
 position: 0,0
 parent: 
 ---
-Hey, not gonna do a whole thing in here. 
+Hey, not gonna do a whole thing in here. Please consult the readme for instructions!
 
-You can find each of the three enemies through the exits, and you can see the readme for how to play stuff. 
+You can find trophy grubs around this area. Use your skills to collect all ten!
+
+I mean. Ten's a good number, right? There could be thirteen or something but ten feels rounder and more complete. Don't exert yourself.
 
 Good luck!
 ===

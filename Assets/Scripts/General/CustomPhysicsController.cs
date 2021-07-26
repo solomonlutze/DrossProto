@@ -141,7 +141,7 @@ public class CustomPhysicsController : MonoBehaviour
 
     // maxVelocity = moveAcceleration - drag * Time.deltaTime;
     Vector2 desiredMovement;
-    if (owningCharacter.IsDashingOrInKnockback()) // Ignore velocity + drag; move manually
+    if (owningCharacter.IsInKnockback()) // Ignore velocity + drag; move manually
     {
       desiredMovement = (movementInput.normalized * owningCharacter.GetEasedMovementProgressIncrement());
       Vector2 xMove = new Vector2(desiredMovement.x, 0);
@@ -157,26 +157,52 @@ public class CustomPhysicsController : MonoBehaviour
       }
       desiredMovement.y = yMove.y;
       rb.MovePosition(rb.position + desiredMovement);
-      // transform.position += new Vector3(desiredMovement.x, desiredMovement.y, 0);
-      // desiredMovement = ((movementInput.normalized * moveAcceleration + orientedAnimationInput)) * Time.deltaTime;
+    }
+    else if (owningCharacter.UsingForwardMovementSkill()) // TODO: maybe someday we want to allow forward movement + regular movement in same skill? ehh
+    {
+      desiredMovement = (orientation.rotation * new Vector2(owningCharacter.GetEasedMovementProgressIncrement(), 0));
+      Vector2 xMove = new Vector2(desiredMovement.x, 0);
+      if (!ignoreCollisionPhysics)
+      {
+        xMove = CalculateCollisionForAxis(xMove);
+      }
+      desiredMovement.x = xMove.x;
+      Vector2 yMove = new Vector2(0, desiredMovement.y);
+      if (!ignoreCollisionPhysics)
+      {
+        yMove = CalculateCollisionForAxis(yMove);
+      }
+      desiredMovement.y = yMove.y;
+      rb.MovePosition(rb.position + desiredMovement);
     }
     else
     {
-      Vector2 orientedAnimationInput = Vector2.zero;
-      if (orientation != null) { orientedAnimationInput = orientation.rotation * animationInput; }
-      desiredMovement = ((movementInput.normalized * moveAcceleration + orientedAnimationInput) - (drag * velocity)) * Time.deltaTime;
+      // desiredMovement = (movementInput.normalized * moveAcceleration - (drag * velocity)) * Time.deltaTime;
+      Vector2 orientedMovement = orientation.rotation * (movementInput == Vector2.zero ? Vector2.zero : Vector2.right);
+      if (owningCharacter.GetRotationSpeed() > 0)
+      {
+        desiredMovement = (orientedMovement * moveAcceleration - (drag * velocity)) * Time.fixedDeltaTime;
+      }
+      else
+      {
+        desiredMovement = (movementInput * moveAcceleration - (drag * velocity)) * Time.fixedDeltaTime;
+      }
+      // Debug.Log("desiredMovement: " + desiredMovement);
       Vector2 xMove = new Vector2(velocity.x + desiredMovement.x, 0);
+      // Debug.Log("xMove: " + xMove);
       if (!ignoreCollisionPhysics)
       {
         xMove = CalculateCollisionForAxis(xMove);
       }
       velocity.x = xMove.x;
       Vector2 yMove = new Vector2(0, velocity.y + desiredMovement.y);
+      // Debug.Log("yMove: " + yMove);
       if (!ignoreCollisionPhysics)
       {
         yMove = CalculateCollisionForAxis(yMove);
       }
       velocity.y = yMove.y;
+      // Debug.Log("velocity: " + velocity);
       if (velocity.magnitude < velocityMin) { velocity = Vector2.zero; }
       // transform.position += new Vector3(velocity.x, velocity.y, 0);
       rb.MovePosition(rb.position + velocity);
@@ -212,59 +238,60 @@ public class CustomPhysicsController : MonoBehaviour
   {
     results = new RaycastHit2D[20];
     Collider2D[] cols = GetComponentsInChildren<Collider2D>();
+    Collider2D col = owningCharacter.physicsCollider;
     int hits = 0;
-    foreach (Collider2D col in cols)
+    // foreach (Collider2D col in cols)
+    // {
+    if (!col.isTrigger)
     {
-      if (!col.isTrigger)
+      RaycastHit2D[] res = new RaycastHit2D[4];
+      int myHits = col.Cast(castVector, contactFilter, res, castVector.magnitude, true);
+      int nonTriggerHits = 0;
+      for (int i = 0; i < 20 - hits && i < myHits; i++)
       {
-        RaycastHit2D[] res = new RaycastHit2D[4];
-        int myHits = col.Cast(castVector, contactFilter, res, castVector.magnitude, true);
-        int nonTriggerHits = 0;
-        for (int i = 0; i < 20 - hits && i < myHits; i++)
+        CustomPhysicsController otherPhysics = res[i].collider.gameObject.GetComponent<CustomPhysicsController>();
+        bool otherIgnoresCollisions = false;
+        if (otherPhysics != null)
         {
-          CustomPhysicsController otherPhysics = res[i].collider.gameObject.GetComponent<CustomPhysicsController>();
-          bool otherIgnoresCollisions = false;
-          if (otherPhysics != null)
+          otherIgnoresCollisions = otherPhysics.ignoreCollisionPhysics;
+          if (objectsToIgnore.Contains(otherPhysics.gameObject)) { continue; }
+        }
+        if (res[i].collider.GetComponentInChildren<Tilemap>() != null)
+        { // TODO: this is... probably not great
+          Vector3 hitPos = Vector3.zero;
+          hitPos.x = res[i].point.x - 0.01f * res[i].normal.x;
+          hitPos.y = res[i].point.y - 0.01f * res[i].normal.y;
+          Vector3 offset = Vector3.zero;
+          EnvironmentTileInfo tile1;
+          EnvironmentTileInfo tile2;
+          if (hitPos.x - Mathf.Floor(hitPos.x) <= 0.0001)
           {
-            otherIgnoresCollisions = otherPhysics.ignoreCollisionPhysics;
-            if (objectsToIgnore.Contains(otherPhysics.gameObject)) { continue; }
+            offset.x += .0001f;
           }
-          if (res[i].collider.GetComponentInChildren<Tilemap>() != null)
-          { // TODO: this is... probably not great
-            Vector3 hitPos = Vector3.zero;
-            hitPos.x = res[i].point.x - 0.01f * res[i].normal.x;
-            hitPos.y = res[i].point.y - 0.01f * res[i].normal.y;
-            Vector3 offset = Vector3.zero;
-            EnvironmentTileInfo tile1;
-            EnvironmentTileInfo tile2;
-            if (hitPos.x - Mathf.Floor(hitPos.x) <= 0.0001)
-            {
-              offset.x += .0001f;
-            }
-            if (hitPos.y - Mathf.Floor(hitPos.y) <= 0.0001)
-            {
-              offset.y += .0001f;
-            }
-            tile1 = GridManager.Instance.GetTileAtLocation(new TileLocation(hitPos + offset, currentFloor));
-            tile2 = GridManager.Instance.GetTileAtLocation(new TileLocation(hitPos - offset, currentFloor));
-            if (owningCharacter != null)
-            {
-              owningCharacter.HandleTileCollision(tile1);
-              if (tile1 != tile2)
-              {
-                owningCharacter.HandleTileCollision(tile2);
-              }
-            }
-          }
-          if (!res[i].collider.isTrigger && !otherIgnoresCollisions && !Physics2D.GetIgnoreCollision(res[i].collider, col))
+          if (hitPos.y - Mathf.Floor(hitPos.y) <= 0.0001)
           {
-            results[hits + nonTriggerHits] = res[i];
-            nonTriggerHits++;
+            offset.y += .0001f;
+          }
+          tile1 = GridManager.Instance.GetTileAtLocation(new TileLocation(hitPos + offset, currentFloor));
+          tile2 = GridManager.Instance.GetTileAtLocation(new TileLocation(hitPos - offset, currentFloor));
+          if (owningCharacter != null)
+          {
+            owningCharacter.HandleTileCollision(tile1);
+            if (tile1 != tile2)
+            {
+              owningCharacter.HandleTileCollision(tile2);
+            }
           }
         }
-        hits += nonTriggerHits;
+        if (!res[i].collider.isTrigger && !otherIgnoresCollisions && !Physics2D.GetIgnoreCollision(res[i].collider, col))
+        {
+          results[hits + nonTriggerHits] = res[i];
+          nonTriggerHits++;
+        }
       }
+      hits += nonTriggerHits;
     }
+    // }
     return hits;
   }
 

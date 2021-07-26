@@ -11,25 +11,40 @@ public class LayerRenderer : MonoBehaviour
   public bool shouldBeVisible = false;
   // public FloorLayer floorLayer;
   public IntVariable currentFloorLayer;
+  public bool executeInPlayMode = true;
 
+  bool ShouldExecute()
+  {
+    return !Application.IsPlaying(gameObject) && executeInPlayMode;
+  }
   void Awake()
   {
-    currentOpacity = .001f; // dumb hack; will force a changeOpacity update that will turn off renderers
+    if (ShouldExecute())
+    {
+      currentOpacity = .001f; // dumb hack; will force a changeOpacity update that will turn off renderers
+    }
+    else
+    {
+      ChangeOpacityRecursively(transform, 1);
+    }
   }
 
   void Update()
   {
-    if (!FinishedChangingOpacity(shouldBeVisible, currentOpacity))
+    if (ShouldExecute())
     {
-      // WARNING: AI and LayerRenderer tightly coupled for camouflage.
-      // See AiStateController.HandleVisibility. 
-      AiStateController ai = GetComponent<AiStateController>();
-      if (ai != null && shouldBeVisible) // AI handling opacity
+      if (!FinishedChangingOpacity(shouldBeVisible, currentOpacity))
       {
-        return;
+        // WARNING: AI and LayerRenderer tightly coupled for camouflage.
+        // See AiStateController.HandleVisibility. 
+        // AiStateController ai = GetComponent<AiStateController>();
+        // if (ai != null && shouldBeVisible) // AI handling opacity
+        // {
+        //   return;
+        // }
+        currentOpacity += Time.deltaTime / fadeTime * (shouldBeVisible ? 1 : -1);
+        ChangeOpacityRecursively(transform, currentOpacity);
       }
-      currentOpacity += Time.deltaTime / fadeTime * (shouldBeVisible ? 1 : -1);
-      ChangeOpacityRecursively(transform, currentOpacity);
     }
   }
 

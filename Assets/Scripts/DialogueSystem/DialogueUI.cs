@@ -31,210 +31,232 @@ using System.Text;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using TMPro;
+using Rewired;
 
-namespace Yarn.Unity {
-    /// Displays dialogue lines to the player, and sends
-    /// user choices back to the dialogue system.
+namespace Yarn.Unity
+{
+  /// Displays dialogue lines to the player, and sends
+  /// user choices back to the dialogue system.
 
-    /** Note that this is just one way of presenting the
-     * dialogue to the user. The only hard requirement
-     * is that you provide the RunLine, RunOptions, RunCommand
-     * and DialogueComplete coroutines; what they do is up to you.
-     */
+  /** Note that this is just one way of presenting the
+   * dialogue to the user. The only hard requirement
+   * is that you provide the RunLine, RunOptions, RunCommand
+   * and DialogueComplete coroutines; what they do is up to you.
+   */
 
-	// Largely cribbed from Yarnspinner's ExampleDialogueUI. -SF
-    public class DialogueUI : Yarn.Unity.DialogueUIBehaviour
+  // Largely cribbed from Yarnspinner's ExampleDialogueUI. -SF
+  public class DialogueUI : Yarn.Unity.DialogueUIBehaviour
+  {
+
+    public GameObject dialogueContainer;
+    public GameObject playerDialogueContainer;
+    private Rewired.Player rewiredPlayer;
+    public int rewiredPlayerId = 0;
+
+    /// The UI element that displays lines
+    public TextMeshProUGUI lineText;
+
+    /// A UI element that appears after lines have finished appearing
+    public GameObject continuePrompt;
+
+    /// A delegate (ie a function-stored-in-a-variable) that
+    /// we call to tell the dialogue system about what option
+    /// the user selected
+    private Yarn.OptionChooser SetSelectedOption;
+
+    /// How quickly to show the text, in seconds per character
+    [Tooltip("How quickly to show the text, in seconds per character")]
+    public float textSpeed = 0.025f;
+
+    /// The buttons that let the user choose an option
+    public List<Button> optionButtons;
+
+    /// Make it possible to temporarily disable the controls when
+    /// dialogue is active and to restore them when dialogue ends
+    public RectTransform gameControlsContainer;
+
+    void Awake()
     {
+      // Start by hiding the container, line and option buttons
+      rewiredPlayer = ReInput.players.GetPlayer(rewiredPlayerId);
+      if (dialogueContainer != null)
+        dialogueContainer.SetActive(false);
 
-        public GameObject dialogueContainer;
-		public GameObject playerDialogueContainer;
+      lineText.gameObject.SetActive(false);
 
-        /// The UI element that displays lines
-        public TextMeshProUGUI lineText;
+      foreach (var button in optionButtons)
+      {
+        button.gameObject.SetActive(false);
+      }
 
-        /// A UI element that appears after lines have finished appearing
-        public GameObject continuePrompt;
+      // Hide the continue prompt if it exists
+      if (continuePrompt != null)
+        continuePrompt.SetActive(false);
+    }
 
-        /// A delegate (ie a function-stored-in-a-variable) that
-        /// we call to tell the dialogue system about what option
-        /// the user selected
-        private Yarn.OptionChooser SetSelectedOption;
-
-        /// How quickly to show the text, in seconds per character
-        [Tooltip("How quickly to show the text, in seconds per character")]
-        public float textSpeed = 0.025f;
-
-        /// The buttons that let the user choose an option
-        public List<Button> optionButtons;
-
-        /// Make it possible to temporarily disable the controls when
-        /// dialogue is active and to restore them when dialogue ends
-        public RectTransform gameControlsContainer;
-
-        void Awake ()
+    /// Show a line of dialogue, gradually
+    public override IEnumerator RunLine(Yarn.Line line)
+    {
+      // Show the text
+      lineText.gameObject.SetActive(true);
+      string currentDialogueLine = line.text;
+      Regex rgx = new Regex(@"{.*?}");
+      // Replace variables in the string
+      foreach (Match match in rgx.Matches(line.text))
+      {
+        string variableName = match.Value.Substring(1, match.Value.Length - 2);
+        string replaceValue = "";
+        char[] splitchar = { '.' };
+        string[] variableStrings = variableName.Split(splitchar);
+        if (variableStrings.Length == 2)
         {
-            // Start by hiding the container, line and option buttons
-            if (dialogueContainer != null)
-                dialogueContainer.SetActive(false);
-
-            lineText.gameObject.SetActive (false);
-
-            foreach (var button in optionButtons) {
-                button.gameObject.SetActive (false);
-            }
-
-            // Hide the continue prompt if it exists
-            if (continuePrompt != null)
-                continuePrompt.SetActive (false);
+          if (variableStrings[0] == "player")
+          {
+            replaceValue = "STRING INTERPOLATION WORKS";
+          }
         }
-
-        /// Show a line of dialogue, gradually
-        public override IEnumerator RunLine (Yarn.Line line)
+        else
         {
-            // Show the text
-            lineText.gameObject.SetActive (true);
-            string currentDialogueLine = line.text;
-            Regex rgx = new Regex(@"{.*?}");
-            // Replace variables in the string
-            foreach (Match match in rgx.Matches(line.text) ) {
-                string variableName = match.Value.Substring(1, match.Value.Length-2);
-                string replaceValue = "";
-                char[] splitchar = { '.' };
-                string[] variableStrings = variableName.Split(splitchar);
-                if (variableStrings.Length == 2) {
-                    if (variableStrings[0] == "player") {
-                        replaceValue = "STRING INTERPOLATION WORKS";
-                    }
-                } else {
-                    replaceValue = "wat";
-                }
-                currentDialogueLine = currentDialogueLine.Replace(match.Value, replaceValue);
-            }
-
-            if (textSpeed > 0.0f) {
-                // Display the line one character at a time
-                var stringBuilder = new StringBuilder ();
-
-                foreach (char c in currentDialogueLine) {
-                    stringBuilder.Append (c);
-                    lineText.text = stringBuilder.ToString ();
-                    yield return new WaitForSeconds (textSpeed);
-                }
-            } else {
-                // Display the line immediately if textSpeed == 0
-                lineText.text = currentDialogueLine;
-            }
-
-            // Show the 'press any key' prompt when done, if we have one
-            if (continuePrompt != null)
-                continuePrompt.SetActive (true);
-
-            // Wait for any user input
-            while (Input.GetKeyDown("e") == false) {
-                yield return null;
-            }
-
-            // Hide the text and prompt
-            lineText.gameObject.SetActive (false);
-
-            if (continuePrompt != null)
-                continuePrompt.SetActive (false);
-
+          replaceValue = "wat";
         }
+        currentDialogueLine = currentDialogueLine.Replace(match.Value, replaceValue);
+      }
 
-        /// Show a list of options, and wait for the player to make a selection.
-        public override IEnumerator RunOptions (Yarn.Options optionsCollection,
-                                                Yarn.OptionChooser optionChooser)
+      if (textSpeed > 0.0f)
+      {
+        // Display the line one character at a time
+        var stringBuilder = new StringBuilder();
+
+        foreach (char c in currentDialogueLine)
         {
-            // Do a little bit of safety checking
-            if (optionsCollection.options.Count > optionButtons.Count) {
-                Debug.LogWarning("There are more options to present than there are" +
-                                 "buttons to present them in. This will cause problems.");
-            }
-
-            // Display each option in a button, and make it visible
-            int i = 0;
-            foreach (var optionString in optionsCollection.options) {
-                optionButtons [i].gameObject.SetActive (true);
-                optionButtons [i].GetComponentInChildren<TextMeshProUGUI> ().text = optionString;
-                i++;
-            }
-
-            // Record that we're using it
-            SetSelectedOption = optionChooser;
-
-            // Wait until the chooser has been used and then removed (see SetOption below)
-            while (SetSelectedOption != null) {
-                yield return null;
-            }
-
-            // Hide all the buttons
-            foreach (var button in optionButtons) {
-                button.gameObject.SetActive (false);
-            }
+          stringBuilder.Append(c);
+          lineText.text = stringBuilder.ToString();
+          yield return new WaitForSeconds(textSpeed);
         }
+      }
+      else
+      {
+        // Display the line immediately if textSpeed == 0
+        lineText.text = currentDialogueLine;
+      }
 
-        /// Called by buttons to make a selection.
-        public void SetOption (int selectedOption)
-        {
+      // Show the 'press any key' prompt when done, if we have one
+      if (continuePrompt != null)
+        continuePrompt.SetActive(true);
 
-            // Call the delegate to tell the dialogue system that we've
-            // selected an option.
-            SetSelectedOption (selectedOption);
+      // Wait for any user input
+      while (rewiredPlayer.GetButtonDown("Interact") == false)
+      {
+        yield return null;
+      }
 
-            // Now remove the delegate so that the loop in RunOptions will exit
-            SetSelectedOption = null;
-        }
+      // Hide the text and prompt
+      lineText.gameObject.SetActive(false);
 
-        /// Run an internal command.
-        public override IEnumerator RunCommand (Yarn.Command command)
-        {
-            // "Perform" the command
-            Debug.Log ("Command: " + command.text);
-
-            yield break;
-        }
-
-		// Needs some work, probably;
-		// showing the container should happen on individual lines, since
-		// it might involve multiple containers
-		//
-        public override IEnumerator DialogueStarted ()
-        {
-            Debug.Log ("Dialogue starting!");
-
-            // Enable the dialogue controls.
-            if (dialogueContainer != null)
-                dialogueContainer.SetActive(true);
-
-            // Hide the game controls.
-            if (gameControlsContainer != null) {
-                gameControlsContainer.gameObject.SetActive(false);
-            }
-
-            yield break;
-        }
-
-        /// Called when the dialogue system has finished running.
-        public override IEnumerator DialogueComplete ()
-        {
-            Debug.Log ("Complete!");
-            lineText.text = "";
-            lineText.gameObject.SetActive(false);
-            SetSelectedOption = null;
-
-            // Hide the dialogue interface.
-            if (dialogueContainer != null)
-                dialogueContainer.SetActive(false);
-
-            // Show the game controls.
-            if (gameControlsContainer != null) {
-                gameControlsContainer.gameObject.SetActive(true);
-            }
-
-            yield break;
-        }
+      if (continuePrompt != null)
+        continuePrompt.SetActive(false);
 
     }
+
+    /// Show a list of options, and wait for the player to make a selection.
+    public override IEnumerator RunOptions(Yarn.Options optionsCollection,
+                                            Yarn.OptionChooser optionChooser)
+    {
+      // Do a little bit of safety checking
+      if (optionsCollection.options.Count > optionButtons.Count)
+      {
+        Debug.LogWarning("There are more options to present than there are" +
+                         "buttons to present them in. This will cause problems.");
+      }
+
+      // Display each option in a button, and make it visible
+      int i = 0;
+      foreach (var optionString in optionsCollection.options)
+      {
+        optionButtons[i].gameObject.SetActive(true);
+        optionButtons[i].GetComponentInChildren<TextMeshProUGUI>().text = optionString;
+        i++;
+      }
+
+      // Record that we're using it
+      SetSelectedOption = optionChooser;
+
+      // Wait until the chooser has been used and then removed (see SetOption below)
+      while (SetSelectedOption != null)
+      {
+        yield return null;
+      }
+
+      // Hide all the buttons
+      foreach (var button in optionButtons)
+      {
+        button.gameObject.SetActive(false);
+      }
+    }
+
+    /// Called by buttons to make a selection.
+    public void SetOption(int selectedOption)
+    {
+
+      // Call the delegate to tell the dialogue system that we've
+      // selected an option.
+      SetSelectedOption(selectedOption);
+
+      // Now remove the delegate so that the loop in RunOptions will exit
+      SetSelectedOption = null;
+    }
+
+    /// Run an internal command.
+    public override IEnumerator RunCommand(Yarn.Command command)
+    {
+      // "Perform" the command
+      Debug.Log("Command: " + command.text);
+
+      yield break;
+    }
+
+    // Needs some work, probably;
+    // showing the container should happen on individual lines, since
+    // it might involve multiple containers
+    //
+    public override IEnumerator DialogueStarted()
+    {
+      Debug.Log("Dialogue starting!");
+
+      // Enable the dialogue controls.
+      if (dialogueContainer != null)
+        dialogueContainer.SetActive(true);
+
+      // Hide the game controls.
+      if (gameControlsContainer != null)
+      {
+        gameControlsContainer.gameObject.SetActive(false);
+      }
+
+      yield break;
+    }
+
+    /// Called when the dialogue system has finished running.
+    public override IEnumerator DialogueComplete()
+    {
+      Debug.Log("Complete!");
+      lineText.text = "";
+      lineText.gameObject.SetActive(false);
+      SetSelectedOption = null;
+
+      // Hide the dialogue interface.
+      if (dialogueContainer != null)
+        dialogueContainer.SetActive(false);
+
+      // Show the game controls.
+      if (gameControlsContainer != null)
+      {
+        gameControlsContainer.gameObject.SetActive(true);
+      }
+
+      yield break;
+    }
+
+  }
 
 }

@@ -50,7 +50,7 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
   private void _OnValidate()
   {
 
-    if (this == null || this.gameObject == null) { return; }
+    if (this == null || this.gameObject == null || transform == null) { return; }
     if (objectToSpawn && objectToSpawn != prevObjectToSpawn)
     {
       gameObject.name = objectToSpawn.name + "_Spawner";
@@ -60,7 +60,9 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
         List<SpriteRenderer> srs = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>());
         while (srs.Count < newSrs.Length)
         {
-          srs.Add(Instantiate(spawnerSpritePrefab, transform));
+          SpriteRenderer sprite = Instantiate(spawnerSpritePrefab, transform);
+          sprite.name = gameObject.name;
+          srs.Add(sprite);
         }
         for (int i = 0; i < newSrs.Length; i++)
         {

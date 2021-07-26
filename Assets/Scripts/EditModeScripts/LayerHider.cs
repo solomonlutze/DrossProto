@@ -5,21 +5,16 @@ using UnityEngine;
 [ExecuteAlways]
 public class LayerHider : MonoBehaviour
 {
-  // // Start is called before the first frame update
-  // void Start()
-  // {
+  bool inEditMode = false;
 
-  // }
-
-  // // Update is called once per frame
-  // void Update()
-  // {
-  //     if (Application.IsPlaying(gameObject))
-  //     {
-  //     }
-  //     else
-  //     {
-  //         // Editor logic
-  //     }
-  // }
+#if UNITY_EDITOR
+  void Update()
+  {
+    if (PlayStateNotifier.inEditMode != inEditMode)
+    {
+      inEditMode = PlayStateNotifier.inEditMode;
+      Debug.Log("inEditMode: " + inEditMode);
+    }
+  }
+#endif
 }

@@ -22,6 +22,7 @@ public enum CharacterVital
   CurrentEnvironmentalDamageCooldown,
   CurrentStamina,
   CurrentCarapace, // Carapace might be "balance" sometime
+  CurrentMaxHealth,
   CurrentMoltCount
 }
 
@@ -44,7 +45,8 @@ public enum CharacterStat
   Carapace = 10,
   MoltDuration = 11,
   BlockingMoveAcceleration = 12,
-  BlockingRotationSpeed = 13
+  BlockingRotationSpeed = 13,
+  MaxHealth = 14
 }
 
 public enum CharacterAttribute
@@ -253,7 +255,9 @@ public class Character : WorldObject
 
   [Header("Attack Info")]
   public Moveset moveset;
-  public List<CharacterSkillData> characterSkills; // possibly deprecated
+  public List<CharacterSkillData> characterSkills;
+  public List<CharacterSkillData> characterAttackSkills;
+  public CharacterSkillData moltSkill;
   public List<CharacterSkillData> characterSpells;// possibly deprecated
                                                   // public Weapon weaponInstance;
   public CharacterAttackModifiers attackModifiers; // probably deprecated
@@ -280,6 +284,8 @@ public class Character : WorldObject
 
   public CircleCollider2D circleCollider;
   public BoxCollider2D boxCollider; // used for calculating collisions w/ tiles while changing floor layer
+  public PolygonCollider2D physicsCollider; // used for calculating collisions w/ actual objects
+  public PolygonCollider2D touchingCollider; // used for eg. deciding if we're touching a wall
   public CharacterVisuals characterVisuals;
   // public AnimatorController animatorController;
 
@@ -290,13 +296,19 @@ public class Character : WorldObject
   public Character critVictimOf = null; // true while subject to crit attack
   public bool usingCrit = false;
   public float damageFlashSpeed = 1.0f;
-  public bool usingSkill = false;
+  public CharacterSkillData activeSkill;
+  public CharacterSkillData queuedSkill;
+  public CharacterSkillData pressingSkill;
+  // public bool receivingSkillInput;
+  public float timeSpentInSkillEffect = 0f;
+  public int currentSkillEffectSetIndex = 0;
+  public int currentSkillEffectIndex = 0;
   public bool flying = false;
   public bool blocking = false;
-  public bool dashing = false;
   public bool molting = false;
   public float dashProgress = 0.0f;
-  public float easedDashProgressIncrement = 0.0f;
+  public float easedSkillForwardMovementProgressIncrement = 0.0f;
+  public float easedSkillUpwardMovementProgressIncrement = 0.0f;
   public bool inKnockback = false;
   public float knockbackAmount = 0.0f;
   public Vector2 knockbackHeading = Vector3.zero;
@@ -350,8 +362,8 @@ public class Character : WorldObject
     orientation = transform.Find("Orientation");
     circleCollider = GetComponent<CircleCollider2D>();
     boxCollider = GetComponent<BoxCollider2D>();
+    physicsCollider = GetComponent<PolygonCollider2D>();
     animator = characterVisuals.GetComponent<Animator>();
-    Debug.Log("character awake");
     if (orientation == null)
     {
       Debug.LogError("No object named 'Orientation' on Character object: " + gameObject.name);
@@ -361,8 +373,8 @@ public class Character : WorldObject
 
   protected virtual void Start()
   {
-    Debug.Log("character Start");
-    movementInput = new Vector2(0, 0);
+    movementInput = Vector2.zero;
+    orientTowards = Vector3.zero;
     if (po == null)
     {
       Debug.LogError("No physics controller component on Character object: " + gameObject.name);
@@ -373,12 +385,11 @@ public class Character : WorldObject
 
   protected virtual void Init()
   {
-    Debug.Log("character init");
     sourceInvulnerabilities = new List<string>();
     conditionallyActivatedTraitEffects = new List<TraitEffect>();
     ascendingDescendingState = AscendingDescendingState.None;
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
-    characterSkills = CalculateSkills(traits);
+    // characterSkills = CalculateSkills(traits);
     moveset = new Moveset(traits);
     attributes = CalculateAttributes(traits);
     AwarenessTrigger awareness = GetComponentInChildren<AwarenessTrigger>();
@@ -405,6 +416,7 @@ public class Character : WorldObject
       activeMovementAbilities.AddRange(dataInstance.movementAbilities);
     }
     vitals = new CharacterVitalToFloatDictionary();
+    vitals[CharacterVital.CurrentMaxHealth] = defaultCharacterData.defaultStats[CharacterStat.MaxHealth];
     vitals[CharacterVital.CurrentHealth] = GetCurrentMaxHealth();
     vitals[CharacterVital.CurrentStamina] = GetMaxStamina();
     vitals[CharacterVital.CurrentCarapace] = GetMaxCarapace();
@@ -426,6 +438,7 @@ public class Character : WorldObject
   {
 
     CharacterAttributeToIntDictionary ret = new CharacterAttributeToIntDictionary(true);
+    return ret;
     foreach (Trait trait in traits.Values)
     {
       if (trait == null) { continue; }
@@ -434,7 +447,6 @@ public class Character : WorldObject
         ret[attribute] += trait.attributeModifiers[attribute];
       }
     }
-    return ret;
   }
 
   public virtual CharacterSkillData GetSelectedCharacterSkill()
@@ -460,18 +472,6 @@ public class Character : WorldObject
     return ret;
   }
 
-  public static bool HasAttackSkill(List<CharacterSkillData> skills)
-  {
-    foreach (CharacterSkillData skill in skills)
-    {
-      if (skill.isAttack)
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
   void InitializeAnimationParameters()
   {
     animator.SetFloat("HeadAnimationType", (int)traits[TraitSlot.Head].bugSpecies);
@@ -484,34 +484,26 @@ public class Character : WorldObject
   protected virtual void Update()
   {
     HandleHealth();
-    HandleFacingDirection();
+    if (timeMoving > 0) // better way to do this??
+    {
+      HandleFacingDirection();
+    }
     HandleTile();
+    HandleSkills();
     HandleCooldowns();
     HandleConditionallyActivatedTraits();
-    HandleAscendOrDescend();
+    HandleVerticalMotion(); // it's DIFFERENT OK
   }
 
-  // physics biz
+  // physics biz. phbyzics
   protected virtual void FixedUpdate()
   {
-    HandleDashCooldown(); // it's different ok
-    HandleKnockbackCooldown(); // it's different ok
+    HandleAscendOrDescend();
+    HandleSkillMovement();
+    HandleKnockbackCooldown();
     CalculateMovement();
   }
 
-  // WIP: COMBOS
-
-  // How combos should work
-
-  // if you're not attacking, Attack calls BeginAttack and queues your first attack
-  // if you ARE attacking, and haven't queued an attack,
-  //   Attack calls QueueNextAttack and queues a subsequent attack
-  // if you are attacking and HAVE queued an attack,
-  //   Attack resets the coroutine
-  // at the end of an attack, (Weapon.FinishAttack) if a next attack is queued and present, it fires
-  // if an attack is NOT queued, the combo is reset, and attacking is reset to false (Weapon.FinishCombo)
-
-  // called via play input or npc AI
 
   public CharacterSkillData GetSkillDataForAttackType(AttackType attackType)
   {
@@ -550,18 +542,132 @@ public class Character : WorldObject
         return AttackType.Basic;
     }
   }
-  public void UseSkill(CharacterSkillData skill, bool skipWarmup = false)
+
+  public void HandleSkillInput(CharacterSkillData skill)
   {
-    Debug.Log("using skill " + skill);
-    if (skill != null && !usingSkill)
+    Debug.Log("trying to use skill " + skill);
+    QueueSkill(skill);
+    PressSkill(skill);
+    if (!UsingSkill())
     {
-      // if (skillCoroutine == null)
-      // {
-      skillCoroutine = StartCoroutine(DoSkill(skill, skipWarmup));
-      // }
+      if (CanUseSkill(skill))
+      {
+        Debug.Log("beginning skill " + skill);
+        BeginSkill(skill);
+      }
+      queuedSkill = null;
     }
+    else if (activeSkill.CanAdvanceSkillEffectSet(this) && queuedSkill == activeSkill)
+    {
+      if (CanUseSkill(skill, currentSkillEffectIndex + 1))
+      {
+        AdvanceSkillEffectSet();
+      }
+      queuedSkill = null;
+    }
+    else if (activeSkill.SkillIsCancelable(this))
+    {
+      if (CanUseSkill(skill))
+      {
+        InterruptSkill(skill);
+      }
+      queuedSkill = null;
+    }
+    // Otherwise: we ARE using a skill, and we aren't interrupting its effect. Leave queued skill alone.
   }
 
+  // if (skill == activeSkill && activeSkill.SkillIsAdvanceable(this))
+  //   {
+  //     Debug.Log("advancing skill effect...");
+  //     AdvanceSkillEffect();
+  //   }
+  //   if (skill != null && CanUseSkill(skill))
+  //   {
+  //     if (UsingSkill())
+  //     {
+  //       if (activeSkill.SkillIsInterruptable(this))
+  //       {
+  //         InterruptSkill(skill);
+  //       }
+  //       else
+  //       {
+  //         QueueSkill(skill);
+  //       }
+  //     }
+  //     else
+  //     {
+  //       BeginSkill(skill);
+  //     }
+  //   }
+  // }
+
+
+  // TODO: Differentiate between advancing the skill effect itself
+  // and advancing the skill effect set.
+  // When the current effect expires, 
+  // -if there's more effects in the set, advance to the next effect
+  // -else, determine whether we should advance to the next set
+  // the below method is probably closer to AdvanceSkillEffectSet
+  public void AdvanceSkillEffectSet()
+  {
+    Debug.Log("trying to advance skill " + activeSkill);
+
+    Debug.Log("pressedSkill " + pressingSkill);
+    Debug.Log("queuedSkill " + queuedSkill);
+    currentSkillEffectIndex = 0;
+    while (currentSkillEffectSetIndex < activeSkill.skillEffectSets.Length - 1)
+    {
+      currentSkillEffectSetIndex++;
+      if (ShouldUseSkillEffectSet(activeSkill, currentSkillEffectSetIndex) && CanUseSkill(activeSkill, currentSkillEffectSetIndex))
+      {
+        BeginSkillEffect();
+        queuedSkill = null;
+        return;
+      }
+    };
+    EndSkill();
+  }
+
+  public void AdvanceSkillEffect()
+  {
+    currentSkillEffectIndex++;
+    if (currentSkillEffectIndex <= activeSkill.GetActiveSkillEffectSet(this).skillEffects.Length - 1)
+    {
+      if (queuedSkill == activeSkill && activeSkill.CanAdvanceSkillEffectSet(this))
+      {
+        AdvanceSkillEffectSet();
+        return;
+      }
+      BeginSkillEffect();
+      return;
+    };
+    AdvanceSkillEffectSet();
+  }
+
+  public void BeginSkillEffect()
+  {
+    timeSpentInSkillEffect = 0;
+    activeSkill.BeginSkillEffect(this);
+  }
+
+  public void EndSkill()
+  {
+    Debug.Log("ending skill " + activeSkill);
+    if (UsingSkill())
+    {
+      activeSkill.CleanUp(this);
+      activeSkill = null;
+    }
+    pressingSkill = null;
+    currentSkillEffectSetIndex = 0;
+    currentSkillEffectIndex = 0;
+    timeSpentInSkillEffect = 0;
+  }
+
+  public bool UsingSkill()
+  {
+    return activeSkill != null;
+  }
   public bool InCrit()
   {
     return usingCrit || critVictimOf != null;
@@ -574,13 +680,12 @@ public class Character : WorldObject
 
   public IEnumerator UseCritAttack()
   {
-    // Debug.Log("inside useCritAttack");
     Character victim = critTarget;
     victim.SetIsCritVictimOf(this);
     usingCrit = true;
     orientation.rotation = GetDirectionAngle(critTarget.transform.position);
     victim.orientation.rotation = victim.GetDirectionAngle(transform.position);
-    UseSkill(GetSkillDataForAttackType(AttackType.Critical));
+    HandleSkillInput(GetSkillDataForAttackType(AttackType.Critical));
     while (skillCoroutine != null)
     {
       yield return null;
@@ -592,14 +697,30 @@ public class Character : WorldObject
     usingCrit = false;
   }
 
-  public IEnumerator DoSkill(CharacterSkillData skill, bool skipWarmup = false)
+  public virtual void BeginSkill(CharacterSkillData skill)
   {
-    usingSkill = true;
-    yield return StartCoroutine(skill.UseSkill(this, skipWarmup));
-    usingSkill = false;
-    skillCoroutine = null;
+    queuedSkill = null;
+    activeSkill = skill;
+    skill.BeginSkillEffect(this);
   }
 
+  public void InterruptSkill(CharacterSkillData skill)
+  {
+    activeSkill.CleanUp(this);
+    currentSkillEffectIndex = 0;
+    timeSpentInSkillEffect = 0;
+    BeginSkill(skill);
+  }
+
+  public void QueueSkill(CharacterSkillData skill)
+  {
+    queuedSkill = skill;
+  }
+
+  public void PressSkill(CharacterSkillData skill)
+  {
+    pressingSkill = skill;
+  }
 
   public void SetBlocking(bool blockingFlag)
   {
@@ -620,24 +741,20 @@ public class Character : WorldObject
     return characterSkills[idx].name;
   }
 
-  public float GetAttackRange(AttackType attack)
+  public SkillRangeInfo[] GetAttackRangeForSkill(CharacterSkillData skillData)
   {
-    return GetSkillDataForAttackType(attack).GetEffectiveRange();
-  }
-  public float GetAttackRange()
-  {
-    return GetSelectedCharacterSkill().GetEffectiveRange();
+    return skillData.CalculateRangeInfosForSkillEffectSet(this, activeSkill == skillData ? currentSkillEffectIndex + 1 : 0);
   }
 
-  public SkillRangeInfo[] GetAttackRangeInfo(AttackType attack)
-  {
-    return GetSkillDataForAttackType(attack).skillRangeInfo;
-  }
+  // public SkillRangeInfo[] GetAttackRangeInfo(AttackType attack)
+  // {
+  //   return GetSkillDataForAttackType(attack).skillRangeInfo;
+  // }
 
-  public SkillRangeInfo[] GetAttackRangeInfo()
-  {
-    return GetSelectedCharacterSkill().skillRangeInfo;
-  }
+  // public SkillRangeInfo[] GetAttackRangeInfo()
+  // {
+  //   return GetSelectedCharacterSkill().CalculateRangeInfosForSkillEffectSet(this, 0);
+  // }
 
   public int GetAttackRadiusInDegrees(int skillIdxForAttack)
   {
@@ -676,16 +793,19 @@ public class Character : WorldObject
   void HandleFacingDirection()
   {
     if (
-      (usingSkill || animationPreventsMoving || stunned || carapaceBroken || IsChargingAttack())
+      (animationPreventsMoving || stunned || carapaceBroken || IsChargingAttack())
       && !activeMovementAbilities.Contains(CharacterMovementAbility.Halteres)
     // && !InCrit() // crit handles facing direction and overrides a few of these
     )
     {
       return;
     }
-    Quaternion targetDirection = GetTargetDirection();
-    // orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
-    orientation.rotation = Quaternion.RotateTowards(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
+    if (movementInput != Vector2.zero)
+    {
+      Quaternion targetDirection = GetTargetDirection();
+      // orientation.rotation = Quaternion.Slerp(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
+      orientation.rotation = Quaternion.RotateTowards(orientation.rotation, targetDirection, GetRotationSpeed() * Time.deltaTime);
+    }
     // Debug.Log("rotation: " + orientation.rotation.eulerAngles + ", targetDirection: " + targetDirection.eulerAngles);
   }
 
@@ -694,7 +814,8 @@ public class Character : WorldObject
   // potential culprit.
   Quaternion GetTargetDirection()
   {
-    return GetDirectionAngle(orientTowards);
+    return GetDirectionAngle(movementInput);
+    // return GetDirectionAngle(orientTowards);
   }
 
   // Rotate character smoothly towards a particular orientation around the Z axis.
@@ -702,17 +823,17 @@ public class Character : WorldObject
   // potential culprit.
   public Quaternion GetDirectionAngle(Vector3 targetPoint)
   {
-    Vector2 target = targetPoint - transform.position;
+    Vector2 target = targetPoint;
     float angle = Mathf.Atan2(target.y, target.x) * Mathf.Rad2Deg;
     return Quaternion.AngleAxis(angle, Vector3.forward);
   }
 
-  // used to calculate how far our facing direction is from our target facing direction.
-  // Useful for e.g. deciding if an enemy is facing a player enough for attacking to be a good idea.
-  public float GetAngleToTarget()
-  {
-    return Quaternion.Angle(GetTargetDirection(), orientation.rotation);
-  }
+  // // used to calculate how far our facing direction is from our target facing direction.
+  // // Useful for e.g. deciding if an enemy is facing a player enough for attacking to be a good idea.
+  // public float GetAngleToTarget(Vector3 targetPoint)
+  // {
+  //   return Quaternion.Angle(GetTargetDirection(), orientation.rotation);
+  // }
 
   public float GetAngleToDirection(Vector3 targetPoint)
   {
@@ -724,7 +845,7 @@ public class Character : WorldObject
   {
     if (CanMove())
     {
-      if (!IsDashing() && !flying && (movementInput == Vector2.zero))
+      if (!UsingMovementSkill() && !flying && (movementInput == Vector2.zero))
       { // should be an approximate equals
         animator.SetBool("IsWalking", false);
         timeStandingStill += Time.deltaTime;
@@ -733,7 +854,6 @@ public class Character : WorldObject
       else
       {
         animator.SetBool("IsWalking", true);
-        AdjustCurrentStamina(-GetMovementStaminaCost());
         timeMoving += Time.deltaTime;
         timeStandingStill = 0f;
       }
@@ -741,10 +861,6 @@ public class Character : WorldObject
     if (IsInKnockback())
     {
       po.SetMovementInput(knockbackHeading);
-    }
-    else if (IsDashing())
-    {
-      po.SetMovementInput(orientation.rotation * new Vector3(1, 0, 0));
     }
     else if (CanMove())
     {
@@ -761,8 +877,8 @@ public class Character : WorldObject
   protected void CenterCharacterOnCurrentTile()
   {
     transform.position = new Vector3(
-      currentTileLocation.worldPosition.x + .5f,
-      currentTileLocation.worldPosition.y + .5f,
+      currentTileLocation.cellCenterWorldPosition.x,
+      currentTileLocation.cellCenterWorldPosition.y,
       transform.position.z
     );
   }
@@ -784,32 +900,39 @@ public class Character : WorldObject
     AdjustCurrentCarapace(100);
   }
 
-  // Traits activated on dash are handled in HandleConditionallyActivatedTraits()
-
-  public bool IsDashingOrRecovering()
+  public bool UsingMovementSkill()
   {
-    return IsDashing() || IsRecoveringFromDash();
+    return activeSkill && activeSkill.SkillMovesCharacter(this);
   }
-  public bool IsDashing()
+  public bool UsingForwardMovementSkill()
   {
-    return dashing;
+    return activeSkill && activeSkill.SkillMovesCharacterForward(this);
+  }
+  public bool UsingVerticalMovementSkill()
+  {
+    return activeSkill && activeSkill.SkillMovesCharacterVertically(this);
+  }
+
+  public bool HasMovementAbility(CharacterMovementAbility requiredAbility)
+  {
+    return activeSkill && activeSkill.SkillHasMovementAbility(this, requiredAbility);
   }
   public bool DashingPreventsDamage()
   {
-    return dashing && defaultCharacterData.GetDashAttributeData().GetDashingPreventsDamage(this);
+    return UsingMovementSkill() && defaultCharacterData.GetDashAttributeData().GetDashingPreventsDamage(this);
   }
   public bool DashingPreventsFalling()
   {
-    return dashing && defaultCharacterData.GetDashAttributeData().GetDashingPreventsFalling(this);
+    return UsingMovementSkill() && defaultCharacterData.GetDashAttributeData().GetDashingPreventsFalling(this);
   }
 
   public bool IsInKnockback()
   {
     return knockbackAmount > 0;
   }
-  public bool IsDashingOrInKnockback()
+  public bool IsUsingMovementSkillOrInKnockback()
   {
-    return IsDashing() || IsInKnockback();
+    return UsingMovementSkill() || IsInKnockback();
   }
   public bool IsRecoveringFromDash()
   {
@@ -823,38 +946,40 @@ public class Character : WorldObject
 
   public void Dash()
   {
-    BeginDash();
+    // BeginDash();
   }
   private Vector3 dashStartPoint;
-  protected void BeginDash()
-  {
-    dashing = true;
-    // dashStartPoint = transform.position;
-    AdjustCurrentStamina(-GetDashStaminaCost());
-  }
+  // protected void BeginDash()
+  // {
+  //   dashing = true;
+  //   // dashStartPoint = transform.position;
+  //   AdjustCurrentStamina(-GetDashStaminaCost());
+  // }
 
-  public float GetEasedDashProgress()
-  {
-    return Easing.Quadratic.Out(dashProgress / GetStat(CharacterStat.DashDuration));
-  }
+  // public float GetEasedSkillMovementProgress()
+  // {
+  //   if (UsingMovementSkill())
+  //   {
+  //     return Easing.Quadratic.Out(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this));
+  //   }
+  //   Debug.LogError("somebody's trying to get easedSkillMovementProgress when we aren't dashing");
+  //   return 0; // try not to do this please
+  // }
 
-  public float GetEasedDashProgressIncrement()
+  public float CalculateCurveProgressIncrement(NormalizedCurve curve, bool usePhysicsTimestep, bool isContinuous = false)
   {
-    return easedDashProgressIncrement;
-  }
-
-
-  protected void EndDash()
-  {
-    dashing = false;
-    easedDashProgressIncrement = 0;
-    dashProgress = 0;
-    dashRecoveryTimer = GetStat(CharacterStat.DashRecoveryDuration);
+    float timestep = usePhysicsTimestep ? Time.fixedDeltaTime : Time.deltaTime;
+    if (activeSkill.GetActiveEffectDuration(this) == 0 && isContinuous)
+    {
+      return curve.magnitude.Resolve(this) * timestep;
+    }
+    return curve.Evaluate(this, Mathf.Min(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this), 1))
+    - curve.Evaluate(this, Mathf.Max((timeSpentInSkillEffect - timestep) / activeSkill.GetActiveEffectDuration(this), 0));
   }
 
   protected void BeginKnockback(Vector3 knockbackMagnitude)
   {
-    EndDash();
+    // EndDash(); TODO: this should probably end some skills
     knockbackAmount = knockbackMagnitude.magnitude;
     knockbackHeading = knockbackMagnitude.normalized;
   }
@@ -873,15 +998,19 @@ public class Character : WorldObject
     return easedKnockbackProgressIncrement;
   }
 
+  public float GetEasedSkillForwardMovementProgressIncrement()
+  {
+    return easedSkillForwardMovementProgressIncrement;
+  }
   public float GetEasedMovementProgressIncrement()
   {
     if (IsInKnockback())
     {
       return easedKnockbackProgressIncrement;
     }
-    else if (IsDashing())
+    else if (UsingMovementSkill())
     {
-      return easedDashProgressIncrement;
+      return easedSkillForwardMovementProgressIncrement;
     }
     else
     {
@@ -943,50 +1072,174 @@ public class Character : WorldObject
 
   public void StartAscentOrDescent(AscendingDescendingState ascendOrDescend)
   {
+    CenterCharacterOnCurrentTile();
     if (ascendingDescendingState != AscendingDescendingState.None) { return; }
     ascendingDescendingState = ascendOrDescend;
-    Debug.Log("set ascendingDescendingState to " + ascendingDescendingState);
     if (descending)
     {
       SetCurrentFloor(currentFloor - 1);
     }
   }
 
-  public void HandleAscendOrDescend()
+  public bool IsMidair()
   {
-    if (ascending)
-    {
-      Debug.Log("should be ascending?");
-      transform.position -= new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
-      if (transform.position.z - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer + 1) < .01)
+    return ascendingDescendingState != AscendingDescendingState.None || GetZOffsetFromCurrentFloor() != 0;
+  }
+
+  // Note: increment should be positive for ascent, and negative for descent.
+  // You know, what we expect!
+  // this function will handle translating that into the fucked-up reality of our level layout situation
+  void AdjustVerticalPosition(float increment)
+  {
+    if (increment == 0) { return; }
+    if (GetZOffsetFromCurrentFloor(increment) < 0)
+    { // attempting to go down a floor
+      if (!CanPassThroughFloorLayer(currentFloor))
       {
         transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
-        ascendingDescendingState = AscendingDescendingState.None;
-        SetCurrentFloor(currentFloor + 1);
+        return;
       }
+      SetCurrentFloor(currentFloor - 1);
+    }
+    else if (GetZOffsetFromCurrentFloor(increment) > 1)
+    {
+      if (!CanPassThroughFloorLayer(currentFloor + 1))
+      {
+        EndSkill();
+        return;
+      }
+      SetCurrentFloor(currentFloor + 1);
+    }
+    transform.position += new Vector3(0, 0, -increment);
+  }
+
+  // again this returns numbers you'd expect - positive if above, negative if below.
+  float GetZOffsetFromCurrentFloor(float withIncrement = 0)
+  {
+    return GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - (transform.position.z - withIncrement);
+  }
+
+  public void HandleAscendOrDescend()
+  {
+
+    float increment = (1 / ascendDescendSpeed * Time.deltaTime);
+    if (ascending)
+    {
+      if (GetZOffsetFromCurrentFloor(increment) > 1)
+      {
+        // we will have arrived!
+        SetCurrentFloor(currentFloor + 1);
+        transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
+        ascendingDescendingState = AscendingDescendingState.None;
+        return;
+      }
+      AdjustVerticalPosition(increment);
     }
     else if (descending)
     {
-      transform.position += new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
-      // Debug.Log("descending distance: " + (GridManager.GetZOffsetForFloor(gameObject.layer) - transform.position.z));
-      if (GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - transform.position.z < .01)
+      if (GetZOffsetFromCurrentFloor(-increment) < 0)
       {
+        // we will have arrived!
         transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
         ascendingDescendingState = AscendingDescendingState.None;
+        return;
       }
+      AdjustVerticalPosition(-increment);
     }
+
+
   }
 
-  // Can use move UDLR on current floor
+  // TODO: probably a lot
+  // - DRY up checking for arrival at next floor and rounding position if so
+  // - include skill motion
+  // - make sure there's ceiling checks on everything
+  // test this??
+  public void HandleVerticalMotion()
+  {
+    float increment = 0;
+    float animationValue = 0;
+    if (ShouldFall())
+    {
+      animationValue = .3f;
+      increment = -1 / ascendDescendSpeed * Time.deltaTime;
+    }
+    if (UsingSkill() && activeSkill.SkillMovesCharacterVertically(this))
+    {
+      // animationValue = CalculateVerticalMovementAnimationSpeed(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp), activeSkill.IsContinuous(this));
+      easedSkillUpwardMovementProgressIncrement = (CalculateCurveProgressIncrement(activeSkill.GetMovement(this, SkillEffectMovementProperty.MoveUp), false, activeSkill.IsContinuous(this)));
+      increment = easedSkillUpwardMovementProgressIncrement;
+      animationValue = Mathf.Lerp(.5f, 1.5f, increment / Time.deltaTime);
+    }
+    // if (increment != 0)
+    // {
+    // if (increment < 0) // going down
+    // {
+    //   if (transform.position.z % 1 == 0)
+    //   {
+    //     SetCurrentFloor(currentFloor - 1);
+    //   }
+    // }
+    // else
+    // { // going up
+    //   if (GetZOffsetFromCurrentFloor(increment) > 1)
+    //   {
+    //     SetCurrentFloor(currentFloor + 1);
+    //   }
+    // }
+
+    animator.SetFloat("VerticalMovementSpeed", animationValue);
+    AdjustVerticalPosition(increment);
+    // }
+
+    // // if we're above our current floor by > 1, change our floor
+    // if (transform.position.z - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) < -1)
+    // {
+
+    //   if (AllTilesOnTargetFloorEmpty(currentFloor + 1)) // ceiling check
+    //   {
+    //     SetCurrentFloor(currentFloor + 1);
+    //   }
+    //   else
+    //   {
+    //     EndSkill();
+    //   }
+    // }
+    // else if (transform.position.z - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) > 0)
+    // {
+    //   if (AllTilesOnTargetFloorEmpty(currentFloor)) // floor check
+    //   {
+    //     SetCurrentFloor(currentFloor - 1);
+    //     transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
+    //     ascendingDescendingState = AscendingDescendingState.None;
+    //   }
+    //   else
+    //   {
+    //     EndSkill();
+    //   }
+    // }
+    // if ((transform.position.z % 1) > .9 && !UsingVerticalMovementSkill())
+    // {
+    //   transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
+    //   ascendingDescendingState = AscendingDescendingState.None;
+    // }
+    // if (ascending)
+    // {
+    //   transform.position -= new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
+    // }
+    // else if (descending)
+    // {
+    //   transform.position += new Vector3(0, 0, 1 / ascendDescendSpeed * Time.deltaTime);
+    // }
+  }
+  // Can move UDLR on current floor
   protected virtual bool CanMove()
   {
     if ((ascending && !flying)
       || stunned
       || molting
       || carapaceBroken
-      || IsDashingOrRecovering()
       || IsInKnockback()
-      || usingSkill
       || !HasStamina()
       || animationPreventsMoving
     )
@@ -1004,9 +1257,8 @@ public class Character : WorldObject
       || stunned
       || molting
       || carapaceBroken
-      || IsDashing()
+      || UsingMovementSkill()
       || IsInKnockback()
-      || usingSkill
       || animationPreventsMoving // I guess?
       || !HasStamina()
     )
@@ -1024,9 +1276,9 @@ public class Character : WorldObject
       || stunned
       || molting
       || carapaceBroken
-      || IsDashing()
+      || UsingMovementSkill()
       || IsInKnockback()
-      || usingSkill
+      || UsingSkill()
       || animationPreventsMoving // I guess?
     )
     {
@@ -1035,17 +1287,19 @@ public class Character : WorldObject
     return true;
   }
 
-  protected virtual bool CanAttack()
+  protected bool ShouldUseSkillEffectSet(CharacterSkillData skillData, int idx = 0)
   {
-
+    return
+      (skillData.skillEffectSets[idx].alwaysExecute || activeSkill == pressingSkill || activeSkill == queuedSkill);
+  }
+  protected virtual bool CanUseSkill(CharacterSkillData skillData, int effectSetIndex = 0)
+  {
     if (
-      ascending
-      || descending
+      (IsMidair() && !skillData.skillEffectSets[effectSetIndex].canUseInMidair)
       || stunned
       || molting
       || carapaceBroken
       || IsInKnockback()
-      || usingSkill
       || dashAttackQueued
       || !HasStamina()
       || animationPreventsMoving // I guess?
@@ -1064,7 +1318,7 @@ public class Character : WorldObject
       || stunned
       || molting
       || carapaceBroken
-      || usingSkill
+      || UsingSkill()
       || animationPreventsMoving // I guess?
     )
     {
@@ -1079,13 +1333,16 @@ public class Character : WorldObject
     if (damageSource.IsOwnedBy(this)) { return; }
     if (damageSource.IsSameOwnerType(this)) { return; }
 
+    // !!!FIXME FIXME FIXME!!!!
+    if (IsMidair()) { return; }
+    // !!!FIXME FIXME FIXME!!!!
+
     // Crit damage:
     // -If you're using a crit, you don't take damage
     // -If you aren't critVictimOf the damageSource owner, don't take damage
     if (usingCrit) { return; }
     if (DashingPreventsDamage())
     {
-      Debug.Log("Dashing prevents damage!");
       return;
     }
     if (damageSource.isCritAttack && !damageSource.IsOwnedBy(critVictimOf)) { return; }
@@ -1094,7 +1351,6 @@ public class Character : WorldObject
       && !damageSource.ignoresInvulnerability)
     { return; }
     float damageAfterResistances = damageSource.CalculateDamageAfterResistances(this);
-    Debug.Log("damage before resist: " + damageSource.damageAmount + "; damage after: " + damageAfterResistances);
     if (
       damageAfterResistances <= 0
       && damageSource.damageAmount > 0
@@ -1124,6 +1380,10 @@ public class Character : WorldObject
       }
     }
     characterVisuals.DamageFlash(damageFlashColor);
+    if (damageAfterResistances > 0 && activeSkill != null && activeSkill.SkillIsInterruptable(this))
+    {
+      EndSkill();
+    }
     InterruptAnimation();
     // Debug.Log("taking " + damageToHealth + " damage");
     AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
@@ -1182,7 +1442,6 @@ public class Character : WorldObject
     if (invulnerabilityDuration <= 0) { yield break; }
     if (damageSource as EnvironmentalDamage != null)
     {
-      Debug.Log("modifying invulnerability duration");
       invulnerabilityDuration *= GetHazardImmunityDurationMultiplier();
     }
     string src = damageSource.sourceString;
@@ -1259,17 +1518,12 @@ public class Character : WorldObject
   // STAT GETTERS
   public float GetCurrentMaxHealth()
   {
-    return 100;
-    return
-        GetMaxHealth()
-        - (GetMaxHealthLostPerMolt() * GetCharacterVital(CharacterVital.CurrentMoltCount));
+    return GetCharacterVital(CharacterVital.CurrentMaxHealth);
   }
 
-  public float GetMaxHealth()
+  public float GetTrueMaxHealth()
   {
-    return defaultCharacterData
-      .GetHealthAttributeData()
-      .GetMaxHealth(this);
+    return defaultCharacterData.defaultStats[CharacterStat.MaxHealth];
   }
 
   public float GetMaxStamina()
@@ -1329,14 +1583,9 @@ public class Character : WorldObject
     {
       return GetStat(CharacterStat.BlockingMoveAcceleration);
     }
-    else if (IsDashing())
-    {
-      return 0; // ?
-                // return GetStat(CharacterStat.DashAcceleration);
-    }
     else
     {
-      return GetStat(CharacterStat.MoveAcceleration) * GetMoveSpeedMultiplier();
+      return GetStat(CharacterStat.MoveAcceleration); // * GetMoveSpeedMultiplier();
     }
   }
 
@@ -1344,9 +1593,9 @@ public class Character : WorldObject
   {
     if (blocking)
     {
-      return defaultCharacterData.defaultStats[CharacterStat.BlockingRotationSpeed];
+      return GetStat(CharacterStat.BlockingRotationSpeed);
     }
-    return defaultCharacterData.defaultStats[CharacterStat.RotationSpeed];
+    return GetStat(CharacterStat.RotationSpeed);
   }
 
   public float GetMaxHealthLostPerMolt()
@@ -1423,67 +1672,24 @@ public class Character : WorldObject
   }
   public float GetStat(CharacterStat statToGet)
   {
-    return defaultCharacterData.defaultStats[statToGet];
-    // StringToIntDictionary statMods = statModifications[statToGet];
-    // int modValue = 0;
-    // float returnValue = defaultCharacterData.defaultStats[statToGet];
-    // foreach (int modMagnitude in statMods.Values)
-    // {
-    //   modValue += modMagnitude;
-    // }
-    // modValue = Mathf.Clamp(-12, modValue, 12);
-    // if (modValue >= 0)
-    // {
-    //   returnValue *= ((3 + modValue) / 3);
-    // }
-    // else
-    // {
-    //   returnValue *= (3f / (3 + Mathf.Abs(modValue)));
-    // }
-    // return returnValue;
+    float multiplier = 1.0f;
+
+    if (activeSkill != null)
+    {
+      switch (statToGet)
+      {
+        case CharacterStat.MoveAcceleration:
+          multiplier = activeSkill.GetMultiplierSkillProperty(this, SkillEffectFloatProperty.MoveSpeed);
+          break;
+        case CharacterStat.RotationSpeed:
+          multiplier = activeSkill.GetMultiplierSkillProperty(this, SkillEffectFloatProperty.RotationSpeed);
+          break;
+        default:
+          break;
+      }
+    }
+    return defaultCharacterData.defaultStats[statToGet] * multiplier;
   }
-
-
-  // public void ApplyStatMod(CharacterStatModification mod)
-  // {
-  //     if (mod.duration > 0)
-  //     {
-  //         StartCoroutine(ApplyTemporaryStatMod(mod));
-  //     }
-  //     else
-  //     {
-  //         AddStatMod(mod);
-  //     }
-  // }
-
-  // public IEnumerator ApplyTemporaryStatMod(CharacterStatModification mod)
-  // {
-  //     AddStatMod(mod);
-  //     yield return new WaitForSeconds(mod.duration);
-  //     RemoveStatMod(mod.source);
-  // }
-
-  // public void AddStatMod(CharacterStatModification mod)
-  // {
-  //     AddStatMod(mod.statToModify, mod.magnitude, mod.source);
-  // }
-
-  // public void AddStatMod(CharacterStat statToMod, int magnitude, string source)
-  // {
-  //     statModifications[statToMod][source] = magnitude;
-  // }
-
-  // public void RemoveStatMod(string source)
-  // {
-  //     foreach (CharacterStat stat in (CharacterStat[])Enum.GetValues(typeof(CharacterStat)))
-  //     {
-  //         StringToIntDictionary statMods = statModifications[stat];
-  //         if (statMods.ContainsKey(source))
-  //         {
-  //             statMods.Remove(source);
-  //         }
-  //     }
-  // }
 
   public void AddMovementAbility(CharacterMovementAbility movementAbility)
   {
@@ -1499,11 +1705,16 @@ public class Character : WorldObject
   //VITALS GETTERS/SETTERS
   public void AdjustCurrentHealth(float adjustment, bool isNonlethal = false)
   {
-    // Debug.Log("Adjusting current health - nonlethal: " + isNonlethal);
     vitals[CharacterVital.CurrentHealth] =
       Mathf.Clamp(vitals[CharacterVital.CurrentHealth] + adjustment, isNonlethal ? 1 : 0, GetCurrentMaxHealth());
   }
 
+  public void AdjustCurrentMaxHealth(float adjustment)
+  {
+    vitals[CharacterVital.CurrentMaxHealth] =
+     Mathf.Clamp(vitals[CharacterVital.CurrentMaxHealth] + adjustment, 0, GetTrueMaxHealth());
+    AdjustCurrentHealth(0);
+  }
   public void AdjustCurrentCarapace(float adjustment)
   {
     vitals[CharacterVital.CurrentCarapace] =
@@ -1536,7 +1747,6 @@ public class Character : WorldObject
       if (!AllTilesOnTargetFloorEmpty(newFloorLayer))
       {
         flying = false;
-        Debug.Log("clearing flying flag");
         ascendingDescendingState = AscendingDescendingState.Descending;
         return;
       }
@@ -1559,7 +1769,6 @@ public class Character : WorldObject
     EnvironmentTileInfo et = GridManager.Instance.GetTileAtLocation(currentTileLocation);
     if (et.ChangesFloorLayer())
     {
-      Debug.Log("starting ascent or descent? " + et.AscendsOrDescends());
       StartAscentOrDescent(et.AscendsOrDescends());
     }
   }
@@ -1586,27 +1795,52 @@ public class Character : WorldObject
       renderer.color = Color.Lerp(
         damagedColor,
         Color.white,
-        vitals[CharacterVital.CurrentHealth] / GetMaxHealth()
+        vitals[CharacterVital.CurrentHealth] / GetCurrentMaxHealth()
       );
     }
   }
 
+  // Returns tiles we are "in contact with" but not necessarily overlapping
   protected HashSet<EnvironmentTileInfo> GetTouchingTiles(FloorLayer layerToConsider)
   {
-    return new HashSet<EnvironmentTileInfo> {
-      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider),
-      GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(-boxCollider.bounds.extents.x, -boxCollider.bounds.extents.y, transform.position.z), layerToConsider)
-    };
+    HashSet<EnvironmentTileInfo> touchingTiles = new HashSet<EnvironmentTileInfo>();
+    foreach (Vector2 point in touchingCollider.points)
+    {
+      touchingTiles.Add(GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(point.x, point.y, transform.position.z), layerToConsider));
+    }
+    return touchingTiles;
+  }
+
+  // Returns tiles we are, or would be, overlapping
+  protected HashSet<EnvironmentTileInfo> GetOverlappingTiles(FloorLayer layerToConsider)
+  {
+    HashSet<EnvironmentTileInfo> overlappingTiles = new HashSet<EnvironmentTileInfo>();
+    foreach (Vector2 point in physicsCollider.points)
+    {
+      overlappingTiles.Add(GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(point.x, point.y, transform.position.z), layerToConsider));
+    }
+    return overlappingTiles;
+  }
+
+  public bool TouchingTileWithTag(TileTag tag)
+  {
+    HashSet<EnvironmentTileInfo> touchingTiles = GetTouchingTiles(currentFloor);
+    foreach (EnvironmentTileInfo tile in touchingTiles)
+    {
+      if (tile.HasTileTag(tag))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   protected virtual bool AllTilesOnTargetFloorEmpty(FloorLayer targetFloor)
   {
     // if we're flying, every tile above us needs to be empty.
 
-    HashSet<EnvironmentTileInfo> touchingTiles = GetTouchingTiles(targetFloor);
-    foreach (EnvironmentTileInfo tile in touchingTiles)
+    HashSet<EnvironmentTileInfo> overlappingTiles = GetOverlappingTiles(targetFloor);
+    foreach (EnvironmentTileInfo tile in overlappingTiles)
     {
 
       if (!tile.IsEmpty())
@@ -1620,37 +1854,46 @@ public class Character : WorldObject
   protected virtual bool AllTilesOnTargetFloorClearOfObjects(FloorLayer targetFloor)
   {
 
-    HashSet<EnvironmentTileInfo> touchingTiles = GetTouchingTiles(targetFloor);
-    foreach (EnvironmentTileInfo tile in touchingTiles)
+    HashSet<EnvironmentTileInfo> overlappingTiles = GetOverlappingTiles(targetFloor);
+    foreach (EnvironmentTileInfo tile in overlappingTiles)
     {
       if (tile.HasSolidObject()) { return false; }
     }
     return true;
   }
 
-  protected virtual void HandleFalling() // we have removed sticking!! make it stick yourself!!!
+  protected virtual bool ShouldFall() // we have removed sticking!! make it stick yourself!!!
   {
     if (
         activeMovementAbilities.Contains(CharacterMovementAbility.Hover)
+          || UsingVerticalMovementSkill()
           || sticking
           || flying
           || ascending
           || descending
-          || DashingPreventsFalling()
         )
     {
-      return; // abilities prevent falling!
+      return false; // abilities prevent falling!
     }
-    if (InCrit()) { return; }
-    HashSet<EnvironmentTileInfo> touchingTiles = GetTouchingTiles(currentFloor);
-    foreach (EnvironmentTileInfo tile in touchingTiles)
+    if (IsMidair())
+    {
+      return true;
+    }
+
+    return CanPassThroughFloorLayer(currentFloor);
+  }
+
+  bool CanPassThroughFloorLayer(FloorLayer targetFloor)
+  {
+    HashSet<EnvironmentTileInfo> overlappingTiles = GetOverlappingTiles(targetFloor);
+    foreach (EnvironmentTileInfo tile in overlappingTiles)
     {
       if (tile.objectTileType != null || tile.groundTileType != null)
       {
-        return; // At least one corner is on a tile
+        return false; // At least one corner is on a tile
       }
     }
-    DescendOneFloor();
+    return true;
   }
 
   protected virtual void HandleTile()
@@ -1669,10 +1912,10 @@ public class Character : WorldObject
       currentTile = tile;
     }
 
-    if (currentTile.IsEmpty())
-    {
-      HandleFalling();
-    }
+    // if (currentTile.IsEmpty())
+    // {
+    //   ShouldFall();
+    // }
     TileLocation nowTileLocation = CalculateCurrentTileLocation();
     if (currentTileLocation != nowTileLocation)
     {
@@ -1687,7 +1930,7 @@ public class Character : WorldObject
         TakeDamage(envDamage);
       }
     }
-    if (footstepCooldown <= 0 && timeMoving > 0)
+    if (footstepCooldown <= 0 && timeMoving > 0 && !IsMidair())
     {
       footstepCooldown = tile.HandleFootstep(this);
     }
@@ -1707,6 +1950,7 @@ public class Character : WorldObject
 
   protected void RespawnCharacterAtLastSafeLocation()
   {
+    EndSkill();
     transform.position =
       new Vector3(lastSafeTileLocation.cellCenterWorldPosition.x, lastSafeTileLocation.cellCenterWorldPosition.y, GridManager.GetZOffsetForGameObjectLayer(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
     if (currentFloor != lastSafeTileLocation.floorLayer)
@@ -1778,6 +2022,19 @@ public class Character : WorldObject
     }
   }
 
+  protected void HandleSkills()
+  {
+    if (UsingSkill())
+    {
+      activeSkill.UseSkill(this);
+      timeSpentInSkillEffect += Time.deltaTime;
+    }
+    else
+    {
+      timeSpentInSkillEffect = 0f;
+    }
+  }
+
   protected void HandleCooldowns()
   {
     if (flying)
@@ -1788,7 +2045,7 @@ public class Character : WorldObject
         EndFly();
       }
     }
-    if (!IsDashingOrRecovering() && !usingSkill)
+    if (!UsingSkill())
     {
       AdjustCurrentStamina(GetStaminaRecoveryRate());
       // vitals[CharacterVital.RemainingStamina]
@@ -1801,7 +2058,7 @@ public class Character : WorldObject
       {
         dashAttackQueued = false;
         dashRecoveryTimer = -.001f;
-        UseSkill(GetSkillDataForAttackType(AttackType.Dash));
+        HandleSkillInput(GetSkillDataForAttackType(AttackType.Dash));
       }
       else
       {
@@ -1812,36 +2069,27 @@ public class Character : WorldObject
     {
       footstepCooldown -= Time.deltaTime;
     }
-    if (IsChargingAttack())
-    {
-      chargeAttackTime += Time.deltaTime;
-      if (chargeAttackTime > GetSkillDataForAttackType(AttackType.Charge).warmup.duration)
-      {
-        chargeAttackTime = 0;
-        UseSkill(GetSkillDataForAttackType(AttackType.Charge), true);
-      }
-    }
+    // if (IsChargingAttack())
+    // {
+    //   chargeAttackTime += Time.deltaTime;
+    //   if (chargeAttackTime > GetSkillDataForAttackType(AttackType.Charge).warmup.duration)
+    //   {
+    //     chargeAttackTime = 0;
+    //     UseSkill(GetSkillDataForAttackType(AttackType.Charge), true);
+    //   }
+    // }
   }
 
   public void QueueDashAttack()
   {
     dashAttackQueued = true;
   }
-  public void HandleDashCooldown()
+  public void HandleSkillMovement()
   {
     //Consumed by physics so needs to happen in fixedupdate. Might still suck?
-    if (IsDashing())
+    if (UsingSkill() && activeSkill.SkillMovesCharacterForward(this))
     {
-      float oldEasedDashProgress = GetEasedDashProgress();
-      dashProgress += Time.deltaTime;
-      float newEasedDashProgress = GetEasedDashProgress();
-      if (dashProgress >= GetStat(CharacterStat.DashDuration))
-      {
-        dashProgress = GetStat(CharacterStat.DashDuration);
-        newEasedDashProgress = GetEasedDashProgress();
-        EndDash();
-      }
-      easedDashProgressIncrement = (newEasedDashProgress - oldEasedDashProgress) * GetStat(CharacterStat.DashDistance); // kill me a little
+      easedSkillForwardMovementProgressIncrement = (CalculateCurveProgressIncrement(activeSkill.GetMovement(this, SkillEffectMovementProperty.MoveForward), true, activeSkill.IsContinuous(this)));
     }
   }
 

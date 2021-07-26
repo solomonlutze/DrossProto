@@ -12,12 +12,13 @@ public class OrientTowardsAiAction : AiAction
   // if there isn't one, don't bother with this stuff
   void OrientTowards(AiStateController controller)
   {
-    controller.orientTowards = new Vector3(controller.GetMovementInput().x, controller.GetMovementInput().y, 0) + controller.transform.position;
+    // controller.orientTowards = new Vector3(controller.GetMovementInput().x, controller.GetMovementInput().y, 0) + controller.transform.position;
     // if (controller.GetMovementInput() == Vector2.zero && controller.objectOfInterest != null)
-    if (controller.objectOfInterest != null)
-    {
-      controller.orientTowards = controller.objectOfInterest.transform.position;
-    }
-    // Debug.DrawLine(controller.transform.position, controller.orientTowards, Color.magenta);
+    // if (controller.objectOfInterest != null)
+    // {
+    //   controller.orientTowards = controller.objectOfInterest.transform.position;
+    // }
+    controller.orientTowards = controller.GetMovementInput();
+    Debug.DrawLine(controller.transform.position, controller.orientTowards, Color.magenta);
   }
 }

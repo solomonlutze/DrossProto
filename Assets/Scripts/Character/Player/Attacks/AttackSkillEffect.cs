@@ -17,24 +17,16 @@ public enum AttackType
 [System.Serializable]
 public class AttackSpawn
 {
-  public float delay;
   public Attack attackData;
+  public DamageInfo damage;
 
   public WeaponVariable owningWeaponDataWeapon;
 
-  [Tooltip("If not populated, weaponObject is object of parent Weapon data")]
-  public Weapon weaponObjectOverride;
-
-  [HideInInspector]
   public Weapon weaponObject
   {
     get
     {
-      if (weaponObjectOverride != null)
-      {
-        return weaponObjectOverride;
-      }
-      return owningWeaponDataWeapon.Value;
+      return owningWeaponDataWeapon?.Value;
     }
   }
   public float range;
@@ -66,9 +58,6 @@ public class AttackSpawn
 public class AttackSkillEffect : SkillEffect
 {
 
-  public AttackSpawn[] weaponSpawns;
-  public DamageInfo baseDamage;
-
   public AttackSkillEffect(WeaponVariable weapon)
   {
     weaponSpawns = new AttackSpawn[] {
@@ -76,24 +65,19 @@ public class AttackSkillEffect : SkillEffect
       };
   }
 
-  public override IEnumerator ActivateSkillEffect(Character owner)
+  public override void DoSkillEffect(Character owner)
   {
     // Transform weaponParent = new 
     // owner.weaponPivot.eulerAngles = new Vector3(0, 0, rotationOffset); // shrug?
     List<Weapon> weaponInstances = new List<Weapon>();
     foreach (AttackSpawn weaponSpawn in weaponSpawns)
     {
-      yield return SpawnWeapon(weaponSpawn, owner, weaponInstances);
-    }
-    while (weaponInstances.Count > 0)
-    {
-      yield return null;
+      SpawnWeapon(weaponSpawn, owner, weaponInstances);
     }
   }
 
-  public IEnumerator SpawnWeapon(AttackSpawn weaponSpawn, Character owner, List<Weapon> weaponInstances)
+  public void SpawnWeapon(AttackSpawn weaponSpawn, Character owner, List<Weapon> weaponInstances)
   {
-    yield return new WaitForSeconds(weaponSpawn.delay);
     Quaternion rotationAngle = Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset, Vector3.forward);
     Weapon weaponInstance = GameObject.Instantiate(
       weaponSpawn.weaponObject,
@@ -101,27 +85,27 @@ public class AttackSkillEffect : SkillEffect
       // Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset, Vector3.forward)
       rotationAngle
     );
-    weaponInstance.Init(weaponSpawn.attackData, this, owner, weaponInstances); // weaponInstance.transform.parent = null; // we want to instantiate relative to the weaponPivot and then immediately leave the hierarchy
+    weaponInstance.Init(weaponSpawn, this, owner, weaponInstances); // weaponInstance.transform.parent = null; // we want to instantiate relative to the weaponPivot and then immediately leave the hierarchy
     // owner.StartCoroutine(weaponInstance.PerformWeaponActions());
   }
 
-  public override float GetEffectiveRange()
+  public override float GetEffectiveRange(Character owner)
   {
     List<float> weaponRanges = new List<float>();
     foreach (AttackSpawn attackSpawn in weaponSpawns)
     {
-      weaponRanges.Add(attackSpawn.range + attackSpawn.weaponSize + attackSpawn.attackData.GetCumulativeEffectiveWeaponRange());
+      weaponRanges.Add(attackSpawn.range + attackSpawn.weaponSize + attackSpawn.attackData.GetCumulativeEffectiveWeaponRange(owner));
     }
     return Mathf.Max(weaponRanges.ToArray());
   }
 
-  public override List<SkillRangeInfo> CalculateRangeInfos()
+  public override List<SkillRangeInfo> CalculateRangeInfos(Character owner)
   {
     List<SkillRangeInfo> infos = new List<SkillRangeInfo>();
     for (int i = 0; i < weaponSpawns.Length; i++)
     {
       SkillRangeInfo info = new SkillRangeInfo(weaponSpawns[i]);
-      infos.Add(weaponSpawns[i].attackData.GetAttackRangeInfo(ref info, info.maxRange, info.maxAngle));
+      infos.Add(weaponSpawns[i].attackData.GetAttackRangeInfo(ref info, owner, info.maxRange, info.maxAngle));
     }
     return infos;
   }

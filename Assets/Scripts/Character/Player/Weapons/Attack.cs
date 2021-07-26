@@ -6,14 +6,7 @@ using System.Collections.Generic;
 public class WeaponAction
 {
   public WeaponActionType type;
-  public float magnitude;
-}
-
-[System.Serializable]
-public class WeaponActionGroup
-{
-  public float duration;
-  public WeaponAction[] weaponActions;
+  public NormalizedCurve motion;
 }
 
 public enum WeaponActionType
@@ -31,7 +24,8 @@ public class Attack
   public AttackSpawn objectToSpawn;
   public bool spawnObjectOnContact;
   public bool spawnObjectOnDestruction;
-  public WeaponActionGroup[] weaponActionGroups;
+  public float duration;
+  public WeaponAction[] weaponActions;
 
   // public void Init(AttackSkillEffect effect, List<Attack> activeAttacks)
   // {
@@ -168,54 +162,51 @@ public class Attack
   //         CleanUp();
   //     }
   // }
-  public float GetCumulativeEffectiveWeaponRange()
+  public float GetCumulativeEffectiveWeaponRange(Character owner)
   {
     float ownRange = 0;
     float cur = ownRange;
-    foreach (WeaponActionGroup actionGroup in weaponActionGroups)
+    // foreach (WeaponActionGroup actionGroup in weaponActionGroups)
+    // {
+    foreach (WeaponAction action in weaponActions)
     {
-      foreach (WeaponAction action in actionGroup.weaponActions)
+      if (action.type == WeaponActionType.Move)
       {
-        if (action.type == WeaponActionType.Move)
-        {
-          cur += action.magnitude;
-          ownRange = Mathf.Max(cur, ownRange);
-        }
+        cur += action.motion.magnitude.Resolve(owner);
+        ownRange = Mathf.Max(cur, ownRange);
       }
     }
+    // }
     float childRange = 0;
     if (objectToSpawn != null && objectToSpawn.attackData != null && spawnObjectOnDestruction)
     {
-      childRange = objectToSpawn.weaponSize + objectToSpawn.attackData.GetCumulativeEffectiveWeaponRange();
+      childRange = objectToSpawn.weaponSize + objectToSpawn.attackData.GetCumulativeEffectiveWeaponRange(owner);
     }
     return ownRange + childRange;
   }
 
-  public SkillRangeInfo GetAttackRangeInfo(ref SkillRangeInfo info, float initialRange, float initialAngle)
+  public SkillRangeInfo GetAttackRangeInfo(ref SkillRangeInfo info, Character owner, float initialRange, float initialAngle)
   {
     float currentRange = initialRange;
     float currentAngle = initialAngle;
-    foreach (WeaponActionGroup actionGroup in weaponActionGroups)
+    foreach (WeaponAction action in weaponActions)
     {
-      foreach (WeaponAction action in actionGroup.weaponActions)
+      if (action.type == WeaponActionType.Move)
       {
-        if (action.type == WeaponActionType.Move)
-        {
-          currentRange += action.magnitude;
-          info.minRange = Mathf.Min(currentRange, info.minRange);
-          info.maxRange = Mathf.Max(currentRange, info.maxRange);
-        }
-        else if (action.type == WeaponActionType.RotateRelative)
-        {
-          currentAngle += action.magnitude;
-          info.minAngle = Mathf.Min(currentAngle, info.minAngle);
-          info.maxAngle = Mathf.Max(currentAngle, info.maxAngle);
-        }
+        currentRange += action.motion.magnitude.Resolve(owner);
+        info.minRange = Mathf.Min(currentRange, info.minRange);
+        info.maxRange = Mathf.Max(currentRange, info.maxRange);
+      }
+      else if (action.type == WeaponActionType.RotateRelative)
+      {
+        currentAngle += action.motion.magnitude.Resolve(owner);
+        info.minAngle = Mathf.Min(currentAngle, info.minAngle);
+        info.maxAngle = Mathf.Max(currentAngle, info.maxAngle);
       }
     }
     if (objectToSpawn != null && objectToSpawn.attackData != null && spawnObjectOnDestruction)
     {
-      objectToSpawn.attackData.GetAttackRangeInfo(ref info, objectToSpawn.weaponSize + currentRange, currentAngle);
+      objectToSpawn.attackData.GetAttackRangeInfo(ref info, owner, objectToSpawn.weaponSize + currentRange, currentAngle);
     }
     return info;
   }

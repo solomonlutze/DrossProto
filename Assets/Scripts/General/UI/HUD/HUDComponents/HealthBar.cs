@@ -18,10 +18,20 @@ public class HealthBar : MonoBehaviour
     }
   }
 
+  public RectTransform healthBarMaxFill;
+  public Image healthBarMaxSprite
+  {
+    get
+    {
+      return healthBarMaxFill == null ? null : healthBarMaxFill.GetComponent<Image>();
+    }
+  }
+
   public float healthBarFadeTime = .5f;
   // public Color healthRecoveryColor;
   // public Color lowHealthColor;
   public Color defaultHealthColor;
+  public Color defaultMaxHealthColor;
   private Coroutine healthRecoveryFlashCoroutine;
 
   public Character character;
@@ -32,6 +42,7 @@ public class HealthBar : MonoBehaviour
       character = GetComponentInParent<Character>();
     }
     healthBarContentsSprite.color = defaultHealthColor;
+    healthBarMaxSprite.color = defaultMaxHealthColor;
     healthBarContainer.alpha = 0;
   }
   // Update is called once per frame
@@ -47,6 +58,7 @@ public class HealthBar : MonoBehaviour
   {
     float currentHealth = Mathf.Max(character.GetCharacterVital(CharacterVital.CurrentHealth), 0);
     float maxHealth = character.GetCurrentMaxHealth();
+    float trueMaxHealth = character.GetTrueMaxHealth();
     // if (!character.blocking && !character.healthBroken)
     // {
     //   healthBarContainer.alpha -= Time.deltaTime / healthBarFadeTime;
@@ -59,7 +71,8 @@ public class HealthBar : MonoBehaviour
     // }
     healthBarContainer.alpha += Time.deltaTime / healthBarFadeTime;
     healthBarContainer.alpha = Mathf.Min(1, healthBarContainer.alpha);
-    healthBarContentsFill.localScale = new Vector3(currentHealth / maxHealth, healthBarContentsFill.localScale.y, 0);
+    healthBarMaxFill.localScale = new Vector3((trueMaxHealth - maxHealth) / trueMaxHealth, healthBarMaxFill.localScale.y, 0);
+    healthBarContentsFill.localScale = new Vector3(currentHealth / trueMaxHealth, healthBarContentsFill.localScale.y, 0);
   }
 
 }

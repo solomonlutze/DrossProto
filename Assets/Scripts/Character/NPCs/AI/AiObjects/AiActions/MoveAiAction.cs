@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 // Extend, don't instantiate
 public class MoveAiAction : AiAction
@@ -32,6 +33,9 @@ public class MoveAiAction : AiAction
   protected void MoveTowardsObjectOfInterest(AiStateController controller)
   {
     Vector2 movementInput = Vector2.zero;
+
+    // MoveLocally(controller, GameMaster.Instance.GetPlayerController().transform.position);
+    // return;
     WorldObject targetWorldLocation;
     if (controller.overrideDestination != null)
     {
@@ -49,6 +53,7 @@ public class MoveAiAction : AiAction
     {
       return;
     }
+
     controller.lineToTargetIsClear = PathfindingSystem.Instance.IsPathClearOfHazards(
       targetWorldLocation.transform.position,
       targetWorldLocation.GetFloorLayer(),
@@ -61,7 +66,7 @@ public class MoveAiAction : AiAction
       if ((distanceFromTarget + .3f) > controller.minDistanceFromTarget)
       {
         movementInput = (targetWorldLocation.transform.position - controller.transform.position).normalized;
-        MaybeDash(controller, targetWorldLocation);
+        // MaybeDash(controller, targetWorldLocation);
       }
     }
     else
@@ -89,6 +94,8 @@ public class MoveAiAction : AiAction
     }
     controller.SetMoveInput(movementInput);
   }
+
+
 
   void MaybeDash(AiStateController controller, WorldObject targetWorldLocation)
   {
