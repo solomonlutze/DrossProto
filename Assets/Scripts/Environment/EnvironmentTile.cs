@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -25,7 +25,7 @@ public class EnvironmentTileParticleSystemInfo
 }
 
 [System.Serializable]
-public class EnvironmentTile : Tile
+public class EnvironmentTile : RandomTile
 {
 
   // Annoying workaround for non-nullable environmentalDamage. Mark True to have tile deal damage.
@@ -183,16 +183,16 @@ public class EnvironmentTile : Tile
 
   }
 
-  public override void GetTileData(Vector3Int location, ITilemap tilemap, ref TileData tileData)
-  {
-    int mask = IsSameTileTypeAs(tilemap, location + new Vector3Int(0, 1, 0)) ? 1 : 0;
-    mask += IsSameTileTypeAs(tilemap, location + new Vector3Int(1, 0, 0)) ? 2 : 0;
-    mask += IsSameTileTypeAs(tilemap, location + new Vector3Int(0, -1, 0)) ? 4 : 0;
-    mask += IsSameTileTypeAs(tilemap, location + new Vector3Int(-1, 0, 0)) ? 8 : 0;
-    tileData.sprite = this.sprite;
-    tileData.colliderType = this.colliderType;
-    tileData.gameObject = this.gameObject;
-  }
+  // public override void GetTileData(Vector3Int location, ITilemap tilemap, ref TileData tileData)
+  // {
+  //   int mask = IsSameTileTypeAs(tilemap, location + new Vector3Int(0, 1, 0)) ? 1 : 0;
+  //   mask += IsSameTileTypeAs(tilemap, location + new Vector3Int(1, 0, 0)) ? 2 : 0;
+  //   mask += IsSameTileTypeAs(tilemap, location + new Vector3Int(0, -1, 0)) ? 4 : 0;
+  //   mask += IsSameTileTypeAs(tilemap, location + new Vector3Int(-1, 0, 0)) ? 8 : 0;
+  //   tileData.sprite = this.sprite;
+  //   tileData.colliderType = this.colliderType;
+  //   tileData.gameObject = this.gameObject;
+  // }
 
   // The following determines which sprite to use based on the number of adjacent similar tiles
   private int GetIndex(byte mask)
