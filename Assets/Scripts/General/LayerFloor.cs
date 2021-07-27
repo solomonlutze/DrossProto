@@ -60,8 +60,11 @@ public class LayerFloor : MonoBehaviour
       {
         visibilityTilemap.gameObject.layer = LayerMask.NameToLayer(gameObject.name);
         visibilityTilemap.gameObject.name = gameObject.name + "_Visibility";
-        visibilityTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
-        visibilityTilemap.GetComponent<TilemapRenderer>().sortingOrder = 100;
+        if (visibilityTilemap.GetComponent<TilemapRenderer>() != null)
+        {
+          visibilityTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
+          visibilityTilemap.GetComponent<TilemapRenderer>().sortingOrder = 100;
+        }
       }
       if (infoTilemap == null)
       {
