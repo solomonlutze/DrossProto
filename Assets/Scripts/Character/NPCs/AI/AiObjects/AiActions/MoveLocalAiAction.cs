@@ -53,7 +53,13 @@ public class MoveLocalAiAction : AiAction
       Quaternion rot = Quaternion.AngleAxis(angle, Vector3.forward);
       angle += movementOptionsAngleInterval;
       Vector3 possibleMovementDirection = rot * towardsTarget;
-      if (!PathfindingSystem.Instance.IsPathClearOfHazards(controller.transform.position + possibleMovementDirection.normalized * movementOptionProjectRange, controller.currentFloor, controller))
+      if (
+        !PathfindingSystem.Instance.CanPassOverTile(
+          GridManager.Instance.GetTileAtWorldPosition(
+            controller.transform.position + possibleMovementDirection.normalized * movementOptionProjectRange, controller.currentFloor
+          ), controller
+        )
+        )
       {
         continue;
       }

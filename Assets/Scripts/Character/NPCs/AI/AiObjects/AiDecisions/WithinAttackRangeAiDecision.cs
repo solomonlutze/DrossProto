@@ -5,7 +5,6 @@ public class WithinAttackRangeAiDecision : AiDecision
 {
   public override bool Decide(AiStateController controller)
   {
-    Debug.Log("withinAttackRangeAiDecision");
     if (controller.objectOfInterest == null)
     {
 

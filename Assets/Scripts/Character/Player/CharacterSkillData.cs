@@ -21,7 +21,6 @@ public class SkillRangeInfo
 
   public SkillRangeInfo(AttackSpawn spawn)
   {
-    Debug.Log("weapon size is " + spawn.weaponSize);
     minRange = spawn.range;
     maxRange = spawn.range + spawn.weaponSize;
     minAngle = spawn.rotationOffset;

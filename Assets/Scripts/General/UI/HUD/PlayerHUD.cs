@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using ScriptableObjectArchitecture;
@@ -26,6 +26,10 @@ public class PlayerHUD : MonoBehaviour
   public SuperTextMesh selectedAttackSkillDescriptionText;
   public SuperTextMesh moltText;
   public SuperTextMesh moltDescriptionText;
+
+  bool playerExists;
+  CharacterSkillData selectedSkill;
+  CharacterSkillData selectedAttack;
   // public TextMeshProUGUI skill1ValueText;
   // public TextMeshProUGUI skill2TitleText;
   // public TextMeshProUGUI skill2ValueText;
@@ -50,23 +54,33 @@ public class PlayerHUD : MonoBehaviour
     PlayerController playerController = GameMaster.Instance.GetPlayerController();
     if (playerController != null)
     {
-      healthBar.character = playerController; //todo: anywhere but update please!
-      // carapaceBar.character = playerController;
-      // staminaBar.character = playerController;
-      selectedSkillText.text = playerController.characterSkills[playerController.selectedSkillIdx].displayName;
-      selectedSkillDescriptionText.text = playerController.characterSkills[playerController.selectedSkillIdx].description;
-      selectedAttackSkillText.text = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx].displayName;
-      selectedAttackSkillDescriptionText.text = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx].description;
-      moltText.text = playerController.moltSkill.displayName;
-      moltDescriptionText.text = playerController.moltSkill.description;
-      if (playerController.GetCharacterVital(CharacterVital.CurrentHealth) > 0 && diedText.text != " ")
+      if (!playerExists)
       {
+        healthBar.character = playerController; //todo: anywhere but update please!
+        playerExists = true;
+        healthBar.character = playerController;
+        moltText.text = playerController.moltSkill.displayName;
+        moltDescriptionText.text = playerController.moltSkill.description;
         diedText.text = " ";
       }
+      // TODO: drive this off an event maybe
+      if (selectedAttack != playerController.characterAttackSkills[playerController.selectedAttackSkillIdx])
+      {
+        selectedAttack = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx];
+        selectedAttackSkillText.text = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx].displayName;
+        selectedAttackSkillDescriptionText.text = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx].description;
+      }
+      if (selectedSkill != playerController.characterSkills[playerController.selectedSkillIdx])
+      {
+        selectedSkill = playerController.characterSkills[playerController.selectedSkillIdx];
+        selectedSkillText.text = playerController.characterSkills[playerController.selectedSkillIdx].displayName;
+        selectedSkillDescriptionText.text = playerController.characterSkills[playerController.selectedSkillIdx].description;
+      }
     }
-    else
+    else if (playerExists && playerController == null)
     { //  You Died, presumably
       // healthValueText.text = "0";
+      playerExists = false;
       if (diedText.text == " ")
       {
         if (GameMaster.Instance.playerObliterated)

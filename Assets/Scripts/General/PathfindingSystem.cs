@@ -545,7 +545,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     }
     return cost;
   }
-  private bool CanPassOverTile(EnvironmentTileInfo tile, Character ai)
+  public bool CanPassOverTile(EnvironmentTileInfo tile, Character ai)
   {
     return
         tile != null

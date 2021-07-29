@@ -126,11 +126,8 @@ public class Hitbox : MonoBehaviour, IDamageSource
 
   public float CalculateDamageAfterResistances(Character c)
   {
-    Debug.Log("calculating damage - " + c != null + ", " + c.blocking);
     if (c != null && c.blocking)
     {
-      Debug.Log("damage reduction percent: " + c.GetDamageReductionPercent(damageType));
-      Debug.Log("damage reduction: " + (1 - c.GetDamageReductionPercent(damageType) / 100f));
       return ((1 - c.GetDamageReductionPercent(damageType) / 100f) * damageAmount);
     }
     return damageAmount;

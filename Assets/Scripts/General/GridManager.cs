@@ -1135,13 +1135,11 @@ public class GridManager : Singleton<GridManager>
     List<MusicStem> oldStems = new List<MusicStem>();
     if (currentPlayerLocation != null && GetTileAtLocation(currentPlayerLocation).infoTileType != null)
     {
-      Debug.Log(GetTileAtLocation(currentPlayerLocation).infoTileType.areaName);
       oldStems = GetTileAtLocation(currentPlayerLocation).infoTileType.musicStems;
     }
     List<MusicStem> newStems = new List<MusicStem>();
     if (GetTileAtLocation(newPlayerTileLocation).infoTileType != null)
     {
-      Debug.Log(GetTileAtLocation(newPlayerTileLocation).infoTileType.areaName);
       newStems = GetTileAtLocation(newPlayerTileLocation).infoTileType.musicStems;
     }
     currentPlayerLocation = newPlayerTileLocation;

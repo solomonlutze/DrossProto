@@ -101,21 +101,6 @@ public class CustomPhysicsController : MonoBehaviour
     animationInput = newAnimationInput;
   }
 
-  //POSSIBLY DEPRECATED
-  // TODO: This is ugly bc AnimationEvents don't let you pass in 2 params, or a Vector2.
-  // Look into adding an AnimationMovement object we can pass in, instead
-  // of having two different functions.
-
-  public void SetAnimationInputX(float newAnimationInputX)
-  {
-    animationInput = new Vector2(newAnimationInputX, animationInput.y);
-  }
-  public void SetAnimationInputY(float newAnimationInputY)
-  {
-    animationInput = new Vector2(animationInput.x, newAnimationInputY);
-  }
-  //END POSSIBLY DEPRECATED
-
   // how physics works:
 
   // calculate desired change to velocity this frame based on input, move acceleration, and drag
@@ -144,35 +129,35 @@ public class CustomPhysicsController : MonoBehaviour
     if (owningCharacter.IsInKnockback()) // Ignore velocity + drag; move manually
     {
       desiredMovement = (movementInput.normalized * owningCharacter.GetEasedMovementProgressIncrement());
-      Vector2 xMove = new Vector2(desiredMovement.x, 0);
-      if (!ignoreCollisionPhysics)
-      {
-        xMove = CalculateCollisionForAxis(xMove);
-      }
-      desiredMovement.x = xMove.x;
-      Vector2 yMove = new Vector2(0, desiredMovement.y);
-      if (!ignoreCollisionPhysics)
-      {
-        yMove = CalculateCollisionForAxis(yMove);
-      }
-      desiredMovement.y = yMove.y;
+      // Vector2 xMove = new Vector2(desiredMovement.x, 0);
+      // if (!ignoreCollisionPhysics)
+      // {
+      //   xMove = CalculateCollisionForAxis(xMove);
+      // }
+      // desiredMovement.x = xMove.x;
+      // Vector2 yMove = new Vector2(0, desiredMovement.y);
+      // if (!ignoreCollisionPhysics)
+      // {
+      //   yMove = CalculateCollisionForAxis(yMove);
+      // }
+      // desiredMovement.y = yMove.y;
       rb.MovePosition(rb.position + desiredMovement);
     }
     else if (owningCharacter.UsingForwardMovementSkill()) // TODO: maybe someday we want to allow forward movement + regular movement in same skill? ehh
     {
       desiredMovement = (orientation.rotation * new Vector2(owningCharacter.GetEasedMovementProgressIncrement(), 0));
-      Vector2 xMove = new Vector2(desiredMovement.x, 0);
-      if (!ignoreCollisionPhysics)
-      {
-        xMove = CalculateCollisionForAxis(xMove);
-      }
-      desiredMovement.x = xMove.x;
-      Vector2 yMove = new Vector2(0, desiredMovement.y);
-      if (!ignoreCollisionPhysics)
-      {
-        yMove = CalculateCollisionForAxis(yMove);
-      }
-      desiredMovement.y = yMove.y;
+      // Vector2 xMove = new Vector2(desiredMovement.x, 0);
+      // if (!ignoreCollisionPhysics)
+      // {
+      //   xMove = CalculateCollisionForAxis(xMove);
+      // }
+      // desiredMovement.x = xMove.x;
+      // Vector2 yMove = new Vector2(0, desiredMovement.y);
+      // if (!ignoreCollisionPhysics)
+      // {
+      //   yMove = CalculateCollisionForAxis(yMove);
+      // }
+      // desiredMovement.y = yMove.y;
       rb.MovePosition(rb.position + desiredMovement);
     }
     else
@@ -190,17 +175,17 @@ public class CustomPhysicsController : MonoBehaviour
       // Debug.Log("desiredMovement: " + desiredMovement);
       Vector2 xMove = new Vector2(velocity.x + desiredMovement.x, 0);
       // Debug.Log("xMove: " + xMove);
-      if (!ignoreCollisionPhysics)
-      {
-        xMove = CalculateCollisionForAxis(xMove);
-      }
+      // if (!ignoreCollisionPhysics)
+      // {
+      //   xMove = CalculateCollisionForAxis(xMove);
+      // }
       velocity.x = xMove.x;
       Vector2 yMove = new Vector2(0, velocity.y + desiredMovement.y);
       // Debug.Log("yMove: " + yMove);
-      if (!ignoreCollisionPhysics)
-      {
-        yMove = CalculateCollisionForAxis(yMove);
-      }
+      // if (!ignoreCollisionPhysics)
+      // {
+      //   yMove = CalculateCollisionForAxis(yMove);
+      // }
       velocity.y = yMove.y;
       // Debug.Log("velocity: " + velocity);
       if (velocity.magnitude < velocityMin) { velocity = Vector2.zero; }
@@ -214,6 +199,7 @@ public class CustomPhysicsController : MonoBehaviour
   // we reduce our movement in that direction to hitDistance - skinwidth
   Vector2 CalculateCollisionForAxis(Vector2 movement)
   {
+    return movement;
     Vector2 originalMovement = movement;
     RaycastHit2D[] results;
     int hits = GetHitsFor2DCast(movement, new List<GameObject>() { }, out results);
