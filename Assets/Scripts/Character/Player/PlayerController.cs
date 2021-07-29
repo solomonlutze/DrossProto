@@ -76,8 +76,8 @@ public class PlayerController : Character
     }
     availableContextualActions = new List<ContextualAction>();
     interactables = new List<GameObject>();
-    inventory = GetComponent<Inventory>();
-    inventory.owner = this;
+    // inventory = GetComponent<Inventory>();
+    // inventory.owner = this;
     GameMaster.Instance.playerObliterated = false;
   }
   // Player specific non-physics biz.

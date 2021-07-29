@@ -1507,6 +1507,7 @@ public class Character : WorldObject
   // ATTRIBUTE/VITALS ACCESSORS
   public int GetAttribute(CharacterAttribute attributeToGet)
   {
+    return 0;
     bool exists = attributes.TryGetValue(attributeToGet, out int val);
     if (!exists)
     {
