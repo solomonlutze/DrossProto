@@ -17,6 +17,7 @@ public class GameMaster : Singleton<GameMaster>
   public Constants.GameState startingGameStatus;
   public CanvasHandler canvasHandler;
   public ParticleSystemMaster particleSystemMaster;
+  public InputGlyphHelper inputGlyphHelper;
   public GameObject playerPrefab;
   public DialogueRunner dialogueRunner;
   public VariableStorage dialogueVariableStorage;
@@ -73,7 +74,6 @@ public class GameMaster : Singleton<GameMaster>
   // Update is called once per frame
   void Update()
   {
-
     HandleInput();
   }
 
