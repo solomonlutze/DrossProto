@@ -179,12 +179,13 @@ public class Trait : ScriptableObject
 
   [TextArea]
   public string traitDescription;
+  [HideInInspector]
   public CharacterAttributeToIntDictionary attributeModifiers;
+  [HideInInspector]
   public CharacterSkillData skillData_old; // Not deprecated yet but soon I think?
   public GameObject owningBugPrefab;
   public LymphType lymphType;
   public CharacterSkillData skill; // When this gets used depends on what body part this is equipped to!
-  public WeaponData weaponData;
   public Sprite visual1;
 
   public Sprite visual2;

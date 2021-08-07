@@ -6,26 +6,25 @@ public enum InventoryItemType { Currency, Weapon, Consumable, Trait }
 
 public class PickedUpItem
 {
-    public string itemId;
-    public string itemName;
-    public int quantity;
+  public string itemId;
+  public string itemName;
+  public int quantity;
 }
 [System.Serializable]
 public class InventoryEntry
 {
-    public string id;
-    public bool equipped;
-    public string itemId;
-    public string itemName;
-    public InventoryItemType type;
-    public int quantity;
-    public string guid;
-    public string itemDescription;
+  public string id;
+  public bool equipped;
+  public string itemId;
+  public string itemName;
+  public InventoryItemType type;
+  public int quantity;
+  public string guid;
+  public string itemDescription;
 }
 public class TraitItemInventoryEntry : InventoryEntry
 {
-    public TraitsLoadout_OLD traits;
-    public LymphType lymphType;
+  public LymphType lymphType;
 
 }
 // Controls what a character is holding.
@@ -34,299 +33,289 @@ public class TraitItemInventoryEntry : InventoryEntry
 public class Inventory : MonoBehaviour
 {
 
-    public List<PickupItem> initialItems;
-    private Dictionary<string, InventoryEntry> inventory;
-    public List<PickedUpItem> lastPickedUpItems;
-    public string[] equippedItems;
-    public int activeItemIndex = 0;
-    public int numEquippableConsumables;
-    public string lastUsedItem = null;
-    public Character owner;
-    public InventoryScreen inventoryScreen;
-    public TraitSlotToUpcomingTraitDictionary upcomingPupa; // your next life
-    public LymphTypeToIntDictionary lymphTypeCounts;
+  public List<PickupItem> initialItems;
+  private Dictionary<string, InventoryEntry> inventory;
+  public List<PickedUpItem> lastPickedUpItems;
+  public string[] equippedItems;
+  public int activeItemIndex = 0;
+  public int numEquippableConsumables;
+  public string lastUsedItem = null;
+  public Character owner;
+  public InventoryScreen inventoryScreen;
+  public TraitSlotToUpcomingTraitDictionary upcomingPupa; // your next life
+  public LymphTypeToIntDictionary lymphTypeCounts;
 
-    // TODO: Some of this should get bumped into an Init that's called by PlayerController when we make a new character
-    void Awake()
-    {
-        equippedItems = new string[numEquippableConsumables];
-        lastPickedUpItems = new List<PickedUpItem>();
-        inventory = new Dictionary<string, InventoryEntry>();
-        // foreach (PickupItem item in initialItems)
-        // {
-        //   if (item != null)
-        //   {
-        //     AddToInventory(item);
-        //   }
-        // }
-    }
-
-    // void Update()
+  // TODO: Some of this should get bumped into an Init that's called by PlayerController when we make a new character
+  void Awake()
+  {
+    equippedItems = new string[numEquippableConsumables];
+    lastPickedUpItems = new List<PickedUpItem>();
+    inventory = new Dictionary<string, InventoryEntry>();
+    // foreach (PickupItem item in initialItems)
     // {
-    //   if (Input.GetButtonDown("UseItem"))
+    //   if (item != null)
     //   {
-    //     UseActiveItem();
-    //   }
-    //   else if (Input.GetButtonDown("ActiveItemNext"))
-    //   {
-    //     AdvanceActiveEquippedItem();
+    //     AddToInventory(item);
     //   }
     // }
+  }
 
-    // on stacking:
-    // consumables and currencies go in stacks
-    // weapons and trait items do not
-    // if we're adding a consumable/currency to the inventory, we just look for its key and add it to the stack, if it exists.
-    // if we're adding a weapon or trait, we don't check, but we DO generate a new GUID for it
-    // when looking at equipped items, we check via guid.
-    // I guess currencies/consumables are keyed by itemId, and weapons/traits are keyed by GUID?
-    // that sounds bad but maybe it's fine
+  // void Update()
+  // {
+  //   if (Input.GetButtonDown("UseItem"))
+  //   {
+  //     UseActiveItem();
+  //   }
+  //   else if (Input.GetButtonDown("ActiveItemNext"))
+  //   {
+  //     AdvanceActiveEquippedItem();
+  //   }
+  // }
 
-    public void AddToInventory(PickupItem item)
-    {
-        InventoryEntry entry;
-        if (inventory.ContainsKey(item.itemId))
-        {
-            entry = inventory[item.itemId];
-            entry.quantity += item.quantity;
-        }
-        else
-        {
-            // TODO: the below line is really unsafe!!
-            ItemData itemInfo = (ItemData)(Resources.Load("Data/ItemData/" + item.itemType.ToString() + "/" + item.itemId) as ScriptableObject);
-            TraitItemData traitItemInfo = (TraitItemData)itemInfo;
-            if (traitItemInfo != null)
-            {
-                entry = new TraitItemInventoryEntry();
-            }
-            else
-            {
-                entry = new InventoryEntry();
-            }
-            if (itemInfo == null)
-            {
-                Debug.LogError("no item data found for " + item.itemId + " of type " + item.itemType);
-            }
-            entry.itemId = item.itemId;
-            entry.quantity = item.quantity;
-            entry.type = itemInfo.type;
-            entry.itemName = itemInfo.itemName;
-            entry.itemDescription = itemInfo.itemDescription;
-            switch (item.itemType)
-            {
-                case InventoryItemType.Consumable:
-                case InventoryItemType.Currency:
-                    inventory[item.itemId] = entry;
-                    break;
-                case InventoryItemType.Trait:
-                    entry.guid = System.Guid.NewGuid().ToString("N");
-                    inventory[entry.guid] = entry;
-                    TraitItemInventoryEntry tEntry = (TraitItemInventoryEntry)entry;
-                    if (tEntry == null)
-                    {
-                        Debug.LogError("Trait Item can't be coerced to TraitItemData: " + itemInfo.itemName);
-                    }
-                    tEntry.traits = traitItemInfo.traits;
-                    tEntry.lymphType = traitItemInfo.lymphType;
-                    break;
-                case InventoryItemType.Weapon:
-                default:
-                    entry.guid = System.Guid.NewGuid().ToString("N");
-                    inventory[entry.guid] = entry;
-                    break;
+  // on stacking:
+  // consumables and currencies go in stacks
+  // weapons and trait items do not
+  // if we're adding a consumable/currency to the inventory, we just look for its key and add it to the stack, if it exists.
+  // if we're adding a weapon or trait, we don't check, but we DO generate a new GUID for it
+  // when looking at equipped items, we check via guid.
+  // I guess currencies/consumables are keyed by itemId, and weapons/traits are keyed by GUID?
+  // that sounds bad but maybe it's fine
 
-            }
-            if (itemInfo.type == InventoryItemType.Consumable)
-            {
-                AutoEquipConsumable(item.itemId);
-            }
-        }
-        PickedUpItem pui = new PickedUpItem();
-        pui.itemId = item.itemId;
-        pui.itemName = entry.itemName;
-        pui.quantity = item.quantity;
-        lastPickedUpItems.Add(pui);
+  public void AddToInventory(PickupItem item)
+  {
+    InventoryEntry entry;
+    if (inventory.ContainsKey(item.itemId))
+    {
+      entry = inventory[item.itemId];
+      entry.quantity += item.quantity;
     }
+    else
+    {
+      // TODO: the below line is really unsafe!!
+      ItemData itemInfo = (ItemData)(Resources.Load("Data/ItemData/" + item.itemType.ToString() + "/" + item.itemId) as ScriptableObject);
+      TraitItemData traitItemInfo = (TraitItemData)itemInfo;
+      if (traitItemInfo != null)
+      {
+        entry = new TraitItemInventoryEntry();
+      }
+      else
+      {
+        entry = new InventoryEntry();
+      }
+      if (itemInfo == null)
+      {
+        Debug.LogError("no item data found for " + item.itemId + " of type " + item.itemType);
+      }
+      entry.itemId = item.itemId;
+      entry.quantity = item.quantity;
+      entry.type = itemInfo.type;
+      entry.itemName = itemInfo.itemName;
+      entry.itemDescription = itemInfo.itemDescription;
+      switch (item.itemType)
+      {
+        case InventoryItemType.Consumable:
+        case InventoryItemType.Currency:
+          inventory[item.itemId] = entry;
+          break;
+        case InventoryItemType.Trait:
+          entry.guid = System.Guid.NewGuid().ToString("N");
+          inventory[entry.guid] = entry;
+          TraitItemInventoryEntry tEntry = (TraitItemInventoryEntry)entry;
+          if (tEntry == null)
+          {
+            Debug.LogError("Trait Item can't be coerced to TraitItemData: " + itemInfo.itemName);
+          }
+          tEntry.lymphType = traitItemInfo.lymphType;
+          break;
+        case InventoryItemType.Weapon:
+        default:
+          entry.guid = System.Guid.NewGuid().ToString("N");
+          inventory[entry.guid] = entry;
+          break;
 
-    public void ClearPickedUpItem()
-    {
-        if (lastPickedUpItems.Count > 0)
-        {
-            lastPickedUpItems.RemoveAt(0);
-        }
+      }
+      if (itemInfo.type == InventoryItemType.Consumable)
+      {
+        AutoEquipConsumable(item.itemId);
+      }
     }
+    PickedUpItem pui = new PickedUpItem();
+    pui.itemId = item.itemId;
+    pui.itemName = entry.itemName;
+    pui.quantity = item.quantity;
+    lastPickedUpItems.Add(pui);
+  }
 
-    public void RemoveFromInventory(string itemId, int quantity)
+  public void ClearPickedUpItem()
+  {
+    if (lastPickedUpItems.Count > 0)
     {
-        if (inventory.ContainsKey(itemId))
-        {
-            inventory[itemId].quantity = Mathf.Max(inventory[itemId].quantity - quantity, 0);
-        }
+      lastPickedUpItems.RemoveAt(0);
     }
+  }
 
-    public InventoryEntry GetInventoryEntry(string itemId)
+  public void RemoveFromInventory(string itemId, int quantity)
+  {
+    if (inventory.ContainsKey(itemId))
     {
-        if (inventory.ContainsKey(itemId))
-        {
-            return inventory[itemId];
-        }
-        return null;
+      inventory[itemId].quantity = Mathf.Max(inventory[itemId].quantity - quantity, 0);
     }
+  }
 
-    void AutoEquipConsumable(string newItemId)
+  public InventoryEntry GetInventoryEntry(string itemId)
+  {
+    if (inventory.ContainsKey(itemId))
     {
-        for (int i = 0; i < equippedItems.Length; i++)
-        {
-            string equippedItem = equippedItems[i];
-            if (equippedItem == null || equippedItem == "")
-            {
-                equippedItems[i] = newItemId;
-                break;
-            }
-        }
+      return inventory[itemId];
     }
+    return null;
+  }
 
-    public void EquipConsumableToSlot(string itemId, int slot)
+  void AutoEquipConsumable(string newItemId)
+  {
+    for (int i = 0; i < equippedItems.Length; i++)
     {
-        for (int i = 0; i < equippedItems.Length; i++)
-        {
-            if (i == slot)
-            {
-                equippedItems[i] = itemId;
-            }
-            else if (equippedItems[i] == itemId)
-            {
-                equippedItems[i] = null;
-            }
-        }
+      string equippedItem = equippedItems[i];
+      if (equippedItem == null || equippedItem == "")
+      {
+        equippedItems[i] = newItemId;
+        break;
+      }
     }
+  }
 
-    public LymphTypeToIntDictionary GetLymphTypeCounts(TraitSlotToUpcomingTraitDictionary futureTraits)
+  public void EquipConsumableToSlot(string itemId, int slot)
+  {
+    for (int i = 0; i < equippedItems.Length; i++)
     {
-        LymphTypeToIntDictionary lymphTypeCounts = new LymphTypeToIntDictionary();
-        foreach (UpcomingLifeTrait upcomingLifeTrait in futureTraits.Values)
-        {
-            lymphTypeCounts[upcomingLifeTrait.lymphType]++;
-        }
-        return lymphTypeCounts;
+      if (i == slot)
+      {
+        equippedItems[i] = itemId;
+      }
+      else if (equippedItems[i] == itemId)
+      {
+        equippedItems[i] = null;
+      }
     }
-    public void EquipTraitToUpcomingLifeTrait(InventoryEntry itemToEquip, TraitSlot slot)
-    {
-        UnequipTraitItemInSlot(slot); // unequip whatever is already there
-        UnequipTraitItemByGuid(itemToEquip.guid); // unequip the item we're equipping now
-        TraitItemData itemInfo = Resources.Load("Data/ItemData/Trait/" + itemToEquip.itemId) as TraitItemData;
-        upcomingPupa[slot] = new UpcomingLifeTrait(itemInfo.traits.EquippedTraits()[slot], itemInfo.lymphType, itemToEquip);
-        lymphTypeCounts[itemInfo.lymphType]++;
-        itemToEquip.equipped = true;
-    }
+  }
 
-    public void UnequipTraitItemInSlot(TraitSlot slot)
+  public LymphTypeToIntDictionary GetLymphTypeCounts(TraitSlotToUpcomingTraitDictionary futureTraits)
+  {
+    LymphTypeToIntDictionary lymphTypeCounts = new LymphTypeToIntDictionary();
+    foreach (UpcomingLifeTrait upcomingLifeTrait in futureTraits.Values)
     {
-        UpcomingLifeTrait lifeTraitToUnequip = upcomingPupa[slot];
-        upcomingPupa[slot] = new UpcomingLifeTrait(null, LymphType.None, null);
-        if (lifeTraitToUnequip != null && lifeTraitToUnequip.inventoryItem != null)
-        {
-            lifeTraitToUnequip.inventoryItem.equipped = false;
-            lymphTypeCounts[lifeTraitToUnequip.lymphType]--;
-        }
+      lymphTypeCounts[upcomingLifeTrait.lymphType]++;
     }
+    return lymphTypeCounts;
+  }
 
-    public void UnequipTraitItemByGuid(string traitItemGuid)
+  public void UnequipTraitItemInSlot(TraitSlot slot)
+  {
+    UpcomingLifeTrait lifeTraitToUnequip = upcomingPupa[slot];
+    upcomingPupa[slot] = new UpcomingLifeTrait(null, LymphType.None, null);
+    if (lifeTraitToUnequip != null && lifeTraitToUnequip.inventoryItem != null)
     {
-        List<TraitSlot> keys = new List<TraitSlot>(upcomingPupa.Keys);
-        foreach (TraitSlot s in keys)
-        {
-            if (
-              upcomingPupa[s] != null &&
-              upcomingPupa[s].inventoryItem != null &&
-              upcomingPupa[s].inventoryItem.guid == traitItemGuid
-            )
-            {
-                UnequipTraitItemInSlot(s);
-            }
-        }
+      lifeTraitToUnequip.inventoryItem.equipped = false;
+      lymphTypeCounts[lifeTraitToUnequip.lymphType]--;
     }
+  }
 
-    public InventoryEntry[] GetEquippedConsumableInventoryEntries()
+  public void UnequipTraitItemByGuid(string traitItemGuid)
+  {
+    List<TraitSlot> keys = new List<TraitSlot>(upcomingPupa.Keys);
+    foreach (TraitSlot s in keys)
     {
-        return equippedItems.Select(entry => entry == null ? null : GetInventoryEntry(entry)).ToArray();
+      if (
+        upcomingPupa[s] != null &&
+        upcomingPupa[s].inventoryItem != null &&
+        upcomingPupa[s].inventoryItem.guid == traitItemGuid
+      )
+      {
+        UnequipTraitItemInSlot(s);
+      }
     }
+  }
 
-    public TraitSlotToUpcomingTraitDictionary GetUpcomingPupa()
-    {
-        Debug.Log("upcoming pupa: " + upcomingPupa);
-        return upcomingPupa;
-    }
+  public InventoryEntry[] GetEquippedConsumableInventoryEntries()
+  {
+    return equippedItems.Select(entry => entry == null ? null : GetInventoryEntry(entry)).ToArray();
+  }
 
-    // increase activeItemIndex and loop to 0 if it's greater than the length of our equippedItems list
-    public void AdvanceActiveEquippedItem()
-    {
-        if (equippedItems.Length > 0)
-        {
-            for (int i = 0; i < equippedItems.Length; i++)
-            {
-                activeItemIndex = (int)Mathf.Repeat(activeItemIndex + 1, equippedItems.Length);
-                if (equippedItems[activeItemIndex] != null) { break; }
-            }
-            Debug.Log("Equipped item: " + equippedItems[activeItemIndex]);
-        }
-    }
+  public TraitSlotToUpcomingTraitDictionary GetUpcomingPupa()
+  {
+    Debug.Log("upcoming pupa: " + upcomingPupa);
+    return upcomingPupa;
+  }
 
-    public void UseActiveItem()
+  // increase activeItemIndex and loop to 0 if it's greater than the length of our equippedItems list
+  public void AdvanceActiveEquippedItem()
+  {
+    if (equippedItems.Length > 0)
     {
-        if (activeItemIndex < equippedItems.Length)
-        {
-            UseItem(equippedItems[activeItemIndex]);
-        }
+      for (int i = 0; i < equippedItems.Length; i++)
+      {
+        activeItemIndex = (int)Mathf.Repeat(activeItemIndex + 1, equippedItems.Length);
+        if (equippedItems[activeItemIndex] != null) { break; }
+      }
+      Debug.Log("Equipped item: " + equippedItems[activeItemIndex]);
     }
+  }
 
-    public void UseItem(string itemId)
+  public void UseActiveItem()
+  {
+    if (activeItemIndex < equippedItems.Length)
     {
-        InventoryEntry entry = inventory[itemId];
-        if (entry.quantity <= 0)
-        {
-            Debug.LogError("No item quantity in inventory! Cannot use!");
-            return;
-        }
-        ConsumableItemData itemInfo = (Resources.Load("Data/ItemData/" + entry.type + "/" + itemId) as ConsumableItemData);
-        // itemInfo.Init(owner);
-        Debug.Log("using " + itemInfo.itemName);
-        itemInfo.Use(owner);
-        lastUsedItem = itemInfo.itemName;
+      UseItem(equippedItems[activeItemIndex]);
     }
+  }
 
-    public void MarkItemEquipped(string itemId)
+  public void UseItem(string itemId)
+  {
+    InventoryEntry entry = inventory[itemId];
+    if (entry.quantity <= 0)
     {
-        InventoryEntry entry = GetInventoryEntry(itemId);
-        if (entry != null)
-        {
-            entry.equipped = true;
-        }
+      Debug.LogError("No item quantity in inventory! Cannot use!");
+      return;
     }
-    public void MarkItemUnequipped(string itemId)
-    {
-        InventoryEntry entry = GetInventoryEntry(itemId);
-        if (entry != null)
-        {
-            Debug.Log("marking item unequipped: " + itemId);
-            entry.equipped = false;
-        }
-    }
-    // called each time you respawn
-    public void AdvanceUpcomingLifeTraits(TraitSlotToUpcomingTraitDictionary previousPupa)
-    {
-        owner.AssignTraitsForNextLife(previousPupa == null ? new TraitSlotToUpcomingTraitDictionary() : previousPupa);
-        upcomingPupa = CreateNewUpcomingTraits();
-    }
+    ConsumableItemData itemInfo = (Resources.Load("Data/ItemData/" + entry.type + "/" + itemId) as ConsumableItemData);
+    // itemInfo.Init(owner);
+    Debug.Log("using " + itemInfo.itemName);
+    itemInfo.Use(owner);
+    lastUsedItem = itemInfo.itemName;
+  }
 
-    private TraitSlotToUpcomingTraitDictionary CreateNewUpcomingTraits()
+  public void MarkItemEquipped(string itemId)
+  {
+    InventoryEntry entry = GetInventoryEntry(itemId);
+    if (entry != null)
     {
-        // eventually this could assign default traits based on spawn region
-        return new TraitSlotToUpcomingTraitDictionary();
+      entry.equipped = true;
     }
+  }
+  public void MarkItemUnequipped(string itemId)
+  {
+    InventoryEntry entry = GetInventoryEntry(itemId);
+    if (entry != null)
+    {
+      Debug.Log("marking item unequipped: " + itemId);
+      entry.equipped = false;
+    }
+  }
+  // called each time you respawn
+  public void AdvanceUpcomingLifeTraits(TraitSlotToUpcomingTraitDictionary previousPupa)
+  {
+    owner.AssignTraitsForNextLife(previousPupa == null ? new TraitSlotToUpcomingTraitDictionary() : previousPupa);
+    upcomingPupa = CreateNewUpcomingTraits();
+  }
 
-    public List<InventoryEntry> GetAllItemsOfType(InventoryItemType type)
-    {
-        return inventory.Values.Where(val => val.type == type).ToList();
-    }
+  private TraitSlotToUpcomingTraitDictionary CreateNewUpcomingTraits()
+  {
+    // eventually this could assign default traits based on spawn region
+    return new TraitSlotToUpcomingTraitDictionary();
+  }
+
+  public List<InventoryEntry> GetAllItemsOfType(InventoryItemType type)
+  {
+    return inventory.Values.Where(val => val.type == type).ToList();
+  }
 }

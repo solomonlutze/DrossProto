@@ -176,13 +176,13 @@ public class PlayerController : Character
     }
   }
 
-  public void UseSelectedSkill()
-  {
-    if (characterSkills[selectedSkillIdx] != null)
-    {
-      HandleSkillInput(characterSkills[selectedSkillIdx]);
-    }
-  }
+  // public void UseSelectedSkill()
+  // {
+  //   if (characterSkills[selectedSkillIdx] != null)
+  //   {
+  //     HandleSkillInput(characterSkills[selectedSkillIdx]);
+  //   }
+  // }
   public void UseSelectedAttackSkill()
   {
     if (characterAttackSkills[selectedAttackSkillIdx] != null)
@@ -203,6 +203,30 @@ public class PlayerController : Character
     else
     {
       selectedSkillIdx = 0;
+    }
+  }
+
+  public CharacterSkillData GetSkillForActionInput(string actionInput)
+  {
+    return characterSkills[GetTraitSlotForActionInput(actionInput)];
+  }
+  public static TraitSlot GetTraitSlotForActionInput(string actionInput)
+  {
+    switch (actionInput)
+    {
+      case "Use Skill 1":
+        return TraitSlot.Head;
+      case "Use Skill 2":
+        return TraitSlot.Abdomen;
+      case "Use Skill 3":
+        return TraitSlot.Legs;
+      case "Use Skill 4":
+        return TraitSlot.Wings;
+      case "Use Skill 5":
+        return TraitSlot.Thorax;
+      default:
+        Debug.LogError("received invalid input " + actionInput);
+        return TraitSlot.Thorax;
     }
   }
 
@@ -331,6 +355,8 @@ public class PlayerController : Character
     // }
   }
 
+  public static string[] skillActionNames = new string[] { "Use Skill 1", "Use Skill 2", "Use Skill 3", "Use Skill 4", "Use Skill 5" };
+
   void HandleActionInput()
   {
     switch (GameMaster.Instance.GetGameStatus())
@@ -344,52 +370,65 @@ public class PlayerController : Character
         {
           shouldBlock = true;
         }
-        // receivingSkillInput = Input.GetButton("Attack") || Input.GetButton; // NOT used to determine if attacks are happening! used to hold continuous/charge skills
-        if (rewiredPlayer.GetButtonDown("Use Skill"))
+        foreach (string skillActionName in skillActionNames)
         {
-          UseSelectedSkill();
-          // }
-          // chargeAttackTime += Time.deltaTime; // incrementing this further is handled in HandleCooldowns
-          // UseSkill(GetSkillEffectForAttackType(AttackType.Basic));
-          return;
-        }
-        if (rewiredPlayer.GetButtonUp("Use Skill"))
-        {
-          if (pressingSkill != moltSkill)
+          if (rewiredPlayer.GetButtonDown(skillActionName))
           {
-            pressingSkill = null;
+
+            Debug.Log("button down " + skillActionName);
+            // UseSelectedSkill();
+            HandleSkillInput(GetSkillForActionInput(skillActionName));
+            return;
+          }
+          if (rewiredPlayer.GetButtonUp(skillActionName))
+          {
+            Debug.Log("button up " + skillActionName);
+            if (pressingSkill == GetSkillForActionInput(skillActionName))
+            {
+              pressingSkill = null;
+            }
+            // if (pressingSkill != moltSkill)
+            // {
+            //   pressingSkill = null;
+            // }
           }
         }
-        if (rewiredPlayer.GetButtonDown("Use Attack"))
-        {
-          UseSelectedAttackSkill();
-          // }
-          // chargeAttackTime += Time.deltaTime; // incrementing this further is handled in HandleCooldowns
-          // UseSkill(GetSkillEffectForAttackType(AttackType.Basic));
-          return;
-        }
-        if (rewiredPlayer.GetButtonUp("Use Attack"))
-        {
-          if (pressingSkill != moltSkill)
-          {
-            pressingSkill = null;
-          }
-        }
-        if (rewiredPlayer.GetButtonDown("Molt"))
-        {
-          HandleSkillInput(moltSkill);
-          // }
-          // chargeAttackTime += Time.deltaTime; // incrementing this further is handled in HandleCooldowns
-          // UseSkill(GetSkillEffectForAttackType(AttackType.Basic));
-          return;
-        }
-        if (rewiredPlayer.GetButtonUp("Molt"))
-        {
-          if (pressingSkill == moltSkill)
-          {
-            pressingSkill = null;
-          }
-        }
+        // if (rewiredPlayer.GetButtonDown("Use Skill"))
+        // {
+        //   UseSelectedSkill();
+        //   return;
+        // }
+        // if (rewiredPlayer.GetButtonUp("Use Skill"))
+        // {
+        //   if (pressingSkill != moltSkill)
+        //   {
+        //     pressingSkill = null;
+        //   }
+        // }
+        // if (rewiredPlayer.GetButtonDown("Use Attack"))
+        // {
+        //   UseSelectedAttackSkill();
+        //   return;
+        // }
+        // if (rewiredPlayer.GetButtonUp("Use Attack"))
+        // {
+        //   if (pressingSkill != moltSkill)
+        //   {
+        //     pressingSkill = null;
+        //   }
+        // }
+        // if (rewiredPlayer.GetButtonDown("Molt"))
+        // {
+        //   HandleSkillInput(moltSkill);
+        //   return;
+        // }
+        // if (rewiredPlayer.GetButtonUp("Molt"))
+        // {
+        //   if (pressingSkill == moltSkill)
+        //   {
+        //     pressingSkill = null;
+        //   }
+        // }
         if (CanMove())
         {
           if (Input.GetButtonDown("Ascend"))
@@ -404,11 +443,6 @@ public class PlayerController : Character
               AscendOneFloor();
               return;
             }
-            // else if (!flying && GetCanFly())
-            // {
-            //   Fly();
-            //   return;
-            // }
           }
           else if (Input.GetButtonDown("Descend"))
           {
@@ -432,162 +466,41 @@ public class PlayerController : Character
               return;
             }
           }
-          // else if (Input.GetButtonDown("Molt"))
-          // {
-          //   StartCoroutine(Molt());
-          //   return;
-          // }
         }
-        // if (CanAct())
-        // {
-        //   if (Input.GetButton("Block"))x
-        //   {
-        //     shouldBlock = true;
-        //   }
-        //   if (Input.GetButtonDown("Attack"))
-        //   {
-        //     if (shouldBlock)
-        //     {
-        //       UseSkill(GetSkillEffectForAttackType(AttackType.Blocking));
-        //       return;
-        //     }
-        //     UseSelectedSkill();
-        //     return;
-        //     // Attack();
-        //   }
-        //   else if (Input.GetButtonDown("Spell"))
-        //   {
-        //     Debug.Log("spell?");
-        //     UseSelectedSpell();
-        //     return;
-        //     // Attack();
-        //   }
-        //   else if (Input.GetButtonDown("Ascend"))
-        //   {
-        //     if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
-        //     {
-        //       FlyUp();
-        //       return;
-        //     }
-        //     else if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
-        //     {
-        //       AscendOneFloor();
-        //       return;
-        //     }
-        //     else if (!flying)
-        //     {
-        //       Fly();
-        //       return;
-        //     }
-        //   }
-        //   else if (Input.GetButtonDown("Descend"))
-        //   {
-        //     Debug.Log("descend?");
-        //     if (flying)
-        //     {
-        //       FlyDown();
-        //       return;
-        //     }
-        //     else
-        //     {
-        //       // DescendOneFloor(); // maybe descend??
-        //     }
-        // }
-        //     else if (inventory.lastPickedUpItems.Count > 0)
-        //     {
-        //       inventory.ClearPickedUpItem();
-        //       return;
-        //     }
-        //   }
-        //   else if (Input.GetButtonDown("Molt"))
-        //   {
-        //     return; // TODO: DELETE THIS
-        //     Molt();
-        //     return;
-        //   }
-        // }
         if (Input.GetButtonDown("Dash"))
         {
-          // Debug.Log("pressing dash");
           if (CanDash())
           {
-            // Debug.Log("doing dash");
             Dash();
           }
           return;
         }
-        else if (rewiredPlayer.GetButtonDown("Next Skill"))
-        {
-          AdvanceSelectedSkill();
-          return;
-        }
-        else if (rewiredPlayer.GetButtonDown("Previous Skill"))
-        {
-          PreviousSelectedSkill();
-          return;
-        }
+        // else if (rewiredPlayer.GetButtonDown("Next Skill"))
+        // {
+        //   AdvanceSelectedSkill();
+        //   return;
+        // }
+        // else if (rewiredPlayer.GetButtonDown("Previous Skill"))
+        // {
+        //   PreviousSelectedSkill();
+        //   return;
+        // }
 
-        else if (rewiredPlayer.GetButtonDown("Next Attack"))
-        {
-          AdvanceSelectedAttack();
-          return;
-        }
-        else if (rewiredPlayer.GetButtonDown("Previous Attack"))
-        {
-          PreviousSelectedAttack();
-          return;
-        }
+        // else if (rewiredPlayer.GetButtonDown("Next Attack"))
+        // {
+        //   AdvanceSelectedAttack();
+        //   return;
+        // }
+        // else if (rewiredPlayer.GetButtonDown("Previous Attack"))
+        // {
+        //   PreviousSelectedAttack();
+        //   return;
+        // }
         else if (Input.GetButtonDown("AdvanceSelectedAction"))
         {
           AdvanceSelectedContextualAction();
           return;
         }
-        // else if (Input.GetButtonDown("Skill1"))
-        // {
-        //   if (skill1 != null)
-        //   {
-        //     skill1.OnActivateTraitPressed();
-        //   }
-        // }
-        // else if (Input.GetButtonDown("Skill2"))
-        // {
-        //   if (skill2 != null)
-        //   {
-        //     skill2.OnActivateTraitPressed();
-        //   }
-        // }
-        // if (Input.GetButton("Skill1"))
-        // {
-        //   if (skill1 != null)
-        //   {
-        //     skill1.WhileActiveTraitPressed();
-        //   }
-        // }
-        // if (Input.GetButton("Skill2"))
-        // {
-        //   if (skill2 != null)
-        //   {
-        //     skill2.WhileActiveTraitPressed();
-        //   }
-        // }
-        // if (Input.GetButtonUp("Skill1"))
-        // {
-        //   if (skill1 != null)
-        //   {
-        //     skill1.OnActivateTraitReleased();
-        //   }
-        // }
-        // if (Input.GetButtonUp("Skill2"))
-        // {
-        //   if (skill2 != null)
-        //   {
-        //     skill2.OnActivateTraitReleased();
-        //   }
-        // }
-        // if (Input.GetKeyDown(KeyCode.P))
-        // {
-        //   SetCurrentFloor(currentFloor == FloorLayer.F1 ? FloorLayer.F2 : FloorLayer.F1);
-        // }
         SetBlocking(shouldBlock);
         break;
       case (Constants.GameState.Menu):
@@ -631,7 +544,6 @@ public class PlayerController : Character
     // raise floorLayerChanged event
     currentFloorLayer.Value = (int)newFloorLayer;
     changedFloorLayerEvent.Raise();
-    Debug.Log("raised changeFloorLayer event");
     base.SetCurrentFloor(newFloorLayer);
   }
 
@@ -639,24 +551,6 @@ public class PlayerController : Character
   {
 
     TileLocation currentLoc = CalculateCurrentTileLocation();
-    // GridManager.Instance.DEBUGHighlightTile(currentLoc, Color.red);
-    // GridManager.Instance.DEBUGHighlightTile(new TileLocation(Vector3.zero, currentFloor), Color.blue);
-    // Debug.Log("current tile world position y" + GetTileLocation().worldPosition.y);
-    // Debug.Log("current tile (cube coords int)" + GetTileLocation().CubeCoordsInt());
-    // Debug.Log("current tile position y FROM current tile's cube coords" + TileLocation.FromCubicCoords(GetTileLocation().cubeCoords, currentFloor).worldPosition.y);
-
-    // Debug.Log("odd-y: " + ((Mathf.RoundToInt(GetTileLocation().worldPosition.y) & 1)) + ", off by " + (TileLocation.FromCubicCoords(GetTileLocation().cubeCoords, currentFloor).worldPosition - GetTileLocation().worldPosition));
-    // Debug.Log("y: " + GetTileLocation().worldPosition.y + ", off by " + (TileLocation.FromCubicCoords(GetTileLocation().cubeCoords, currentFloor).worldPosition - GetTileLocation().worldPosition));
-
-    // PathfindingSystem.Instance.IsPathClearOfHazards(Vector3.zero, currentFloor, this);
-
-    // PathfindingSystem.Instance.GetTilesAlongLine(new TileLocation(Vector3.zero, currentFloor), GetTileLocation(), true);
-    // Debug.Log("current tile (offset coords)" + GetTileLocation().tilemapCoordinates);
-    // Debug.Log("current tile (cube)" + GetTileLocation().cubeCoords);
-    // Debug.Log("upper-left should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.UpperLeft).tilemapCoordinates);
-    // Debug.Log("upper-right should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.UpperRight).tilemapCoordinates);
-    // Debug.Log("lower-left should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerLeft).tilemapCoordinates);
-    // Debug.Log("lower-right should be " + GridManager.Instance.GetAdjacentTileLocation(GetTileLocation(), TilemapDirection.LowerRight).tilemapCoordinates);
 
     EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(currentLoc);
     if (tile == null)
@@ -669,10 +563,6 @@ public class PlayerController : Character
     }
     if (tile != currentTile)
     {
-      if (tile != null && currentTile != null)
-      {
-        // Debug.Log("changing tile from " + currentTile.tileLocation + " to " + tile.tileLocation);
-      }
       currentTile = tile;
       GridManager.Instance.PlayerChangedTile(currentLoc, GetSightRange(), defaultCharacterData.GetDarkVisionAttributeData().GetDarkVisionInfos(this));
     }
@@ -688,35 +578,6 @@ public class PlayerController : Character
     inventory.EquipConsumableToSlot(itemToEquip, slot);
   }
 
-  // TODO: Delete or update this so it sets attributes
-  private void AssignTraitsForFirstLife()
-  {
-    // Debug.Log("assigning traits for first life~");
-    // TraitSlotToTraitDictionary et = initialEquippedTraits.EquippedTraits();
-    // foreach (TraitSlot traitSlot in et.Keys)
-    // {
-    //     Trait trait = et[traitSlot];
-    //     if (et[traitSlot] != null)
-    //     {
-    //         Debug.Log("added " + trait);
-    //         // trait.OnTraitAdded(this);
-    //     }
-    //     traits[traitSlot] = trait;
-    // }
-    // ActiveTraitInstance activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
-    // ActiveTrait activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+initialskill1) as ActiveTrait;
-    // if (activeTrait != null && activeTraitData != null) {
-    //   skill1 = activeTrait;
-    //   skill1.Init(this, activeTraitData);
-    // }
-    // activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
-    // activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+initialskill2) as ActiveTrait;
-    // if (activeTrait != null && activeTraitData != null) {
-    //   skill2 = activeTrait;
-    //   skill2.Init(this, activeTraitData);
-    // }
-  }
-
   public void EquipTrait(Trait itemTrait, TraitSlot slot)
   {
     pupa[slot] = itemTrait;
@@ -729,88 +590,14 @@ public class PlayerController : Character
       if (nextLifeTraits[slot] != null && nextLifeTraits[slot].trait != null)
       {
         traits[slot] = nextLifeTraits[slot].trait;
-        // nextLifeTraits[slot].trait.OnTraitAdded(this);
       }
     }
     LymphTypeToIntDictionary lymphTypeCounts = inventory.GetLymphTypeCounts(nextLifeTraits);
-    // bool primarySkillInited = false;
-    // foreach (LymphType type in lymphTypeCounts.Keys)
-    // {
-    //   if (type == LymphType.None) { continue; }
-    //   if (lymphTypeCounts[type] >= 2)
-    //   {
-    //     if (!primarySkillInited)
-    //     {
-    //       if (skill1 == null)
-    //       {
-    //         skill1 = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
-    //       }
-    //       Debug.Log("attempting to init skill for type " + type);
-    //       skill1.Init(this, GameMaster.Instance.lymphTypeToSkillsMapping[type].GetPrimarySkill());
-    //       primarySkillInited = true;
-    //     }
-    //     else
-    //     {
-    //       if (skill2 == null)
-    //       {
-    //         skill2 = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
-    //       }
-    //       skill2.Init(this, GameMaster.Instance.lymphTypeToSkillsMapping[type].GetPrimarySkill());
-    //     }
-    //   }
-    //   if (lymphTypeCounts[type] >= 4)
-    //   {
-    //     if (skill2 == null)
-    //     {
-    //       skill2 = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
-    //     }
-    //     skill2.Init(this, GameMaster.Instance.lymphTypeToSkillsMapping[type].GetSecondarySkill());
-    //   }
-    // }
-    // iterate over each item in the dictionary.
-    // if we have >2 of a thing,
-    // ...and no assigned primary skill: its primary Skill becomes our primary skill.
-    // ...and an assigned primary skill: its primary Skill becomes our secondary skill.
-    // if we have >4 of that thing, its secondary Skill  becomes our secondary skill.
-    // assuming lymphTypeCounts is always <=5 this should just work out
-
-  }
-  // ActiveTraitInstance activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
-  // ActiveTrait activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+nextLifeTraits.activeTraits[0].traitName) as ActiveTrait;
-  // if (activeTrait != null) {
-  //   skill1 = activeTrait;
-  //   skill1.Init(this, activeTraitData);
-  // }
-  // activeTrait = gameObject.AddComponent(Type.GetType("ActiveTraitInstance")) as ActiveTraitInstance;
-  // activeTraitData = Resources.Load("Data/TraitData/ActiveTraits/"+nextLifeTraits.activeTraits[1].traitName) as ActiveTrait;
-  // if (activeTrait != null) {
-  //   skill2 = activeTrait;
-  //   skill2.Init(this, activeTraitData);
-  // }
-  // }
-
-  public override CharacterSkillData GetSelectedCharacterSkill()
-  {
-    if (characterSkills.Count > selectedSkillIdx)
-    {
-      return characterSkills[selectedSkillIdx];
-    }
-    return null;
   }
 
   override public void Die()
   {
-    foreach (TraitSlot slot in traits.Keys)
-    {
-      if (traits[slot] != null && traits[slot])
-      {
-        // Debug.Log("Removing trait in" + slot);
-        // traits[slot].OnTraitRemoved(this);
-      }
-    }
-    // Debug.Log("all traits removed; killing player");
     GameMaster.Instance.KillPlayer(pupa);
-    // Debug.Log("destroying gameobject");
     base.Die();
   }
 

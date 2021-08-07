@@ -64,18 +64,18 @@ public class PlayerHUD : MonoBehaviour
         diedText.text = " ";
       }
       // TODO: drive this off an event maybe
-      if (selectedAttack != playerController.characterAttackSkills[playerController.selectedAttackSkillIdx])
-      {
-        selectedAttack = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx];
-        selectedAttackSkillText.text = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx].displayName;
-        selectedAttackSkillDescriptionText.text = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx].description;
-      }
-      if (selectedSkill != playerController.characterSkills[playerController.selectedSkillIdx])
-      {
-        selectedSkill = playerController.characterSkills[playerController.selectedSkillIdx];
-        selectedSkillText.text = playerController.characterSkills[playerController.selectedSkillIdx].displayName;
-        selectedSkillDescriptionText.text = playerController.characterSkills[playerController.selectedSkillIdx].description;
-      }
+      // if (selectedAttack != playerController.characterAttackSkills[playerController.selectedAttackSkillIdx])
+      // {
+      //   selectedAttack = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx];
+      //   selectedAttackSkillText.text = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx].displayName;
+      //   selectedAttackSkillDescriptionText.text = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx].description;
+      // }
+      // if (selectedSkill != playerController.characterSkills[playerController.selectedSkillIdx])
+      // {
+      //   selectedSkill = playerController.characterSkills[playerController.selectedSkillIdx];
+      //   selectedSkillText.text = playerController.characterSkills[playerController.selectedSkillIdx].displayName;
+      //   selectedSkillDescriptionText.text = playerController.characterSkills[playerController.selectedSkillIdx].description;
+      // }
     }
     else if (playerExists && playerController == null)
     { //  You Died, presumably
