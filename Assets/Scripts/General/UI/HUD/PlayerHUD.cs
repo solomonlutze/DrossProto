@@ -20,16 +20,13 @@ public class PlayerHUD : MonoBehaviour
 
   // private SuperTextMesh activatedAbilityText;
 
-  public SuperTextMesh selectedSkillText;
-  public SuperTextMesh selectedSkillDescriptionText;
+  public SuperTextMesh[] selectedSkillTexts;
   public SuperTextMesh selectedAttackSkillText;
   public SuperTextMesh selectedAttackSkillDescriptionText;
   public SuperTextMesh moltText;
   public SuperTextMesh moltDescriptionText;
 
   bool playerExists;
-  CharacterSkillData selectedSkill;
-  CharacterSkillData selectedAttack;
   // public TextMeshProUGUI skill1ValueText;
   // public TextMeshProUGUI skill2TitleText;
   // public TextMeshProUGUI skill2ValueText;
@@ -56,12 +53,19 @@ public class PlayerHUD : MonoBehaviour
     {
       if (!playerExists)
       {
-        healthBar.character = playerController; //todo: anywhere but update please!
         playerExists = true;
         healthBar.character = playerController;
         moltText.text = playerController.moltSkill.displayName;
         moltDescriptionText.text = playerController.moltSkill.description;
         diedText.text = " ";
+        for (int i = 0; i < selectedSkillTexts.Length; i++)
+        {
+          // if (selectedSkill != playerController.characterSkills[playerController.selectedSkillIdx])
+          // {
+          //   selectedSkill = playerController.characterSkills[playerController.selectedSkillIdx];
+          selectedSkillTexts[i].text = playerController.characterSkills[Trait.slots[i]].displayName;
+          // }
+        }
       }
       // TODO: drive this off an event maybe
       // if (selectedAttack != playerController.characterAttackSkills[playerController.selectedAttackSkillIdx])

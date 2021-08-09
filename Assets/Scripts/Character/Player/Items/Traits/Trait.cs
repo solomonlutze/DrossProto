@@ -257,6 +257,9 @@ public class Trait : ScriptableObject
   }
 
 #endif
+
+
+  public static TraitSlot[] slots = new TraitSlot[] { TraitSlot.Head, TraitSlot.Abdomen, TraitSlot.Legs, TraitSlot.Wings, TraitSlot.Thorax };
 }
 
 
