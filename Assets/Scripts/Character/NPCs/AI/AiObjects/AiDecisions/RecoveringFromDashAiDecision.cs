@@ -4,6 +4,7 @@ public class RecoveringFromDashAiDecision : AiDecision
 {
   public override bool Decide(AiStateController controller)
   {
-    return controller.IsRecoveringFromDash();
+    // return controller.IsRecoveringFromDash();
+    return false;
   }
 }

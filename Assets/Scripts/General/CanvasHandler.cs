@@ -86,7 +86,7 @@ public class CanvasHandler : MonoBehaviour
     PlayerController player = GameMaster.Instance.GetPlayerController();
     if (player != null)
     {
-      DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.characterSkills, Character.CalculateSkills(player.pupa), player.pupa, null);
+      // DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.characterSkills, Character.CalculateSkills(player.pupa), player.pupa, null);
     }
   }
 
@@ -117,7 +117,7 @@ public class CanvasHandler : MonoBehaviour
     PlayerController player = GameMaster.Instance.GetPlayerController();
     if (player != null)
     {
-      DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.characterSkills, Character.CalculateSkills(player.pupa), player.pupa, traitItem);
+      // DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.characterSkills, Character.CalculateSkills(player.pupa), player.pupa, traitItem);
     }
   }
 }

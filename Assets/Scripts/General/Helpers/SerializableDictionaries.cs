@@ -239,6 +239,19 @@ public class AttackTypeToCharacterSkillDataDictionary : SerializableDictionaryBa
   }
 }
 
+[System.Serializable]
+public class TraitSlotToCharacterSkillDataDictionary : SerializableDictionaryBase<TraitSlot, CharacterSkillData>
+{
+
+  public TraitSlotToCharacterSkillDataDictionary()
+  {
+    foreach (TraitSlot slot in (TraitSlot[])Enum.GetValues(typeof(TraitSlot)))
+    {
+      Add(slot, null);
+    }
+  }
+}
+
 // [System.Serializable]
 // public class AttackTypeToSkillEffectDictionary : SerializableDictionaryBase<AttackType, SkillEffect>
 // {

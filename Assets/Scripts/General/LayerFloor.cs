@@ -9,6 +9,7 @@ public class LayerFloor : MonoBehaviour
   public Tilemap groundTilemap;
   public Tilemap objectTilemap;
   public Tilemap visibilityTilemap;
+  public Tilemap waterTilemap; // Transient, only exists during play
   public Tilemap infoTilemap;
   public Transform interestObjects;
   void Update()

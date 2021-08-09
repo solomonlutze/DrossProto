@@ -243,6 +243,7 @@ public class GridManager : Singleton<GridManager>
   public HashSet<EnvironmentTileInfo> litTiles;
   public HashSet<EnvironmentTileInfo> tilesToRecalculateLightingFor;
   public EnvironmentTile visibilityTile;
+  public Tilemap waterTilemapPrefab;
   public WallObject defaultWallObject;
 
   public Color nonVisibleTileColor;
@@ -269,6 +270,7 @@ public class GridManager : Singleton<GridManager>
     tilesToRecalculateLightingFor = new HashSet<EnvironmentTileInfo>();
     Tilemap groundTilemap;
     Tilemap objectTilemap;
+    Tilemap waterTilemap;
     Tilemap visibilityTilemap;
     Tilemap infoTilemap;
     maxXAcrossAllFloors = -5000;
@@ -278,6 +280,9 @@ public class GridManager : Singleton<GridManager>
     foreach (LayerFloor lf in layerFloors.Values)
     {
       groundTilemap = lf.groundTilemap;
+      lf.waterTilemap = Instantiate(waterTilemapPrefab, lf.gameObject.transform);
+      lf.waterTilemap.gameObject.layer = lf.gameObject.layer;
+      lf.waterTilemap.GetComponent<TilemapRenderer>().sortingLayerName = LayerMask.LayerToName(lf.gameObject.layer);
       lf.interestObjects = new GameObject().transform;
       lf.interestObjects.parent = lf.transform;
       lf.interestObjects.position = lf.transform.position;
@@ -303,6 +308,7 @@ public class GridManager : Singleton<GridManager>
       LayerFloor layerFloor = layerFloors[layer];
       groundTilemap = layerFloor.groundTilemap;
       objectTilemap = layerFloor.objectTilemap;
+      waterTilemap = layerFloor.waterTilemap;
       infoTilemap = layerFloor.infoTilemap;
       if (infoTilemap != null) { infoTilemap.gameObject.SetActive(false); }
       visibilityTilemap = layerFloor.visibilityTilemap;
@@ -314,7 +320,7 @@ public class GridManager : Singleton<GridManager>
         {
           //get both object and ground tile, build an environmentTileInfo out of them, and put it into our worldGrid
           TileLocation loc = new TileLocation(new Vector2Int(x, y), layer);
-          ConstructAndSetEnvironmentTileInfo(loc, groundTilemap, objectTilemap, visibilityTilemap, infoTilemap, litTiles, currentTilesToLight);
+          ConstructAndSetEnvironmentTileInfo(loc, groundTilemap, objectTilemap, visibilityTilemap, infoTilemap, waterTilemap, litTiles, currentTilesToLight);
         }
       }
       // }
@@ -427,6 +433,7 @@ public class GridManager : Singleton<GridManager>
     Tilemap objectTilemap,
     Tilemap visibilityTilemap,
     Tilemap infoTilemap,
+    Tilemap waterTilemap,
     HashSet<EnvironmentTileInfo> litTiles = null,
     HashSet<EnvironmentTileInfo> currentTilesToLight = null
     )
@@ -478,6 +485,11 @@ public class GridManager : Singleton<GridManager>
       info.wallObject.transform.position = loc.cellCenterWorldPosition;
       info.wallObject.Init(loc, objectTile.sprite);
       // info.wallObject.transform.parent = groundTilemap.transform.parent;
+    }
+    if (info.HasTileTag(TileTag.Water))
+    {
+      waterTilemap.SetTile(v3pos, groundTilemap.GetTile(v3pos));
+      groundTilemap.SetTile(v3pos, null);
     }
     worldGrid[loc.floorLayer][CoordsToKey(loc.tilemapCoordinates)] = info;
     return info;
@@ -990,7 +1002,7 @@ public class GridManager : Singleton<GridManager>
     }
     Tilemap levelTilemap = replacementTile != null && replacementTile.floorTilemapType == FloorTilemapType.Ground ? layerFloor.groundTilemap : layerFloor.objectTilemap;
     levelTilemap.SetTile(new Vector3Int(location.tilemapCoordinates.x, location.tilemapCoordinates.y, 0), replacementTile);
-    return ConstructAndSetEnvironmentTileInfo(location, layerFloor.groundTilemap, layerFloor.objectTilemap, layerFloor.visibilityTilemap, layerFloor.infoTilemap);
+    return ConstructAndSetEnvironmentTileInfo(location, layerFloor.groundTilemap, layerFloor.objectTilemap, layerFloor.visibilityTilemap, layerFloor.waterTilemap, layerFloor.infoTilemap);
   }
 
   public void MarkTileToDestroyOnPlayerRespawn(EnvironmentTileInfo tile, EnvironmentTile replacementTile)

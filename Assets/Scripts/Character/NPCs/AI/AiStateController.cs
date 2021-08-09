@@ -75,18 +75,18 @@ public class AiStateController : Character
     spawnLocation = transform.position;
     Init();
   }
-  // protected override void Init()
-  // {
-  //   base.Init();
-  //   // attackSkills = new List<CharacterSkillData>();
-  //   // foreach (CharacterSkillData skill in characterSkills)
-  //   // {
-  //   //   if (skill.IsAttack())
-  //   //   {
-  //   //     attackSkills.Add(skill);
-  //   //   }
-  //   // }
-  // }
+  protected override void Init()
+  {
+    base.Init();
+    characterAttackSkills = new List<CharacterSkillData>();
+    foreach (CharacterSkillData skill in characterSkills.Values)
+    {
+      if (skill.IsAttack())
+      {
+        characterAttackSkills.Add(skill);
+      }
+    }
+  }
   protected override void Update()
   {
     base.Update();
@@ -511,10 +511,12 @@ public class AiStateController : Character
   {
     if (GameMaster.Instance.DEBUG_dontDropItems) { return; }
     if (alreadyDroppedItems) { return; }
+    Debug.Log("dropping item");
     alreadyDroppedItems = true;
     foreach (PickupItem item in itemDrops)
     {
       TraitPickupItem traitItem = (TraitPickupItem)item;
+      Debug.Log("dropping item " + traitItem);
       if (traitItem != null)
       {
         foreach (TraitSlot slot in traits.Keys)
@@ -526,7 +528,9 @@ public class AiStateController : Character
         }
       }
       GameObject instantiatedItem = Instantiate(item.gameObject, transform.position, transform.rotation);
+      Debug.Log("dropped item " + instantiatedItem);
       WorldObject.ChangeLayersRecursively(instantiatedItem.transform, GetFloorLayer());
+      instantiatedItem.transform.position = new Vector3(instantiatedItem.transform.position.x, instantiatedItem.transform.position.y, GridManager.GetZOffsetForGameObjectLayer(instantiatedItem.layer));
       // instantiatedItem.GetComponent<SpriteRenderer>().sortingLayerName = LayerMask.LayerToName(gameObject.layer);
     }
   }

@@ -6,26 +6,6 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-[System.Serializable]
-public class Moveset
-{
-  public AttackTypeToCharacterSkillDataDictionary attacks;
-
-  public Moveset()
-  {
-    attacks = new AttackTypeToCharacterSkillDataDictionary();
-  }
-
-  public Moveset(TraitSlotToTraitDictionary traits)
-  {
-    attacks = new AttackTypeToCharacterSkillDataDictionary();
-    foreach (TraitSlot slot in traits.Keys)
-    {
-      attacks[Character.GetAttackTypeForTraitSlot(slot)] = traits[slot].weaponData.attacks[Character.GetAttackTypeForTraitSlot(slot)];
-    }
-  }
-}
-
 public class WeaponData : ScriptableObject
 {
 

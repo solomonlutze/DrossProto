@@ -20,9 +20,6 @@ public class TraitItemData : ItemData
   }
 
   [SerializeField]
-  public TraitsLoadout_OLD traits;
-
-  [SerializeField]
   public LymphType lymphType;
 
 #if UNITY_EDITOR

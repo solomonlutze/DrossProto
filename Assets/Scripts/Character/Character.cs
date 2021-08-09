@@ -212,37 +212,29 @@ public class TraitsLoadout
   }
 }
 
-[System.Serializable]
-public class TraitsLoadout_OLD
-{
-  public string head;
-  public string thorax;
-  public string abdomen;
-  public string legs;
-  public string wings;
+// [System.Serializable]
+// public class Moveset
+// {
+//   public AttackTypeToCharacterSkillDataDictionary attacks;
+//   public TraitSlotToCharacterSkillDataDictionary skills;
 
-  public TraitSlotToTraitDictionary EquippedTraits()
-  {
-    TraitSlotToTraitDictionary d = new TraitSlotToTraitDictionary();
-    return d;
-  }
+//   public Moveset()
+//   {
+//     attacks = new AttackTypeToCharacterSkillDataDictionary();
+//     skills = new TraitSlotToCharacterSkillDataDictionary();
+//   }
 
-  public string[] AllPopulatedTraitNames
-  {
-    get
-    {
-      List<string> ret = new List<string>();
-      foreach (string traitName in new string[] { head, thorax, abdomen, legs, wings })
-      {
-        if (traitName != null)
-        {
-          ret.Add(traitName);
-        }
-      }
-      return ret.ToArray();
-    }
-  }
-}
+//   public Moveset(TraitSlotToTraitDictionary traits)
+//   {
+//     attacks = new AttackTypeToCharacterSkillDataDictionary();
+//     skills = new TraitSlotToCharacterSkillDataDictionary();
+//     foreach (TraitSlot slot in traits.Keys)
+//     {
+//       skills[slot] = traits[slot].skill;
+//       // attacks[Character.GetAttackTypeForTraitSlot(slot)] = traits[slot].weaponData.attacks[Character.GetAttackTypeForTraitSlot(slot)];
+//     }
+//   }
+// }
 
 // TODO: Character should probably extend CustomPhysicsController, which should extend WorldObject
 public class Character : WorldObject
@@ -254,12 +246,10 @@ public class Character : WorldObject
   public DamageTypeToFloatDictionary damageTypeResistances;
 
   [Header("Attack Info")]
-  public Moveset moveset;
-  public List<CharacterSkillData> characterSkills;
+  public TraitSlotToCharacterSkillDataDictionary characterSkills;
   public List<CharacterSkillData> characterAttackSkills;
   public CharacterSkillData moltSkill;
   public List<CharacterSkillData> characterSpells;// possibly deprecated
-                                                  // public Weapon weaponInstance;
   public CharacterAttackModifiers attackModifiers; // probably deprecated
   private bool dashAttackEnabled = true;
   public CharacterAttackModifiers dashAttackModifiers;
@@ -291,7 +281,6 @@ public class Character : WorldObject
 
   [Header("Game State Info")]
   public Color damageFlashColor = Color.red;
-  public Color attackColor = Color.grey;
   public Character critTarget = null;
   public Character critVictimOf = null; // true while subject to crit attack
   public bool usingCrit = false;
@@ -299,17 +288,14 @@ public class Character : WorldObject
   public CharacterSkillData activeSkill;
   public CharacterSkillData queuedSkill;
   public CharacterSkillData pressingSkill;
-  // public bool receivingSkillInput;
   public float timeSpentInSkillEffect = 0f;
   public int currentSkillEffectSetIndex = 0;
   public int currentSkillEffectIndex = 0;
   public bool flying = false;
   public bool blocking = false;
   public bool molting = false;
-  public float dashProgress = 0.0f;
   public float easedSkillForwardMovementProgressIncrement = 0.0f;
   public float easedSkillUpwardMovementProgressIncrement = 0.0f;
-  public bool inKnockback = false;
   public float knockbackAmount = 0.0f;
   public Vector2 knockbackHeading = Vector3.zero;
   public float knockbackProgress = 0.0f;
@@ -389,9 +375,8 @@ public class Character : WorldObject
     conditionallyActivatedTraitEffects = new List<TraitEffect>();
     ascendingDescendingState = AscendingDescendingState.None;
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
-    // characterSkills = CalculateSkills(traits);
-    moveset = new Moveset(traits);
-    attributes = CalculateAttributes(traits);
+    characterSkills = CalculateSkills(traits);
+    // attributes = CalculateAttributes(traits);
     AwarenessTrigger awareness = GetComponentInChildren<AwarenessTrigger>();
 
     float awarenessRange = GetAwarenessRange();
@@ -458,15 +443,16 @@ public class Character : WorldObject
     return null;
   }
 
-  public static List<CharacterSkillData> CalculateSkills(TraitSlotToTraitDictionary traits)
+  public static TraitSlotToCharacterSkillDataDictionary CalculateSkills(TraitSlotToTraitDictionary traits)
   {
-    List<CharacterSkillData> ret = new List<CharacterSkillData>();
-    foreach (Trait trait in traits.Values)
+    TraitSlotToCharacterSkillDataDictionary ret = new TraitSlotToCharacterSkillDataDictionary();
+    foreach (TraitSlot traitKey in traits.Keys)
     {
+      Trait trait = traits[traitKey];
       if (trait == null) { continue; }
-      if (trait.skillData_old != null)
+      if (trait.skill != null)
       {
-        ret.Add(trait.skillData_old);
+        ret[traitKey] = trait.skill;
       }
     }
     return ret;
@@ -502,26 +488,6 @@ public class Character : WorldObject
     HandleSkillMovement();
     HandleKnockbackCooldown();
     CalculateMovement();
-  }
-
-
-  public CharacterSkillData GetSkillDataForAttackType(AttackType attackType)
-  {
-    switch (attackType)
-    {
-      case AttackType.Basic:
-        return moveset.attacks[AttackType.Basic];
-      case AttackType.Charge:
-        return moveset.attacks[AttackType.Charge];
-      case AttackType.Blocking:
-        return moveset.attacks[AttackType.Blocking];
-      case AttackType.Dash:
-        return moveset.attacks[AttackType.Dash];
-      case AttackType.Critical:
-        return moveset.attacks[AttackType.Critical];
-      default:
-        return moveset.attacks[AttackType.Basic];
-    }
   }
 
   public static AttackType GetAttackTypeForTraitSlot(TraitSlot slot)
@@ -685,7 +651,7 @@ public class Character : WorldObject
     usingCrit = true;
     orientation.rotation = GetDirectionAngle(critTarget.transform.position);
     victim.orientation.rotation = victim.GetDirectionAngle(transform.position);
-    HandleSkillInput(GetSkillDataForAttackType(AttackType.Critical));
+    // HandleSkillInput(GetSkillDataForAttackType(AttackType.Critical));
     while (skillCoroutine != null)
     {
       yield return null;
@@ -736,10 +702,10 @@ public class Character : WorldObject
     return attackModifiers[value] * Constants.CharacterAttackAdjustmentIncrements[value];
   }
 
-  public string GetSkillNameFromIndex(int idx)
-  {
-    return characterSkills[idx].name;
-  }
+  // public string GetSkillNameFromIndex(int idx)
+  // {
+  //   return characterSkills[idx].name;
+  // }
 
   public SkillRangeInfo[] GetAttackRangeForSkill(CharacterSkillData skillData)
   {
@@ -934,11 +900,6 @@ public class Character : WorldObject
   {
     return UsingMovementSkill() || IsInKnockback();
   }
-  public bool IsRecoveringFromDash()
-  {
-    return dashRecoveryTimer > 0;
-  }
-
   public bool IsChargingAttack()
   {
     return chargeAttackTime > 0;
@@ -2053,19 +2014,7 @@ public class Character : WorldObject
       //   = Mathf.Min(vitals[CharacterVital.RemainingStamina] + (Time.deltaTime * GetMaxStamina() / GetStaminaRecoverySpeed()), GetMaxStamina());
       dashAttackQueued = false;
     }
-    else if (IsRecoveringFromDash())
-    {
-      if (dashAttackQueued)
-      {
-        dashAttackQueued = false;
-        dashRecoveryTimer = -.001f;
-        HandleSkillInput(GetSkillDataForAttackType(AttackType.Dash));
-      }
-      else
-      {
-        dashRecoveryTimer -= Time.deltaTime;
-      }
-    }
+
     if (footstepCooldown > 0)
     {
       footstepCooldown -= Time.deltaTime;
