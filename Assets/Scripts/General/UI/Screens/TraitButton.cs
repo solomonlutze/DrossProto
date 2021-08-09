@@ -16,9 +16,9 @@ public class TraitButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
   public SuperTextMesh[] traitAttributeTexts;
   public TraitInfo currentTraitInfo;
   public TraitInfo nextTraitInfo;
-  AttributesView parentScreen;
+  BugStatusView parentScreen;
 
-  public void Init(TraitSlot ts, Trait et, Trait it, AttributesView ps, Dictionary<CharacterAttribute, IAttributeDataInterface> attributeDataObjects)
+  public void Init(TraitSlot ts, Trait et, Trait it, BugStatusView ps, Dictionary<CharacterAttribute, IAttributeDataInterface> attributeDataObjects)
   {
     // base.Init(itemEntryInfo, parentScreen);
     traitSlot = ts;

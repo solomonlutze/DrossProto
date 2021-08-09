@@ -13,7 +13,7 @@ public class CanvasHandler : MonoBehaviour
 
   public InventoryScreen inventoryScreen;
 
-  public AttributesView attributesView;
+  public BugStatusView bugStatusScreen;
   public StartingBugSelectScreen startingBugSelectScreen;
   private List<GameObject> canvasList = new List<GameObject>();
 
@@ -21,7 +21,7 @@ public class CanvasHandler : MonoBehaviour
   void Start()
   {
     // canvasList.Add(inventoryScreen.gameObject);
-    canvasList.Add(attributesView.gameObject);
+    canvasList.Add(bugStatusScreen.gameObject);
     canvasList.Add(startingBugSelectScreen.gameObject);
     SetAllCanvasesInactive();
   }
@@ -48,7 +48,7 @@ public class CanvasHandler : MonoBehaviour
         {
           {
             GameMaster.Instance.SetGameUnpaused();
-            DisplayAttributesView();
+            DisplayBugStatusView();
           }
         }
         break;
@@ -80,13 +80,13 @@ public class CanvasHandler : MonoBehaviour
 
   // Dialogue canvas functions
 
-  public void DisplayAttributesView()
+  public void DisplayBugStatusView()
   {
     // BulletinBoardCanvas.GetComponent<BulletinBoardCanvas>().SetBulletinBoardText();
     PlayerController player = GameMaster.Instance.GetPlayerController();
     if (player != null)
     {
-      // DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.characterSkills, Character.CalculateSkills(player.pupa), player.pupa, null);
+      DisplayBugStatusView(player.attributes, Character.CalculateAttributes(player.pupa), null, null, player.pupa, null);
     }
   }
 
@@ -97,7 +97,7 @@ public class CanvasHandler : MonoBehaviour
     startingBugSelectScreen.gameObject.SetActive(true);
   }
 
-  public void DisplayAttributesView(
+  public void DisplayBugStatusView(
     CharacterAttributeToIntDictionary currentAttributes,
     CharacterAttributeToIntDictionary nextAttributes,
     List<CharacterSkillData> skillDatas,
@@ -107,17 +107,16 @@ public class CanvasHandler : MonoBehaviour
   {
     GameMaster.Instance.SetGameMenu();
     SetAllCanvasesInactive();
-    attributesView.gameObject.SetActive(true);
-    attributesView.Init(currentAttributes, nextAttributes, skillDatas, pupaSkillDatas, pupaTraits, traitPickupItem);
-    attributesView.gameObject.SetActive(true);
+    bugStatusScreen.Init(currentAttributes, nextAttributes, skillDatas, pupaSkillDatas, pupaTraits, traitPickupItem);
+    bugStatusScreen.gameObject.SetActive(true);
   }
 
-  public void DisplayAttributesViewForTraitItem(TraitPickupItem traitItem)
+  public void DisplayBugStatusViewForTraitItem(TraitPickupItem traitItem)
   {
     PlayerController player = GameMaster.Instance.GetPlayerController();
     if (player != null)
     {
-      // DisplayAttributesView(player.attributes, Character.CalculateAttributes(player.pupa), player.characterSkills, Character.CalculateSkills(player.pupa), player.pupa, traitItem);
+      DisplayBugStatusView(player.attributes, Character.CalculateAttributes(player.pupa), null, null, player.pupa, traitItem);
     }
   }
 }

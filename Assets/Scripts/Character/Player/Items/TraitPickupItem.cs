@@ -5,20 +5,19 @@ using UnityEngine;
 public class TraitPickupItem : PickupItem
 {
 
-    public TraitSlotToTraitDictionary traits;
-    public override string interactableText
-    {
-        get { return "Collect"; }
-        set { }
-    }
+  public TraitSlotToTraitDictionary traits;
+  public override string interactableText
+  {
+    get { return "Collect"; }
+    set { }
+  }
 
-    void PlayerActivate()
+  void PlayerActivate()
+  {
+    if (GameMaster.Instance.GetPlayerController() != null)
     {
-        if (GameMaster.Instance.GetPlayerController() != null)
-        {
-            GameMaster.Instance.canvasHandler.DisplayAttributesViewForTraitItem(this);
-            // Destroy(gameObject);
-        }
+      GameMaster.Instance.canvasHandler.DisplayBugStatusViewForTraitItem(this);
     }
+  }
 
 }
