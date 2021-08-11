@@ -95,13 +95,13 @@ public class TraitButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     //   + "\n\n" + itemEntry.itemDescription
     // );
     if (itemTrait == null) { return; }
-    parentScreen.ShowHighlightedTraitDelta(equippedTrait, itemTrait);
+    // parentScreen.ShowHighlightedTraitDelta(equippedTrait, itemTrait);
   }
 
   public void OnPointerExit(PointerEventData data)
   {
     // inventoryScreen.SetItemDescriptionText("");
     if (itemTrait == null) { return; }
-    parentScreen.UnshowHighlightedTraitDelta();
+    // parentScreen.UnshowHighlightedTraitDelta();
   }
 }

@@ -10,13 +10,8 @@ using UnityEngine;
 public class BugStatusView : MonoBehaviour
 {
 
-  public AttributeInfo attributeInfoPrefab;
-
-  public GameObject traitButtonPrefab;
-  public Transform attributeInfosContainer;
-  public Transform traitButtonsContainer;
-
-  public CharacterAttributeToGameObjectDictionary attributeInfoGameObjects;
+  public TraitSlotToBugTraitInfoDictionary traitInfos;
+  public TraitSlotToBugTraitInfoDictionary nextTraitInfos;
   public SkillInfo[] skillInfoGameObjects;
   Dictionary<TraitSlot, TraitButton> traitButtons;
   Dictionary<CharacterAttribute, IAttributeDataInterface> attributeDataObjects;
@@ -41,27 +36,31 @@ public class BugStatusView : MonoBehaviour
       if (attrObj == null) { continue; }
       attributeDataObjects.Add(attrObj.attribute, attrObj);
     }
-    foreach (IAttributeDataInterface data in attributeDataObjects.Values)
-    {
-      AddOrUpdateAttributeInfoObject(data.attribute, 0, 0);
-    }
-    foreach (TraitSlot slot in Enum.GetValues(typeof(TraitSlot)))
-    {
-      GameObject button = Instantiate(traitButtonPrefab, traitButtonsContainer);
-      traitButtons.Add(slot, button.GetComponentInChildren<TraitButton>());
-    }
   }
 
   public void Init(
-    CharacterAttributeToIntDictionary attributes,
-    CharacterAttributeToIntDictionary nextAttributes,
-    List<CharacterSkillData> sd,
-    List<CharacterSkillData> psd,
-    TraitSlotToTraitDictionary pupaTraits,
-    TraitPickupItem traitPickupItem = null
+    TraitSlotToTraitDictionary currentTraits,
+    TraitSlotToTraitDictionary nextTraits
     )
   {
+    foreach (TraitSlot slot in currentTraits.Keys)
+    {
+      traitInfos[slot].Init(currentTraits[slot]);
+    }
 
+    foreach (TraitSlot slot in nextTraitInfos.Keys)
+    {
+      if (nextTraits == null)
+      {
+        nextTraitInfos[slot].gameObject.SetActive(false);
+      }
+      else
+      {
+        nextTraitInfos[slot].Init(nextTraits[slot]);
+        nextTraitInfos[slot].gameObject.SetActive(true);
+      }
+
+    }
   }
 
   void InitSkillData(CharacterSkillData add = null, CharacterSkillData remove = null)
@@ -87,24 +86,6 @@ public class BugStatusView : MonoBehaviour
     }
   }
 
-  public void AddOrUpdateAttributeInfoObject(CharacterAttribute attribute, int value, int nextValue)
-  {
-    if (attributeDataObjects[attribute].ignoreInMenus) { return; }
-    if (!attributeInfoGameObjects.ContainsKey(attribute))
-    {
-      attributeInfoGameObjects.Add(attribute, Instantiate(attributeInfoPrefab, attributeInfosContainer).gameObject);
-      // attributeInfoGameObjects[attribute].transform.parent = attributeInfosContainer;
-    }
-
-    if (!attributeDataObjects.ContainsKey(attribute))
-    {
-      return;
-    }
-
-    GameObject go = attributeInfoGameObjects[attribute];
-    go.GetComponent<AttributeInfo>().Init(attributeDataObjects[attribute], value, nextValue);
-  }
-
   public void OnTraitButtonClicked(Trait trait, TraitSlot slot)
   {
     GameMaster.Instance.GetPlayerController().EquipTrait(trait, slot);
@@ -112,38 +93,4 @@ public class BugStatusView : MonoBehaviour
     GameMaster.Instance.canvasHandler.CloseMenus();
   }
 
-  public void ShowHighlightedTraitDelta(Trait remove, Trait add)
-  {
-    if (add != null && remove != null)
-    {
-      traitToRemove = remove;
-      traitToAdd = add;
-      int proposedAttributeAdd = 0;
-      int proposedAttributeRemove = 0;
-      foreach (CharacterAttribute attribute in remove.attributeModifiers.Keys.Union(add.attributeModifiers.Keys))
-      {
-        proposedAttributeAdd = 0;
-        proposedAttributeRemove = 0;
-        if (traitToAdd != null && traitToRemove != null)
-        {
-          traitToAdd.attributeModifiers.TryGetValue(attribute, out proposedAttributeAdd);
-          traitToRemove.attributeModifiers.TryGetValue(attribute, out proposedAttributeRemove);
-        }
-        attributeInfoGameObjects[attribute].GetComponent<AttributeInfo>().HighlightDelta(proposedAttributeAdd - proposedAttributeRemove);
-      }
-      InitSkillData(add.skillData_old, remove.skillData_old);
-    }
-  }
-
-  public void UnshowHighlightedTraitDelta()
-  {
-
-    foreach (CharacterAttribute attribute in traitToRemove.attributeModifiers.Keys.Union(traitToAdd.attributeModifiers.Keys))
-    {
-      attributeInfoGameObjects[attribute].GetComponent<AttributeInfo>().UnhighlightDelta();
-    }
-    traitToRemove = null;
-    traitToAdd = null;
-    InitSkillData(null, null);
-  }
 }

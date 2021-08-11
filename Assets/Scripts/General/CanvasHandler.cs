@@ -107,7 +107,17 @@ public class CanvasHandler : MonoBehaviour
   {
     GameMaster.Instance.SetGameMenu();
     SetAllCanvasesInactive();
-    bugStatusScreen.Init(currentAttributes, nextAttributes, skillDatas, pupaSkillDatas, pupaTraits, traitPickupItem);
+    // bugStatusScreen.Init(currentAttributes, nextAttributes, skillDatas, pupaSkillDatas, pupaTraits, traitPickupItem);
+    bugStatusScreen.gameObject.SetActive(true);
+  }
+
+  public void DisplayBugStatusView(
+    TraitSlotToTraitDictionary currentTraits,
+    TraitPickupItem traitPickupItem = null)
+  {
+    GameMaster.Instance.SetGameMenu();
+    SetAllCanvasesInactive();
+    bugStatusScreen.Init(currentTraits, traitPickupItem ? traitPickupItem.traits : null);
     bugStatusScreen.gameObject.SetActive(true);
   }
 
@@ -116,7 +126,7 @@ public class CanvasHandler : MonoBehaviour
     PlayerController player = GameMaster.Instance.GetPlayerController();
     if (player != null)
     {
-      DisplayBugStatusView(player.attributes, Character.CalculateAttributes(player.pupa), null, null, player.pupa, traitItem);
+      DisplayBugStatusView(player.traits, traitItem);
     }
   }
 }
