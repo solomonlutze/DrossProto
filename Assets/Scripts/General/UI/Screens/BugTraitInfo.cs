@@ -10,13 +10,19 @@ public class BugTraitInfo : MonoBehaviour
 {
   // private TraitSlot traitSlot;
   // public Trait trait;
-
+  public BugStatusView parentScreen;
   public SuperTextMesh providingLymphNameText;
   public SuperTextMesh skillNameText;
   public SuperTextMesh skillDescriptionText;
 
-  public void Init(Trait trait)
+  Trait trait;
+  TraitSlot traitSlot;
+
+  public void Init(BugStatusView parent, Trait t, TraitSlot ts)
   {
+    parentScreen = parent;
+    trait = t;
+    traitSlot = ts;
     Debug.Log("init'ing trait info for " + trait);
     if (trait == null)
     {
@@ -26,11 +32,6 @@ public class BugTraitInfo : MonoBehaviour
     providingLymphNameText.text = trait.traitName;
     skillNameText.text = trait.skill.displayName;
     skillDescriptionText.text = trait.skill.description;
-    // // base.Init(itemEntryInfo, parentScreen);
-    // nameLabelObject.text = trait.traitName;
-    // SetTraitAttributeText(trait, traitSlot, attributeDataObjects);
-    // // if (itemEntryInfo.equipped) { nameLabel.text += "\n (Equipped)"; }
-    // if (lymphLogoObject != null) { lymphLogoObject.Init(trait.lymphType); }
   }
 
 }

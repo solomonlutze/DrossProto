@@ -117,7 +117,7 @@ public class CanvasHandler : MonoBehaviour
   {
     GameMaster.Instance.SetGameMenu();
     SetAllCanvasesInactive();
-    bugStatusScreen.Init(currentTraits, traitPickupItem ? traitPickupItem.traits : null);
+    bugStatusScreen.Init(currentTraits, traitPickupItem);
     bugStatusScreen.gameObject.SetActive(true);
   }
 

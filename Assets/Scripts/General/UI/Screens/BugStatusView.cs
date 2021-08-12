@@ -16,8 +16,7 @@ public class BugStatusView : MonoBehaviour
   Dictionary<TraitSlot, TraitButton> traitButtons;
   Dictionary<CharacterAttribute, IAttributeDataInterface> attributeDataObjects;
 
-  List<CharacterSkillData> skillDatas;
-  List<CharacterSkillData> pupaSkillDatas;
+  TraitSlotToTraitDictionary nextTraits;
 
   private PickupItem displayedPickupItem;
 
@@ -40,55 +39,59 @@ public class BugStatusView : MonoBehaviour
 
   public void Init(
     TraitSlotToTraitDictionary currentTraits,
-    TraitSlotToTraitDictionary nextTraits
+    TraitPickupItem pickupItem
     )
   {
+    displayedPickupItem = pickupItem;
     foreach (TraitSlot slot in currentTraits.Keys)
     {
-      traitInfos[slot].Init(currentTraits[slot]);
+      traitInfos[slot].Init(this, currentTraits[slot], slot);
     }
 
     foreach (TraitSlot slot in nextTraitInfos.Keys)
     {
-      if (nextTraits == null)
+      if (pickupItem == null)
       {
+        nextTraits = new TraitSlotToTraitDictionary();
         nextTraitInfos[slot].gameObject.SetActive(false);
       }
       else
       {
-        nextTraitInfos[slot].Init(nextTraits[slot]);
+        nextTraits = pickupItem.traits;
+        nextTraitInfos[slot].Init(this, nextTraits[slot], slot);
         nextTraitInfos[slot].gameObject.SetActive(true);
       }
 
     }
   }
 
-  void InitSkillData(CharacterSkillData add = null, CharacterSkillData remove = null)
-  {
-    CharacterSkillData skillData = null;
-    CharacterSkillData pupaSkillData = null;
-    for (int i = 0; i < skillInfoGameObjects.Length; i++)
-    {
-      skillData = i < skillDatas.Count ? skillDatas[i] : null;
-      pupaSkillData = i < pupaSkillDatas.Count ? pupaSkillDatas[i] : null;
-      if (pupaSkillData != null && pupaSkillData == remove && add != remove)
-      {
-        skillInfoGameObjects[i].Init(skillData, pupaSkillData, -1);
-      }
-      else if (i == pupaSkillDatas.Count && add != null)
-      {
-        skillInfoGameObjects[i].Init(skillData, add, 1);
-      }
-      else
-      {
-        skillInfoGameObjects[i].Init(skillData, pupaSkillData, 0);
-      }
-    }
-  }
+  // void InitSkillData(CharacterSkillData add = null, CharacterSkillData remove = null)
+  // {
+  //   CharacterSkillData skillData = null;
+  //   CharacterSkillData pupaSkillData = null;
+  //   for (int i = 0; i < skillInfoGameObjects.Length; i++)
+  //   {
+  //     skillData = i < skillDatas.Count ? skillDatas[i] : null;
+  //     pupaSkillData = i < pupaSkillDatas.Count ? pupaSkillDatas[i] : null;
+  //     if (pupaSkillData != null && pupaSkillData == remove && add != remove)
+  //     {
+  //       skillInfoGameObjects[i].Init(skillData, pupaSkillData, -1);
+  //     }
+  //     else if (i == pupaSkillDatas.Count && add != null)
+  //     {
+  //       skillInfoGameObjects[i].Init(skillData, add, 1);
+  //     }
+  //     else
+  //     {
+  //       skillInfoGameObjects[i].Init(skillData, pupaSkillData, 0);
+  //     }
+  //   }
+  // }
 
-  public void OnTraitButtonClicked(Trait trait, TraitSlot slot)
+  public void OnTraitButtonClicked(TraitSlot slot)
   {
-    GameMaster.Instance.GetPlayerController().EquipTrait(trait, slot);
+    Debug.Log("equipping " + nextTraits[slot].skill.displayName + " to " + slot.ToString());
+    GameMaster.Instance.GetPlayerController().EquipTrait(nextTraits[slot], slot);
     Destroy(displayedPickupItem.gameObject);
     GameMaster.Instance.canvasHandler.CloseMenus();
   }
