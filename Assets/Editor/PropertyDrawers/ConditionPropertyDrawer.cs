@@ -25,6 +25,9 @@ public class ConditionDrawer : PropertyDrawer
       case ConditionType.TouchingTileWithTag:
         EditorGUI.PropertyField(conditionValueRect, property.FindPropertyRelative("_touchingTileType"), new GUIContent("is"));
         break;
+      case ConditionType.ChargeLevel:
+        EditorGUI.PropertyField(conditionValueRect, property.FindPropertyRelative("_chargeLevel"), new GUIContent("is"));
+        break;
     }
 
     EditorGUIUtility.labelWidth = labelWidth;

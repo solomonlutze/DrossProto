@@ -331,7 +331,7 @@ public class Character : WorldObject
   public float maxFootstepCooldown = 0.2f;
 
   public bool dashAttackQueued = false;
-  public float chargeAttackTime = 0.0f;
+  public int chargeLevel = 0;
 
   [Header("Default Info")]
   public CharacterData defaultCharacterData;
@@ -618,7 +618,6 @@ public class Character : WorldObject
 
   public void EndSkill()
   {
-    Debug.Log("ending skill " + activeSkill);
     if (UsingSkill())
     {
       activeSkill.CleanUp(this);
@@ -628,6 +627,7 @@ public class Character : WorldObject
     currentSkillEffectSetIndex = 0;
     currentSkillEffectIndex = 0;
     timeSpentInSkillEffect = 0;
+    chargeLevel = 0;
   }
 
   public bool UsingSkill()
@@ -739,12 +739,6 @@ public class Character : WorldObject
       modsToAdjust.attackValueModifiers[val] = existingVal + mods.attackValueModifiers[val];
     }
   }
-  // public void ApplyDashAttackModifier(CharacterAttackValue attackValue, int magnitude)
-  // {
-  //   dashAttackEnabled = true;
-  //   Debug.Log("applying dash attack modifier: " + attackValue + "," + magnitude);
-  //   dashAttackModifiers[attackValue] += magnitude;
-  // }
 
   public void SetAnimationInput(Vector2 newAnimationInput)
   {
@@ -755,13 +749,13 @@ public class Character : WorldObject
   {
     animationPreventsMoving = newAnimationPreventsMoving;
   }
+
   // Point character towards a rotation target.
   void HandleFacingDirection()
   {
     if (
-      (animationPreventsMoving || stunned || carapaceBroken || IsChargingAttack())
+      (animationPreventsMoving || stunned || carapaceBroken)
       && !activeMovementAbilities.Contains(CharacterMovementAbility.Halteres)
-    // && !InCrit() // crit handles facing direction and overrides a few of these
     )
     {
       return;
@@ -899,10 +893,6 @@ public class Character : WorldObject
   public bool IsUsingMovementSkillOrInKnockback()
   {
     return UsingMovementSkill() || IsInKnockback();
-  }
-  public bool IsChargingAttack()
-  {
-    return chargeAttackTime > 0;
   }
 
   public void Dash()

@@ -54,6 +54,9 @@ public class SkillEffect
   public SkillEffectMovementPropertyToCurve movement;
   public CharacterVitalToCurveDictionary vitalChanges;
   public List<CharacterMovementAbility> movementAbilities;
+
+  [Tooltip("Charge level increases by 1 if we've spent more time in the effect than the charge level requires")]
+  public float[] chargeLevels;
   public AttackSpawn[] weaponSpawns;
   public SkillEffect()
   {
@@ -80,6 +83,14 @@ public class SkillEffect
         case CharacterVital.CurrentMaxHealth:
           owner.AdjustCurrentMaxHealth(owner.CalculateCurveProgressIncrement(vitalChange.Value, false, useType == SkillEffectType.Continuous));
           break;
+      }
+    }
+    if (chargeLevels.Length > 0 && owner.chargeLevel < chargeLevels.Length)
+    {
+      if (owner.timeSpentInSkillEffect > chargeLevels[owner.chargeLevel])
+      {
+        owner.chargeLevel++;
+        Debug.Log("increasing charge level to " + owner.chargeLevel);
       }
     }
     return;

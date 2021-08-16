@@ -2,7 +2,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public enum ConditionType { TileType, TouchingTileWithTag }
+public enum ConditionType { TileType, TouchingTileWithTag, ChargeLevel }
 
 [System.Serializable]
 public class Condition
@@ -10,6 +10,7 @@ public class Condition
   public ConditionType conditionType;
   public TileTag _tileType;
   public TileTag _touchingTileType;
+  public int _chargeLevel;
 }
 
 // NOTE: Conditionals and conditions will look uggo if you use them by themselves.
@@ -36,6 +37,12 @@ public class Conditional<T>
           break;
         case ConditionType.TouchingTileWithTag:
           if (!c.TouchingTileWithTag(condition._touchingTileType))
+          {
+            return false;
+          }
+          break;
+        case ConditionType.ChargeLevel:
+          if (c.chargeLevel < condition._chargeLevel)
           {
             return false;
           }
