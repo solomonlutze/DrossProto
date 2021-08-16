@@ -19,16 +19,14 @@ public class StartingBugSelectScreen : MonoBehaviour
   public SuperTextMesh descriptionText;
   public BugPresetData[] startingBugs;
 
-  public CharacterVisuals_Old visuals;
+  public UIBug uiBug;
 
   public int highlightedBug;
 
   public void Init()
   {
-    Debug.Log("init");
     foreach (Transform child in selectStartingBugButtonContainer.transform)
     {
-      Debug.Log("destroy child");
       Destroy(child.gameObject);
     }
     for (int i = 0; i < startingBugs.Length; i++)
@@ -42,7 +40,6 @@ public class StartingBugSelectScreen : MonoBehaviour
   }
   public void OnEnable()
   {
-    Debug.Log("enabled starting bug select screen");
     StartCoroutine(SelectFirstButton());
   }
 
@@ -59,19 +56,18 @@ public class StartingBugSelectScreen : MonoBehaviour
   {
     // if (EventSystem.current.currentSelectedGameObject == null)
     // {
-    EventSystem.current.SetSelectedGameObject(selectStartingBugButtonContainer.GetChild(idx).gameObject);
     Debug.Log("selected bug");
     // }
     highlightedBug = idx;
     descriptionText.text = startingBugs[idx].description;
-    visuals.SetCharacterVisuals(startingBugs[idx].loadout);
+    uiBug.Init(startingBugs[idx].loadout);
+    // EventSystem.current.SetSelectedGameObject(selectStartingBugButtonContainer.GetChild(idx).gameObject);
   }
 
   public void UnhighlightBug()
   {
     highlightedBug = -1;
     descriptionText.text = "";
-    visuals.ClearCharacterVisuals();
   }
 
   public void SelectBug(int idx)

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 
 // Should be populated with a set of attributes
@@ -13,6 +14,7 @@ public class BugStatusView : MonoBehaviour
   public TraitSlotToBugTraitInfoDictionary traitInfos;
   public TraitSlotToBugTraitInfoDictionary nextTraitInfos;
   public SkillInfo[] skillInfoGameObjects;
+  public UIBug uiBug;
   Dictionary<TraitSlot, TraitButton> traitButtons;
   Dictionary<CharacterAttribute, IAttributeDataInterface> attributeDataObjects;
 
@@ -25,7 +27,6 @@ public class BugStatusView : MonoBehaviour
 
   public void Awake()
   {
-    // attributeInfoGameObjects = new Dictionary<CharacterAttribute, GameObject>();
     attributeDataObjects = new Dictionary<CharacterAttribute, IAttributeDataInterface>();
     traitButtons = new Dictionary<TraitSlot, TraitButton>();
     UnityEngine.Object[] dataObjects = Resources.LoadAll("Data/TraitData/Attributes");
@@ -42,6 +43,7 @@ public class BugStatusView : MonoBehaviour
     TraitPickupItem pickupItem
     )
   {
+    EventSystem.current.SetSelectedGameObject(traitInfos[TraitSlot.Head].gameObject);
     displayedPickupItem = pickupItem;
     foreach (TraitSlot slot in currentTraits.Keys)
     {
@@ -61,39 +63,25 @@ public class BugStatusView : MonoBehaviour
         nextTraitInfos[slot].Init(this, nextTraits[slot], slot);
         nextTraitInfos[slot].gameObject.SetActive(true);
       }
-
     }
+    uiBug.Init(currentTraits);
   }
-
-  // void InitSkillData(CharacterSkillData add = null, CharacterSkillData remove = null)
-  // {
-  //   CharacterSkillData skillData = null;
-  //   CharacterSkillData pupaSkillData = null;
-  //   for (int i = 0; i < skillInfoGameObjects.Length; i++)
-  //   {
-  //     skillData = i < skillDatas.Count ? skillDatas[i] : null;
-  //     pupaSkillData = i < pupaSkillDatas.Count ? pupaSkillDatas[i] : null;
-  //     if (pupaSkillData != null && pupaSkillData == remove && add != remove)
-  //     {
-  //       skillInfoGameObjects[i].Init(skillData, pupaSkillData, -1);
-  //     }
-  //     else if (i == pupaSkillDatas.Count && add != null)
-  //     {
-  //       skillInfoGameObjects[i].Init(skillData, add, 1);
-  //     }
-  //     else
-  //     {
-  //       skillInfoGameObjects[i].Init(skillData, pupaSkillData, 0);
-  //     }
-  //   }
-  // }
 
   public void OnTraitButtonClicked(TraitSlot slot)
   {
-    Debug.Log("equipping " + nextTraits[slot].skill.displayName + " to " + slot.ToString());
     GameMaster.Instance.GetPlayerController().EquipTrait(nextTraits[slot], slot);
     Destroy(displayedPickupItem.gameObject);
     GameMaster.Instance.canvasHandler.CloseMenus();
   }
 
+  public void OnTraitButtonSelected(TraitSlot slot)
+  {
+    EventSystem.current.SetSelectedGameObject(traitInfos[slot].gameObject.gameObject);
+    uiBug.HighlightSlot(slot, nextTraits[slot]);
+  }
+
+  public void OnTraitButtonDeselected()
+  {
+    uiBug.UnhighlightSlot();
+  }
 }
