@@ -94,13 +94,13 @@ public class TraitEffect
             GameObject[] scentGameObjects = GameObject.FindGameObjectsWithTag("EnemyScent");
             foreach (GameObject obj in scentGameObjects)
             {
-              ParticleSystem ps = obj.GetComponent<ParticleSystem>();
-              if (ps != null)
-              {
-                Debug.Log("setting emission active");
-                ParticleSystem.EmissionModule em = ps.emission;
-                em.enabled = true;
-              }
+              // ParticleSystem ps = obj.GetComponent<ParticleSystem>();
+              // if (ps != null)
+              // {
+              //   Debug.Log("setting emission active");
+              //   ParticleSystem.EmissionModule em = ps.emission;
+              //   em.enabled = true;
+              // }
             }
             break;
         }

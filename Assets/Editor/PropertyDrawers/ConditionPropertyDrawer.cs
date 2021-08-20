@@ -4,6 +4,9 @@ using UnityEditor;
 [CustomPropertyDrawer(typeof(Condition))]
 public class ConditionDrawer : PropertyDrawer
 {
+
+  // NOTE: these must be in the same order as their Comparator counterparts or this doesn't work!
+  string[] _comparatorChoices = new[] { "=", "<", "<=", ">", ">=" };
   public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
   {
     EditorGUI.BeginProperty(position, label, property);
@@ -11,11 +14,13 @@ public class ConditionDrawer : PropertyDrawer
     var indent = EditorGUI.indentLevel;
     EditorGUI.indentLevel = 0;
 
+    var labelWidth = EditorGUIUtility.labelWidth;
+    EditorGUIUtility.labelWidth = 40;
     var conditionRect = new Rect(position.x, position.y, 150, EditorGUIUtility.singleLineHeight);
     var conditionValueRect = new Rect(position.x + 155, position.y, 200, EditorGUIUtility.singleLineHeight);
+    var comparatorValueRect = new Rect(position.x + 155, position.y, EditorGUIUtility.labelWidth, EditorGUIUtility.singleLineHeight);
+    var conditionWithComparatorValueRect = new Rect(position.x + 155 + EditorGUIUtility.labelWidth, position.y, 200 - EditorGUIUtility.labelWidth, EditorGUIUtility.singleLineHeight);
 
-    var labelWidth = EditorGUIUtility.labelWidth;
-    EditorGUIUtility.labelWidth = 30;
     EditorGUI.PropertyField(conditionRect, property.FindPropertyRelative("conditionType"), new GUIContent("if"));
     switch ((ConditionType)property.FindPropertyRelative("conditionType").enumValueIndex)
     {
@@ -26,7 +31,9 @@ public class ConditionDrawer : PropertyDrawer
         EditorGUI.PropertyField(conditionValueRect, property.FindPropertyRelative("_touchingTileType"), new GUIContent("is"));
         break;
       case ConditionType.ChargeLevel:
-        EditorGUI.PropertyField(conditionValueRect, property.FindPropertyRelative("_chargeLevel"), new GUIContent("is"));
+        int _comparatorIndex = EditorGUI.Popup(comparatorValueRect, property.FindPropertyRelative("comparator").intValue, _comparatorChoices);
+        property.FindPropertyRelative("comparator").intValue = _comparatorIndex;
+        EditorGUI.PropertyField(conditionWithComparatorValueRect, property.FindPropertyRelative("_chargeLevel"), new GUIContent(""));
         break;
     }
 

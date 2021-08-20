@@ -3,10 +3,12 @@ using UnityEngine;
 using System.Collections.Generic;
 
 public enum ConditionType { TileType, TouchingTileWithTag, ChargeLevel }
+public enum Comparator { Equals, LessThan, LessOrEqual, GreaterThan, GreaterOrEqual }
 
 [System.Serializable]
 public class Condition
 {
+  public Comparator comparator = Comparator.Equals;
   public ConditionType conditionType;
   public TileTag _tileType;
   public TileTag _touchingTileType;
@@ -42,7 +44,7 @@ public class Conditional<T>
           }
           break;
         case ConditionType.ChargeLevel:
-          if (c.chargeLevel < condition._chargeLevel)
+          if (!DoComparison(c.chargeLevel, condition._chargeLevel, condition.comparator))
           {
             return false;
           }
@@ -54,4 +56,22 @@ public class Conditional<T>
     return true;
   }
 
+  public bool DoComparison(float value, float target, Comparator comparator)
+  {
+    switch (comparator)
+    {
+      case Comparator.Equals:
+        return target == value;
+      case Comparator.LessThan:
+        return target < value;
+      case Comparator.LessOrEqual:
+        return target <= value;
+      case Comparator.GreaterThan:
+        return target > value;
+      case Comparator.GreaterOrEqual:
+        return target >= value;
+      default:
+        return false;
+    }
+  }
 }

@@ -52,6 +52,12 @@ public class CharacterSkillData : ScriptableObject
     GetActiveSkillEffect(owner).BeginSkillEffect(owner);
   }
 
+
+  public virtual void EndSkillEffect(Character owner)
+  {
+    GetActiveSkillEffect(owner).EndSkillEffect(owner);
+  }
+
   public SkillEffectSet GetActiveSkillEffectSet(Character owner)
   {
     return skillEffectSets[owner.currentSkillEffectSetIndex];

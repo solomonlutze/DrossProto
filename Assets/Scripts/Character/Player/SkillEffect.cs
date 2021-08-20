@@ -70,6 +70,10 @@ public class SkillEffect
     {
       SpawnWeapon(weaponSpawn, owner, weaponInstances);
     }
+    if (chargeLevels.Length > 0)
+    {
+      owner.chargingUpParticleSystem.Play();
+    }
   }
   public virtual void DoSkillEffect(Character owner)
   {
@@ -90,12 +94,23 @@ public class SkillEffect
       if (owner.timeSpentInSkillEffect > chargeLevels[owner.chargeLevel])
       {
         owner.chargeLevel++;
+        owner.chargeLevelIncreaseParticleSystem.Play();
+        if (owner.chargeLevel == chargeLevels.Length)
+        {
+          owner.chargingUpParticleSystem.Stop();
+          owner.fullyChargedParticleSystem.Play();
+        }
         Debug.Log("increasing charge level to " + owner.chargeLevel);
       }
     }
     return;
   }
 
+  public virtual void EndSkillEffect(Character owner)
+  {
+    owner.chargingUpParticleSystem.Stop();
+    owner.fullyChargedParticleSystem.Stop();
+  }
   public void SpawnWeapon(AttackSpawn weaponSpawn, Character owner, List<Weapon> weaponInstances)
   {
     Quaternion rotationAngle = Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset, Vector3.forward);

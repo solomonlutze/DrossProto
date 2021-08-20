@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Tilemaps;
 // TODO: Character can probably extend CustomPhysicsController, which simplifies movement code a bit.
 public class AnimationInfoObject
@@ -278,6 +279,9 @@ public class Character : WorldObject
   public PolygonCollider2D touchingCollider; // used for eg. deciding if we're touching a wall
   public CharacterVisuals characterVisuals;
   // public AnimatorController animatorController;
+  public VisualEffect chargingUpParticleSystem;
+  public VisualEffect chargeLevelIncreaseParticleSystem;
+  public VisualEffect fullyChargedParticleSystem;
 
   [Header("Game State Info")]
   public Color damageFlashColor = Color.red;
@@ -596,6 +600,7 @@ public class Character : WorldObject
 
   public void AdvanceSkillEffect()
   {
+    activeSkill.EndSkillEffect(this);
     currentSkillEffectIndex++;
     if (currentSkillEffectIndex <= activeSkill.GetActiveSkillEffectSet(this).skillEffects.Length - 1)
     {
@@ -620,6 +625,7 @@ public class Character : WorldObject
   {
     if (UsingSkill())
     {
+      activeSkill.EndSkillEffect(this);
       activeSkill.CleanUp(this);
       activeSkill = null;
     }
