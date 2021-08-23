@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -78,7 +78,8 @@ public class WorldObject : MonoBehaviour
     if (r != null)
     {
       r.sortingLayerName = layerName;
-      r.sortingOrder = 20;
+      // r.sortingLayerName = layerName;
+      // r.sortingOrder = 20;
     }
     TrailRenderer t = trans.gameObject.GetComponent<TrailRenderer>();
     if (t != null)

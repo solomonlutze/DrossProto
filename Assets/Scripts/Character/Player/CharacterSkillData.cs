@@ -77,14 +77,18 @@ public class CharacterSkillData : ScriptableObject
     {
       if (
         // || owner not holding button 
-        currentSkillEffect.duration > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.duration
-        || !owner.pressingSkill == this
+        !owner.pressingSkill == this && ((currentSkillEffect.minDuration > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.minDuration)
+        || (currentSkillEffect.minDuration <= 0))
       )
       {
         owner.AdvanceSkillEffect();
       }
+      else if (currentSkillEffect.maxDuration > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.maxDuration)
+      {
+        owner.AdvanceSkillEffect();
+      }
     }
-    else if (owner.timeSpentInSkillEffect > currentSkillEffect.duration)
+    else if (owner.timeSpentInSkillEffect > currentSkillEffect.minDuration)
     {
       owner.AdvanceSkillEffect();
     }
@@ -96,7 +100,15 @@ public class CharacterSkillData : ScriptableObject
 
   public float GetActiveEffectDuration(Character owner)
   {
-    return GetActiveSkillEffect(owner).duration;
+    return GetActiveSkillEffect(owner).minDuration;
+  }
+  public float GetActiveEffectMaxDuration(Character owner)
+  {
+    return GetActiveSkillEffect(owner).maxDuration;
+  }
+  public bool GetShouldExecute(Character owner)
+  {
+    return GetActiveSkillEffect(owner).shouldExecute.Resolve(owner);
   }
 
   //NOTE: This is kind of weird.

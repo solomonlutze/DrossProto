@@ -74,17 +74,17 @@ public class EnvironmentalDamage : IDamageSource
     }
   }
 
-  public bool isNonlethal 
+  public bool isNonlethal
   {
-    get 
+    get
     {
       return tileType.environmentalDamageInfo.isNonlethal;
     }
   }
 
-  public bool isCritAttack 
+  public bool isCritAttack
   {
-    get 
+    get
     {
       return tileType.environmentalDamageInfo.isCritAttack;
     }

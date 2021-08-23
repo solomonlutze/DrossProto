@@ -580,10 +580,6 @@ public class Character : WorldObject
   // the below method is probably closer to AdvanceSkillEffectSet
   public void AdvanceSkillEffectSet()
   {
-    Debug.Log("trying to advance skill " + activeSkill);
-
-    Debug.Log("pressedSkill " + pressingSkill);
-    Debug.Log("queuedSkill " + queuedSkill);
     currentSkillEffectIndex = 0;
     while (currentSkillEffectSetIndex < activeSkill.skillEffectSets.Length - 1)
     {
@@ -602,8 +598,13 @@ public class Character : WorldObject
   {
     activeSkill.EndSkillEffect(this);
     currentSkillEffectIndex++;
-    if (currentSkillEffectIndex <= activeSkill.GetActiveSkillEffectSet(this).skillEffects.Length - 1)
+    while (currentSkillEffectIndex <= activeSkill.GetActiveSkillEffectSet(this).skillEffects.Length - 1)
     {
+      if (!activeSkill.GetShouldExecute(this))
+      {
+        currentSkillEffectIndex++;
+        continue;
+      }
       if (queuedSkill == activeSkill && activeSkill.CanAdvanceSkillEffectSet(this))
       {
         AdvanceSkillEffectSet();

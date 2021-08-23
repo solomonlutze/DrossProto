@@ -23,4 +23,8 @@ public class Overrideable<T>
   {
     return Resolve(c);
   }
+  public Overrideable(T defaultVal)
+  {
+    defaultValue = defaultVal;
+  }
 }

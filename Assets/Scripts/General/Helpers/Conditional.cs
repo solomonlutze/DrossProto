@@ -63,13 +63,13 @@ public class Conditional<T>
       case Comparator.Equals:
         return target == value;
       case Comparator.LessThan:
-        return target < value;
+        return value < target;
       case Comparator.LessOrEqual:
-        return target <= value;
+        return value <= target;
       case Comparator.GreaterThan:
-        return target > value;
+        return value > target;
       case Comparator.GreaterOrEqual:
-        return target >= value;
+        return value >= target;
       default:
         return false;
     }

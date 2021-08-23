@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -38,6 +39,7 @@ public class SkillEffectSet
 public class SkillEffect
 {
 
+  public Overrideable<bool> shouldExecute = new Overrideable<bool>(true);
   public SkillEffectType useType;
   [Tooltip("Defines whether taking damage should interrupt/end this effect and subsequent effects")]
   public bool interruptable = false;
@@ -48,7 +50,13 @@ public class SkillEffect
   public bool advanceable = false;
   [Tooltip("This effect is bypassed if the skillEffect is queued when this effect is reached. Good for eg pauses between attacks")]
   public bool skipIfQueued = false;
-  public float duration;
+
+  [FormerlySerializedAs("duration")]
+  [Tooltip("Min time to spend in skill effect. Always define this!")]
+  public float minDuration;
+
+  [Tooltip("Max time to spend in skill effect. Only for continuous effects!")]
+  public float maxDuration;
 
   public SkillEffectPropertyToFloat properties;
   public SkillEffectMovementPropertyToCurve movement;
@@ -121,6 +129,10 @@ public class SkillEffect
     );
     weaponInstance.transform.parent = owner.weaponPivotRoot;
     weaponInstance.Init(weaponSpawn, this, owner, weaponInstances);
+    if (!weaponSpawn.attachToOwner)
+    {
+      weaponInstance.transform.parent = null; // we want to instantiate relative to the weaponPivot and then immediately leave the hierarchy
+    }
   }
 
   public virtual float GetEffectiveRange(Character owner)

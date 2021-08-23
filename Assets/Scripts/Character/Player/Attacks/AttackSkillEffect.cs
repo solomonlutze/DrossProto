@@ -44,6 +44,7 @@ public class AttackSpawn
     }
   }
   public float rotationOffset;
+  public bool attachToOwner = true;
   public AttackSpawn()
   {
 
