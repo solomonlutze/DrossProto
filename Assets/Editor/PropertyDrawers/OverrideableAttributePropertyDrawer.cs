@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEditor;
 
-// [CustomPropertyDrawer(typeof(Overrideable<>))]
-public class OverrideableDrawer : PropertyDrawer
+[CustomPropertyDrawer(typeof(OverrideableAttribute))]
+public class OverrideableAttributeDrawer : PropertyDrawer
 {
   public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
   {
@@ -10,13 +10,15 @@ public class OverrideableDrawer : PropertyDrawer
 
     EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), new GUIContent(label));
 
+    Debug.Log("attribute: "+attribute);
+    Debug.Log("fieldInfo: "+fieldInfo);
     SerializedProperty overrides = property.FindPropertyRelative("overrides");
     var indent = EditorGUI.indentLevel;
     EditorGUI.indentLevel = 0;
 
-    bool hasOverrides = overrides.arraySize > 0;
+    bool hasOverrides = overrides != null && overrides.arraySize > 0;
     var defaultRect = new Rect(position.x, position.y, position.width - (hasOverrides ? 0 : 25), EditorGUIUtility.singleLineHeight);
-    EditorGUI.PropertyField(defaultRect, property.FindPropertyRelative("defaultValue"), GUIContent.none);
+    EditorGUI.PropertyField(defaultRect, property, GUIContent.none);
     if (!hasOverrides)
     {
       var addOverrideButtonRect = new Rect(position.x + position.width - 25, position.y, 25, EditorGUIUtility.singleLineHeight);
@@ -38,9 +40,10 @@ public class OverrideableDrawer : PropertyDrawer
   }
   public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
   {
-    float height = EditorGUI.GetPropertyHeight(property.FindPropertyRelative("defaultValue"));
+    float height = EditorGUI.GetPropertyHeight(property);
+    // float height = 20;
     SerializedProperty overrides = property.FindPropertyRelative("overrides");
-    if (overrides.arraySize > 0)
+    if (overrides != null && overrides.arraySize > 0)
     {
       height += EditorGUI.GetPropertyHeight(overrides);
     }

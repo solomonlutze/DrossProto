@@ -7,6 +7,10 @@ using UnityEngine.Serialization;
 [System.Serializable]
 public class DamageInfo
 {
+  [Overrideable(typeof(int))]
+  public int testOverrideable;
+  [Overrideable(typeof(int))]
+  public int testOverrideable2;
   [FormerlySerializedAs("damageAmount")]
   public int damageAmount;
   // amount of impulse force applied on hit
