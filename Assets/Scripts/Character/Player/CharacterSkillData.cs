@@ -19,12 +19,12 @@ public class SkillRangeInfo
   [Tooltip("Highest angle of the attack, in degrees")]
   public float maxAngle;
 
-  public SkillRangeInfo(AttackSpawn spawn)
+  public SkillRangeInfo(AttackSpawn spawn, Character owner)
   {
-    minRange = spawn.range;
-    maxRange = spawn.range + spawn.weaponSize;
-    minAngle = spawn.rotationOffset;
-    maxAngle = spawn.rotationOffset;
+    minRange = spawn.range.get(owner);
+    maxRange = spawn.range.get(owner) + spawn.weaponSize;
+    minAngle = spawn.rotationOffset.get(owner);
+    maxAngle = spawn.rotationOffset.get(owner);
   }
 }
 
@@ -77,18 +77,18 @@ public class CharacterSkillData : ScriptableObject
     {
       if (
         // || owner not holding button 
-        !owner.pressingSkill == this && ((currentSkillEffect.minDuration > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.minDuration)
-        || (currentSkillEffect.minDuration <= 0))
+        !owner.pressingSkill == this && ((currentSkillEffect.minDuration.get(owner) > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.minDuration.get(owner))
+        || (currentSkillEffect.minDuration.get(owner) <= 0))
       )
       {
         owner.AdvanceSkillEffect();
       }
-      else if (currentSkillEffect.maxDuration > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.maxDuration)
+      else if (currentSkillEffect.maxDuration.get(owner) > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.maxDuration.get(owner))
       {
         owner.AdvanceSkillEffect();
       }
     }
-    else if (owner.timeSpentInSkillEffect > currentSkillEffect.minDuration)
+    else if (owner.timeSpentInSkillEffect > currentSkillEffect.minDuration.get(owner))
     {
       owner.AdvanceSkillEffect();
     }
@@ -100,11 +100,11 @@ public class CharacterSkillData : ScriptableObject
 
   public float GetActiveEffectDuration(Character owner)
   {
-    return GetActiveSkillEffect(owner).minDuration;
+    return GetActiveSkillEffect(owner).minDuration.get(owner);
   }
   public float GetActiveEffectMaxDuration(Character owner)
   {
-    return GetActiveSkillEffect(owner).maxDuration;
+    return GetActiveSkillEffect(owner).maxDuration.get(owner);
   }
   public bool GetShouldExecute(Character owner)
   {
@@ -115,7 +115,7 @@ public class CharacterSkillData : ScriptableObject
   // a skill _EFFECT_ is advancable, but the effect _SET_ is what gets advanced.
   public bool CanAdvanceSkillEffectSet(Character owner)
   {
-    return GetActiveSkillEffect(owner).advanceable && owner.currentSkillEffectSetIndex < skillEffectSets.Length - 1; //shouldn't need that last condition. don't mark the last skill effect advanceable!!
+    return GetActiveSkillEffect(owner).advanceable.get(owner) && owner.currentSkillEffectSetIndex < skillEffectSets.Length - 1; //shouldn't need that last condition. don't mark the last skill effect advanceable!!
   }
   public bool IsContinuous(Character owner)
   {
@@ -124,13 +124,13 @@ public class CharacterSkillData : ScriptableObject
   // a skill _EFFECT_ is interruptable, but the ENTIRE SKILL gets interrupted.
   public bool SkillIsInterruptable(Character owner)
   {
-    return GetActiveSkillEffect(owner).interruptable;
+    return GetActiveSkillEffect(owner).interruptable.get(owner);
   }
 
   // a skill _EFFECT_ is cancelable, but the ENTIRE SKILL gets interrupted.
   public bool SkillIsCancelable(Character owner)
   {
-    return GetActiveSkillEffect(owner).cancelable;
+    return GetActiveSkillEffect(owner).cancelable.get(owner);
   }
   public bool SkillMovesCharacter(Character owner)
   {

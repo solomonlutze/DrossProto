@@ -1303,7 +1303,6 @@ public class Character : WorldObject
     {
       return;
     }
-    if (damageSource.isCritAttack && !damageSource.IsOwnedBy(critVictimOf)) { return; }
     if (
       sourceInvulnerabilities.Contains(damageSource.sourceString)
       && !damageSource.ignoresInvulnerability)

@@ -53,7 +53,7 @@ public class Hitbox : MonoBehaviour, IDamageSource
   {
     get
     {
-      return damageInfo.damageAmount;
+      return damageInfo.damageAmount.Resolve(owner);
       // return attack_old.GetDamageAmount(character);
     }
   }
@@ -62,7 +62,7 @@ public class Hitbox : MonoBehaviour, IDamageSource
   {
     get
     {
-      return damageInfo.damageType;
+      return damageInfo.damageType.Resolve(owner);
       // return attack_old.GetDamageType(character);
     }
   }
@@ -71,7 +71,7 @@ public class Hitbox : MonoBehaviour, IDamageSource
   {
     get
     {
-      return damageInfo.stun;
+      return damageInfo.stun.Resolve(owner);
       // return attack_old.GetStun(character);
     }
   }
@@ -80,7 +80,7 @@ public class Hitbox : MonoBehaviour, IDamageSource
   {
     get
     {
-      return damageInfo.ignoreInvulnerability;
+      return damageInfo.ignoreInvulnerability.Resolve(owner);
       // return attack_old.IgnoresInvulnerability();
     }
   }
@@ -89,15 +89,7 @@ public class Hitbox : MonoBehaviour, IDamageSource
   {
     get
     {
-      return damageInfo.isNonlethal;
-    }
-  }
-
-  public bool isCritAttack
-  {
-    get
-    {
-      return damageInfo.isCritAttack;
+      return damageInfo.isNonlethal.Resolve(owner);
     }
   }
 
@@ -105,23 +97,15 @@ public class Hitbox : MonoBehaviour, IDamageSource
   {
     get
     {
-      return damageInfo.invulnerabilityWindow;
+      return damageInfo.invulnerabilityWindow.Resolve(owner);
     }
   }
 
   public Vector3 GetKnockbackForCharacter(Character c)
   {
-    return damageInfo.knockback
+    return damageInfo.knockback.Resolve(owner)
       * ((transform.position - owner.transform.position).normalized);
     // return attack_old.GetKnockback(character, this);
-  }
-
-  public bool forcesItemDrop
-  {
-    get
-    {
-      return damageInfo.forcesItemDrop;
-    }
   }
 
   public float CalculateDamageAfterResistances(Character c)

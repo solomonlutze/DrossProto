@@ -12,7 +12,7 @@ public class ConditionDrawer : PropertyDrawer
     EditorGUI.BeginProperty(position, label, property);
 
     var indent = EditorGUI.indentLevel;
-    EditorGUI.indentLevel = 0;
+    EditorGUI.indentLevel = indent + 1;
 
     var labelWidth = EditorGUIUtility.labelWidth;
     EditorGUIUtility.labelWidth = 40;
@@ -55,7 +55,7 @@ public class ConditionalDrawer : PropertyDrawer
   {
     EditorGUI.BeginProperty(position, label, property);
     var indent = EditorGUI.indentLevel;
-    EditorGUI.indentLevel = 0;
+    EditorGUI.indentLevel = indent + 1;
     var labelWidth = EditorGUIUtility.labelWidth;
     EditorGUIUtility.labelWidth = 40;
     var valueRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);

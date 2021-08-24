@@ -495,10 +495,6 @@ public class AiStateController : Character
 
   protected override void TakeDamage(IDamageSource damageSource)
   {
-    if (damageSource.forcesItemDrop)
-    {
-      SpawnDroppedItems();
-    }
     base.TakeDamage(damageSource);
   }
 

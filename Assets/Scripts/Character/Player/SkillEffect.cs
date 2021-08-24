@@ -42,21 +42,21 @@ public class SkillEffect
   public Overrideable<bool> shouldExecute = new Overrideable<bool>(true);
   public SkillEffectType useType;
   [Tooltip("Defines whether taking damage should interrupt/end this effect and subsequent effects")]
-  public bool interruptable = false;
+  public Overrideable<bool> interruptable = new Overrideable<bool>(false);
   [Tooltip("Defines whether this (or another) skill can be used to interrupt this effect and subsequent effects")]
-  public bool cancelable = false;
+  public Overrideable<bool> cancelable = new Overrideable<bool>(false);
 
   [Tooltip("Defines whether an input of this skill should end this effect and move to the next")]
-  public bool advanceable = false;
+  public Overrideable<bool> advanceable = new Overrideable<bool>(false);
   [Tooltip("This effect is bypassed if the skillEffect is queued when this effect is reached. Good for eg pauses between attacks")]
-  public bool skipIfQueued = false;
+  public Overrideable<bool> skipIfQueued = new Overrideable<bool>(false);
 
   [FormerlySerializedAs("duration")]
   [Tooltip("Min time to spend in skill effect. Always define this!")]
-  public float minDuration;
+  public Overrideable<float> minDuration;
 
   [Tooltip("Max time to spend in skill effect. Only for continuous effects!")]
-  public float maxDuration;
+  public Overrideable<float> maxDuration;
 
   public SkillEffectPropertyToFloat properties;
   public SkillEffectMovementPropertyToCurve movement;
@@ -64,7 +64,7 @@ public class SkillEffect
   public List<CharacterMovementAbility> movementAbilities;
 
   [Tooltip("Charge level increases by 1 if we've spent more time in the effect than the charge level requires")]
-  public float[] chargeLevels;
+  public Overrideable<float>[] chargeLevels;
   public AttackSpawn[] weaponSpawns;
   public SkillEffect()
   {
@@ -99,7 +99,7 @@ public class SkillEffect
     }
     if (chargeLevels.Length > 0 && owner.chargeLevel < chargeLevels.Length)
     {
-      if (owner.timeSpentInSkillEffect > chargeLevels[owner.chargeLevel])
+      if (owner.timeSpentInSkillEffect > chargeLevels[owner.chargeLevel].Resolve(owner))
       {
         owner.chargeLevel++;
         owner.chargeLevelIncreaseParticleSystem.Play();
@@ -121,10 +121,10 @@ public class SkillEffect
   }
   public void SpawnWeapon(AttackSpawn weaponSpawn, Character owner, List<Weapon> weaponInstances)
   {
-    Quaternion rotationAngle = Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset, Vector3.forward);
+    Quaternion rotationAngle = Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset.get(owner), Vector3.forward);
     Weapon weaponInstance = GameObject.Instantiate(
       weaponSpawn.weaponObject,
-      owner.weaponPivotRoot.position + (rotationAngle * new Vector3(weaponSpawn.range, 0, 0)),
+      owner.weaponPivotRoot.position + (rotationAngle * new Vector3(weaponSpawn.range.get(owner), 0, 0)),
       rotationAngle
     );
     weaponInstance.transform.parent = owner.weaponPivotRoot;
@@ -140,7 +140,7 @@ public class SkillEffect
     List<float> weaponRanges = new List<float>();
     foreach (AttackSpawn attackSpawn in weaponSpawns)
     {
-      weaponRanges.Add(attackSpawn.range + attackSpawn.weaponSize + attackSpawn.attackData.GetCumulativeEffectiveWeaponRange(owner));
+      weaponRanges.Add(attackSpawn.range.get(owner) + attackSpawn.weaponSize + attackSpawn.attackData.GetCumulativeEffectiveWeaponRange(owner));
     }
     return Mathf.Max(weaponRanges.ToArray());
   }
@@ -150,7 +150,7 @@ public class SkillEffect
     List<SkillRangeInfo> infos = new List<SkillRangeInfo>();
     for (int i = 0; i < weaponSpawns.Length; i++)
     {
-      SkillRangeInfo info = new SkillRangeInfo(weaponSpawns[i]);
+      SkillRangeInfo info = new SkillRangeInfo(weaponSpawns[i], owner);
       infos.Add(weaponSpawns[i].attackData.GetAttackRangeInfo(ref info, owner, info.maxRange, info.maxAngle));
     }
     return infos;

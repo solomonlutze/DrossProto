@@ -46,7 +46,7 @@ public class EnvironmentalDamage : IDamageSource
   {
     get
     {
-      return tileType.environmentalDamageInfo.damageAmount;
+      return tileType.environmentalDamageInfo.damageAmount.Resolve();
     }
   }
 
@@ -54,7 +54,7 @@ public class EnvironmentalDamage : IDamageSource
   {
     get
     {
-      return tileType.environmentalDamageInfo.damageType;
+      return tileType.environmentalDamageInfo.damageType.Resolve();
     }
   }
 
@@ -70,7 +70,7 @@ public class EnvironmentalDamage : IDamageSource
   {
     get
     {
-      return tileType.environmentalDamageInfo.stun;
+      return tileType.environmentalDamageInfo.stun.Resolve();
     }
   }
 
@@ -78,15 +78,7 @@ public class EnvironmentalDamage : IDamageSource
   {
     get
     {
-      return tileType.environmentalDamageInfo.isNonlethal;
-    }
-  }
-
-  public bool isCritAttack
-  {
-    get
-    {
-      return tileType.environmentalDamageInfo.isCritAttack;
+      return tileType.environmentalDamageInfo.isNonlethal.Resolve();
     }
   }
 
@@ -94,7 +86,7 @@ public class EnvironmentalDamage : IDamageSource
   {
     get
     {
-      return tileType.environmentalDamageInfo.ignoreInvulnerability;
+      return tileType.environmentalDamageInfo.ignoreInvulnerability.Resolve();
     }
   }
 
@@ -102,7 +94,7 @@ public class EnvironmentalDamage : IDamageSource
   {
     get
     {
-      return tileType.environmentalDamageInfo.invulnerabilityWindow;
+      return tileType.environmentalDamageInfo.invulnerabilityWindow.Resolve();
     }
   }
   public Vector3 GetKnockbackForCharacter(Character c)
@@ -113,11 +105,5 @@ public class EnvironmentalDamage : IDamageSource
   {
     return tileType.environmentalDamageInfo.resistanceRequiredForImmunity;
   }
-  public bool forcesItemDrop
-  {
-    get
-    {
-      return false;
-    }
-  }
+
 }

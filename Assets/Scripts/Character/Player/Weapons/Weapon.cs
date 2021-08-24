@@ -121,8 +121,8 @@ public class Weapon : MonoBehaviour
   {
     if (attack.objectToSpawn != null && attack.spawnObjectOnContact)
     {
-      Quaternion rotationAngle = Quaternion.AngleAxis(transform.eulerAngles.z + attack.objectToSpawn.rotationOffset, Vector3.forward);
-      GameObject go = Instantiate(attack.objectToSpawn.weaponObject.gameObject, transform.position + new Vector3(attack.objectToSpawn.range, 0, 0), rotationAngle);
+      Quaternion rotationAngle = Quaternion.AngleAxis(transform.eulerAngles.z + attack.objectToSpawn.rotationOffset.get(owner), Vector3.forward);
+      GameObject go = Instantiate(attack.objectToSpawn.weaponObject.gameObject, transform.position + new Vector3(attack.objectToSpawn.range.get(owner), 0, 0), rotationAngle);
       Weapon weapon = go.GetComponent<Weapon>();
       if (weapon != null)
       {
