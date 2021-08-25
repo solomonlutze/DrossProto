@@ -67,7 +67,7 @@ public class Weapon : MonoBehaviour
     previousProgress = progress;
 
     float cappedTimeAlive = Mathf.Min(timeAlive, attack.duration);
-    progress = cappedTimeAlive / attack.duration; // easing goes here if we have it
+    progress = cappedTimeAlive / attack.duration;
     increment = progress - previousProgress;
     foreach (WeaponAction action in attack.weaponActions)
     {

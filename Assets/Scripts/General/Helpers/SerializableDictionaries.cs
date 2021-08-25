@@ -312,6 +312,8 @@ public class BugSkeletonPartToSpriteDictionary : SerializableDictionaryBase<BugS
 [System.Serializable]
 public class SkillEffectPropertyToFloat : SerializableDictionaryBase<SkillEffectFloatProperty, Overrideable<float>> { }
 [System.Serializable]
+public class SkillEffectDamageMultiplierToFloat : SerializableDictionaryBase<SkillEffectDamageMultiplierProperty, Overrideable<float>> { }
+[System.Serializable]
 public class SkillEffectMovementPropertyToCurve : SerializableDictionaryBase<SkillEffectMovementProperty, NormalizedCurve> { }
 [System.Serializable]
 public class CharacterVitalToCurveDictionary : SerializableDictionaryBase<CharacterVital, NormalizedCurve> { }

@@ -681,6 +681,7 @@ public class Character : WorldObject
   {
     activeSkill.CleanUp(this);
     currentSkillEffectIndex = 0;
+    currentSkillEffectSetIndex = 0;
     timeSpentInSkillEffect = 0;
     BeginSkill(skill);
   }
@@ -1368,12 +1369,13 @@ public class Character : WorldObject
     return GetAttribute((CharacterAttribute)ProtectionAttributeData.DamageTypeToProtectionAttribute[type]);
   }
 
-
-  public int GetDamageReductionPercent(DamageType type) // we could also just return the 
+  public float GetDamageMultiplier(DamageType type) // we could also just return the 
   {
-    return defaultCharacterData
-    .GetProtectionAttributeDataForDamageType(type)
-    .GetDamageReductionPercent(this);
+    if (activeSkill != null)
+    {
+      return activeSkill.GetDamageMultiplierForType(this, type);
+    }
+    return 1.0f;
   }
   private IEnumerator ApplyDamageFlash(DamageData_OLD damageObj)
   {

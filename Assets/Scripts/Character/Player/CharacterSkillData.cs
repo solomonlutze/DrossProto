@@ -174,6 +174,15 @@ public class CharacterSkillData : ScriptableObject
     return 1;
   }
 
+  public float GetDamageMultiplierForType(Character owner, DamageType damageType)
+  {
+    if (GetActiveSkillEffect(owner).damageMultipliers.ContainsKey((SkillEffectDamageMultiplierProperty)damageType))
+    {
+      return GetActiveSkillEffect(owner).damageMultipliers[(SkillEffectDamageMultiplierProperty)damageType].Resolve(owner);
+    }
+    return 1;
+  }
+
   // We don't precalculate range info bc it may depend on character overrides
   // When determining whether to use an attack we should examine the range of that specific skill effect set
   // (the first set when deciding to use the attack, or the next set after the current one when deciding to continue a combo)

@@ -22,7 +22,6 @@ public class PlayStateNotifier
       inEditMode = false;
       Shader.DisableKeyword("INEDITMODE");
     }
-    Debug.Log("inEditMode " + inEditMode);
     //else if (playModeState == PlayStateModeChange.)
   }
 }

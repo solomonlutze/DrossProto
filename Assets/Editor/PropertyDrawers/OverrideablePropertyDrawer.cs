@@ -40,7 +40,7 @@ public class OverrideableDrawer : PropertyDrawer
   {
     float height = EditorGUI.GetPropertyHeight(property.FindPropertyRelative("defaultValue"));
     SerializedProperty overrides = property.FindPropertyRelative("overrides");
-    if (overrides.arraySize > 0)
+    if (overrides != null && overrides.arraySize > 0)
     {
       height += EditorGUI.GetPropertyHeight(overrides);
     }

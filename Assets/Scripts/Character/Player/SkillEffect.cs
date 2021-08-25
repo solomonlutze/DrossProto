@@ -18,6 +18,14 @@ public enum SkillEffectFloatProperty
   RotationSpeed
 }
 
+public enum SkillEffectDamageMultiplierProperty
+{
+  AcidDamageMultiplier = DamageType.Acid,
+  FungalDamageMultiplier = DamageType.Fungal,
+  HeatDamageMultiplier = DamageType.Heat,
+  PhysicalDamageMultiplier = DamageType.Physical
+}
+
 public enum SkillEffectMovementProperty
 {
   MoveForward,
@@ -59,6 +67,7 @@ public class SkillEffect
   public Overrideable<float> maxDuration;
 
   public SkillEffectPropertyToFloat properties;
+  public SkillEffectDamageMultiplierToFloat damageMultipliers;
   public SkillEffectMovementPropertyToCurve movement;
   public CharacterVitalToCurveDictionary vitalChanges;
   public List<CharacterMovementAbility> movementAbilities;

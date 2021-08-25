@@ -36,6 +36,7 @@ public class Hitbox : MonoBehaviour, IDamageSource
 
   private void OnTriggerEnter2D(Collider2D other)
   {
+    Debug.Log("sending takeDamage from " + gameObject.name);
     other.gameObject.SendMessage("TakeDamage", this, SendMessageOptions.DontRequireReceiver);
   }
 
@@ -110,9 +111,10 @@ public class Hitbox : MonoBehaviour, IDamageSource
 
   public float CalculateDamageAfterResistances(Character c)
   {
-    if (c != null && c.blocking)
+    if (c != null)
     {
-      return ((1 - c.GetDamageReductionPercent(damageType) / 100f) * damageAmount);
+      Debug.Log("damage amount " + damageAmount + " adjusted to " + damageAmount * c.GetDamageMultiplier(damageType));
+      return damageAmount * c.GetDamageMultiplier(damageType);
     }
     return damageAmount;
   }
