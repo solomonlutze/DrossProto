@@ -928,12 +928,17 @@ public class Character : WorldObject
   public float CalculateCurveProgressIncrement(NormalizedCurve curve, bool usePhysicsTimestep, bool isContinuous = false)
   {
     float timestep = usePhysicsTimestep ? Time.fixedDeltaTime : Time.deltaTime;
-    if (activeSkill.GetActiveEffectDuration(this) == 0 && isContinuous)
+    float duration = activeSkill.GetActiveEffectDuration(this);
+    if (isContinuous)
     {
-      return curve.magnitude.Resolve(this) * timestep;
+      if (activeSkill.GetActiveEffectMaxDuration(this) == 0)
+      {
+        return curve.magnitude.Resolve(this) * timestep;
+      }
+      duration = activeSkill.GetActiveEffectMaxDuration(this);
     }
-    return curve.Evaluate(this, Mathf.Min(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this), 1))
-    - curve.Evaluate(this, Mathf.Max((timeSpentInSkillEffect - timestep) / activeSkill.GetActiveEffectDuration(this), 0));
+    return curve.Evaluate(this, Mathf.Min(timeSpentInSkillEffect / duration, 1))
+    - curve.Evaluate(this, Mathf.Max((timeSpentInSkillEffect - timestep) / duration, 0));
   }
 
   protected void BeginKnockback(Vector3 knockbackMagnitude)

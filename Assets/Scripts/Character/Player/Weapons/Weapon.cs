@@ -46,7 +46,7 @@ public class Weapon : MonoBehaviour
   {
     timeAlive += Time.fixedDeltaTime;
     ExecuteWeaponActions(owner);
-    if (timeAlive > attack.duration)
+    if (timeAlive > attack.duration.Resolve(owner))
     {
       CleanUp();
     }
@@ -66,8 +66,8 @@ public class Weapon : MonoBehaviour
   {
     previousProgress = progress;
 
-    float cappedTimeAlive = Mathf.Min(timeAlive, attack.duration);
-    progress = cappedTimeAlive / attack.duration;
+    float cappedTimeAlive = Mathf.Min(timeAlive, attack.duration.Resolve(owner));
+    progress = cappedTimeAlive / attack.duration.Resolve(owner);
     increment = progress - previousProgress;
     foreach (WeaponAction action in attack.weaponActions)
     {
