@@ -29,7 +29,7 @@ public class AttackSpawn
       return owningWeaponDataWeapon?.Value;
     }
   }
-  public float range;
+  public Overrideable<float> range;
 
   //TODO: Account for multiple hitboxes and non-box collider hitboxes!!
   public float weaponSize
@@ -43,7 +43,8 @@ public class AttackSpawn
       return 0f;
     }
   }
-  public float rotationOffset;
+  public Overrideable<float> rotationOffset;
+  public bool attachToOwner = true;
   public AttackSpawn()
   {
 
@@ -78,10 +79,10 @@ public class AttackSkillEffect : SkillEffect
 
   public void SpawnWeapon(AttackSpawn weaponSpawn, Character owner, List<Weapon> weaponInstances)
   {
-    Quaternion rotationAngle = Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset, Vector3.forward);
+    Quaternion rotationAngle = Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset.get(owner), Vector3.forward);
     Weapon weaponInstance = GameObject.Instantiate(
       weaponSpawn.weaponObject,
-      owner.weaponPivotRoot.position + (rotationAngle * new Vector3(weaponSpawn.range, 0, 0)),
+      owner.weaponPivotRoot.position + (rotationAngle * new Vector3(weaponSpawn.range.get(owner), 0, 0)),
       // Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset, Vector3.forward)
       rotationAngle
     );
@@ -94,7 +95,7 @@ public class AttackSkillEffect : SkillEffect
     List<float> weaponRanges = new List<float>();
     foreach (AttackSpawn attackSpawn in weaponSpawns)
     {
-      weaponRanges.Add(attackSpawn.range + attackSpawn.weaponSize + attackSpawn.attackData.GetCumulativeEffectiveWeaponRange(owner));
+      weaponRanges.Add(attackSpawn.range.get(owner) + attackSpawn.weaponSize + attackSpawn.attackData.GetCumulativeEffectiveWeaponRange(owner));
     }
     return Mathf.Max(weaponRanges.ToArray());
   }
@@ -104,7 +105,7 @@ public class AttackSkillEffect : SkillEffect
     List<SkillRangeInfo> infos = new List<SkillRangeInfo>();
     for (int i = 0; i < weaponSpawns.Length; i++)
     {
-      SkillRangeInfo info = new SkillRangeInfo(weaponSpawns[i]);
+      SkillRangeInfo info = new SkillRangeInfo(weaponSpawns[i], owner);
       infos.Add(weaponSpawns[i].attackData.GetAttackRangeInfo(ref info, owner, info.maxRange, info.maxAngle));
     }
     return infos;

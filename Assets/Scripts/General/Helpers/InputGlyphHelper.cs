@@ -16,7 +16,6 @@ public class InputGlyphHelper : MonoBehaviour
   public Sprite GetInputGlyphForAction(string actionName)
   {
     Controller activeController = rewiredPlayer.controllers.GetLastActiveController();
-    Debug.Log("looking for glyph for " + actionName);
     if (activeController == null)
     { // player hasn't used any controllers yet
       // No active controller, set a default
@@ -29,7 +28,6 @@ public class InputGlyphHelper : MonoBehaviour
         activeController = rewiredPlayer.controllers.Keyboard;
       }
     }
-    Debug.Log("active controller: " + activeController);
     if (!string.IsNullOrEmpty(actionName))
     {
       InputAction action = ReInput.mapping.GetAction(actionName); // get the Action for the current string
@@ -42,7 +40,6 @@ public class InputGlyphHelper : MonoBehaviour
         Debug.Log("action is null");
       }
     }
-    Debug.Log("action name is null or empty");
     return null;
   }
 

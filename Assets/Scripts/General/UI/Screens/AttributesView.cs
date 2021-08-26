@@ -76,7 +76,7 @@ public class AttributesView : MonoBehaviour
         itemTrait = null;
         if (traitPickupItem != null && traitPickupItem.traits.ContainsKey(slot)) { itemTrait = traitPickupItem.traits[slot]; }
         traitButtons[slot].gameObject.SetActive(true);
-        traitButtons[slot].Init(slot, pupaTraits[slot], itemTrait, this, attributeDataObjects);
+        // traitButtons[slot].Init(slot, pupaTraits[slot], itemTrait, this, attributeDataObjects);
       }
     }
     for (int i = 0; i < skillInfoGameObjects.Length; i++)

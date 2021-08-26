@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -69,10 +69,17 @@ public class WorldObject : MonoBehaviour
   public static void ChangeLayersRecursively(Transform trans, string layerName)
   {
     trans.gameObject.layer = LayerMask.NameToLayer(layerName);
-    SpriteRenderer r = trans.gameObject.GetComponent<SpriteRenderer>();
+    SpriteRenderer sr = trans.gameObject.GetComponent<SpriteRenderer>();
+    if (sr != null)
+    {
+      sr.sortingLayerName = layerName;
+    }
+    Renderer r = trans.gameObject.GetComponent<Renderer>();
     if (r != null)
     {
       r.sortingLayerName = layerName;
+      // r.sortingLayerName = layerName;
+      // r.sortingOrder = 20;
     }
     TrailRenderer t = trans.gameObject.GetComponent<TrailRenderer>();
     if (t != null)

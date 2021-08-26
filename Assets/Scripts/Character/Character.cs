@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Tilemaps;
 // TODO: Character can probably extend CustomPhysicsController, which simplifies movement code a bit.
 public class AnimationInfoObject
@@ -278,6 +279,9 @@ public class Character : WorldObject
   public PolygonCollider2D touchingCollider; // used for eg. deciding if we're touching a wall
   public CharacterVisuals characterVisuals;
   // public AnimatorController animatorController;
+  public VisualEffect chargingUpParticleSystem;
+  public VisualEffect chargeLevelIncreaseParticleSystem;
+  public VisualEffect fullyChargedParticleSystem;
 
   [Header("Game State Info")]
   public Color damageFlashColor = Color.red;
@@ -331,7 +335,7 @@ public class Character : WorldObject
   public float maxFootstepCooldown = 0.2f;
 
   public bool dashAttackQueued = false;
-  public float chargeAttackTime = 0.0f;
+  public int chargeLevel = 0;
 
   [Header("Default Info")]
   public CharacterData defaultCharacterData;
@@ -576,10 +580,6 @@ public class Character : WorldObject
   // the below method is probably closer to AdvanceSkillEffectSet
   public void AdvanceSkillEffectSet()
   {
-    Debug.Log("trying to advance skill " + activeSkill);
-
-    Debug.Log("pressedSkill " + pressingSkill);
-    Debug.Log("queuedSkill " + queuedSkill);
     currentSkillEffectIndex = 0;
     while (currentSkillEffectSetIndex < activeSkill.skillEffectSets.Length - 1)
     {
@@ -596,9 +596,15 @@ public class Character : WorldObject
 
   public void AdvanceSkillEffect()
   {
+    activeSkill.EndSkillEffect(this);
     currentSkillEffectIndex++;
-    if (currentSkillEffectIndex <= activeSkill.GetActiveSkillEffectSet(this).skillEffects.Length - 1)
+    while (currentSkillEffectIndex <= activeSkill.GetActiveSkillEffectSet(this).skillEffects.Length - 1)
     {
+      if (!activeSkill.GetShouldExecute(this))
+      {
+        currentSkillEffectIndex++;
+        continue;
+      }
       if (queuedSkill == activeSkill && activeSkill.CanAdvanceSkillEffectSet(this))
       {
         AdvanceSkillEffectSet();
@@ -618,9 +624,9 @@ public class Character : WorldObject
 
   public void EndSkill()
   {
-    Debug.Log("ending skill " + activeSkill);
     if (UsingSkill())
     {
+      activeSkill.EndSkillEffect(this);
       activeSkill.CleanUp(this);
       activeSkill = null;
     }
@@ -628,6 +634,7 @@ public class Character : WorldObject
     currentSkillEffectSetIndex = 0;
     currentSkillEffectIndex = 0;
     timeSpentInSkillEffect = 0;
+    chargeLevel = 0;
   }
 
   public bool UsingSkill()
@@ -674,6 +681,7 @@ public class Character : WorldObject
   {
     activeSkill.CleanUp(this);
     currentSkillEffectIndex = 0;
+    currentSkillEffectSetIndex = 0;
     timeSpentInSkillEffect = 0;
     BeginSkill(skill);
   }
@@ -739,12 +747,6 @@ public class Character : WorldObject
       modsToAdjust.attackValueModifiers[val] = existingVal + mods.attackValueModifiers[val];
     }
   }
-  // public void ApplyDashAttackModifier(CharacterAttackValue attackValue, int magnitude)
-  // {
-  //   dashAttackEnabled = true;
-  //   Debug.Log("applying dash attack modifier: " + attackValue + "," + magnitude);
-  //   dashAttackModifiers[attackValue] += magnitude;
-  // }
 
   public void SetAnimationInput(Vector2 newAnimationInput)
   {
@@ -755,13 +757,13 @@ public class Character : WorldObject
   {
     animationPreventsMoving = newAnimationPreventsMoving;
   }
+
   // Point character towards a rotation target.
   void HandleFacingDirection()
   {
     if (
-      (animationPreventsMoving || stunned || carapaceBroken || IsChargingAttack())
+      (animationPreventsMoving || stunned || carapaceBroken)
       && !activeMovementAbilities.Contains(CharacterMovementAbility.Halteres)
-    // && !InCrit() // crit handles facing direction and overrides a few of these
     )
     {
       return;
@@ -900,10 +902,6 @@ public class Character : WorldObject
   {
     return UsingMovementSkill() || IsInKnockback();
   }
-  public bool IsChargingAttack()
-  {
-    return chargeAttackTime > 0;
-  }
 
   public void Dash()
   {
@@ -930,12 +928,17 @@ public class Character : WorldObject
   public float CalculateCurveProgressIncrement(NormalizedCurve curve, bool usePhysicsTimestep, bool isContinuous = false)
   {
     float timestep = usePhysicsTimestep ? Time.fixedDeltaTime : Time.deltaTime;
-    if (activeSkill.GetActiveEffectDuration(this) == 0 && isContinuous)
+    float duration = activeSkill.GetActiveEffectDuration(this);
+    if (isContinuous)
     {
-      return curve.magnitude.Resolve(this) * timestep;
+      if (activeSkill.GetActiveEffectMaxDuration(this) == 0)
+      {
+        return curve.magnitude.Resolve(this) * timestep;
+      }
+      duration = activeSkill.GetActiveEffectMaxDuration(this);
     }
-    return curve.Evaluate(this, Mathf.Min(timeSpentInSkillEffect / activeSkill.GetActiveEffectDuration(this), 1))
-    - curve.Evaluate(this, Mathf.Max((timeSpentInSkillEffect - timestep) / activeSkill.GetActiveEffectDuration(this), 0));
+    return curve.Evaluate(this, Mathf.Min(timeSpentInSkillEffect / duration, 1))
+    - curve.Evaluate(this, Mathf.Max((timeSpentInSkillEffect - timestep) / duration, 0));
   }
 
   protected void BeginKnockback(Vector3 knockbackMagnitude)
@@ -1306,7 +1309,6 @@ public class Character : WorldObject
     {
       return;
     }
-    if (damageSource.isCritAttack && !damageSource.IsOwnedBy(critVictimOf)) { return; }
     if (
       sourceInvulnerabilities.Contains(damageSource.sourceString)
       && !damageSource.ignoresInvulnerability)
@@ -1372,12 +1374,13 @@ public class Character : WorldObject
     return GetAttribute((CharacterAttribute)ProtectionAttributeData.DamageTypeToProtectionAttribute[type]);
   }
 
-
-  public int GetDamageReductionPercent(DamageType type) // we could also just return the 
+  public float GetDamageMultiplier(DamageType type) // we could also just return the 
   {
-    return defaultCharacterData
-    .GetProtectionAttributeDataForDamageType(type)
-    .GetDamageReductionPercent(this);
+    if (activeSkill != null)
+    {
+      return activeSkill.GetDamageMultiplierForType(this, type);
+    }
+    return 1.0f;
   }
   private IEnumerator ApplyDamageFlash(DamageData_OLD damageObj)
   {

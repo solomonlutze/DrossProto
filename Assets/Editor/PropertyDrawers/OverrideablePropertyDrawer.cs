@@ -8,15 +8,15 @@ public class OverrideableDrawer : PropertyDrawer
   {
     EditorGUI.BeginProperty(position, label, property);
 
-    EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), new GUIContent(label));
+    // EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), new GUIContent(label));
 
     SerializedProperty overrides = property.FindPropertyRelative("overrides");
     var indent = EditorGUI.indentLevel;
-    EditorGUI.indentLevel = 0;
+    EditorGUI.indentLevel = indent + 1;
 
     bool hasOverrides = overrides.arraySize > 0;
     var defaultRect = new Rect(position.x, position.y, position.width - (hasOverrides ? 0 : 25), EditorGUIUtility.singleLineHeight);
-    EditorGUI.PropertyField(defaultRect, property.FindPropertyRelative("defaultValue"), GUIContent.none);
+    EditorGUI.PropertyField(defaultRect, property.FindPropertyRelative("defaultValue"), label.text == "Value" ? GUIContent.none : new GUIContent(label));
     if (!hasOverrides)
     {
       var addOverrideButtonRect = new Rect(position.x + position.width - 25, position.y, 25, EditorGUIUtility.singleLineHeight);
@@ -40,7 +40,7 @@ public class OverrideableDrawer : PropertyDrawer
   {
     float height = EditorGUI.GetPropertyHeight(property.FindPropertyRelative("defaultValue"));
     SerializedProperty overrides = property.FindPropertyRelative("overrides");
-    if (overrides.arraySize > 0)
+    if (overrides != null && overrides.arraySize > 0)
     {
       height += EditorGUI.GetPropertyHeight(overrides);
     }

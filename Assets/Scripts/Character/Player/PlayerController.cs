@@ -57,7 +57,7 @@ public class PlayerController : Character
   {
     if (overrideTraits != null)
     {
-      traits = overrideTraits;
+      traits = new TraitSlotToTraitDictionary(overrideTraits);
       pupa = new TraitSlotToTraitDictionary(overrideTraits);
     }
     characterVisuals.SetCharacterVisuals(traits);

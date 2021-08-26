@@ -46,7 +46,7 @@ public class Weapon : MonoBehaviour
   {
     timeAlive += Time.fixedDeltaTime;
     ExecuteWeaponActions(owner);
-    if (timeAlive > attack.duration)
+    if (timeAlive > attack.duration.Resolve(owner))
     {
       CleanUp();
     }
@@ -66,8 +66,8 @@ public class Weapon : MonoBehaviour
   {
     previousProgress = progress;
 
-    float cappedTimeAlive = Mathf.Min(timeAlive, attack.duration);
-    progress = cappedTimeAlive / attack.duration; // easing goes here if we have it
+    float cappedTimeAlive = Mathf.Min(timeAlive, attack.duration.Resolve(owner));
+    progress = cappedTimeAlive / attack.duration.Resolve(owner);
     increment = progress - previousProgress;
     foreach (WeaponAction action in attack.weaponActions)
     {
@@ -121,8 +121,8 @@ public class Weapon : MonoBehaviour
   {
     if (attack.objectToSpawn != null && attack.spawnObjectOnContact)
     {
-      Quaternion rotationAngle = Quaternion.AngleAxis(transform.eulerAngles.z + attack.objectToSpawn.rotationOffset, Vector3.forward);
-      GameObject go = Instantiate(attack.objectToSpawn.weaponObject.gameObject, transform.position + new Vector3(attack.objectToSpawn.range, 0, 0), rotationAngle);
+      Quaternion rotationAngle = Quaternion.AngleAxis(transform.eulerAngles.z + attack.objectToSpawn.rotationOffset.get(owner), Vector3.forward);
+      GameObject go = Instantiate(attack.objectToSpawn.weaponObject.gameObject, transform.position + new Vector3(attack.objectToSpawn.range.get(owner), 0, 0), rotationAngle);
       Weapon weapon = go.GetComponent<Weapon>();
       if (weapon != null)
       {

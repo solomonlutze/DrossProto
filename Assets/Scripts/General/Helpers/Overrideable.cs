@@ -8,13 +8,16 @@ public class Overrideable<T>
   public T defaultValue;
   [Tooltip("Overrides resolve from bottom to top")]
   public Conditional<T>[] overrides;
-  public T Resolve(Character character)
+  public T Resolve(Character character = null)
   {
-    for (int i = overrides.Length - 1; i >= 0; i--)
+    if (character != null)
     {
-      if (overrides[i].ConditionsMet(character))
+      for (int i = overrides.Length - 1; i >= 0; i--)
       {
-        return overrides[i].value;
+        if (overrides[i].ConditionsMet(character))
+        {
+          return overrides[i].value;
+        }
       }
     }
     return defaultValue;
@@ -22,5 +25,9 @@ public class Overrideable<T>
   public T get(Character c)
   {
     return Resolve(c);
+  }
+  public Overrideable(T defaultVal)
+  {
+    defaultValue = defaultVal;
   }
 }

@@ -90,6 +90,22 @@ public class TraitSlotToTraitDictionary : SerializableDictionaryBase<TraitSlot, 
     }
   }
 }
+
+[System.Serializable]
+
+public class TraitSlotToBugTraitInfoDictionary : SerializableDictionaryBase<TraitSlot, BugTraitInfo>
+{
+
+  public TraitSlotToBugTraitInfoDictionary()
+  {
+    foreach (TraitSlot slot in (TraitSlot[])Enum.GetValues(typeof(TraitSlot)))
+    {
+      Add(slot, null);
+    }
+  }
+
+}
+
 [System.Serializable]
 public class DamageTypeToFloatDictionary : SerializableDictionaryBase<DamageType, float> { }
 
@@ -295,6 +311,8 @@ public class BugSpeciesToBugAnimationDictionary : SerializableDictionaryBase<Bug
 public class BugSkeletonPartToSpriteDictionary : SerializableDictionaryBase<BugSkeletonPart, Sprite> { }
 [System.Serializable]
 public class SkillEffectPropertyToFloat : SerializableDictionaryBase<SkillEffectFloatProperty, Overrideable<float>> { }
+[System.Serializable]
+public class SkillEffectDamageMultiplierToFloat : SerializableDictionaryBase<SkillEffectDamageMultiplierProperty, Overrideable<float>> { }
 [System.Serializable]
 public class SkillEffectMovementPropertyToCurve : SerializableDictionaryBase<SkillEffectMovementProperty, NormalizedCurve> { }
 [System.Serializable]
