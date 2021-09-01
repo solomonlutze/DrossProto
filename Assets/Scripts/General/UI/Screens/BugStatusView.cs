@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 // Should be populated with a set of attributes
 // Has a reference to AttributeInfo prefab and AttributesInfoContents
 // For each attribute, creates and inits an AttributesInfo, and parents it to AttributesInfoContent
-public class BugStatusView : MonoBehaviour
+public class BugStatusView : MenuBase
 {
 
   public TraitSlotToBugTraitInfoDictionary traitInfos;
@@ -43,7 +43,6 @@ public class BugStatusView : MonoBehaviour
     TraitPickupItem pickupItem
     )
   {
-    EventSystem.current.SetSelectedGameObject(traitInfos[TraitSlot.Head].gameObject);
     displayedPickupItem = pickupItem;
     foreach (TraitSlot slot in currentTraits.Keys)
     {
@@ -74,9 +73,13 @@ public class BugStatusView : MonoBehaviour
     GameMaster.Instance.canvasHandler.CloseMenus();
   }
 
+  public void OnCloseButtonClicked()
+  {
+    GameMaster.Instance.canvasHandler.CloseMenus();
+  }
+
   public void OnTraitButtonSelected(TraitSlot slot)
   {
-    EventSystem.current.SetSelectedGameObject(traitInfos[slot].gameObject.gameObject);
     uiBug.HighlightSlot(slot, nextTraits[slot]);
   }
 

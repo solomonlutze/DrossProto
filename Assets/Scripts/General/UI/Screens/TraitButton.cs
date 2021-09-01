@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 // which UpcomingLifeTraits we're equipping to
 // which item we're representing
 // which trait on the item - active or passive - we should show
-public class TraitButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class TraitButton : ButtonBase, ISelectHandler
 {
   public TraitSlot traitSlot;
   public BugStatusView parentScreen;
@@ -18,15 +18,9 @@ public class TraitButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     // should maybe happen on parent screen?
     parentScreen.OnTraitButtonClicked(traitSlot);
   }
-
-  public void OnPointerEnter(PointerEventData data)
+  public void OnSelect(BaseEventData data)
   {
-    Debug.Log("pointer enter " + traitSlot);
     parentScreen.OnTraitButtonSelected(traitSlot);
   }
 
-  public void OnPointerExit(PointerEventData data)
-  {
-    parentScreen.OnTraitButtonDeselected();
-  }
 }

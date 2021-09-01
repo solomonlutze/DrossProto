@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 using Yarn.Unity;
 using Rewired;
 using ScriptableObjectArchitecture;
+using UnityEngine.SceneManagement;
 
 public class GameMaster : Singleton<GameMaster>
 {
@@ -88,8 +89,6 @@ public class GameMaster : Singleton<GameMaster>
         if (rewiredPlayer.GetButtonDown("Restart") && playerController != null)
         {
           playerController.Die();
-          SetGameStatus(Constants.GameState.ChooseBug);
-          canvasHandler.DisplaySelectBugScreen();
         }
         else if (rewiredPlayer.GetButtonDown("Pause"))
         {
@@ -121,12 +120,14 @@ public class GameMaster : Singleton<GameMaster>
   public void SetGamePaused()
   {
     PauseGame();
+    canvasHandler.DisplayPauseMenu();
     SetGameStatus(Constants.GameState.Pause);
   }
 
   public void SetGameUnpaused()
   {
     UnpauseGame();
+    canvasHandler.ClosePauseMenu();
     SetGameStatus(Constants.GameState.Play);
   }
 
@@ -140,6 +141,20 @@ public class GameMaster : Singleton<GameMaster>
     Time.timeScale = 1;
   }
 
+  public void Die()
+  {
+    UnpauseGame();
+    canvasHandler.ClosePauseMenu();
+    playerController.Die();
+  }
+
+  public void Restart()
+  {
+    UnpauseGame();
+    SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    SetGameStatus(Constants.GameState.ChooseBug);
+    canvasHandler.DisplaySelectBugScreen();
+  }
   private void Respawn(TraitSlotToTraitDictionary overrideTraits = null)
   {
     GridManager.Instance.DestroyTilesOnPlayerRespawn();

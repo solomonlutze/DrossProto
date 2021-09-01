@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Rewired;
 
 
 // WIP - NOT IN USE YET.
@@ -11,9 +12,12 @@ using UnityEngine;
 public class CanvasHandler : MonoBehaviour
 {
 
-  public InventoryScreen inventoryScreen;
+
+  public int rewiredPlayerId = 0;
+  private Rewired.Player rewiredPlayer; public InventoryScreen inventoryScreen;
 
   public BugStatusView bugStatusScreen;
+  public PauseMenu pauseScreen;
   public StartingBugSelectScreen startingBugSelectScreen;
   private List<GameObject> canvasList = new List<GameObject>();
 
@@ -21,8 +25,10 @@ public class CanvasHandler : MonoBehaviour
   void Start()
   {
     // canvasList.Add(inventoryScreen.gameObject);
+    rewiredPlayer = ReInput.players.GetPlayer(rewiredPlayerId);
     canvasList.Add(bugStatusScreen.gameObject);
     canvasList.Add(startingBugSelectScreen.gameObject);
+    canvasList.Add(pauseScreen.gameObject);
     SetAllCanvasesInactive();
   }
 
@@ -38,7 +44,7 @@ public class CanvasHandler : MonoBehaviour
         }
         break;
       case Constants.GameState.Menu:
-        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.I))
+        if (rewiredPlayer.GetButtonDown("UICancel"))
         {
           CloseMenus();
         }
@@ -90,6 +96,16 @@ public class CanvasHandler : MonoBehaviour
     }
   }
 
+  public void DisplayPauseMenu()
+  {
+    GameMaster.Instance.SetGameMenu();
+    pauseScreen.gameObject.SetActive(true);
+  }
+
+  public void ClosePauseMenu()
+  {
+    pauseScreen.gameObject.SetActive(false);
+  }
   public void DisplaySelectBugScreen()
   {
     SetAllCanvasesInactive();
