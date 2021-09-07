@@ -1,5 +1,6 @@
 
 using UnityEngine;
+using UnityEditor;
 using UnityEngine.Tilemaps;
 
 [SelectionBase]
@@ -12,7 +13,7 @@ public class LayerFloor : MonoBehaviour
   public Tilemap waterTilemap; // Transient, only exists during play
   public Tilemap infoTilemap;
   public Transform interestObjects;
-  void Update()
+  public void Validate()
   {
     if (!Application.IsPlaying(gameObject))
     {
@@ -86,4 +87,19 @@ public class LayerFloor : MonoBehaviour
       }
     }
   }
+  #if UNITY_EDITOR
+  [MenuItem("CustomTools/ValidateLayerFloors")]
+  public static void ValidateLayerFloors()
+  {
+
+    foreach (LayerFloor layerFloor in GridManager.Instance.layerFloors.Values)
+    {
+      layerFloor.Validate();
+      // if (layerFloor.infoTilemap != null && layerFloor.infoTilemap.GetComponent<TilemapRenderer>() != null)
+      // {
+      //   layerFloor.infoTilemap.gameObject.SetActive(!layerFloor.infoTilemap.gameObject.activeSelf);
+      // }
+    }
+  }
+#endif
 }

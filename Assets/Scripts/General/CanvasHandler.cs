@@ -126,7 +126,7 @@ public class CanvasHandler : MonoBehaviour
     PlayerController player = GameMaster.Instance.GetPlayerController();
     if (player != null)
     {
-      DisplayBugStatusView(player.traits, traitItem);
+      DisplayBugStatusView(player.pupa, traitItem);
     }
   }
 }
