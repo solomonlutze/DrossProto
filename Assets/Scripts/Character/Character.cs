@@ -1457,7 +1457,7 @@ public class Character : WorldObject
   {
     if (animator != null)
     {
-      animator.SetTrigger("transitionToIdle");
+      // animator.SetTrigger("transitionToIdle");
     }
   }
   // END DAMAGE FUNCTIONS
@@ -1472,12 +1472,12 @@ public class Character : WorldObject
   public int GetAttribute(CharacterAttribute attributeToGet)
   {
     return 0;
-    bool exists = attributes.TryGetValue(attributeToGet, out int val);
-    if (!exists)
-    {
-      Debug.LogError("Tried to access non-existant attribute " + attributeToGet);
-    }
-    return val;
+    // bool exists = attributes.TryGetValue(attributeToGet, out int val);
+    // if (!exists)
+    // {
+    //   Debug.LogError("Tried to access non-existant attribute " + attributeToGet);
+    // }
+    // return val;
   }
 
   // STAT GETTERS

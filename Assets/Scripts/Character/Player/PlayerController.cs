@@ -374,61 +374,17 @@ public class PlayerController : Character
         {
           if (rewiredPlayer.GetButtonDown(skillActionName))
           {
-
-            Debug.Log("button down " + skillActionName);
-            // UseSelectedSkill();
             HandleSkillInput(GetSkillForActionInput(skillActionName));
             return;
           }
           if (rewiredPlayer.GetButtonUp(skillActionName))
           {
-            Debug.Log("button up " + skillActionName);
             if (pressingSkill == GetSkillForActionInput(skillActionName))
             {
               pressingSkill = null;
             }
-            // if (pressingSkill != moltSkill)
-            // {
-            //   pressingSkill = null;
-            // }
           }
         }
-        // if (rewiredPlayer.GetButtonDown("Use Skill"))
-        // {
-        //   UseSelectedSkill();
-        //   return;
-        // }
-        // if (rewiredPlayer.GetButtonUp("Use Skill"))
-        // {
-        //   if (pressingSkill != moltSkill)
-        //   {
-        //     pressingSkill = null;
-        //   }
-        // }
-        // if (rewiredPlayer.GetButtonDown("Use Attack"))
-        // {
-        //   UseSelectedAttackSkill();
-        //   return;
-        // }
-        // if (rewiredPlayer.GetButtonUp("Use Attack"))
-        // {
-        //   if (pressingSkill != moltSkill)
-        //   {
-        //     pressingSkill = null;
-        //   }
-        // }
-        // if (rewiredPlayer.GetButtonDown("Molt"))
-        // {
-        //   HandleSkillInput(moltSkill);
-        //   return;
-        // }
-        // if (rewiredPlayer.GetButtonUp("Molt"))
-        // {
-        //   if (pressingSkill == moltSkill)
-        //   {
-        //     pressingSkill = null;
-        //   }
-        // }
         if (CanMove())
         {
           if (Input.GetButtonDown("Ascend"))
@@ -444,19 +400,6 @@ public class PlayerController : Character
               return;
             }
           }
-          else if (Input.GetButtonDown("Descend"))
-          {
-            Debug.Log("descend?");
-            if (flying)
-            {
-              FlyDown();
-              return;
-            }
-            else
-            {
-              // DescendOneFloor(); // maybe descend??
-            }
-          }
           else if (rewiredPlayer.GetButtonDown("Interact"))
           {
             Debug.Log("Interact?");
@@ -467,35 +410,6 @@ public class PlayerController : Character
             }
           }
         }
-        if (Input.GetButtonDown("Dash"))
-        {
-          if (CanDash())
-          {
-            Dash();
-          }
-          return;
-        }
-        // else if (rewiredPlayer.GetButtonDown("Next Skill"))
-        // {
-        //   AdvanceSelectedSkill();
-        //   return;
-        // }
-        // else if (rewiredPlayer.GetButtonDown("Previous Skill"))
-        // {
-        //   PreviousSelectedSkill();
-        //   return;
-        // }
-
-        // else if (rewiredPlayer.GetButtonDown("Next Attack"))
-        // {
-        //   AdvanceSelectedAttack();
-        //   return;
-        // }
-        // else if (rewiredPlayer.GetButtonDown("Previous Attack"))
-        // {
-        //   PreviousSelectedAttack();
-        //   return;
-        // }
         else if (Input.GetButtonDown("AdvanceSelectedAction"))
         {
           AdvanceSelectedContextualAction();
