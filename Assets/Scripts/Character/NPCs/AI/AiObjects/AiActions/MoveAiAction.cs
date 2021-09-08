@@ -2,35 +2,19 @@ using UnityEngine;
 using System.Collections.Generic;
 
 // Extend, don't instantiate
-public class MoveAiAction : AiAction
+public class PathfindAiAction : AiAction
 {
   public int hazardCrossingCost = -1;
   [Tooltip("max stamina * minimumRemainingStaminaProportion = the amount that has to be left after dashing")]
   float minimumRemainingStaminaProportionForDash = .4f;
   float maxAngleFromDashTarget = 5f;
-  // public override bool Decide(AiStateController controller)
-  // {
-  //     // if dashing keeps us above the stamina % threshold,
-  //     // and we can dash without hitting anything or getting hurt,
-  //     // and we wouldn't overshoot our destination,
-  //     // we should dash!
-  //     if (controller.overrideDestination != null
-  //     && (
-  //       controller.transform.position - controller.overrideDestination.transform.position).sqrMagnitude
-  //       >= Mathf.Pow(controller.GetStat(CharacterStat.DashDistance), 2)
-  //       )
-  //     {
-  //         return true;
-  //     }
-  //     return false;
-  // }
 
   public override void Act(AiStateController controller)
   {
     // Do nothing
   }
 
-  protected void MoveTowardsObjectOfInterest(AiStateController controller)
+  protected void PathfindTowardsObjectOfInterest(AiStateController controller)
   {
     Vector2 movementInput = Vector2.zero;
 

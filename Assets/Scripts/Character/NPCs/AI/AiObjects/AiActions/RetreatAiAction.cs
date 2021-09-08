@@ -3,13 +3,13 @@ using UnityEngine;
 // n.b. literally just for backing up. retreat != flee. please use this judiciously.
 
 [CreateAssetMenu(menuName = "PluggableAi/Actions/Retreat")]
-public class RetreatAiAction : MoveAiAction
+public class RetreatAiAction : PathfindAiAction
 {
   public override void Act(AiStateController controller)
   {
     if (controller.overrideDestination != null)
     {
-      MoveTowardsObjectOfInterest(controller);
+      PathfindTowardsObjectOfInterest(controller);
     }
   }
 

@@ -25,7 +25,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
 
   public GridManager gridManager;
 
-  public IEnumerator CalculatePathToTarget(Vector3 startPosition, TileLocation targetLocation, AiStateController ai, MoveAiAction initiatingAction, WorldObject objectOfInterest = null)
+  public IEnumerator CalculatePathToTarget(Vector3 startPosition, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction, WorldObject objectOfInterest = null)
   {
     ai.SetIsCalculatingPath(true);
     bool foundPath = false;
@@ -129,7 +129,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     }
   }
 
-  List<Node> GetAdjacentNodes(Node originNode, TileLocation targetLocation, AiStateController ai, MoveAiAction initiatingAction)
+  List<Node> GetAdjacentNodes(Node originNode, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction)
   {
     List<Node> nodes = new List<Node>();
     MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.UpperRight), originNode, targetLocation, ai, initiatingAction);
@@ -524,7 +524,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
 
   // USUALLY returns either 1 (can cross) or -1 (can't cross).
   // MAY return a higher value if the tile deals damage; edit this function to adjust how hard that's weighed
-  private int GetNodeTravelCost(EnvironmentTileInfo tileInfo, AiStateController ai, MoveAiAction initiatingAction)
+  private int GetNodeTravelCost(EnvironmentTileInfo tileInfo, AiStateController ai, PathfindAiAction initiatingAction)
   {
     if (!tileInfo.CharacterCanOccupyTile(ai) || !tileInfo.CharacterCanCrossTile(ai))
     {
@@ -694,7 +694,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     return (targetLayer != null && targetLayer == newFloor);
   }
 
-  void MaybeAddNode(List<Node> nodeList, TileLocation possibleNodeLocation, Node originNode, TileLocation targetLocation, AiStateController ai, MoveAiAction initiatingAction)
+  void MaybeAddNode(List<Node> nodeList, TileLocation possibleNodeLocation, Node originNode, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction)
   {
     if (!gridManager.layerFloors.ContainsKey(possibleNodeLocation.floorLayer)) { return; }
     LayerFloor layer = gridManager.layerFloors[possibleNodeLocation.floorLayer];

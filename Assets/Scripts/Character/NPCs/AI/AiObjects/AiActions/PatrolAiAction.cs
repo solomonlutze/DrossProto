@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "PluggableAi/Actions/Patrol")]
-public class PatrolAiAction : MoveAiAction
+public class PatrolAiAction : PathfindAiAction
 {
   public float patrolRadius = 1f;
   public override void Act(AiStateController controller)
@@ -10,6 +10,6 @@ public class PatrolAiAction : MoveAiAction
     {
       controller.StartValidateAndSetWanderDestination((Random.insideUnitCircle * patrolRadius) + controller.spawnLocation, controller.currentFloor, this);
     }
-    MoveTowardsObjectOfInterest(controller);
+    PathfindTowardsObjectOfInterest(controller);
   }
 }

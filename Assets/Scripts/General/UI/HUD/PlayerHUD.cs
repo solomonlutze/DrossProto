@@ -23,7 +23,6 @@ public class PlayerHUD : MonoBehaviour
   public SuperTextMesh[] selectedSkillTexts;
   public SuperTextMesh selectedAttackSkillText;
   public SuperTextMesh selectedAttackSkillDescriptionText;
-  public SuperTextMesh moltText;
   public SuperTextMesh moltDescriptionText;
 
   bool playerExists;
@@ -55,8 +54,7 @@ public class PlayerHUD : MonoBehaviour
       {
         playerExists = true;
         healthBar.character = playerController;
-        moltText.text = playerController.moltSkill.displayName;
-        moltDescriptionText.text = playerController.moltSkill.description;
+        moltDescriptionText.text = "Hold button to shed max health. After several seconds, health is fully restored to new maximum.\n" + playerController.characterSkills[TraitSlot.Thorax].description;
         diedText.text = " ";
         for (int i = 0; i < selectedSkillTexts.Length; i++)
         {

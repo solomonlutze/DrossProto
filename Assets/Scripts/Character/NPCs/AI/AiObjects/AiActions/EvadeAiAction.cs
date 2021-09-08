@@ -1,13 +1,13 @@
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "PluggableAi/Actions/Evade")]
-public class EvadeAiAction : MoveAiAction
+public class EvadeAiAction : PathfindAiAction
 {
   public override void Act(AiStateController controller)
   {
     if (controller.overrideDestination != null)
     {
-      MoveTowardsObjectOfInterest(controller);
+      PathfindTowardsObjectOfInterest(controller);
     }
   }
 

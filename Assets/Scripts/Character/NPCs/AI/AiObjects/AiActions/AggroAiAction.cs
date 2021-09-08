@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "PluggableAi/Actions/Aggro")]
-public class AggroAiAction : MoveAiAction
+public class AggroAiAction : PathfindAiAction
 {
 
   public override bool OnEntry(AiStateController controller)
@@ -16,7 +16,7 @@ public class AggroAiAction : MoveAiAction
   {
     if (controller.objectOfInterest != null)
     {
-      MoveTowardsObjectOfInterest(controller);
+      PathfindTowardsObjectOfInterest(controller);
     }
   }
 }

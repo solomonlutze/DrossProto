@@ -206,13 +206,13 @@ public class AiStateController : Character
     layerRenderer.ChangeTargetOpacity();
   }
 
-  public void StartValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl, MoveAiAction initiatingAction)
+  public void StartValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl, PathfindAiAction initiatingAction)
   {
     if (isCalculatingPath) { return; }
     StartCoroutine(ValidateAndSetWanderDestination(pos, fl, initiatingAction));
   }
 
-  public IEnumerator ValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl, MoveAiAction initiatingAction)
+  public IEnumerator ValidateAndSetWanderDestination(Vector3 pos, FloorLayer fl, PathfindAiAction initiatingAction)
   {
     pos.z = GridManager.GetZOffsetForGameObjectLayer(WorldObject.GetGameObjectLayerFromFloorLayer(fl));
     TileLocation targetLocation = new TileLocation(pos, fl);
@@ -295,7 +295,7 @@ public class AiStateController : Character
     return isCalculatingPath;
   }
 
-  public void StartCalculatingPath(TileLocation targetLocation, MoveAiAction initiatingAction, WorldObject potentialObjectOfInterest = null)
+  public void StartCalculatingPath(TileLocation targetLocation, PathfindAiAction initiatingAction, WorldObject potentialObjectOfInterest = null)
   {
     if (isCalculatingPath || DEBUGStopRecalculatingPath) { return; }
     StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, initiatingAction, potentialObjectOfInterest));
@@ -413,6 +413,7 @@ public class AiStateController : Character
       float max = range.maxRange;
       max -= (max - min) * preferredAttackRangeBuffer;
       min += (max - min) * minDistanceToAttackBuffer;
+      Debug.Log("min: " + min + ", max: " + max);
       if ((transform.position - target.transform.position).sqrMagnitude <= max * max
         && (transform.position - target.transform.position).sqrMagnitude >= min * min
       )
