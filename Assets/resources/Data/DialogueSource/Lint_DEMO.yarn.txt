@@ -1,23 +1,36 @@
-
+title: Lint_DEMO.LintAlike1
+tags: 
+colorID: 0
+position: -1069,-850
+---
+<<if $friends_found eq 0>>
+    <<set $friends_found to 0>>
+<<endif>> 
+<<if visited("Lint_DEMO.LintAlike1") is false>>
+<<set $friends_found to $friends_found + 1>>
+<<endif>>
+Hi! You've found {$friends_found} of us.
+<<if $friends_found eq 3>>
+    That's all of us, congratulations!
+<<elseif $friends_found eq 2>>
+    Just one more, keep it up!
+<<elseif $friends_found eq 1>>
+Two more left! Try replacing your wings or legs to reach new places!
+<<endif>>
+===
 title: Lint_DEMO.Nope
 tags: 
 colorID: 0
-position: 0,0
-parent: 
+position: -1114,-512
 ---
-Hey, not gonna do a whole thing in here. Please consult the readme for instructions!
+Hi! Find my 3 friends to complete the demo. You can also find Trophy Grubs around to help you feel better about yourself. 
 
-You can find trophy grubs around this area. Use your skills to collect all ten!
-
-I mean. Ten's a good number, right? There could be thirteen or something but ten feels rounder and more complete. Don't exert yourself.
-
-Good luck!
+Everything else is in the readme. Good luck!
 ===
 title: Lint_DEMO.Congratulations
 tags: 
 colorID: 0
-position: 0,0
-parent: 
+position: 451,-514
 ---
 Congratulations! That means you've beaten the demo!
 
@@ -26,8 +39,7 @@ I hope you won't be too offended if I don't go check it out. Scripted motion for
 title: Lint_DEMO
 tags: 
 colorID: 0
-position: 0,0
-parent: 
+position: -281,-516
 ---
 <<if not visited("Lint_DEMO")>>
 Hey hi it's a demo!
@@ -51,8 +63,7 @@ Hey hi welcome back!
 title: Lint_DEMO.HowToPlay
 tags: 
 colorID: 0
-position: 0,0
-parent: 
+position: -702,73
 ---
 Go kill some bugs and steal their lymph!
 
@@ -73,8 +84,7 @@ And I'd really appreciate it.
 title: Lint_DEMO.HowToBasement
 tags: 
 colorID: 0
-position: 0,0
-parent: 
+position: 30,368
 ---
 Your starting bug has one of three abilities: water walking, burrowing, or fungus protection. 
 
@@ -89,8 +99,47 @@ If you kill them, I mean.
 title: Lint_DEMO.Leave
 tags: 
 colorID: 0
-position: 0,0
-parent: 
+position: 381,-56
 ---
 
+===
+title: Lint_DEMO.LintAlike2
+tags: 
+colorID: 0
+position: -803,-673
+---
+<<if $friends_found is 0>>
+<<set $friends_found to 0>>
+<<endif>> 
+<< if visited("Lint_DEMO.LintAlike2") is false >>
+<<set $friends_found to $friends_found + 1>>
+<<endif>> 
+Hi! You've found {$friends_found} of us.
+<<if $friends_found is 3>>
+That's all of us, congratulations!
+<<elseif $friends_found is 2>>
+Just one more, keep it up!
+<<elseif $friends_found is 1>>
+Two more left! Try replacing your wings or legs to reach new places!
+<<endif>>
+===
+title: Lint_DEMO.LintAlike3
+tags: 
+colorID: 0
+position: -824,-354
+---
+<<if $friends_found is 0>>
+<<set $friends_found to 0>>
+<<endif>> 
+<< if visited("Lint_DEMO.LintAlike3") is false >>
+<<set $friends_found to $friends_found + 1>>
+<<endif>> 
+Hi! You've found {$friends_found} of us.
+<<if $friends_found is 3>>
+    That's all of us, congratulations!
+<<elseif $friends_found is 2>>
+    Just one more, keep it up!
+<<elseif $friends_found is 1>>
+    Two more left! Try replacing your wings or legs to reach new places!
+<<endif>>
 ===

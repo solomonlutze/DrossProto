@@ -104,22 +104,18 @@ namespace Yarn.Unity
       // Replace variables in the string
       foreach (Match match in rgx.Matches(line.text))
       {
+        Debug.Log("found a match");
         string variableName = match.Value.Substring(1, match.Value.Length - 2);
         string replaceValue = "";
         char[] splitchar = { '.' };
         string[] variableStrings = variableName.Split(splitchar);
-        if (variableStrings.Length == 2)
+        Debug.Log("found some stuff ");
+        foreach (string variableString in variableStrings)
         {
-          if (variableStrings[0] == "player")
-          {
-            replaceValue = "STRING INTERPOLATION WORKS";
-          }
+          Debug.Log(variableString);
+          replaceValue = GameMaster.Instance.dialogueVariableStorage.GetValue(variableString).AsString;
+          currentDialogueLine = currentDialogueLine.Replace(match.Value, replaceValue);
         }
-        else
-        {
-          replaceValue = "wat";
-        }
-        currentDialogueLine = currentDialogueLine.Replace(match.Value, replaceValue);
       }
 
       if (textSpeed > 0.0f)

@@ -26,6 +26,7 @@ public class WorldObject : MonoBehaviour
   void Awake()
   {
     transform.position = new Vector3(transform.position.x, transform.position.y, GridManager.GetZOffsetForGameObjectLayer(gameObject.layer));
+    ChangeLayersRecursively(transform, gameObject.layer);
   }
   public Collider2D col
   {
@@ -55,7 +56,10 @@ public class WorldObject : MonoBehaviour
     // {
     //   t.position = new Vector3(t.position.x, t.position.y, GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(layerName)));
     // }
-    ChangeLayersRecursively(t, (FloorLayer)Enum.Parse(typeof(FloorLayer), LayerMask.LayerToName(gameObjectLayer)));
+    if (Enum.IsDefined(typeof(FloorLayer), LayerMask.LayerToName(gameObjectLayer)))
+    {
+      ChangeLayersRecursively(t, (FloorLayer)Enum.Parse(typeof(FloorLayer), LayerMask.LayerToName(gameObjectLayer)));
+    }
   }
   public static void ChangeLayersRecursively(Transform t, FloorLayer layerName)
   {

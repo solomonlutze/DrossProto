@@ -8,7 +8,7 @@ public class LayerRenderer : MonoBehaviour
   public float fadeDampTime = 0.005f;
   public float fadeTime = 0.25f;
   float currentOpacity = 0;
-  public bool shouldBeVisible = false;
+  public bool becomingVisible = false;
   // public FloorLayer floorLayer;
   public IntVariable currentFloorLayer;
   public bool executeInPlayMode = true;
@@ -33,7 +33,7 @@ public class LayerRenderer : MonoBehaviour
   {
     if (ShouldExecute())
     {
-      if (!FinishedChangingOpacity(shouldBeVisible, currentOpacity))
+      if (!FinishedChangingOpacity(becomingVisible, currentOpacity, GetTargetOpacity()))
       {
         // WARNING: AI and LayerRenderer tightly coupled for camouflage.
         // See AiStateController.HandleVisibility. 
@@ -42,15 +42,37 @@ public class LayerRenderer : MonoBehaviour
         // {
         //   return;
         // }
-        currentOpacity += Time.deltaTime / fadeTime * (shouldBeVisible ? 1 : -1);
-        ChangeOpacityRecursively(transform, currentOpacity);
+        currentOpacity += Time.deltaTime / fadeTime * (becomingVisible ? 1 : -1);
+        if (FinishedChangingOpacity(becomingVisible, currentOpacity, GetTargetOpacity()))
+        {
+          currentOpacity = GetTargetOpacity();
+          ChangeOpacityRecursively(transform, currentOpacity); // prevent overshooting our desired opagcity
+        }
+        else
+        {
+          ChangeOpacityRecursively(transform, currentOpacity);
+        }
       }
     }
   }
 
-  public static bool FinishedChangingOpacity(bool shouldBeVisible, float currentOpacity)
+  public float GetTargetOpacity()
   {
-    return (shouldBeVisible && currentOpacity >= 1) || (!shouldBeVisible && currentOpacity <= 0);
+    int floorOffsetFromCurrentLayer = (int)WorldObject.GetFloorLayerFromGameObjectLayer(gameObject.layer) - currentFloorLayer.Value;
+    if (floorOffsetFromCurrentLayer > 1 || floorOffsetFromCurrentLayer < -3)
+    {
+      return 0;
+    }
+    if (floorOffsetFromCurrentLayer == 1)
+    {
+      return .2f;
+    }
+    return 1;
+  }
+
+  public static bool FinishedChangingOpacity(bool becomingVisible, float currentOpacity, float targetOpacity)
+  {
+    return (becomingVisible && currentOpacity > targetOpacity) || (!becomingVisible && currentOpacity < targetOpacity);
   }
 
   // called from event handler. gotta set it up or this script does nothing!
@@ -58,13 +80,17 @@ public class LayerRenderer : MonoBehaviour
   {
     int floorOffsetFromCurrentLayer = (int)WorldObject.GetFloorLayerFromGameObjectLayer(gameObject.layer) - currentFloorLayer.Value; // positive means we are above player; negative means we are below
 
-    if (floorOffsetFromCurrentLayer > 0 || floorOffsetFromCurrentLayer < -3)
+    if (floorOffsetFromCurrentLayer == 1)
     {
-      shouldBeVisible = false;
+      becomingVisible = GetTargetOpacity() > currentOpacity;
+    }
+    else if (floorOffsetFromCurrentLayer > 1 || floorOffsetFromCurrentLayer < -3)
+    {
+      becomingVisible = false;
     }
     else
     {
-      shouldBeVisible = true;
+      becomingVisible = true;
     }
   }
 
