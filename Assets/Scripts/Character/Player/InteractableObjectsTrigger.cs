@@ -3,28 +3,36 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Lives on player's InteractableTrigger to collect interactable objects as they appear
-public class InteractableObjectsTrigger : MonoBehaviour {
+public class InteractableObjectsTrigger : MonoBehaviour
+{
 
-	// Use this for initialization
-	private PlayerController player;
-	void Start () {
-		player = transform.parent.GetComponent<PlayerController>();
-	}
+  // Use this for initialization
+  private PlayerController player;
+  void Start()
+  {
+    player = transform.parent.GetComponent<PlayerController>();
+  }
 
-	// Update is called once per frame
-	void Update () {
+  // Update is called once per frame
+  void Update()
+  {
 
-	}
+  }
 
-	void OnTriggerEnter2D(Collider2D collider) {
-		if (collider.gameObject.GetComponentInChildren<Interactable>() != null) {
-			player.AddInteractable(collider.gameObject.GetComponentInChildren<Interactable>());
-		}
-	}
+  void OnTriggerEnter2D(Collider2D collider)
+  {
+    if (collider.gameObject.GetComponentInChildren<Interactable>() != null)
+    {
+      Debug.Log("collided with " + collider.gameObject);
+      player.AddInteractable(collider.gameObject.GetComponentInChildren<Interactable>());
+    }
+  }
 
-	void OnTriggerExit2D(Collider2D collider) {
-		if (collider.gameObject.GetComponentInChildren<Interactable>() != null) {
-			player.RemoveInteractable(collider.gameObject.GetComponentInChildren<Interactable>());
-		}
-	}
+  void OnTriggerExit2D(Collider2D collider)
+  {
+    if (collider.gameObject.GetComponentInChildren<Interactable>() != null)
+    {
+      player.RemoveInteractable(collider.gameObject.GetComponentInChildren<Interactable>());
+    }
+  }
 }

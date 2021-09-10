@@ -14,6 +14,7 @@ public class WithinAttackRangeAiDecision : AiDecision
     List<CharacterSkillData> attacksInRange = GetAttacksInRange(controller);
     if (attacksInRange.Count > 0)
     {
+      Debug.Log("within attack range!");
       CharacterSkillData attackToUse = attacksInRange[Random.Range(0, attacksInRange.Count)];
       // Debug.Log("selected attack " + attackToUse);
       controller.WaitThenAttack(attackToUse);
@@ -25,11 +26,11 @@ public class WithinAttackRangeAiDecision : AiDecision
   public List<CharacterSkillData> GetAttacksInRange(AiStateController controller)
   {
     List<CharacterSkillData> viableAttacks = new List<CharacterSkillData>();
-    // Debug.Log("attack skills count: " + controller.characterAttackSkills.Count);
+    Debug.Log("attack skills count: " + controller.characterAttackSkills.Count);
     foreach (CharacterSkillData skillData in controller.characterAttackSkills)
     {
       SkillRangeInfo[] rangeInfos = skillData.CalculateRangeInfosForSkillEffectSet(controller);
-      // Debug.Log("rangeInfos count " + rangeInfos.Length);
+      Debug.Log("rangeInfos count " + rangeInfos.Length);
       // NOTE:
       // This "if" can evaluate to true if the character is in range (but not angle) for one attack spawn
       // and within angle (but not range) for another attack spawn

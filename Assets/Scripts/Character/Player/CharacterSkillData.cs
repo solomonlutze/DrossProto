@@ -35,6 +35,7 @@ public class CharacterSkillData : ScriptableObject
   public string displayName;
   [TextArea]
   public string description;
+  [SerializeField]
 
   bool isAttack = false;
   public SkillEffectSet[] skillEffectSets;
@@ -217,6 +218,7 @@ public class CharacterSkillData : ScriptableObject
 
   void SetIsAttack()
   {
+    Debug.Log("set is attack, I guess??");
     if (skillEffectSets == null) { return; }
     foreach (SkillEffectSet set in skillEffectSets)
     {
@@ -246,7 +248,9 @@ public class CharacterSkillData : ScriptableObject
 
   public void OnValidate()
   {
+    Debug.Log("onvalidate for " + name);
     SetIsAttack();
+    Debug.Log("isAttack is " + isAttack);
   }
 
 }

@@ -54,6 +54,10 @@ public class PlayerHUD : MonoBehaviour
       {
         playerExists = true;
         healthBar.character = playerController;
+        Debug.Log("setting molt description text");
+        Debug.Log("text object: " + moltDescriptionText);
+        Debug.Log("molt skill:" + playerController.characterSkills[TraitSlot.Thorax]);
+        Debug.Log("molt description: " + "Hold button to shed max health. After several seconds, health is fully restored to new maximum.\n" + playerController.characterSkills[TraitSlot.Thorax].description);
         moltDescriptionText.text = "Hold button to shed max health. After several seconds, health is fully restored to new maximum.\n" + playerController.characterSkills[TraitSlot.Thorax].description;
         diedText.text = " ";
         for (int i = 0; i < selectedSkillTexts.Length; i++)
@@ -61,6 +65,8 @@ public class PlayerHUD : MonoBehaviour
           // if (selectedSkill != playerController.characterSkills[playerController.selectedSkillIdx])
           // {
           //   selectedSkill = playerController.characterSkills[playerController.selectedSkillIdx];
+          Debug.Log("setting text for skill " + playerController.characterSkills[Trait.slots[i]].displayName);
+          Debug.Log("text object: " + selectedSkillTexts[i]);
           selectedSkillTexts[i].text = playerController.characterSkills[Trait.slots[i]].displayName;
           // }
         }

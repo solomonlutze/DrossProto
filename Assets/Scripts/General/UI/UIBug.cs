@@ -14,8 +14,6 @@ public class UIBug : MonoBehaviour
 
   public void PopulateVisuals(TraitSlotToTraitDictionary traitsForVisuals)
   {
-    Debug.Log("traits for visuals " + traitsForVisuals);
-    Debug.Log("characterVisuals " + characterVisuals);
     characterVisuals.SetCharacterVisuals(traitsForVisuals);
     animator.SetFloat("HeadAnimationType", (int)traitsForVisuals[TraitSlot.Head].bugSpecies);
     animator.SetFloat("ThoraxAnimationType", (int)traitsForVisuals[TraitSlot.Thorax].bugSpecies);

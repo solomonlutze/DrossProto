@@ -79,13 +79,20 @@ public class AiStateController : Character
   {
     base.Init();
     characterAttackSkills = new List<CharacterSkillData>();
+    Debug.Log("init " + gameObject.name);
+    Debug.Log("skills length " + characterSkills.Count);
     foreach (CharacterSkillData skill in characterSkills.Values)
     {
+      Debug.Log("evaluating skill " + skill);
       if (skill.IsAttack())
       {
+
+        Debug.Log("adding skill " + skill);
         characterAttackSkills.Add(skill);
       }
     }
+
+    Debug.Log("new attack skills length " + characterAttackSkills.Count);
   }
   protected override void Update()
   {
@@ -121,6 +128,7 @@ public class AiStateController : Character
       timeSpentInState = 0f;
       currentState.OnExit(this);
       currentState = nextState;
+      Debug.Log("transitioned to state " + currentState);
       //TODO: should we fall back if onEntry fails?
       currentState.OnEntry(this);
     }
@@ -427,6 +435,7 @@ public class AiStateController : Character
   public bool WithinAttackAngle(WorldObject target, SkillRangeInfo[] rangeInfos)
   {
     Vector3 targetDirection = target.transform.position - transform.position;
+    Debug.Log("aiSettings.minAttackAngle " + aiSettings.minAttackAngle + ", actual angle " + Mathf.Abs(GetAngleToDirection(targetDirection)));
     return Mathf.Abs(GetAngleToDirection(targetDirection)) < aiSettings.minAttackAngle;
 
     foreach (SkillRangeInfo range in rangeInfos)
