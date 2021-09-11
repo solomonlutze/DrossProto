@@ -37,7 +37,10 @@ public enum MusicStem
   ClergyHighPiano,
   ClergyOrgan,
   ClergyChiff,
-  ClergySynthPad
+  ClergySynthPad,
+  ClergyCombatDrums,
+  ClergyCombatKeys,
+  ClergyCombatSynth
 }
 
 [System.Serializable]
