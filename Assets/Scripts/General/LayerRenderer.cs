@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEditor;
 using UnityEngine.Tilemaps;
 using ScriptableObjectArchitecture;
 
@@ -9,6 +10,7 @@ public class LayerRenderer : MonoBehaviour
   public float fadeTime = 0.25f;
   float currentOpacity = 0;
   public bool becomingVisible = false;
+  public static bool showFloorAbove = false;
   // public FloorLayer floorLayer;
   public IntVariable currentFloorLayer;
   public bool executeInPlayMode = true;
@@ -65,7 +67,11 @@ public class LayerRenderer : MonoBehaviour
     }
     if (floorOffsetFromCurrentLayer == 1)
     {
-      return .2f;
+      if (showFloorAbove)
+      {
+        return .2f;
+      }
+      return 0;
     }
     return 1;
   }
@@ -129,4 +135,14 @@ public class LayerRenderer : MonoBehaviour
       ChangeOpacityRecursively(child, currentOpacity);
     }
   }
+
+
+#if UNITY_EDITOR
+  [MenuItem("CustomTools/ToggleAboveFloorOpacity")]
+  public static void ToggleAboveFloorOpacity()
+  {
+    showFloorAbove = !showFloorAbove;
+  }
+#endif
 }
+
