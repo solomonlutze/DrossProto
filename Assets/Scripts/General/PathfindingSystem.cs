@@ -44,11 +44,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     timeSpentThisFrame.Start();
     while (openNodes.Count > 0)
     {
-      if (timeSpentThisFrame.ElapsedMilliseconds > 1)
-      {
-        yield return null;
-        timeSpentThisFrame.Restart();
-      }
+
       if (openNodes.Count > 80 || closedNodes.Count > 80)
       {
         // We should give up on finding a path
@@ -73,6 +69,11 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       adjacentNodes = GetAdjacentNodes(nextNode, targetLocation, ai, initiatingAction);
       foreach (Node node in adjacentNodes)
       {
+        if (timeSpentThisFrame.ElapsedMilliseconds > 1)
+        {
+          yield return null;
+          timeSpentThisFrame.Restart();
+        }
         if (closedNodes.Contains(node.loc))
         {
           continue;

@@ -515,14 +515,12 @@ public class Character : WorldObject
 
   public void HandleSkillInput(CharacterSkillData skill)
   {
-    Debug.Log("trying to use skill " + skill);
     QueueSkill(skill);
     PressSkill(skill);
     if (!UsingSkill())
     {
       if (CanUseSkill(skill))
       {
-        Debug.Log("beginning skill " + skill);
         BeginSkill(skill);
       }
       queuedSkill = null;

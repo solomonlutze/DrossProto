@@ -421,7 +421,6 @@ public class AiStateController : Character
       float max = range.maxRange;
       max -= (max - min) * preferredAttackRangeBuffer;
       min += (max - min) * minDistanceToAttackBuffer;
-      Debug.Log("min: " + min + ", max: " + max);
       if ((transform.position - target.transform.position).sqrMagnitude <= max * max
         && (transform.position - target.transform.position).sqrMagnitude >= min * min
       )
@@ -435,7 +434,6 @@ public class AiStateController : Character
   public bool WithinAttackAngle(WorldObject target, SkillRangeInfo[] rangeInfos)
   {
     Vector3 targetDirection = target.transform.position - transform.position;
-    Debug.Log("aiSettings.minAttackAngle " + aiSettings.minAttackAngle + ", actual angle " + Mathf.Abs(GetAngleToDirection(targetDirection)));
     return Mathf.Abs(GetAngleToDirection(targetDirection)) < aiSettings.minAttackAngle;
 
     foreach (SkillRangeInfo range in rangeInfos)
