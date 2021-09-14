@@ -29,17 +29,18 @@ public class WallObject : MonoBehaviour
   {
     wallSprite = sprite;
     wallPieces = new List<GameObject>();
-    string sortingLayer = location.floorLayer.ToString();
+    string sortingLayer = "Default";
     for (int i = 0; i < numberOfPieces; i++)
     {
       wallPieces.Add(Instantiate(wallPieceObject, transform.position, Quaternion.identity));
       SpriteRenderer sr = wallPieces[i].GetComponent<SpriteRenderer>();
       sr.sprite = wallSprite;
+      sr.sortingLayerName = sortingLayer;
       sr.sortingOrder = orderInLayer;
       wallPieces[i].transform.parent = transform;
       wallPieces[i].transform.localPosition = new Vector3(0, 0, -i * 1.0f / numberOfPieces);
     }
-    WorldObject.ChangeLayersRecursively(transform, location.floorLayer);
+    // WorldObject.ChangeLayersRecursively(transform, location.floorLayer);
   }
 
   public void ChangeColor(Color newColor)

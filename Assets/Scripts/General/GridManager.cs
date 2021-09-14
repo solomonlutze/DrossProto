@@ -280,9 +280,16 @@ public class GridManager : Singleton<GridManager>
     foreach (LayerFloor lf in layerFloors.Values)
     {
       groundTilemap = lf.groundTilemap;
+      groundTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Default";
+      groundTilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
+
+      objectTilemap = lf.objectTilemap;
+      objectTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Default";
+      groundTilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
       lf.waterTilemap = Instantiate(waterTilemapPrefab, lf.gameObject.transform);
       lf.waterTilemap.gameObject.layer = lf.gameObject.layer;
-      lf.waterTilemap.GetComponent<TilemapRenderer>().sortingLayerName = LayerMask.LayerToName(lf.gameObject.layer);
+      lf.waterTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Default";
+      lf.waterTilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
       lf.interestObjects = new GameObject().transform;
       lf.interestObjects.parent = lf.transform;
       lf.interestObjects.position = lf.transform.position;
@@ -711,23 +718,23 @@ public class GridManager : Singleton<GridManager>
   // 	return tile;
   // }
 
-  public void OnLayerChange(FloorLayer floor)
-  {
-    // Used to control floor layer transparency.
-    if (layerFloors.ContainsKey(floor))
-    {
-      LayerFloor newFloor = layerFloors[floor];
-      newFloor.groundTilemap.GetComponent<TilemapRenderer>().material = fullyOpaqueMaterial;
-      newFloor.objectTilemap.GetComponent<TilemapRenderer>().material = fullyOpaqueMaterial;
+  // public void OnLayerChange(FloorLayer floor)
+  // {
+  //   // Used to control floor layer transparency.
+  //   if (layerFloors.ContainsKey(floor))
+  //   {
+  //     LayerFloor newFloor = layerFloors[floor];
+  //     newFloor.groundTilemap.GetComponent<TilemapRenderer>().material = fullyOpaqueMaterial;
+  //     newFloor.objectTilemap.GetComponent<TilemapRenderer>().material = fullyOpaqueMaterial;
 
-    }
-    if (layerFloors.ContainsKey(floor + 1))
-    {
-      LayerFloor nextFloorUp = layerFloors[floor + 1];
-      nextFloorUp.groundTilemap.GetComponent<TilemapRenderer>().material = semiTransparentMaterial;
-      nextFloorUp.objectTilemap.GetComponent<TilemapRenderer>().material = semiTransparentMaterial;
-    }
-  }
+  //   }
+  //   if (layerFloors.ContainsKey(floor + 1))
+  //   {
+  //     LayerFloor nextFloorUp = layerFloors[floor + 1];
+  //     nextFloorUp.groundTilemap.GetComponent<TilemapRenderer>().material = semiTransparentMaterial;
+  //     nextFloorUp.objectTilemap.GetComponent<TilemapRenderer>().material = semiTransparentMaterial;
+  //   }
+  // }
   // public bool CanStickToAdjacentTile(Vector3 loc, FloorLayer floor)
   // {
   //   foreach (TilemapDirection d in new TilemapDirection[] {

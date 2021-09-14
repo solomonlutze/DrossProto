@@ -47,8 +47,8 @@ public class LayerFloor : MonoBehaviour
       {
         objectTilemap.gameObject.layer = LayerMask.NameToLayer(gameObject.name);
         objectTilemap.gameObject.name = gameObject.name + "_Object";
-        objectTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
-        objectTilemap.GetComponent<TilemapRenderer>().sortingOrder = 1;
+        // objectTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
+        objectTilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
       }
       if (visibilityTilemap == null)
       {
@@ -64,7 +64,7 @@ public class LayerFloor : MonoBehaviour
         visibilityTilemap.gameObject.name = gameObject.name + "_Visibility";
         if (visibilityTilemap.GetComponent<TilemapRenderer>() != null)
         {
-          visibilityTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
+          // visibilityTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
           visibilityTilemap.GetComponent<TilemapRenderer>().sortingOrder = 100;
         }
       }
@@ -87,7 +87,7 @@ public class LayerFloor : MonoBehaviour
       }
     }
   }
-  #if UNITY_EDITOR
+#if UNITY_EDITOR
   [MenuItem("CustomTools/ValidateLayerFloors")]
   public static void ValidateLayerFloors()
   {
