@@ -4,6 +4,7 @@ using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using Priority_Queue;
+using System.Threading;
 
 public class Node
 {
@@ -282,6 +283,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     }
     return true;
   }
+
   public bool IsPathClearOfHazards(Vector3 targetPosition, FloorLayer targetFloor, Character character)
   {
     if (targetFloor != character.currentFloor)

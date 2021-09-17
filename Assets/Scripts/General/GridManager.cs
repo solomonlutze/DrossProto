@@ -280,13 +280,16 @@ public class GridManager : Singleton<GridManager>
     foreach (LayerFloor lf in layerFloors.Values)
     {
       groundTilemap = lf.groundTilemap;
+      groundTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Default";
+      groundTilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
+
+      objectTilemap = lf.objectTilemap;
+      objectTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Default";
+      groundTilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
       lf.waterTilemap = Instantiate(waterTilemapPrefab, lf.gameObject.transform);
       lf.waterTilemap.gameObject.layer = lf.gameObject.layer;
-      lf.waterTilemap.GetComponent<TilemapRenderer>().sortingLayerName = LayerMask.LayerToName(lf.gameObject.layer);
-      lf.interestObjects = new GameObject().transform;
-      lf.interestObjects.parent = lf.transform;
-      lf.interestObjects.position = lf.transform.position;
-      lf.interestObjects.gameObject.layer = lf.gameObject.layer;
+      lf.waterTilemap.GetComponent<TilemapRenderer>().sortingLayerName = "Default";
+      lf.waterTilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
       minXAcrossAllFloors = Mathf.Min(minXAcrossAllFloors, groundTilemap.cellBounds.xMin);
       maxXAcrossAllFloors = Mathf.Max(maxXAcrossAllFloors, groundTilemap.cellBounds.xMax);
       minYAcrossAllFloors = Mathf.Min(minYAcrossAllFloors, groundTilemap.cellBounds.yMin);
