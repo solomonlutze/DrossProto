@@ -38,6 +38,7 @@ public class GameMaster : Singleton<GameMaster>
   public bool isPaused = false;
   public bool playerObliterated;
   bool musicPlaying = false;
+  public Transform cameraFollowObject;
 
   // Use this for initialization
   void Start()
