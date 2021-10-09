@@ -29,6 +29,9 @@ public class GameMaster : Singleton<GameMaster>
   // Saved when player dies so their next life can be preserved
   private TraitSlotToTraitDictionary cachedPupa;
   public GameObject[] spawnPoints;
+
+  public BaseVariable[] variablesToClearOnRespawn;
+  public GameEvent[] eventsToRaiseOnRespawn;
   public GameObject nextSpawnPoint;
   private int previousSpawnPoint = 0;
 
@@ -44,7 +47,6 @@ public class GameMaster : Singleton<GameMaster>
   {
     rewiredPlayer = ReInput.players.GetPlayer(rewiredPlayerId);
     trophyGrubCount.Value = 0;
-    // Debug.unityLogger.logEnabled = false;
     Time.fixedDeltaTime = 1 / 60f;
     pathfinding = GetComponent<PathfindingSystem>();
     SetGameStatus(startingGameStatus);
@@ -157,6 +159,7 @@ public class GameMaster : Singleton<GameMaster>
   }
   private void Respawn(TraitSlotToTraitDictionary overrideTraits = null)
   {
+    ClearVariables(variablesToClearOnRespawn, eventsToRaiseOnRespawn);
     GridManager.Instance.DestroyTilesOnPlayerRespawn();
     GridManager.Instance.RestoreTilesOnPlayerRespawn();
     GameObject player = GameObject.FindGameObjectWithTag("Player");
@@ -258,5 +261,28 @@ public class GameMaster : Singleton<GameMaster>
   {
     if (!dialogueRunner.isDialogueRunning) { return; }
     StartCoroutine(dialogueRunner.Interrupt());
+  }
+
+  public static void ClearVariables(BaseVariable[] variablesToClear, GameEvent[] eventsToRaise)
+  {
+    foreach (BaseVariable variable in variablesToClear)
+    {
+      switch (variable)
+      {
+        case StringVariable stringVariable:
+          stringVariable.Value = "";
+          break;
+        case FloatVariable floatVariable:
+          floatVariable.Value = 0.0f;
+          break;
+        case IntVariable intVariable:
+          intVariable.Value = 0;
+          break;
+      }
+    }
+    foreach (GameEvent eventToRaise in eventsToRaise)
+    {
+      eventToRaise.Raise();
+    }
   }
 }

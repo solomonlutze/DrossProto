@@ -69,7 +69,7 @@ public class EnvironmentTile : RandomTile
   public ParticleSystem.EmitParams footstepSystemParams;
   private string tileType;
   private Renderer _renderer;
-  public ShaderData shaderData;
+  public AnimationCurve wallSizeCurve;
   public int interestObjectPriority = 0; // whichever tile has the higher priority will place its border
   public bool acceptsInterestObjects = true; // if false, no interest objects may be placed on this tile
   public GameObject[] borderInterestObjects;
@@ -84,7 +84,9 @@ public class EnvironmentTile : RandomTile
     string path = EditorUtility.SaveFilePanelInProject("Save Environment Tile", "New Environment Tile", "Asset", "Save Environment Tile", "resources/Art/Tiles");
     if (path == "")
       return;
-    AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<EnvironmentTile>(), path);
+    EnvironmentTile tile = ScriptableObject.CreateInstance<EnvironmentTile>();
+    tile.wallSizeCurve = AnimationCurve.Constant(0, 1, 1);
+    AssetDatabase.CreateAsset(tile, path);
   }
 #endif
 

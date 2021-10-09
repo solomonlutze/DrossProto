@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -46,6 +46,8 @@ public enum MusicStem
 [System.Serializable]
 public class InfoTile : Tile
 {
+  [Tooltip("This tile won't change ")]
+  public bool neutralTile;
   public string areaName;
   public List<MusicStem> musicStems;
   public FloorTilemapType floorTilemapType = FloorTilemapType.Info;

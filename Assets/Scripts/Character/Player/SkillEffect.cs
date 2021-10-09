@@ -2,8 +2,9 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using System.Collections;
 using System.Collections.Generic;
-
-public enum SkillEffectType { OneTime, Continuous }
+// NOTE: WhileAirborne means the effect lasts until the player lands no matter what.
+// If something else should ALSO end the effect, make a new flag
+public enum SkillEffectType { OneTime, Continuous, WhileAirborne }
 
 [System.Serializable]
 public class SkillEffectGroup

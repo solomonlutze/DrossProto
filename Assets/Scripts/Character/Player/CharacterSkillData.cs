@@ -77,7 +77,6 @@ public class CharacterSkillData : ScriptableObject
     if (currentSkillEffect.useType == SkillEffectType.Continuous)
     {
       if (
-        // || owner not holding button 
         !owner.pressingSkill == this && ((currentSkillEffect.minDuration.get(owner) > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.minDuration.get(owner))
         || (currentSkillEffect.minDuration.get(owner) <= 0))
       )
@@ -89,10 +88,14 @@ public class CharacterSkillData : ScriptableObject
         owner.AdvanceSkillEffect();
       }
     }
-    else if (owner.timeSpentInSkillEffect > currentSkillEffect.minDuration.get(owner))
+    else if (currentSkillEffect.useType == SkillEffectType.OneTime)
     {
-      owner.AdvanceSkillEffect();
+      if (owner.timeSpentInSkillEffect > currentSkillEffect.minDuration.get(owner))
+      {
+        owner.AdvanceSkillEffect();
+      }
     }
+
   }
   public void CleanUp(Character owner)
   {
@@ -121,6 +124,11 @@ public class CharacterSkillData : ScriptableObject
   public bool IsContinuous(Character owner)
   {
     return GetActiveSkillEffect(owner).useType == SkillEffectType.Continuous;
+  }
+
+  public bool IsWhileAirborne(Character owner)
+  {
+    return GetActiveSkillEffect(owner).useType == SkillEffectType.WhileAirborne;
   }
   // a skill _EFFECT_ is interruptable, but the ENTIRE SKILL gets interrupted.
   public bool SkillIsInterruptable(Character owner)

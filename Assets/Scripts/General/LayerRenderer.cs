@@ -112,13 +112,11 @@ public class LayerRenderer : MonoBehaviour
     Tilemap t = trans.gameObject.GetComponent<Tilemap>();
     if (t != null)
     {
-      // actualNewOpacity = Mathf.SmoothDamp(t.color.a, targetOpacity, ref _ref, fadeDampTime);
       t.color = new Color(t.color.r, t.color.g, t.color.b, currentOpacity);
     }
     TilemapRenderer tr = trans.GetComponent<TilemapRenderer>();
     if (tr != null)
     {
-      // Debug.Log("should be disabling " + tr);
       if (currentOpacity <= 0)
       {
         tr.enabled = false;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Tilemaps;
+using ScriptableObjectArchitecture;
 
 // this sucks
 public static class GridConstants
@@ -243,6 +244,8 @@ public class GridManager : Singleton<GridManager>
   public HashSet<EnvironmentTileInfo> litTiles;
   public HashSet<EnvironmentTileInfo> tilesToRecalculateLightingFor;
   public EnvironmentTile visibilityTile;
+  public StringVariable areaName;
+  public GameEvent areaNameChanged;
   public Tilemap waterTilemapPrefab;
   public WallObject defaultWallObject;
 
@@ -486,8 +489,7 @@ public class GridManager : Singleton<GridManager>
     {
       info.wallObject = Instantiate(defaultWallObject);
       info.wallObject.transform.position = loc.cellCenterWorldPosition;
-      info.wallObject.Init(loc, objectTile.sprite);
-      // info.wallObject.transform.parent = groundTilemap.transform.parent;
+      info.wallObject.Init(loc, objectTile);
     }
     if (info.HasTileTag(TileTag.Water))
     {
@@ -1145,32 +1147,50 @@ public class GridManager : Singleton<GridManager>
 
   Coroutine _recalculateVisiblityCoroutine;
 
-  public void PlayerChangedTile(TileLocation newPlayerTileLocation, int sightRange, DarkVisionInfo[] darkVisionInfos)
+  public void PlayerChangedTile(TileLocation newPlayerTileLocation, int sightRange = 0, DarkVisionInfo[] darkVisionInfos = null)
   {
+    Debug.Log("changed tile");
+    InfoTile currentInfoTile = null;
     List<MusicStem> oldStems = new List<MusicStem>();
     if (currentPlayerLocation != null && GetTileAtLocation(currentPlayerLocation).infoTileType != null)
     {
-      oldStems = GetTileAtLocation(currentPlayerLocation).infoTileType.musicStems;
+      currentInfoTile = GetTileAtLocation(currentPlayerLocation).infoTileType;
+      if (currentInfoTile != null)
+      {
+        oldStems = GetTileAtLocation(currentPlayerLocation).infoTileType.musicStems;
+      }
     }
+    InfoTile nextInfoTile = GetTileAtLocation(newPlayerTileLocation).infoTileType;
     List<MusicStem> newStems = new List<MusicStem>();
-    if (GetTileAtLocation(newPlayerTileLocation).infoTileType != null)
+    Debug.Log("next info tile " + nextInfoTile);
+    if (nextInfoTile != null)
     {
-      newStems = GetTileAtLocation(newPlayerTileLocation).infoTileType.musicStems;
+      newStems = nextInfoTile.musicStems;
+      if (areaName.Value != nextInfoTile.areaName)
+      {
+        areaName.Value = nextInfoTile.areaName;
+        areaNameChanged.Raise();
+      }
+      if (currentInfoTile != nextInfoTile)
+        foreach (MusicStem oldStem in oldStems)
+        {
+          if (!newStems.Contains(oldStem))
+          {
+            AkSoundEngine.PostEvent(oldStem.ToString() + "_FadeOut", gameObject);
+          }
+        }
+      foreach (MusicStem newStem in newStems)
+      {
+        if (!oldStems.Contains(newStem))
+        {
+          AkSoundEngine.PostEvent(newStem.ToString() + "_FadeIn", gameObject);
+        }
+      }
     }
     currentPlayerLocation = newPlayerTileLocation;
-    foreach (MusicStem oldStem in oldStems)
+    if (nextInfoTile != null)
     {
-      if (!newStems.Contains(oldStem))
-      {
-        AkSoundEngine.PostEvent(oldStem.ToString() + "_FadeOut", gameObject);
-      }
-    }
-    foreach (MusicStem newStem in newStems)
-    {
-      if (!oldStems.Contains(newStem))
-      {
-        AkSoundEngine.PostEvent(newStem.ToString() + "_FadeIn", gameObject);
-      }
+
     }
   }
 

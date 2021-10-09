@@ -73,6 +73,7 @@ public class PlayerController : Character
         }
         AkSoundEngine.PostEvent("PlayClergyLoop", GameMaster.Instance.gameObject);
       }
+      GridManager.Instance.PlayerChangedTile(CalculateCurrentTileLocation());
     }
     availableContextualActions = new List<ContextualAction>();
     interactables = new List<GameObject>();

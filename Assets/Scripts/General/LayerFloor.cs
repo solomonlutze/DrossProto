@@ -70,10 +70,8 @@ public class LayerFloor : MonoBehaviour
       }
       if (infoTilemap == null)
       {
-        Debug.Log("info tilemap null");
         if (transform.Find(gameObject.name + "_Info") != null)
         {
-          Debug.Log("found tilemap");
           infoTilemap = transform.Find(gameObject.name + "_Info").GetComponent<Tilemap>();
           infoTilemap.gameObject.layer = LayerMask.NameToLayer(gameObject.name);
         }
@@ -87,7 +85,7 @@ public class LayerFloor : MonoBehaviour
       }
     }
   }
-  #if UNITY_EDITOR
+#if UNITY_EDITOR
   [MenuItem("CustomTools/ValidateLayerFloors")]
   public static void ValidateLayerFloors()
   {

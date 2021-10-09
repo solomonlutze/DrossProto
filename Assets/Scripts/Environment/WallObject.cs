@@ -10,34 +10,30 @@ public class WallObject : MonoBehaviour
   public int numberOfPieces;
   public int orderInLayer;
 
-  // void Start()
-  // {
-  //   wallPieces = new List<GameObject>();
-  //   string sortingLayer = LayerMask.LayerToName(gameObject.layer);
-  //   for (int i = 0; i < numberOfPieces; i++)
-  //   {
-  //     wallPieces.Add(Instantiate(wallPieceObject, transform.position, Quaternion.identity));
-  //     SpriteRenderer sr = wallPieces[i].GetComponent<SpriteRenderer>();
-  //     sr.sprite = wallSprite;
-  //     sr.sortingLayerName = sortingLayer;
-  //     sr.sortingOrder = 20;
-  //     wallPieces[i].transform.position -= new Vector3(0, 0, i * 1.0f / numberOfPieces);
-  //   }
-  // }
 
-  public void Init(TileLocation location, Sprite sprite)
+
+  public void Init(TileLocation location, EnvironmentTile objectTile)
   {
-    wallSprite = sprite;
+    wallSprite = objectTile.sprite;
     wallPieces = new List<GameObject>();
     string sortingLayer = location.floorLayer.ToString();
+    SpriteRenderer sr;
+    Vector3 locScale;
+    float progress;
     for (int i = 0; i < numberOfPieces; i++)
     {
+      progress = i * 1.0f / numberOfPieces;
       wallPieces.Add(Instantiate(wallPieceObject, transform.position, Quaternion.identity));
-      SpriteRenderer sr = wallPieces[i].GetComponent<SpriteRenderer>();
+      sr = wallPieces[i].GetComponent<SpriteRenderer>();
       sr.sprite = wallSprite;
       sr.sortingOrder = orderInLayer;
+      locScale = wallPieces[i].transform.localScale;
+      if (objectTile.wallSizeCurve.length > 0)
+      {
+        wallPieces[i].transform.localScale = locScale * objectTile.wallSizeCurve.Evaluate(progress);
+      }
       wallPieces[i].transform.parent = transform;
-      wallPieces[i].transform.localPosition = new Vector3(0, 0, -i * 1.0f / numberOfPieces);
+      wallPieces[i].transform.localPosition = new Vector3(0, 0, -progress);
     }
     WorldObject.ChangeLayersRecursively(transform, location.floorLayer);
   }

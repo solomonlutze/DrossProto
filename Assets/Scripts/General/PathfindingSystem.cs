@@ -290,16 +290,6 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     {
       return false;
     }
-    // Vector3[] colliderCorners = new Vector3[]{
-    //   new Vector3 (character.circleCollider.radius, 0, 0),
-    //   new Vector3 (-character.circleCollider.radius, 0, 0),
-    //   new Vector3 (0, character.circleCollider.radius, 0),
-    //   new Vector3 (0, -character.circleCollider.radius, 0),
-    // 	// new Vector3 (col.bounds.extents.x, col.bounds.extents.y, 0),
-    // 	// new Vector3 (-col.bounds.extents.x, col.bounds.extents.y, 0),
-    // 	// new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),
-    // 	// new Vector3 (-col.bounds.extents.x, -col.bounds.extents.y, 0),
-    // };
     HashSet<TileLocation> tilesAlongPath = new HashSet<TileLocation>();
     foreach (Vector3 pt in character.physicsCollider.points)
     {

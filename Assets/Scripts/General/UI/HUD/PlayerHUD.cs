@@ -8,6 +8,7 @@ public class PlayerHUD : MonoBehaviour
 {
   //TODO: Use TextMeshProUGUI instead of STM
   public IntVariable grubCount;
+  public StringVariable areaName;
   public HealthBar healthBar;
   public CarapaceBar carapaceBar;
   public StaminaBar staminaBar;
@@ -24,23 +25,23 @@ public class PlayerHUD : MonoBehaviour
   public SuperTextMesh selectedAttackSkillText;
   public SuperTextMesh selectedAttackSkillDescriptionText;
   public SuperTextMesh moltDescriptionText;
+  public SuperTextMesh areaNameText;
+  public CanvasGroup areaNameCanvasGroup;
 
   bool playerExists;
   // public TextMeshProUGUI skill1ValueText;
   // public TextMeshProUGUI skill2TitleText;
   // public TextMeshProUGUI skill2ValueText;
 
+  float areaNameDisplayTime;
+  public float areaNameDisplayDuration;
+  public float areaNameFadeOutDuration;
   private string diedString = "This body has been destroyed.\nPress Return to be reborn.";
   private string obliteratedString = "This body has been swallowed by Oblivion.\nPress Return to be reborn.";
   // Use this for initialization
   // TODO: these should be public properties we set in the inspector
   void Start()
   {
-    // healthFieldText = transform.Find("HealthFieldText").GetComponent<SuperTextMesh>();
-    // healthValueText = transform.Find("HealthValueText").GetComponent<SuperTextMesh>();
-    // maxHealthValueText = transform.Find("MaxHealthValueText").GetComponent<SuperTextMesh>();
-    // activatedAbilityText = transform.Find("ActivatedAbilityText").GetComponent<SuperTextMesh>();
-    // activatedAbilityText.text = " ";
     diedText = transform.Find("DiedText").GetComponent<SuperTextMesh>();
   }
 
@@ -48,42 +49,25 @@ public class PlayerHUD : MonoBehaviour
   void Update()
   {
     PlayerController playerController = GameMaster.Instance.GetPlayerController();
+    Debug.Log("display time " + areaNameDisplayTime);
+    // if (areaNameDisplayTime < areaNameDisplayDuration + areaNameFadeOutDuration)
+    // {
+    areaNameDisplayTime += Time.deltaTime;
+    FadeOutAreaName();
+    // }
     if (playerController != null)
     {
       if (!playerExists)
       {
         playerExists = true;
         healthBar.character = playerController;
-        Debug.Log("setting molt description text");
-        Debug.Log("text object: " + moltDescriptionText);
-        Debug.Log("molt skill:" + playerController.characterSkills[TraitSlot.Thorax]);
-        Debug.Log("molt description: " + "Hold button to shed max health. After several seconds, health is fully restored to new maximum.\n" + playerController.characterSkills[TraitSlot.Thorax].description);
         moltDescriptionText.text = "Hold button to shed max health. After several seconds, health is fully restored to new maximum.\n" + playerController.characterSkills[TraitSlot.Thorax].description;
         diedText.text = " ";
         for (int i = 0; i < selectedSkillTexts.Length; i++)
         {
-          // if (selectedSkill != playerController.characterSkills[playerController.selectedSkillIdx])
-          // {
-          //   selectedSkill = playerController.characterSkills[playerController.selectedSkillIdx];
-          Debug.Log("setting text for skill " + playerController.characterSkills[Trait.slots[i]].displayName);
-          Debug.Log("text object: " + selectedSkillTexts[i]);
           selectedSkillTexts[i].text = playerController.characterSkills[Trait.slots[i]].displayName;
-          // }
         }
       }
-      // TODO: drive this off an event maybe
-      // if (selectedAttack != playerController.characterAttackSkills[playerController.selectedAttackSkillIdx])
-      // {
-      //   selectedAttack = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx];
-      //   selectedAttackSkillText.text = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx].displayName;
-      //   selectedAttackSkillDescriptionText.text = playerController.characterAttackSkills[playerController.selectedAttackSkillIdx].description;
-      // }
-      // if (selectedSkill != playerController.characterSkills[playerController.selectedSkillIdx])
-      // {
-      //   selectedSkill = playerController.characterSkills[playerController.selectedSkillIdx];
-      //   selectedSkillText.text = playerController.characterSkills[playerController.selectedSkillIdx].displayName;
-      //   selectedSkillDescriptionText.text = playerController.characterSkills[playerController.selectedSkillIdx].description;
-      // }
     }
     else if (playerExists && playerController == null)
     { //  You Died, presumably
@@ -105,8 +89,18 @@ public class PlayerHUD : MonoBehaviour
 
   public void SetGrubCount()
   {
-    Debug.Log("setting grub count text to " + grubCount.Value);
     grubCountText.text = "" + grubCount.Value;
   }
 
+  public void SetAreaName()
+  {
+    areaNameText.text = areaName.Value;
+    areaNameDisplayTime = 0;
+  }
+
+  public void FadeOutAreaName()
+  {
+    float fadeOutProgress = Mathf.Clamp((areaNameDisplayTime - areaNameDisplayDuration) / areaNameFadeOutDuration, 0, 1);
+    areaNameCanvasGroup.alpha = 1 - fadeOutProgress;
+  }
 }

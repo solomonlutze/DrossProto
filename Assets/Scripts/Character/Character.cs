@@ -1058,7 +1058,7 @@ public class Character : WorldObject
     { // attempting to go down a floor
       if (!CanPassThroughFloorLayer(currentFloor))
       {
-        transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
+        BecomeGrounded();
         return;
       }
       SetCurrentFloor(currentFloor - 1);
@@ -1075,6 +1075,14 @@ public class Character : WorldObject
     transform.position += new Vector3(0, 0, -increment);
   }
 
+  public void BecomeGrounded()
+  {
+    transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
+    if (activeSkill.IsWhileAirborne(this))
+    {
+      AdvanceSkillEffect();
+    }
+  }
   // again this returns numbers you'd expect - positive if above, negative if below.
   float GetZOffsetFromCurrentFloor(float withIncrement = 0)
   {

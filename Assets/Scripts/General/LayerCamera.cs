@@ -28,10 +28,6 @@ public class LayerCamera : MonoBehaviour
     gameObject.name = "LayerCamera_" + fl.ToString();
     gameObject.layer = WorldObject.GetGameObjectLayerFromFloorLayer(fl);
     ppl.volumeLayer = LayerMask.GetMask(floorLayer.ToString());
-
-    // depthOfField = new DepthOfField();
-    // processVolume.profile.settings.Add(depthOfField);
-
     depthOfField = ScriptableObject.CreateInstance<DepthOfField>();
     depthOfField.enabled.Override(true);
     depthOfField.focusDistance.Override(10); // default focusDistance
