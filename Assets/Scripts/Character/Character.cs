@@ -273,9 +273,8 @@ public class Character : WorldObject
   public Animator animator;
   public SpriteRenderer[] renderers;
 
-  public CircleCollider2D circleCollider;
-  public BoxCollider2D boxCollider; // used for calculating collisions w/ tiles while changing floor layer
-  public PolygonCollider2D physicsCollider; // used for calculating collisions w/ actual objects
+  public CapsuleCollider physicsCollider; // used for actual physical collision
+  public PolygonCollider2D overlapCollider; // used for calculating whether we would collide w/ objects on other floors
   public PolygonCollider2D touchingCollider; // used for eg. deciding if we're touching a wall
   public CharacterVisuals characterVisuals;
   // public AnimatorController animatorController;
@@ -349,10 +348,6 @@ public class Character : WorldObject
 
   protected virtual void Awake()
   {
-    orientation = transform.Find("Orientation");
-    circleCollider = GetComponent<CircleCollider2D>();
-    boxCollider = GetComponent<BoxCollider2D>();
-    physicsCollider = GetComponent<PolygonCollider2D>();
     animator = characterVisuals.GetComponent<Animator>();
     if (orientation == null)
     {
@@ -1078,7 +1073,7 @@ public class Character : WorldObject
   public void BecomeGrounded()
   {
     transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
-    if (activeSkill.IsWhileAirborne(this))
+    if (activeSkill && activeSkill.IsWhileAirborne(this))
     {
       AdvanceSkillEffect();
     }
@@ -1771,12 +1766,34 @@ public class Character : WorldObject
     }
   }
 
+
+  // public Vector2[] GetTouchingColliderPoints()
+  // {
+
+  //   return new Vector2[] {
+  //     new Vector2(touchingCollider.bounds.min.x, touchingCollider.bounds.min.y),
+  //     new Vector2(touchingCollider.bounds.max.x, touchingCollider.bounds.min.y),
+  //     new Vector2(touchingCollider.bounds.min.x, touchingCollider.bounds.max.y),
+  //     new Vector2(touchingCollider.bounds.max.x, touchingCollider.bounds.max.y)
+  //   };
+  // }
+
+  // public Vector2[] GetOverlapColliderPoints()
+  // {
+  //   return new Vector2[] {
+  //     new Vector2(overlapCollider.bounds.min.x, overlapCollider.bounds.min.y),
+  //     new Vector2(overlapCollider.bounds.max.x, overlapCollider.bounds.min.y),
+  //     new Vector2(overlapCollider.bounds.min.x, overlapCollider.bounds.max.y),
+  //     new Vector2(overlapCollider.bounds.max.x, overlapCollider.bounds.max.y)
+  //   };
+  // }
   // Returns tiles we are "in contact with" but not necessarily overlapping
   protected HashSet<EnvironmentTileInfo> GetTouchingTiles(FloorLayer layerToConsider)
   {
     HashSet<EnvironmentTileInfo> touchingTiles = new HashSet<EnvironmentTileInfo>();
     foreach (Vector2 point in touchingCollider.points)
     {
+      Debug.Log("point xy: " + point.x + ", " + point.y);
       touchingTiles.Add(GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(point.x, point.y, transform.position.z), layerToConsider));
     }
     return touchingTiles;
@@ -1786,7 +1803,7 @@ public class Character : WorldObject
   protected HashSet<EnvironmentTileInfo> GetOverlappingTiles(FloorLayer layerToConsider)
   {
     HashSet<EnvironmentTileInfo> overlappingTiles = new HashSet<EnvironmentTileInfo>();
-    foreach (Vector2 point in physicsCollider.points)
+    foreach (Vector2 point in overlapCollider.points)
     {
       overlappingTiles.Add(GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(point.x, point.y, transform.position.z), layerToConsider));
     }
@@ -1863,6 +1880,11 @@ public class Character : WorldObject
       {
         return false; // At least one corner is on a tile
       }
+    }
+    Debug.Log("can fall - overlapping tiles at: ");
+    foreach (EnvironmentTileInfo tile in overlappingTiles)
+    {
+      Debug.Log(tile.tileLocation.cellCenterWorldPosition);
     }
     return true;
   }

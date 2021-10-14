@@ -244,45 +244,45 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
 
   //   return results;
   // }
-  public bool IsPathClearOfHazards_SquareGrid(Vector3 targetPosition, FloorLayer targetFloor, AiStateController ai)
-  {
-    return false; // eat shiiiiit
-    if (targetFloor != ai.currentFloor)
-    {
-      return false;
-    }
-    Vector3[] colliderCorners = new Vector3[]{
-      new Vector3 (ai.circleCollider.radius, 0, 0),
-      new Vector3 (-ai.circleCollider.radius, 0, 0),
-      new Vector3 (0, ai.circleCollider.radius, 0),
-      new Vector3 (0, -ai.circleCollider.radius, 0),
-			// new Vector3 (col.bounds.extents.x, col.bounds.extents.y, 0),
-			// new Vector3 (-col.bounds.extents.x, col.bounds.extents.y, 0),
-			// new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),
-			// new Vector3 (-col.bounds.extents.x, -col.bounds.extents.y, 0),
-		};
-    HashSet<EnvironmentTileInfo> tilesAlongPath = new HashSet<EnvironmentTileInfo>();
-    foreach (Vector3 pt in colliderCorners)
-    {
-      tilesAlongPath.UnionWith(GetAllTilesBetweenPoints(ai.transform.TransformPoint(pt), targetPosition + pt, targetFloor));
-    }
-    // foreach (EnvironmentTileInfo eti in tilesAlongPath)
-    // {
-    // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
-    // }
-    foreach (EnvironmentTileInfo eti in tilesAlongPath)
-    {
-      if (eti == null || eti.dealsDamage)
-      {
-        return false;
-      }
-      if (!CanPassOverTile(eti, ai))
-      {
-        return false;
-      }
-    }
-    return true;
-  }
+  // public bool IsPathClearOfHazards_SquareGrid(Vector3 targetPosition, FloorLayer targetFloor, AiStateController ai)
+  // {
+  //   return false; // eat shiiiiit
+  //   if (targetFloor != ai.currentFloor)
+  //   {
+  //     return false;
+  //   }
+  //   Vector3[] colliderCorners = new Vector3[]{
+  //     new Vector3 (ai.circleCollider.radius, 0, 0),
+  //     new Vector3 (-ai.circleCollider.radius, 0, 0),
+  //     new Vector3 (0, ai.circleCollider.radius, 0),
+  //     new Vector3 (0, -ai.circleCollider.radius, 0),
+  // 		// new Vector3 (col.bounds.extents.x, col.bounds.extents.y, 0),
+  // 		// new Vector3 (-col.bounds.extents.x, col.bounds.extents.y, 0),
+  // 		// new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),
+  // 		// new Vector3 (-col.bounds.extents.x, -col.bounds.extents.y, 0),
+  // 	};
+  //   HashSet<EnvironmentTileInfo> tilesAlongPath = new HashSet<EnvironmentTileInfo>();
+  //   foreach (Vector3 pt in colliderCorners)
+  //   {
+  //     tilesAlongPath.UnionWith(GetAllTilesBetweenPoints(ai.transform.TransformPoint(pt), targetPosition + pt, targetFloor));
+  //   }
+  //   // foreach (EnvironmentTileInfo eti in tilesAlongPath)
+  //   // {
+  //   // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
+  //   // }
+  //   foreach (EnvironmentTileInfo eti in tilesAlongPath)
+  //   {
+  //     if (eti == null || eti.dealsDamage)
+  //     {
+  //       return false;
+  //     }
+  //     if (!CanPassOverTile(eti, ai))
+  //     {
+  //       return false;
+  //     }
+  //   }
+  //   return true;
+  // }
 
   public bool IsPathClearOfHazards(Vector3 targetPosition, FloorLayer targetFloor, Character character)
   {
@@ -291,7 +291,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       return false;
     }
     HashSet<TileLocation> tilesAlongPath = new HashSet<TileLocation>();
-    foreach (Vector3 pt in character.physicsCollider.points)
+    foreach (Vector3 pt in character.overlapCollider.points)
     {
       tilesAlongPath.UnionWith(GetTilesAlongLine(character.transform.TransformPoint(pt), targetPosition + pt, targetFloor));
     }

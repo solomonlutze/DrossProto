@@ -49,7 +49,7 @@ public class PlayerHUD : MonoBehaviour
   void Update()
   {
     PlayerController playerController = GameMaster.Instance.GetPlayerController();
-    Debug.Log("display time " + areaNameDisplayTime);
+    // Debug.Log("display time " + areaNameDisplayTime);
     // if (areaNameDisplayTime < areaNameDisplayDuration + areaNameFadeOutDuration)
     // {
     areaNameDisplayTime += Time.deltaTime;

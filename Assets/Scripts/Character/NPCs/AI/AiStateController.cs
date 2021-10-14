@@ -225,7 +225,7 @@ public class AiStateController : Character
     pos.z = GridManager.GetZOffsetForGameObjectLayer(WorldObject.GetGameObjectLayerFromFloorLayer(fl));
     TileLocation targetLocation = new TileLocation(pos, fl);
 
-    yield return StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, initiatingAction));
+    yield return StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(overlapCollider.offset), targetLocation, this, initiatingAction));
     if (pathToTarget != null)
     {
       SetWanderDestination(targetLocation.cellCenterPosition, fl);
@@ -306,7 +306,7 @@ public class AiStateController : Character
   public void StartCalculatingPath(TileLocation targetLocation, PathfindAiAction initiatingAction, WorldObject potentialObjectOfInterest = null)
   {
     if (isCalculatingPath || DEBUGStopRecalculatingPath) { return; }
-    StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(circleCollider.offset), targetLocation, this, initiatingAction, potentialObjectOfInterest));
+    StartCoroutine(PathfindingSystem.Instance.CalculatePathToTarget(transform.TransformPoint(physicsCollider.center), targetLocation, this, initiatingAction, potentialObjectOfInterest));
   }
 
   //We can reach our target if:

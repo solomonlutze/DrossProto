@@ -6,7 +6,7 @@ using UnityEngine.Tilemaps;
 public class CustomPhysicsController : MonoBehaviour
 {
 
-  private Rigidbody2D rb;
+  private Rigidbody rb;
   protected ContactFilter2D contactFilter;
 
   // normalized axis inputs from player controller or AI or whatever
@@ -50,7 +50,7 @@ public class CustomPhysicsController : MonoBehaviour
       currentFloor = gameObject.GetComponent<Character>().currentFloor;
     }
     contactFilter.useLayerMask = true;
-    rb = GetComponent<Rigidbody2D>();
+    rb = GetComponent<Rigidbody>();
 
   }
 
@@ -141,7 +141,7 @@ public class CustomPhysicsController : MonoBehaviour
       //   yMove = CalculateCollisionForAxis(yMove);
       // }
       // desiredMovement.y = yMove.y;
-      rb.MovePosition(rb.position + desiredMovement);
+      rb.MovePosition(rb.position + (Vector3)desiredMovement);
     }
     else if (owningCharacter.UsingForwardMovementSkill()) // TODO: maybe someday we want to allow forward movement + regular movement in same skill? ehh
     {
@@ -158,7 +158,7 @@ public class CustomPhysicsController : MonoBehaviour
       //   yMove = CalculateCollisionForAxis(yMove);
       // }
       // desiredMovement.y = yMove.y;
-      rb.MovePosition(rb.position + desiredMovement);
+      rb.MovePosition(rb.position + (Vector3)desiredMovement);
     }
     else
     {
@@ -190,96 +190,96 @@ public class CustomPhysicsController : MonoBehaviour
       // Debug.Log("velocity: " + velocity);
       if (velocity.magnitude < velocityMin) { velocity = Vector2.zero; }
       // transform.position += new Vector3(velocity.x, velocity.y, 0);
-      rb.MovePosition(rb.position + velocity);
+      rb.MovePosition(rb.position + (Vector3)velocity);
     }
   }
 
   // Returns the distance we're allowed to move along an axis, x or y.
   // Tries to move us as far as we want to move, but if a collision would happen,
   // we reduce our movement in that direction to hitDistance - skinwidth
-  Vector2 CalculateCollisionForAxis(Vector2 movement)
-  {
-    return movement;
-    Vector2 originalMovement = movement;
-    RaycastHit2D[] results;
-    int hits = GetHitsFor2DCast(movement, new List<GameObject>() { }, out results);
-    for (int i = 0; i < hits; i++)
-    {
-      RaycastHit2D hit = results[i];
-      movement = movement.normalized * Mathf.Min(hit.distance - skinWidth, 0);
-    }
-    return movement;
-  }
+  // Vector2 CalculateCollisionForAxis(Vector2 movement)
+  // {
+  //   return movement;
+  //   Vector2 originalMovement = movement;
+  //   RaycastHit2D[] results;
+  //   int hits = GetHitsFor2DCast(movement, new List<GameObject>() { }, out results);
+  //   for (int i = 0; i < hits; i++)
+  //   {
+  //     RaycastHit2D hit = results[i];
+  //     movement = movement.normalized * Mathf.Min(hit.distance - skinWidth, 0);
+  //   }
+  //   return movement;
+  // }
 
-  public bool GetPathOpen(Vector2 castVector, List<GameObject> objectsToIgnore)
-  {
-    RaycastHit2D[] results;
-    int hits = GetHitsFor2DCast(castVector, objectsToIgnore, out results);
-    return hits <= 0;
-  }
+  // public bool GetPathOpen(Vector2 castVector, List<GameObject> objectsToIgnore)
+  // {
+  //   RaycastHit2D[] results;
+  //   int hits = GetHitsFor2DCast(castVector, objectsToIgnore, out results);
+  //   return hits <= 0;
+  // }
   // Below's a hack; rigidbody.cast also casts triggers, which is Bad. This prevents that.
   // This is weird and makes weird assumptions about the number of hits we'll receive on each
   // collider, so we should replace it with rb.cast ASAP.
-  public int GetHitsFor2DCast(Vector2 castVector, List<GameObject> objectsToIgnore, out RaycastHit2D[] results)
-  {
-    results = new RaycastHit2D[20];
-    Collider2D[] cols = GetComponentsInChildren<Collider2D>();
-    Collider2D col = owningCharacter.physicsCollider;
-    int hits = 0;
-    // foreach (Collider2D col in cols)
-    // {
-    if (!col.isTrigger)
-    {
-      RaycastHit2D[] res = new RaycastHit2D[4];
-      int myHits = col.Cast(castVector, contactFilter, res, castVector.magnitude, true);
-      int nonTriggerHits = 0;
-      for (int i = 0; i < 20 - hits && i < myHits; i++)
-      {
-        CustomPhysicsController otherPhysics = res[i].collider.gameObject.GetComponent<CustomPhysicsController>();
-        bool otherIgnoresCollisions = false;
-        if (otherPhysics != null)
-        {
-          otherIgnoresCollisions = otherPhysics.ignoreCollisionPhysics;
-          if (objectsToIgnore.Contains(otherPhysics.gameObject)) { continue; }
-        }
-        if (res[i].collider.GetComponentInChildren<Tilemap>() != null)
-        { // TODO: this is... probably not great
-          Vector3 hitPos = Vector3.zero;
-          hitPos.x = res[i].point.x - 0.01f * res[i].normal.x;
-          hitPos.y = res[i].point.y - 0.01f * res[i].normal.y;
-          Vector3 offset = Vector3.zero;
-          EnvironmentTileInfo tile1;
-          EnvironmentTileInfo tile2;
-          if (hitPos.x - Mathf.Floor(hitPos.x) <= 0.0001)
-          {
-            offset.x += .0001f;
-          }
-          if (hitPos.y - Mathf.Floor(hitPos.y) <= 0.0001)
-          {
-            offset.y += .0001f;
-          }
-          tile1 = GridManager.Instance.GetTileAtLocation(new TileLocation(hitPos + offset, currentFloor));
-          tile2 = GridManager.Instance.GetTileAtLocation(new TileLocation(hitPos - offset, currentFloor));
-          if (owningCharacter != null)
-          {
-            owningCharacter.HandleTileCollision(tile1);
-            if (tile1 != tile2)
-            {
-              owningCharacter.HandleTileCollision(tile2);
-            }
-          }
-        }
-        if (!res[i].collider.isTrigger && !otherIgnoresCollisions && !Physics2D.GetIgnoreCollision(res[i].collider, col))
-        {
-          results[hits + nonTriggerHits] = res[i];
-          nonTriggerHits++;
-        }
-      }
-      hits += nonTriggerHits;
-    }
-    // }
-    return hits;
-  }
+  // public int GetHitsFor2DCast(Vector2 castVector, List<GameObject> objectsToIgnore, out RaycastHit2D[] results)
+  // {
+  //   results = new RaycastHit2D[20];
+  //   Collider2D[] cols = GetComponentsInChildren<Collider2D>();
+  //   Collider2D col = owningCharacter.overlapCollider;
+  //   int hits = 0;
+  //   // foreach (Collider2D col in cols)
+  //   // {
+  //   if (!col.isTrigger)
+  //   {
+  //     RaycastHit2D[] res = new RaycastHit2D[4];
+  //     int myHits = col.Cast(castVector, contactFilter, res, castVector.magnitude, true);
+  //     int nonTriggerHits = 0;
+  //     for (int i = 0; i < 20 - hits && i < myHits; i++)
+  //     {
+  //       CustomPhysicsController otherPhysics = res[i].collider.gameObject.GetComponent<CustomPhysicsController>();
+  //       bool otherIgnoresCollisions = false;
+  //       if (otherPhysics != null)
+  //       {
+  //         otherIgnoresCollisions = otherPhysics.ignoreCollisionPhysics;
+  //         if (objectsToIgnore.Contains(otherPhysics.gameObject)) { continue; }
+  //       }
+  //       if (res[i].collider.GetComponentInChildren<Tilemap>() != null)
+  //       { // TODO: this is... probably not great
+  //         Vector3 hitPos = Vector3.zero;
+  //         hitPos.x = res[i].point.x - 0.01f * res[i].normal.x;
+  //         hitPos.y = res[i].point.y - 0.01f * res[i].normal.y;
+  //         Vector3 offset = Vector3.zero;
+  //         EnvironmentTileInfo tile1;
+  //         EnvironmentTileInfo tile2;
+  //         if (hitPos.x - Mathf.Floor(hitPos.x) <= 0.0001)
+  //         {
+  //           offset.x += .0001f;
+  //         }
+  //         if (hitPos.y - Mathf.Floor(hitPos.y) <= 0.0001)
+  //         {
+  //           offset.y += .0001f;
+  //         }
+  //         tile1 = GridManager.Instance.GetTileAtLocation(new TileLocation(hitPos + offset, currentFloor));
+  //         tile2 = GridManager.Instance.GetTileAtLocation(new TileLocation(hitPos - offset, currentFloor));
+  //         if (owningCharacter != null)
+  //         {
+  //           owningCharacter.HandleTileCollision(tile1);
+  //           if (tile1 != tile2)
+  //           {
+  //             owningCharacter.HandleTileCollision(tile2);
+  //           }
+  //         }
+  //       }
+  //       if (!res[i].collider.isTrigger && !otherIgnoresCollisions && !Physics2D.GetIgnoreCollision(res[i].collider, col))
+  //       {
+  //         results[hits + nonTriggerHits] = res[i];
+  //         nonTriggerHits++;
+  //       }
+  //     }
+  //     hits += nonTriggerHits;
+  //   }
+  //   // }
+  //   return hits;
+  // }
 
   // adds a one-time force to our velocity. Used for e.g. weapon knockback.
   public void ApplyImpulseForce(Vector3 impulse)
