@@ -16,7 +16,7 @@ public class SmoothFollow : MonoBehaviour
     c = GetComponent<Camera>();
   }
 
-  void FixedUpdate()
+  void LateUpdate()
   {
     if (GameMaster.Instance.GetPlayerController() != null)
     {

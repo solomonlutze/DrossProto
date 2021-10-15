@@ -166,11 +166,11 @@ public class CustomPhysicsController : MonoBehaviour
       Vector2 orientedMovement = orientation.rotation * (movementInput == Vector2.zero ? Vector2.zero : Vector2.right);
       if (owningCharacter.GetRotationSpeed() > 0)
       {
-        desiredMovement = (orientedMovement * moveAcceleration - (drag * velocity)) * Time.fixedDeltaTime;
+        desiredMovement = (orientedMovement * moveAcceleration);
       }
       else
       {
-        desiredMovement = (movementInput * moveAcceleration - (drag * velocity)) * Time.fixedDeltaTime;
+        desiredMovement = (movementInput * moveAcceleration);
       }
       // Debug.Log("desiredMovement: " + desiredMovement);
       Vector2 xMove = new Vector2(velocity.x + desiredMovement.x, 0);
@@ -190,7 +190,8 @@ public class CustomPhysicsController : MonoBehaviour
       // Debug.Log("velocity: " + velocity);
       if (velocity.magnitude < velocityMin) { velocity = Vector2.zero; }
       // transform.position += new Vector3(velocity.x, velocity.y, 0);
-      rb.MovePosition(rb.position + (Vector3)velocity);
+      // rb.MovePosition(rb.position + (Vector3)velocity);
+      rb.AddForce(desiredMovement);
     }
   }
 
