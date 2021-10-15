@@ -10,7 +10,8 @@ public class WallObject : MonoBehaviour
   public int numberOfPieces;
   public int orderInLayer;
 
-
+  public float floorHeight;
+  public Collider2D wallCollider;
 
   public void Init(TileLocation location, EnvironmentTile objectTile)
   {
@@ -44,5 +45,15 @@ public class WallObject : MonoBehaviour
     {
       wallPieces[i].GetComponent<SpriteRenderer>().color = newColor;
     }
+  }
+
+
+  void OnTriggerStay2D(Collider2D col)
+  {
+    // remember: "up" is a _negative_ z value, that's why this math is fucky!
+    // e.g. if the floor is at z = 7, and the floor height is .4, then collision occurs between 7 and 6.6.
+    bool enableCollision = col.transform.position.z >= (transform.position.z - floorHeight) && col.transform.position.z <= (transform.position.z);
+    Debug.Log("stay: " + col.name + ", collision enabled: " + enableCollision);
+    Physics2D.IgnoreCollision(col, wallCollider, !enableCollision);
   }
 }
