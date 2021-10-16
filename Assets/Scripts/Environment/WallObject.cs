@@ -57,7 +57,12 @@ public class WallObject : MonoBehaviour
   {
     // remember: "up" is a _negative_ z value, that's why this math is fucky!
     // e.g. if the floor is at z = 7, and the floor height is .4, then collision occurs between 7 and 6.6.
-    bool enableCollision = col.transform.position.z >= (transform.position.z - height) && col.transform.position.z <= (transform.position.z);
+    float offset = 0001;
+    bool enableCollision = col.transform.position.z > (transform.position.z - height + .0001) && col.transform.position.z <= (transform.position.z);
+    if (enableCollision)
+    {
+      Debug.Log("col z: " + col.transform.position.z + ", wall height: " + (transform.position.z - height + offset));
+    }
     Physics2D.IgnoreCollision(col, wallCollider, !enableCollision);
   }
 }

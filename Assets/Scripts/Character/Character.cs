@@ -1045,7 +1045,7 @@ public class Character : WorldObject
 
   public bool IsMidair()
   {
-    return ascendingDescendingState != AscendingDescendingState.None || GetZOffsetFromCurrentFloorLayer() != 0;
+    return ascendingDescendingState != AscendingDescendingState.None || GetMinDistanceFromOverlappingFloorTiles() >= .0001;
   }
 
   // Note: increment should be positive for ascent, and negative for descent.
@@ -1064,10 +1064,9 @@ public class Character : WorldObject
       }
       SetCurrentFloor(currentFloor - 1);
     }
-
-    // TODO: become grounded if this would put us below floorHeight
     if (GetMinDistanceFromOverlappingFloorTiles(increment) < 0)
     {
+      Debug.Log("becoming grounded because we're on a floor?");
       BecomeGrounded();
       return;
     }
@@ -1085,8 +1084,9 @@ public class Character : WorldObject
 
   public void BecomeGrounded()
   {
-    transform.position = new Vector3(transform.position.x, transform.position.y, GetMaxFloorHeight());
-    if (activeSkill.IsWhileAirborne(this))
+    Debug.Log("current z is " + transform.position.z + ", setting to " + (GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - GetMaxFloorHeight()));
+    transform.position = new Vector3(transform.position.x, transform.position.y, GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - GetMaxFloorHeight());
+    if (activeSkill && activeSkill.IsWhileAirborne(this))
     {
       AdvanceSkillEffect();
     }
@@ -1140,8 +1140,6 @@ public class Character : WorldObject
       }
       AdjustVerticalPosition(-increment);
     }
-
-
   }
 
   // TODO: probably a lot
@@ -1872,6 +1870,7 @@ public class Character : WorldObject
     }
     if (IsMidair())
     {
+      Debug.Log("midair, distance " + GetMinDistanceFromOverlappingFloorTiles());
       return true;
     }
 
