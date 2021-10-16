@@ -89,6 +89,8 @@ public class EnvironmentTileInfo
   public List<IlluminatedByInfo> illuminatedBySources;
   public HashSet<EnvironmentTileInfo> illuminatedNeighbors;
   public LightSourceInfo lightSource;
+
+  public WallObject groundObject;
   public WallObject wallObject;
   public bool isLightSource
   {
@@ -270,6 +272,25 @@ public class EnvironmentTileInfo
       }
     }
     return false;
+  }
+
+  public float GroundHeight()
+  {
+    if (groundTileType != null)
+    {
+      return groundTileType.groundHeight;
+    }
+    return 0;
+  }
+
+
+  public float CeilingHeight()
+  {
+    if (objectTileType != null)
+    {
+      return objectTileType.ceilingHeight;
+    }
+    return 1;
   }
 
   // TODO: this should eventually be based on whether it _will_ respawn player/deal damage

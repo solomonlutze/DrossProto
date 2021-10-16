@@ -70,10 +70,13 @@ public class EnvironmentTile : RandomTile
   private string tileType;
   private Renderer _renderer;
   public AnimationCurve wallSizeCurve;
+  public float ceilingHeight = 1;
+  public float groundHeight = 0;
   public int interestObjectPriority = 0; // whichever tile has the higher priority will place its border
   public bool acceptsInterestObjects = true; // if false, no interest objects may be placed on this tile
   public GameObject[] borderInterestObjects;
   public GameObject[] cornerInterestObjects;
+
   public LightSourceInfo lightSource;
 
 #if UNITY_EDITOR

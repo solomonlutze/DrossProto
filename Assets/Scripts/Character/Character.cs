@@ -1045,7 +1045,7 @@ public class Character : WorldObject
 
   public bool IsMidair()
   {
-    return ascendingDescendingState != AscendingDescendingState.None || GetZOffsetFromCurrentFloor() != 0;
+    return ascendingDescendingState != AscendingDescendingState.None || GetZOffsetFromCurrentFloorLayer() != 0;
   }
 
   // Note: increment should be positive for ascent, and negative for descent.
@@ -1054,7 +1054,8 @@ public class Character : WorldObject
   void AdjustVerticalPosition(float increment)
   {
     if (increment == 0) { return; }
-    if (GetZOffsetFromCurrentFloor(increment) < 0)
+
+    if (GetZOffsetFromCurrentFloorLayer(increment) < 0)
     { // attempting to go down a floor
       if (!CanPassThroughFloorLayer(currentFloor))
       {
@@ -1063,7 +1064,14 @@ public class Character : WorldObject
       }
       SetCurrentFloor(currentFloor - 1);
     }
-    else if (GetZOffsetFromCurrentFloor(increment) > 1)
+
+    // TODO: become grounded if this would put us below floorHeight
+    if (GetMinDistanceFromOverlappingFloorTiles(increment) < 0)
+    {
+      BecomeGrounded();
+      return;
+    }
+    else if (GetZOffsetFromCurrentFloorLayer(increment) > 1)
     {
       if (!CanPassThroughFloorLayer(currentFloor + 1))
       {
@@ -1077,16 +1085,32 @@ public class Character : WorldObject
 
   public void BecomeGrounded()
   {
-    transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
+    transform.position = new Vector3(transform.position.x, transform.position.y, GetMaxFloorHeight());
     if (activeSkill.IsWhileAirborne(this))
     {
       AdvanceSkillEffect();
     }
   }
   // again this returns numbers you'd expect - positive if above, negative if below.
-  float GetZOffsetFromCurrentFloor(float withIncrement = 0)
+  float GetZOffsetFromCurrentFloorLayer(float withIncrement = 0)
   {
     return GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - (transform.position.z - withIncrement);
+  }
+
+  float GetMinDistanceFromOverlappingFloorTiles(float withIncrement = 0)
+  {
+    HashSet<EnvironmentTileInfo> overlappingTiles = GetOverlappingTiles(currentFloor);
+    float minDistance = 1;
+    foreach (EnvironmentTileInfo tile in overlappingTiles)
+    {
+      minDistance = Mathf.Min(GetDistanceFromFloorTile(tile.tileLocation, withIncrement), minDistance);
+    }
+    return minDistance;
+  }
+
+  float GetDistanceFromFloorTile(TileLocation loc, float withIncrement = 0)
+  {
+    return GetZOffsetFromCurrentFloorLayer(withIncrement) - GridManager.Instance.GetFloorHeightForTileLocation(loc);
   }
 
   public void HandleAscendOrDescend()
@@ -1095,7 +1119,7 @@ public class Character : WorldObject
     float increment = (1 / ascendDescendSpeed * Time.deltaTime);
     if (ascending)
     {
-      if (GetZOffsetFromCurrentFloor(increment) > 1)
+      if (GetZOffsetFromCurrentFloorLayer(increment) > 1)
       {
         // we will have arrived!
         SetCurrentFloor(currentFloor + 1);
@@ -1107,7 +1131,7 @@ public class Character : WorldObject
     }
     else if (descending)
     {
-      if (GetZOffsetFromCurrentFloor(-increment) < 0)
+      if (GetZOffsetFromCurrentFloorLayer(-increment) < 0)
       {
         // we will have arrived!
         transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Round(transform.position.z));
@@ -1852,6 +1876,17 @@ public class Character : WorldObject
     }
 
     return CanPassThroughFloorLayer(currentFloor);
+  }
+
+  float GetMaxFloorHeight()
+  {
+    HashSet<EnvironmentTileInfo> overlappingTiles = GetOverlappingTiles(currentFloor);
+    float maxFloorHeight = 0;
+    foreach (EnvironmentTileInfo tile in overlappingTiles)
+    {
+      maxFloorHeight = Mathf.Max(maxFloorHeight, tile.GroundHeight());
+    }
+    return maxFloorHeight;
   }
 
   bool CanPassThroughFloorLayer(FloorLayer targetFloor)

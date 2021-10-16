@@ -485,11 +485,17 @@ public class GridManager : Singleton<GridManager>
     {
       visibilityTilemap.SetColor(v3pos, Color.clear);
     }
+    if (info.GroundHeight() > 0)
+    {
+      info.groundObject = Instantiate(defaultWallObject);
+      info.groundObject.transform.position = loc.cellCenterWorldPosition;
+      info.groundObject.Init(loc, groundTile, false);
+    }
     if (info.HasSolidObject())
     {
       info.wallObject = Instantiate(defaultWallObject);
       info.wallObject.transform.position = loc.cellCenterWorldPosition;
-      info.wallObject.Init(loc, objectTile);
+      info.wallObject.Init(loc, objectTile, true);
     }
     if (info.HasTileTag(TileTag.Water))
     {
@@ -1066,6 +1072,11 @@ public class GridManager : Singleton<GridManager>
     // int firstFloorLayerIndex = LayerMask.NameToLayer("B6"); // like... 15
     // return firstFloorLayerIndex - floorLayer;
     // int numberOfFloorLayers = Constants.numberOfFloorLayers; // 12?
+  }
+
+  public float GetFloorHeightForTileLocation(TileLocation loc)
+  {
+    return GetTileAtLocation(loc).GroundHeight();
   }
 
   public static TilemapDirection GetOppositeTilemapDirection(TilemapDirection d)
