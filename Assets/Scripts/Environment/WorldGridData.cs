@@ -52,7 +52,14 @@ public class WorldGridData : ScriptableObject
   public void PaintFloorHeight(FloorLayer layer, Vector3Int location)
   {
     Debug.Log("setting tile height at " + layer + " " + location + "with key " + GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)) + " to " + floorHeightToPaint + "(previously " + GetFloorHeight(layer, new Vector2Int(location.x, location.y)) + ")");
-    heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))] = floorHeightToPaint;
+    if (floorHeightToPaint == 0)
+    {
+      heightGrid[layer].Remove(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)));
+    }
+    else
+    {
+      heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))] = floorHeightToPaint;
+    }
   }
 
   public float GetFloorHeight(TileLocation loc)
@@ -71,11 +78,12 @@ public class WorldGridData : ScriptableObject
   }
 
   public void RebuildWorldGridData()
-  { }
+  {
+    RecalculateBounds();
+  }
 
   public void RecalculateBounds()
   {
-
     maxXAcrossAllFloors = -5000;
     minXAcrossAllFloors = 5000;
     minYAcrossAllFloors = 5000;
@@ -89,11 +97,29 @@ public class WorldGridData : ScriptableObject
     }
     if (minXAcrossAllFloors + maxXAcrossAllFloors % 2 != 0) { maxXAcrossAllFloors += 1; }
     if (minYAcrossAllFloors + maxYAcrossAllFloors % 2 != 0) { maxYAcrossAllFloors += 1; }
-    Debug.Log("new values: ");
-    Debug.Log("maxXAcrossAllFloors: " + maxXAcrossAllFloors);
-    Debug.Log("minXAcrossAllFloors: " + minXAcrossAllFloors);
-    Debug.Log("minYAcrossAllFloors: " + minYAcrossAllFloors);
-    Debug.Log("maxYAcrossAllFloors: " + maxYAcrossAllFloors);
+  }
+
+  [MenuItem("CustomTools/World Grid/Painting/Increase Floor Height %#UP")]
+  public static void IncreaseFloorHeightToPaint()
+  {
+    floorHeightToPaint += .2f;
+    if (floorHeightToPaint > 1)
+    {
+      floorHeightToPaint = 1;
+    }
+    Debug.Log("new FloorHeightToPaint is " + floorHeightToPaint);
+  }
+
+
+  [MenuItem("CustomTools/World Grid/Painting/Decrease floor height %#DOWN")]
+  public static void DecreaseFloorHeightToPaint()
+  {
+    floorHeightToPaint -= .2f;
+    if (floorHeightToPaint < 0)
+    {
+      floorHeightToPaint = 0;
+    }
+    Debug.Log("new FloorHeightToPaint is " + floorHeightToPaint);
   }
 #endif
 }

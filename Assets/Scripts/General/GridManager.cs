@@ -301,11 +301,6 @@ public class GridManager : Singleton<GridManager>
     }
     if (minXAcrossAllFloors + maxXAcrossAllFloors % 2 != 0) { maxXAcrossAllFloors += 1; }
     if (minYAcrossAllFloors + maxYAcrossAllFloors % 2 != 0) { maxYAcrossAllFloors += 1; }
-    Debug.Log("initialized values: ");
-    Debug.Log("maxXAcrossAllFloors: " + maxXAcrossAllFloors);
-    Debug.Log("minXAcrossAllFloors: " + minXAcrossAllFloors);
-    Debug.Log("minYAcrossAllFloors: " + minYAcrossAllFloors);
-    Debug.Log("maxYAcrossAllFloors: " + maxYAcrossAllFloors);
     HashSet<EnvironmentTileInfo> litTiles = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> currentTilesToLight = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> nextTilesToLight = new HashSet<EnvironmentTileInfo>();

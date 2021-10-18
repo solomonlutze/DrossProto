@@ -22,9 +22,9 @@ public class WorldGridDataEditor : Editor
     WorldGridData worldGridData = target as WorldGridData;
     serializedObject.Update();
     DrawDefaultInspector();
-    if (GUILayout.Button("Recalculate Bounds"))
+    if (GUILayout.Button("Rebuild World Grid Data"))
     {
-      worldGridData.RecalculateBounds();
+      worldGridData.RebuildWorldGridData();
     }
     serializedObject.ApplyModifiedProperties();
   }
