@@ -25,7 +25,8 @@ public class WallObject : MonoBehaviour
     SpriteRenderer sr;
     Vector3 locScale;
     float progress = 0;
-    height = ceiling ? tile.ceilingHeight : tile.groundHeight;
+    // height = ceiling ? tile.ceilingHeight : tile.groundHeight;
+    height = GridManager.Instance.worldGridData.GetFloorHeight(location);
     for (int i = 0; i <= height / spriteFrequency; i++)
     {
       progress += spriteFrequency;

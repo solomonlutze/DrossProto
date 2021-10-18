@@ -20,18 +20,30 @@ namespace UnityEditor.Tilemaps
       {
         tile = cells[0].tile as EnvironmentTile;
       }
-      if (tile != null && tile.autoPlaceTileOnPaint_Above != null)
+      if (tile != null)
       {
-        LayerFloor layerFloorAbove = GridManager.Instance.GetFloorLayerAbove(WorldObject.GetFloorLayerOfGameObject(brushTarget));
-        if (layerFloorAbove != null)
+        if (tile.autoPlaceTileOnPaint_Above != null)
         {
-          Tilemap groundTilemapAbove = layerFloorAbove.groundTilemap;
+          LayerFloor layerFloorAbove = GridManager.Instance.GetFloorLayerAbove(WorldObject.GetFloorLayerOfGameObject(brushTarget));
+
+          if (layerFloorAbove != null)
+          {
+            Tilemap groundTilemapAbove = layerFloorAbove.groundTilemap;
+            foreach (Vector3Int location in position.allPositionsWithin)
+            {
+              if (groundTilemapAbove.GetTile(location) == null)
+              {
+                groundTilemapAbove.SetTile(location, tile.autoPlaceTileOnPaint_Above);
+              }
+            }
+          }
+        }
+        if (tile.floorTilemapType == FloorTilemapType.Ground)
+        {
+          // set height
           foreach (Vector3Int location in position.allPositionsWithin)
           {
-            if (groundTilemapAbove.GetTile(location) == null)
-            {
-              groundTilemapAbove.SetTile(location, tile.autoPlaceTileOnPaint_Above);
-            }
+            GridManager.Instance.worldGridData.PaintFloorHeight(WorldObject.GetFloorLayerOfGameObject(brushTarget), location);
           }
         }
       }

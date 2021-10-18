@@ -225,6 +225,7 @@ public class GridManager : Singleton<GridManager>
 {
 
   public bool DEBUG_IgnoreLighting;
+  public WorldGridData worldGridData; // TODO: serialize all data here!
   public Grid levelGrid;
   public Material semiTransparentMaterial;
   public Material fullyOpaqueMaterial;
@@ -300,6 +301,11 @@ public class GridManager : Singleton<GridManager>
     }
     if (minXAcrossAllFloors + maxXAcrossAllFloors % 2 != 0) { maxXAcrossAllFloors += 1; }
     if (minYAcrossAllFloors + maxYAcrossAllFloors % 2 != 0) { maxYAcrossAllFloors += 1; }
+    Debug.Log("initialized values: ");
+    Debug.Log("maxXAcrossAllFloors: " + maxXAcrossAllFloors);
+    Debug.Log("minXAcrossAllFloors: " + minXAcrossAllFloors);
+    Debug.Log("minYAcrossAllFloors: " + minYAcrossAllFloors);
+    Debug.Log("maxYAcrossAllFloors: " + maxYAcrossAllFloors);
     HashSet<EnvironmentTileInfo> litTiles = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> currentTilesToLight = new HashSet<EnvironmentTileInfo>();
     HashSet<EnvironmentTileInfo> nextTilesToLight = new HashSet<EnvironmentTileInfo>();
@@ -431,7 +437,7 @@ public class GridManager : Singleton<GridManager>
 
   public int CoordsToKey(Vector2Int coordinates)
   {
-    return coordinates.x + ((maxXAcrossAllFloors - minXAcrossAllFloors + 1) * coordinates.y);
+    return coordinates.x + ((worldGridData.maxXAcrossAllFloors - worldGridData.minXAcrossAllFloors + 1) * coordinates.y);
   }
   public EnvironmentTileInfo ConstructAndSetEnvironmentTileInfo(
     TileLocation loc,
@@ -485,8 +491,9 @@ public class GridManager : Singleton<GridManager>
     {
       visibilityTilemap.SetColor(v3pos, Color.clear);
     }
-    if (info.GroundHeight() > 0)
+    if (worldGridData.GetFloorHeight(loc) > 0)
     {
+      info.groundHeight = worldGridData.GetFloorHeight(loc);
       info.groundObject = Instantiate(defaultWallObject);
       info.groundObject.transform.position = loc.cellCenterWorldPosition;
       info.groundObject.Init(loc, groundTile, false);

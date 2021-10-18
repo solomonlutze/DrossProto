@@ -92,6 +92,7 @@ public class EnvironmentTileInfo
 
   public WallObject groundObject;
   public WallObject wallObject;
+  public float groundHeight;
   public bool isLightSource
   {
     get
@@ -276,11 +277,7 @@ public class EnvironmentTileInfo
 
   public float GroundHeight()
   {
-    if (groundTileType != null)
-    {
-      return groundTileType.groundHeight;
-    }
-    return 0;
+    return groundHeight;
   }
 
 
