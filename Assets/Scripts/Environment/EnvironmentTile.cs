@@ -67,7 +67,7 @@ public class EnvironmentTile : RandomTile
   public EnvironmentTileParticleSystemInfo footstepParticleSystemInfo;
   // public ParticleSystem footstepParticleSystem; // used for particles created when something walks on this
   public ParticleSystem.EmitParams footstepSystemParams;
-  private string tileType;
+  // private string tileType;
   private Renderer _renderer;
   public AnimationCurve wallSizeCurve;
   public float ceilingHeight = 1;
@@ -93,17 +93,17 @@ public class EnvironmentTile : RandomTile
   }
 #endif
 
-  public override bool StartUp(Vector3Int location, ITilemap tilemap, GameObject go)
-  {
-    tileType = this.name;
-    // if (go != null)
-    // {
-    //   SetPropertyBlock(location, tilemap, go);
-    //   go.transform.eulerAngles = new Vector3(90, 90, -90);
-    //   go.transform.position += new Vector3(.5f, .5f, 0);
-    // }
-    return base.StartUp(location, tilemap, go);
-  }
+  // public override bool StartUp(Vector3Int location, ITilemap tilemap, GameObject go)
+  // {
+  //   tileType = this.name;
+  //   // if (go != null)
+  //   // {
+  //   //   SetPropertyBlock(location, tilemap, go);
+  //   //   go.transform.eulerAngles = new Vector3(90, 90, -90);
+  //   //   go.transform.position += new Vector3(.5f, .5f, 0);
+  //   // }
+  //   return base.StartUp(location, tilemap, go);
+  // }
 
   private void SetPropertyBlock(Vector3Int location, ITilemap tilemap, GameObject go)
   {

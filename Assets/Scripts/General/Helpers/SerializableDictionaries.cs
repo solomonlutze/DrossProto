@@ -326,4 +326,7 @@ public class FloorLayerToTileInfosDictionary : SerializableDictionaryBase<FloorL
 public class FloorLaxyerToTileHeightInfosDictionary : SerializableDictionaryBase<FloorLayer, IntToFloatDictionary> { }
 
 [System.Serializable]
+public class CoordsToGameObjectDictionary : SerializableDictionaryBase<int, GameObject> { }
+[System.Serializable]
 public class IntToFloatDictionary : SerializableDictionaryBase<int, float> { }
+

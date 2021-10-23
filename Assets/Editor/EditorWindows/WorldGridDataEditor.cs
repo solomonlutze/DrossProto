@@ -8,25 +8,19 @@ using System;
 [CanEditMultipleObjects]
 public class WorldGridDataEditor : Editor
 {
-  SerializedProperty itemId;
-  SerializedProperty itemType;
-  private int idx;
-  void OnEnable()
-  {
-    itemId = serializedObject.FindProperty("itemId");
-    itemType = serializedObject.FindProperty("itemType");
-  }
   public override void OnInspectorGUI()
   {
-
-    WorldGridData worldGridData = target as WorldGridData;
-    serializedObject.Update();
     DrawDefaultInspector();
-    if (GUILayout.Button("Recalculate Bounds"))
+    // if (GUILayout.Button("Rebuild World Grid Data"))
+    // {
+    //   WorldGridData worldGridData = target as WorldGridData;
+    //   worldGridData.RebuildWorldGridData();
+    // }
+    if (GUILayout.Button("Clear placed game objects"))
     {
-      worldGridData.RecalculateBounds();
+      WorldGridData worldGridData = target as WorldGridData;
+      worldGridData.ClearExistingGridInfo();
     }
-    serializedObject.ApplyModifiedProperties();
   }
 
 }

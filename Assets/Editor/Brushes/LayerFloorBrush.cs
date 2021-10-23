@@ -43,7 +43,7 @@ namespace UnityEditor.Tilemaps
           // set height
           foreach (Vector3Int location in position.allPositionsWithin)
           {
-            GridManager.Instance.worldGridData.PaintFloorHeight(WorldObject.GetFloorLayerOfGameObject(brushTarget), location);
+            GridManager.Instance.worldGridData.PaintFloorHeight(WorldObject.GetFloorLayerOfGameObject(brushTarget), location, tile);
           }
         }
       }

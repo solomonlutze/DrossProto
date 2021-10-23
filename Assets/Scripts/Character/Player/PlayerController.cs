@@ -140,10 +140,10 @@ public class PlayerController : Character
   {
     availableContextualActions.Clear();
     EnvironmentTileInfo tile = GridManager.Instance.GetTileAtLocation(GetTileLocation());
-    if (tile.isInteractable)
-    {
-      AddContextualAction(tile.GetInteractableText(this), UseTile);
-    }
+    // if (tile.isInteractable)
+    // {
+    //   AddContextualAction(tile.GetInteractableText(this), UseTile);
+    // }
     if (interactables.Count > 0)
     {
 

@@ -249,6 +249,7 @@ public class Character : WorldObject
   [Header("Attack Info")]
   public TraitSlotToCharacterSkillDataDictionary characterSkills;
   public List<CharacterSkillData> characterAttackSkills;
+  public CharacterSkillData hopSkill;
   public CharacterSkillData moltSkill;
   public List<CharacterSkillData> characterSpells;// possibly deprecated
   public CharacterAttackModifiers attackModifiers; // probably deprecated
@@ -1110,6 +1111,7 @@ public class Character : WorldObject
 
   float GetDistanceFromFloorTile(TileLocation loc, float withIncrement = 0)
   {
+
     return GetZOffsetFromCurrentFloorLayer(withIncrement) - GridManager.Instance.GetFloorHeightForTileLocation(loc);
   }
 
@@ -1916,11 +1918,6 @@ public class Character : WorldObject
     {
       currentTile = tile;
     }
-
-    // if (currentTile.IsEmpty())
-    // {
-    //   ShouldFall();
-    // }
     TileLocation nowTileLocation = CalculateCurrentTileLocation();
     if (currentTileLocation != nowTileLocation)
     {
@@ -2119,6 +2116,15 @@ public class Character : WorldObject
     {
       Destroy(traitSpawnedGameObjects[effect.sourceString]);
       traitSpawnedGameObjects.Remove(effect.sourceString);
+    }
+  }
+
+
+  public void OnWallObjectCollisionStay(WallObject wallObject)
+  {
+    if (wallObject.transform.position.z - wallObject.groundHeight > transform.position.z - .25f) // TODO: CLEAR MAGIC NUMBER
+    {
+      BeginSkill(hopSkill);
     }
   }
 }

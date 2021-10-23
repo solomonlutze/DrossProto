@@ -79,75 +79,49 @@ public class EnvironmentTileInfo
   public EnvironmentTile groundTileType;
   public EnvironmentTile objectTileType;
   public InfoTile infoTileType;
-  public List<TileTag> groundTileTags;
-  public List<TileTag> objectTileTags;
-  public bool isInteractable = false;
-  public bool dealsDamage = false;
-  public bool corroded = false;
-  public int effectiveVisibilityDistance;
-  public List<EnvironmentalDamage> environmentalDamageSources;
-  public List<IlluminatedByInfo> illuminatedBySources;
-  public HashSet<EnvironmentTileInfo> illuminatedNeighbors;
-  public LightSourceInfo lightSource;
-
-  public WallObject groundObject;
-  public WallObject wallObject;
-  public float groundHeight;
-  public bool isLightSource
+  public List<TileTag> groundTileTags
   {
     get
     {
-      return lightSource != null && lightSource.lightRangeInfos.Length > 0;
+      return groundTileType.tileTags;
+    }
+  }
+  public List<TileTag> objectTileTags
+  {
+    get
+    {
+      return objectTileType.tileTags;
     }
   }
 
+  public List<EnvironmentalDamage> environmentalDamageSources;
+  public bool dealsDamage
+  {
+    get
+    {
+      return groundTileType != null && groundTileType.dealsDamage
+    || objectTileType != null && groundTileType.dealsDamage;
+    }
+  }
+  public float groundHeight;
+
   public IlluminationInfo illuminationInfo;
 
-  public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile, InfoTile infoTile)
+  public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile, InfoTile infoTile, float gHeight)
   {
     tileLocation = location;
     groundTileType = groundTile;
     objectTileType = objectTile;
     infoTileType = infoTile;
-    groundTileTags = new List<TileTag>();
-    objectTileTags = new List<TileTag>();
-    dealsDamage = false;
+    groundHeight = gHeight;
     environmentalDamageSources = new List<EnvironmentalDamage>();
-    illuminatedBySources = new List<IlluminatedByInfo>();
-    RecalculateIllumination();
-    illuminatedNeighbors = new HashSet<EnvironmentTileInfo>();
-    // cornerInterestObjects = new Dictionary<TilemapCorner, GameObject>() {
-    //   {TilemapCorner.UpperLeft, null},
-    //   {TilemapCorner.LowerLeft, null},
-    //   {TilemapCorner.UpperRight, null},
-    //   {TilemapCorner.LowerRight, null},
-    // };
-    if (groundTileType != null)
-    {
-      isInteractable |= groundTileType.IsInteractable();
-      groundTileTags.AddRange(groundTileType.tileTags);
-      if (groundTileType.dealsDamage)
+    foreach (EnvironmentTile t in new EnvironmentTile[] { groundTile, objectTile })
+      if (t != null && t.dealsDamage)
       {
-        dealsDamage = true;
         EnvironmentalDamage d = new EnvironmentalDamage();
-        d.Init(groundTileType);
+        d.Init(t);
         environmentalDamageSources.Add(d);
       }
-    }
-    if (objectTileType != null)
-    {
-      isInteractable |= objectTileType.IsInteractable();
-      objectTileTags.AddRange(objectTileType.tileTags);
-      if (objectTileType.dealsDamage)
-      {
-        dealsDamage = true;
-        EnvironmentalDamage d = new EnvironmentalDamage();
-        d.Init(objectTileType);
-        environmentalDamageSources.Add(d);
-      }
-      lightSource = objectTileType.lightSource;
-    }
-    if (lightSource != null) { lightSource.smoothingQueue = new Queue<float>(); }
   }
 
   // for now, groundTiles should never change floor layer, but, y'know
@@ -277,6 +251,7 @@ public class EnvironmentTileInfo
 
   public float GroundHeight()
   {
+    Debug.Log("groundheight: " + groundHeight);
     return groundHeight;
   }
 
@@ -316,22 +291,22 @@ public class EnvironmentTileInfo
     return (groundTileType == null && objectTileType == null);
   }
 
-  public bool IsSunlit()
-  {
-    for (int i = 0; i < illuminatedBySources.Count; i++)
-    {
-      if (illuminatedBySources[i].sunlit)
-      {
-        return true;
-      }
-    }
-    return false;
-  }
+  // public bool IsSunlit()
+  // {
+  //   for (int i = 0; i < illuminatedBySources.Count; i++)
+  //   {
+  //     if (illuminatedBySources[i].sunlit)
+  //     {
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
 
-  public bool IsEmptyAndSunlit()
-  {
-    return IsEmpty() && IsSunlit();
-  }
+  // public bool IsEmptyAndSunlit()
+  // {
+  //   return IsEmpty() && IsSunlit();
+  // }
 
   // DEPRECATED
   public void DestroyTile()
@@ -433,68 +408,68 @@ public class EnvironmentTileInfo
     }
   }
 
-  public void AddIlluminatedBySource(LightSourceInfo source, int distance)
-  {
-    illuminatedBySources.Add(new IlluminatedByInfo(source, distance));
-    RecalculateIllumination();
-  }
+  // public void AddIlluminatedBySource(LightSourceInfo source, int distance)
+  // {
+  //   illuminatedBySources.Add(new IlluminatedByInfo(source, distance));
+  //   RecalculateIllumination();
+  // }
 
 
-  public void RecalculateIllumination()
-  {
-    Color finalColor = Color.black;
-    float totalIntensity = 0;
-    float maxIntensity = .001f;
-    for (int i = 0; i < illuminatedBySources.Count; i++)
-    {
-      totalIntensity += illuminatedBySources[i].sourceRangeInfo.currentIntensity;
-      maxIntensity = Mathf.Max(maxIntensity, illuminatedBySources[i].sourceRangeInfo.currentIntensity);
-    }
-    for (int i = 0; i < illuminatedBySources.Count; i++)
-    {
-      finalColor += (illuminatedBySources[i].illuminationSource.illuminationColor * (illuminatedBySources[i].sourceRangeInfo.currentIntensity) / totalIntensity);
-    }
-    illuminationInfo = new IlluminationInfo(maxIntensity, finalColor);
-    if (wallObject != null)
-    {
-      wallObject.ChangeColor(finalColor);
-    }
-  }
+  // public void RecalculateIllumination()
+  // {
+  //   Color finalColor = Color.black;
+  //   float totalIntensity = 0;
+  //   float maxIntensity = .001f;
+  //   for (int i = 0; i < illuminatedBySources.Count; i++)
+  //   {
+  //     totalIntensity += illuminatedBySources[i].sourceRangeInfo.currentIntensity;
+  //     maxIntensity = Mathf.Max(maxIntensity, illuminatedBySources[i].sourceRangeInfo.currentIntensity);
+  //   }
+  //   for (int i = 0; i < illuminatedBySources.Count; i++)
+  //   {
+  //     finalColor += (illuminatedBySources[i].illuminationSource.illuminationColor * (illuminatedBySources[i].sourceRangeInfo.currentIntensity) / totalIntensity);
+  //   }
+  //   illuminationInfo = new IlluminationInfo(maxIntensity, finalColor);
+  //   if (wallObject != null)
+  //   {
+  //     // wallObject.ChangeColor(finalColor);
+  //   }
+  // }
 
   // doing illumination this way could mean we change tile colors multiple times a frame in cases of overlapping lights :o
   // worth noting if perf gets shitty!!
-  public HashSet<EnvironmentTileInfo> IlluminateNeighbors()
-  {
-    switch (lightSource.lightPattern)
-    {
-      case LightPattern.Flicker:
-        if (lightSource.smoothingQueue == null)
-        {
-          Debug.Log("smoothing queue null?");
-          return null;
-        }
-        while (lightSource.smoothingQueue.Count >= lightSource.smoothing)
-        {
-          lightSource.smoothingSum -= lightSource.smoothingQueue.Dequeue();
-        }
-        float newValue = UnityEngine.Random.Range(-lightSource.patternVariation, lightSource.patternVariation);
-        lightSource.smoothingQueue.Enqueue(newValue);
-        lightSource.smoothingSum += newValue;
-        float intensityModifier = lightSource.smoothingSum / (float)lightSource.smoothingQueue.Count;
-        for (int i = 0; i < lightSource.lightRangeInfos.Length; i++)
-        {
-          float temp = lightSource.lightRangeInfos[i].defaultIntensity + intensityModifier;
-          lightSource.lightRangeInfos[i].currentIntensity = Mathf.Clamp(
-            temp,
-            0,
-            1
-          );
+  // public HashSet<EnvironmentTileInfo> IlluminateNeighbors()
+  // {
+  //   switch (lightSource.lightPattern)
+  //   {
+  //     case LightPattern.Flicker:
+  //       if (lightSource.smoothingQueue == null)
+  //       {
+  //         Debug.Log("smoothing queue null?");
+  //         return null;
+  //       }
+  //       while (lightSource.smoothingQueue.Count >= lightSource.smoothing)
+  //       {
+  //         lightSource.smoothingSum -= lightSource.smoothingQueue.Dequeue();
+  //       }
+  //       float newValue = UnityEngine.Random.Range(-lightSource.patternVariation, lightSource.patternVariation);
+  //       lightSource.smoothingQueue.Enqueue(newValue);
+  //       lightSource.smoothingSum += newValue;
+  //       float intensityModifier = lightSource.smoothingSum / (float)lightSource.smoothingQueue.Count;
+  //       for (int i = 0; i < lightSource.lightRangeInfos.Length; i++)
+  //       {
+  //         float temp = lightSource.lightRangeInfos[i].defaultIntensity + intensityModifier;
+  //         lightSource.lightRangeInfos[i].currentIntensity = Mathf.Clamp(
+  //           temp,
+  //           0,
+  //           1
+  //         );
 
-        }
-        return illuminatedNeighbors;
-      case LightPattern.Constant:
-      default:
-        return null;
-    }
-  }
+  //       }
+  //       return illuminatedNeighbors;
+  //     case LightPattern.Constant:
+  //     default:
+  //       return null;
+  //   }
+  // }
 }
