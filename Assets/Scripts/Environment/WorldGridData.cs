@@ -70,6 +70,7 @@ public class WorldGridData : ScriptableObject
     {
       if (heightGrid[layer].ContainsKey(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))))
       {
+        Debug.Log("contains key " + GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)) + ", contents " + heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))]);
         heightGrid[layer].Remove(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)));
       }
       if (placedGameObjects.ContainsKey(CoordsToKey(loc)) && placedGameObjects[CoordsToKey(loc)] != null)

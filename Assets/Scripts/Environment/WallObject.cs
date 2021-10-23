@@ -5,7 +5,7 @@ using UnityEngine;
 public class WallObject : MonoBehaviour
 {
   public Sprite wallSprite;
-  public List<GameObject> wallPieces;
+  public GameObject[] wallPieces;
   public GameObject wallPieceObject;
   public int numberOfPieces;
   // public float spriteFrequency = 1f / 15f;
@@ -19,35 +19,50 @@ public class WallObject : MonoBehaviour
   // or "for floor" (floor layer, extends from floor up towards ceiling)
   public void Init(TileLocation location, EnvironmentTile tile, float height, bool ceiling = true)
   {
+    if (wallPieces == null || wallPieces.Length == 0)
+    {
+      wallPieces = new GameObject[numberOfPieces];
+      Debug.Log("new wallpieces!");
+    }
+    Debug.Log("wallpieces length " + wallPieces.Length);
     wallSprite = tile.sprite;
     forCeiling = ceiling;
-    if (wallPieces != null)
-    {
-      foreach (GameObject piece in wallPieces)
-      {
-        DestroyImmediate(piece);
-      }
-    }
-    wallPieces = new List<GameObject>();
+    // if (wallPieces != null)
+    // {
+    //   foreach (GameObject piece in wallPieces)
+    //   {
+    //     DestroyImmediate(piece);
+    //   }
+    // }
     string sortingLayer = location.floorLayer.ToString();
     SpriteRenderer sr;
     Vector3 locScale;
     float progress = 0;
+    float prevHeight = groundHeight;
+    groundHeight = height;
+    float targetHeight = Mathf.Max(height, prevHeight);
     // height = ceiling ? 1 : GridManager.Instance.worldGridData.GetFloorHeight(location);
-    for (int i = 0; i <= height * numberOfPieces; i++)
+    for (int i = 0; i <= targetHeight * numberOfPieces; i++)
     {
       progress += (1f / numberOfPieces);
-      wallPieces.Add(Instantiate(wallPieceObject, transform.position, Quaternion.identity));
-      sr = wallPieces[i].GetComponent<SpriteRenderer>();
-      sr.sprite = wallSprite;
-      sr.sortingOrder = orderInLayer;
-      locScale = wallPieces[i].transform.localScale;
-      if (tile.wallSizeCurve.length > 0)
+      if (wallPieces[i] != null)
       {
-        wallPieces[i].transform.localScale = locScale * tile.wallSizeCurve.Evaluate(progress);
+        DestroyImmediate(wallPieces[i]);
       }
-      wallPieces[i].transform.parent = transform;
-      wallPieces[i].transform.localPosition = new Vector3(0, 0, ceiling ? progress - 1 : -progress);
+      if (progress < groundHeight)
+      {
+        wallPieces[i] = Instantiate(wallPieceObject, transform.position, Quaternion.identity);
+        sr = wallPieces[i].GetComponent<SpriteRenderer>();
+        sr.sprite = wallSprite;
+        sr.sortingOrder = orderInLayer;
+        locScale = wallPieces[i].transform.localScale;
+        if (tile.wallSizeCurve.length > 0)
+        {
+          wallPieces[i].transform.localScale = locScale * tile.wallSizeCurve.Evaluate(progress);
+        }
+        wallPieces[i].transform.parent = transform;
+        wallPieces[i].transform.localPosition = new Vector3(0, 0, ceiling ? progress - 1 : -progress);
+      }
     }
     WorldObject.ChangeLayersRecursively(transform, location.floorLayer);
   }
