@@ -38,13 +38,10 @@ namespace UnityEditor.Tilemaps
             }
           }
         }
-        if (tile.floorTilemapType == FloorTilemapType.Ground)
+        // set height
+        foreach (Vector3Int location in position.allPositionsWithin)
         {
-          // set height
-          foreach (Vector3Int location in position.allPositionsWithin)
-          {
-            GridManager.Instance.worldGridData.PaintFloorHeight(WorldObject.GetFloorLayerOfGameObject(brushTarget), location, tile);
-          }
+          GridManager.Instance.worldGridData.PaintFloorHeight(WorldObject.GetFloorLayerOfGameObject(brushTarget), location, tile);
         }
       }
       base.BoxFill(gridLayout, brushTarget, position);
@@ -53,8 +50,18 @@ namespace UnityEditor.Tilemaps
     public override void BoxErase(GridLayout gridLayout, GameObject brushTarget, BoundsInt position)
     {
       Tilemap targetTilemap = brushTarget.GetComponent<Tilemap>();
+      EnvironmentTile tile = null;
+      if (cells.Length > 0)
+      {
+        tile = cells[0].tile as EnvironmentTile;
+      }
       if (targetTilemap != null)
       {
+
+        foreach (Vector3Int location in position.allPositionsWithin)
+        {
+          GridManager.Instance.worldGridData.ClearWallObject(WorldObject.GetFloorLayerOfGameObject(brushTarget), location, tile);
+        }
         LayerFloor parentLayerFloor = targetTilemap.GetComponentInParent<LayerFloor>();
         if (parentLayerFloor != null && parentLayerFloor.groundTilemap == targetTilemap)
         {
@@ -75,6 +82,7 @@ namespace UnityEditor.Tilemaps
               {
                 // WARNING: possibly not performant! use SetTilesBlock instead if this gets ugly
                 objectTilemapBelow.SetTile(location, null);
+                GridManager.Instance.worldGridData.ClearWallObject(WorldObject.GetFloorLayerOfGameObject(layerFloorBelow.gameObject), location, tile);
               }
             }
           }

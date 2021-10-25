@@ -13,7 +13,7 @@ public class WorldGridData : ScriptableObject
   [HideInInspector]
   public FloorLayerToTileInfosDictionary worldGrid;
   [HideInInspector]
-  public FloorLaxyerToTileHeightInfosDictionary heightGrid;
+  public FloorLayerToTileHeightInfosDictionary heightGrid; // X is floor height; y is ceiling height
   // public HashSet<EnvironmentTileInfo> lightSources;
   public int minXAcrossAllFloors = -5000;
   public int maxXAcrossAllFloors = 5000;
@@ -21,7 +21,7 @@ public class WorldGridData : ScriptableObject
   public int maxYAcrossAllFloors = 5000;
   public Tilemap waterTilemapPrefab;
   public WallObject defaultWallObjectPrefab;
-  public static float floorHeightToPaint = 0.0f;
+  public static float heightToPaint = 0.0f;
 
 #if UNITY_EDITOR
   // The following is a helper that adds a menu item to create an TraitItem Asset 
@@ -33,12 +33,12 @@ public class WorldGridData : ScriptableObject
       return;
     WorldGridData data = ScriptableObject.CreateInstance<WorldGridData>();
     data.worldGrid = new FloorLayerToTileInfosDictionary();
-    data.heightGrid = new FloorLaxyerToTileHeightInfosDictionary();
+    data.heightGrid = new FloorLayerToTileHeightInfosDictionary();
     for (int i = Enum.GetValues(typeof(FloorLayer)).Length - 1; i >= 0; i--)
     {
       FloorLayer layer = (FloorLayer)i;
       data.worldGrid[layer] = new IntToEnvironmentTileInfoDictionary();
-      data.heightGrid[layer] = new IntToFloatDictionary();
+      data.heightGrid[layer] = new IntToVector2Dictionary();
     }
     AssetDatabase.CreateAsset(data, path);
   }
@@ -60,46 +60,160 @@ public class WorldGridData : ScriptableObject
   }
   public void SetFloorHeightToPaint(float height)
   {
-    floorHeightToPaint = height;
+    heightToPaint = height;
+    if (Mathf.RoundToInt(heightToPaint * 10) == 0)
+    {
+      heightToPaint = 0;
+    }
+    if (Mathf.RoundToInt(heightToPaint * 10) == 10)
+    {
+      heightToPaint = 1;
+    }
+  }
+
+  public void ClearWallObject(FloorLayer layer, Vector3Int location, EnvironmentTile tile)
+  {
+    Debug.Log("clear wall object");
+    if (tile.floorTilemapType == FloorTilemapType.Object)
+    {
+      ModifyFloorHeight(layer, location, tile, 1);
+    }
+    else
+    {
+      ModifyFloorHeight(layer, location, tile, 0);
+    }
   }
 
   public void PaintFloorHeight(FloorLayer layer, Vector3Int location, EnvironmentTile tile)
   {
+    ModifyFloorHeight(layer, location, tile, heightToPaint);
+  }
+
+  public void ModifyFloorHeight(FloorLayer layer, Vector3Int location, EnvironmentTile tile, float height)
+  {
     TileLocation loc = new TileLocation(location.x, location.y, layer);
-    if (floorHeightToPaint == 0)
+    bool ceiling = tile.floorTilemapType == FloorTilemapType.Object;
+    Vector2 heightValue;
+    if (heightGrid[layer].ContainsKey(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))))
     {
-      if (heightGrid[layer].ContainsKey(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))))
+      heightValue = heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))];
+    }
+    else
+    {
+      heightValue = new Vector2(0, 1);
+    }
+    if (ceiling)
+    {
+      if (height == 1 && heightValue.x == 0) // this location should have no object tile
       {
-        Debug.Log("contains key " + GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)) + ", contents " + heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))]);
-        heightGrid[layer].Remove(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)));
+        Debug.Log("removing wall tile (ceiling)?");
+        RemoveHeightDataAtLocation(layer, location);
+        return;
       }
-      if (placedGameObjects.ContainsKey(CoordsToKey(loc)) && placedGameObjects[CoordsToKey(loc)] != null)
+      else
       {
-        Debug.Log("set height to 0, should destroy");
-        GameObject.DestroyImmediate(placedGameObjects[CoordsToKey(loc)]);
-        placedGameObjects.Remove(CoordsToKey(loc));
+        heightValue = new Vector2(heightValue.x, height);
       }
     }
     else
     {
-      heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))] = floorHeightToPaint;
-      WallObject groundObject;
-      if (placedGameObjects.ContainsKey(CoordsToKey(loc)) && placedGameObjects[CoordsToKey(loc)] != null)
+      if (height == 0 && heightValue.y == 1) // this location should have no object tile
       {
-        Debug.Log("replacing existing object");
-        groundObject = placedGameObjects[CoordsToKey(loc)].GetComponent<WallObject>();
+        Debug.Log("removing wall tile (floor)?");
+        RemoveHeightDataAtLocation(layer, location);
+        return;
       }
       else
       {
-        Debug.Log("instantiating new object");
-        groundObject = Instantiate(defaultWallObjectPrefab);
-        groundObject.transform.position = loc.cellCenterWorldPosition;
+        heightValue = new Vector2(height, heightValue.x);
       }
-      groundObject.Init(loc, tile, floorHeightToPaint, false);
-      placedGameObjects[CoordsToKey(loc)] = groundObject.gameObject;
+    }
+    heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))] = heightValue;
+    Debug.Log("setting value to " + heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))]);
+    WallObject wallObject;
+    if (placedGameObjects.ContainsKey(CoordsToKey(loc)) && placedGameObjects[CoordsToKey(loc)] != null)
+    {
+      Debug.Log("replacing existing object");
+      wallObject = placedGameObjects[CoordsToKey(loc)].GetComponent<WallObject>();
+    }
+    else
+    {
+      Debug.Log("instantiating new object " + defaultWallObjectPrefab);
+      wallObject = Instantiate(defaultWallObjectPrefab);
+      wallObject.transform.position = loc.cellCenterWorldPosition;
+    }
+    wallObject.Init(loc, tile, height, ceiling);
+    placedGameObjects[CoordsToKey(loc)] = wallObject.gameObject;
+  }
+  //     {
+  //       heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))] = new Vector2(heightToPaint, heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))].y);
+  //       WallObject wallObject;
+  //       if (placedGameObjects.ContainsKey(CoordsToKey(loc)) && placedGameObjects[CoordsToKey(loc)] != null)
+  //       {
+  //         Debug.Log("replacing existing object");
+  //         wallObject = placedGameObjects[CoordsToKey(loc)].GetComponent<WallObject>();
+  //       }
+  //       else
+  //       {
+  //         Debug.Log("instantiating new object");
+  //         wallObject = Instantiate(defaultWallObjectPrefab);
+  //         wallObject.transform.position = loc.cellCenterWorldPosition;
+  //       }
+  //       wallObject.Init(loc, tile, heightToPaint, ceiling);
+  //       placedGameObjects[CoordsToKey(loc)] = wallObject.gameObject;
+  //     }
+  //   }
+  //   else
+  //   {
+  //     if (heightToPaint == 0 && heightValue.y == 1) // this location should have no object tile
+  //     {
+  //       RemoveHeightDataAtLocation(layer, location);
+  //     }
+  //     else
+  //     {
+  //       heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))] = new Vector2(heightToPaint, heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))].y);
+  //       WallObject wallObject;
+  //       if (placedGameObjects.ContainsKey(CoordsToKey(loc)) && placedGameObjects[CoordsToKey(loc)] != null)
+  //       {
+  //         Debug.Log("replacing existing object");
+  //         wallObject = placedGameObjects[CoordsToKey(loc)].GetComponent<WallObject>();
+  //       }
+  //       else
+  //       {
+  //         Debug.Log("instantiating new object");
+  //         wallObject = Instantiate(defaultWallObjectPrefab);
+  //         wallObject.transform.position = loc.cellCenterWorldPosition;
+  //       }
+  //       wallObject.Init(loc, tile, heightToPaint, !ceiling);
+  //       placedGameObjects[CoordsToKey(loc)] = wallObject.gameObject;
+  //     }
+  //   }
+  //   if (heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))] == Vector2.zero)
+  //   {
+  //     heightGrid[layer].Remove(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)));
+  //     if (placedGameObjects.ContainsKey(CoordsToKey(loc)) && placedGameObjects[CoordsToKey(loc)] != null)
+  //     {
+  //       GameObject.DestroyImmediate(placedGameObjects[CoordsToKey(loc)]);
+  //       placedGameObjects.Remove(CoordsToKey(loc));
+  //     }
+  //   }}
+  // }
+
+  public void RemoveHeightDataAtLocation(FloorLayer layer, Vector3Int location)
+  {
+    TileLocation loc = new TileLocation(location.x, location.y, layer);
+    if (heightGrid[layer].ContainsKey(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))))
+    {
+      Debug.Log("contains key " + GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)) + ", contents " + heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))]);
+      heightGrid[layer].Remove(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)));
+    }
+    if (placedGameObjects.ContainsKey(CoordsToKey(loc)) && placedGameObjects[CoordsToKey(loc)] != null)
+    {
+      Debug.Log("set height to 0, should destroy");
+      GameObject.DestroyImmediate(placedGameObjects[CoordsToKey(loc)]);
+      placedGameObjects.Remove(CoordsToKey(loc));
     }
   }
-
   public float GetFloorHeight(TileLocation loc)
   {
     return GetFloorHeight(loc.floorLayer, loc.tilemapCoordinates);
@@ -110,7 +224,7 @@ public class WorldGridData : ScriptableObject
     int locKey = GridManager.Instance.CoordsToKey(location);
     if (heightGrid[layer].ContainsKey(locKey))
     {
-      return heightGrid[layer][GridManager.Instance.CoordsToKey(location)];
+      return heightGrid[layer][GridManager.Instance.CoordsToKey(location)].x;
     }
     return 0;
   }
@@ -285,24 +399,24 @@ public class WorldGridData : ScriptableObject
   [MenuItem("CustomTools/World Grid/Painting/Increase Floor Height %#UP")]
   public static void IncreaseFloorHeightToPaint()
   {
-    floorHeightToPaint += .2f;
-    if (floorHeightToPaint > 1)
+    heightToPaint += .2f;
+    if (heightToPaint > 1)
     {
-      floorHeightToPaint = 1;
+      heightToPaint = 1;
     }
-    Debug.Log("new FloorHeightToPaint is " + floorHeightToPaint);
+    Debug.Log("new FloorHeightToPaint is " + heightToPaint);
   }
 
 
   [MenuItem("CustomTools/World Grid/Painting/Decrease floor height %#DOWN")]
   public static void DecreaseFloorHeightToPaint()
   {
-    floorHeightToPaint -= .2f;
-    if (floorHeightToPaint < 0)
+    heightToPaint -= .2f;
+    if (heightToPaint < 0)
     {
-      floorHeightToPaint = 0;
+      heightToPaint = 0;
     }
-    Debug.Log("new FloorHeightToPaint is " + floorHeightToPaint);
+    Debug.Log("new FloorHeightToPaint is " + heightToPaint);
   }
 #endif
 }
