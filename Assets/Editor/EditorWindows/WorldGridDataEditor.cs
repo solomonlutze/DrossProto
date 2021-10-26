@@ -19,7 +19,12 @@ public class WorldGridDataEditor : Editor
     if (GUILayout.Button("Clear placed game objects"))
     {
       WorldGridData worldGridData = target as WorldGridData;
-      worldGridData.ClearExistingGridInfo();
+      worldGridData.ClearExistingPlacedObjects();
+    }
+    if (GUILayout.Button("Rebuild placed objects"))
+    {
+      WorldGridData worldGridData = target as WorldGridData;
+      worldGridData.RebuildPlacedObjects();
     }
   }
 
