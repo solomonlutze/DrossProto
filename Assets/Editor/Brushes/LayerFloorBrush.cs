@@ -20,19 +20,28 @@ namespace UnityEditor.Tilemaps
       {
         tile = cells[0].tile as EnvironmentTile;
       }
-      if (tile != null && tile.autoPlaceTileOnPaint_Above != null)
+      if (tile != null)
       {
-        LayerFloor layerFloorAbove = GridManager.Instance.GetFloorLayerAbove(WorldObject.GetFloorLayerOfGameObject(brushTarget));
-        if (layerFloorAbove != null)
+        if (tile.autoPlaceTileOnPaint_Above != null)
         {
-          Tilemap groundTilemapAbove = layerFloorAbove.groundTilemap;
-          foreach (Vector3Int location in position.allPositionsWithin)
+          LayerFloor layerFloorAbove = GridManager.Instance.GetFloorLayerAbove(WorldObject.GetFloorLayerOfGameObject(brushTarget));
+
+          if (layerFloorAbove != null)
           {
-            if (groundTilemapAbove.GetTile(location) == null)
+            Tilemap groundTilemapAbove = layerFloorAbove.groundTilemap;
+            foreach (Vector3Int location in position.allPositionsWithin)
             {
-              groundTilemapAbove.SetTile(location, tile.autoPlaceTileOnPaint_Above);
+              if (groundTilemapAbove.GetTile(location) == null)
+              {
+                groundTilemapAbove.SetTile(location, tile.autoPlaceTileOnPaint_Above);
+              }
             }
           }
+        }
+        // set height
+        foreach (Vector3Int location in position.allPositionsWithin)
+        {
+          GridManager.Instance.worldGridData.PaintFloorHeight(WorldObject.GetFloorLayerOfGameObject(brushTarget), location, tile);
         }
       }
       base.BoxFill(gridLayout, brushTarget, position);
@@ -41,8 +50,18 @@ namespace UnityEditor.Tilemaps
     public override void BoxErase(GridLayout gridLayout, GameObject brushTarget, BoundsInt position)
     {
       Tilemap targetTilemap = brushTarget.GetComponent<Tilemap>();
+      EnvironmentTile tile = null;
+      if (cells.Length > 0)
+      {
+        tile = cells[0].tile as EnvironmentTile;
+      }
       if (targetTilemap != null)
       {
+
+        foreach (Vector3Int location in position.allPositionsWithin)
+        {
+          GridManager.Instance.worldGridData.ClearWallObject(WorldObject.GetFloorLayerOfGameObject(brushTarget), location, tile);
+        }
         LayerFloor parentLayerFloor = targetTilemap.GetComponentInParent<LayerFloor>();
         if (parentLayerFloor != null && parentLayerFloor.groundTilemap == targetTilemap)
         {
@@ -63,6 +82,7 @@ namespace UnityEditor.Tilemaps
               {
                 // WARNING: possibly not performant! use SetTilesBlock instead if this gets ugly
                 objectTilemapBelow.SetTile(location, null);
+                GridManager.Instance.worldGridData.ClearWallObject(WorldObject.GetFloorLayerOfGameObject(layerFloorBelow.gameObject), location, tile);
               }
             }
           }

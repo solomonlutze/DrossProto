@@ -4,45 +4,91 @@ using UnityEngine;
 
 public class WallObject : MonoBehaviour
 {
-  public Sprite wallSprite;
-  public List<GameObject> wallPieces;
+  public EnvironmentTile groundTile;
+  public EnvironmentTile ceilingTile;
+  public GameObject[] wallPieces;
   public GameObject wallPieceObject;
   public int numberOfPieces;
+  // public float spriteFrequency = 1f / 15f;
   public int orderInLayer;
+  public float groundHeight; // floor distance from own layer
+  public float ceilingHeight = 0; // ceiling distance from above layer
+  public Collider2D wallCollider;
 
 
-
-  public void Init(TileLocation location, EnvironmentTile objectTile)
+  // wall objects are built 1 of 2 ways:
+  // as part of the terrain painting process,
+  // or during a total rebuild
+  public void Init(TileLocation location)
   {
-    wallSprite = objectTile.sprite;
-    wallPieces = new List<GameObject>();
+    if (wallPieces == null || wallPieces.Length == 0)
+    {
+      wallPieces = new GameObject[numberOfPieces];
+    }
     string sortingLayer = location.floorLayer.ToString();
-    SpriteRenderer sr;
-    Vector3 locScale;
-    float progress;
     for (int i = 0; i < numberOfPieces; i++)
     {
-      progress = i * 1.0f / numberOfPieces;
-      wallPieces.Add(Instantiate(wallPieceObject, transform.position, Quaternion.identity));
-      sr = wallPieces[i].GetComponent<SpriteRenderer>();
-      sr.sprite = wallSprite;
-      sr.sortingOrder = orderInLayer;
-      locScale = wallPieces[i].transform.localScale;
-      if (objectTile.wallSizeCurve.length > 0)
+      float progress = 1f / numberOfPieces * i;
+      if (wallPieces[i] != null)
       {
-        wallPieces[i].transform.localScale = locScale * objectTile.wallSizeCurve.Evaluate(progress);
+        DestroyImmediate(wallPieces[i]);
       }
-      wallPieces[i].transform.parent = transform;
-      wallPieces[i].transform.localPosition = new Vector3(0, 0, -progress);
+      if (progress > 1 - groundHeight && groundTile != null)
+      {
+        Debug.Log("progress==" + progress + ", create ground tile");
+        CreateWallPiece(groundTile, i);
+      }
+      else if (progress < 1 - ceilingHeight && ceilingTile != null)
+      {
+        Debug.Log("progress==" + progress + ", create ceiling tile");
+        CreateWallPiece(ceilingTile, i);
+      }
+      else
+      {
+        Debug.Log("progress==" + progress + ", do nothing");
+      }
     }
     WorldObject.ChangeLayersRecursively(transform, location.floorLayer);
   }
 
-  public void ChangeColor(Color newColor)
+  public void SetCeilingInfo(EnvironmentTile tile, float height)
   {
-    for (int i = 0; i < numberOfPieces; i++)
+    ceilingTile = tile;
+    ceilingHeight = height;
+  }
+
+
+  public void SetGroundInfo(EnvironmentTile tile, float height)
+  {
+    groundTile = tile;
+    groundHeight = height;
+  }
+
+  void CreateWallPiece(EnvironmentTile tile, int i)
+  {
+    wallPieces[i] = Instantiate(wallPieceObject, transform.position, Quaternion.identity);
+    SpriteRenderer sr = wallPieces[i].GetComponent<SpriteRenderer>();
+    sr.sprite = tile.sprite;
+    sr.sortingOrder = orderInLayer;
+    Vector3 locScale = wallPieces[i].transform.localScale;
+    if (tile.wallSizeCurve.length > 0)
     {
-      wallPieces[i].GetComponent<SpriteRenderer>().color = newColor;
+      wallPieces[i].transform.localScale = locScale * tile.wallSizeCurve.Evaluate(1f / numberOfPieces * i);
     }
+    wallPieces[i].transform.parent = transform;
+    wallPieces[i].transform.localPosition = new Vector3(0, 0, (1f / numberOfPieces * i) - 1);
+  }
+
+  void OnTriggerStay2D(Collider2D col)
+  {
+    // remember: "up" is a _negative_ z value, that's why this math is fucky!
+    // e.g. if the floor is at z = 7, and the floor height is .4, then collision occurs between 7 and 6.6.
+    float offset = .0001f;
+    bool enableCollision = col.transform.position.z > (transform.position.z - groundHeight + offset) && col.transform.position.z <= (transform.position.z);
+    Physics2D.IgnoreCollision(col, wallCollider, !enableCollision);
+  }
+  void OnCollisionStay2D(Collision2D col)
+  {
+    col.gameObject.SendMessage("OnWallObjectCollisionStay", this, SendMessageOptions.DontRequireReceiver);
   }
 }

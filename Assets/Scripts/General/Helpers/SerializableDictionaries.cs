@@ -317,3 +317,18 @@ public class SkillEffectDamageMultiplierToFloat : SerializableDictionaryBase<Ski
 public class SkillEffectMovementPropertyToCurve : SerializableDictionaryBase<SkillEffectMovementProperty, NormalizedCurve> { }
 [System.Serializable]
 public class CharacterVitalToCurveDictionary : SerializableDictionaryBase<CharacterVital, NormalizedCurve> { }
+[System.Serializable]
+public class IntToEnvironmentTileInfoDictionary : SerializableDictionaryBase<int, EnvironmentTileInfo> { }
+
+[System.Serializable]
+public class FloorLayerToTileInfosDictionary : SerializableDictionaryBase<FloorLayer, IntToEnvironmentTileInfoDictionary> { }
+[System.Serializable]
+public class FloorLayerToTileHeightInfosDictionary : SerializableDictionaryBase<FloorLayer, IntToVector2Dictionary> { }
+
+[System.Serializable]
+public class CoordsToGameObjectDictionary : SerializableDictionaryBase<int, GameObject> { }
+[System.Serializable]
+public class IntToFloatDictionary : SerializableDictionaryBase<int, float> { }
+[System.Serializable]
+public class IntToVector2Dictionary : SerializableDictionaryBase<int, Vector2> { }
+
