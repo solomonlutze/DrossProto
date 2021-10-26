@@ -12,7 +12,7 @@ public class WallObject : MonoBehaviour
   // public float spriteFrequency = 1f / 15f;
   public int orderInLayer;
   public float groundHeight; // floor distance from own layer
-  public float ceilingHeight = 1; // ceiling distance from above layer
+  public float ceilingHeight = 0; // ceiling distance from above layer
   public Collider2D wallCollider;
 
 

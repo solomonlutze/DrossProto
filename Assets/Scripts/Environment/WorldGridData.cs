@@ -166,15 +166,28 @@ public class WorldGridData : ScriptableObject
   //   }}
   // }
 
+  // 0,0 is the default - floors extend nowhere, and wall objects take up the whole height. 
+  // --we do not need to track this as height data, but we do need a wallObject if there's an objectTile at that location.
+  // 0,1 is "empty" - floors do not extend, ceilings do not extend. 
+  // --this is not the default, but it's also not a wallObject. We SHOULD track it, and should NOT have a wallObject. 
+
   public void AdjustWallObject(TileLocation tileLocation, Vector2 heightValue, EnvironmentTile groundTile, EnvironmentTile objectTile)
   {
-    if (heightValue.x == 0 && heightValue.y == 1)
+    if (heightValue != Vector2.zero)
+    {
+      heightGrid[tileLocation.floorLayer][GridManager.Instance.CoordsToKey(tileLocation.tilemapCoordinates)] = heightValue;
+    }
+    else
     {
       RemoveHeightDataAtLocation(tileLocation.floorLayer, tileLocation.tilemapCoordinates);
+      // no return!! gotta make a wall tile still maybe!!
+    }
+    if ((heightValue.x == 0 && heightValue.y == 1) || (heightValue == Vector2.zero && objectTile == null))
+    {
+      DestroyWallObjectAtLocation(tileLocation.floorLayer, tileLocation.tilemapCoordinates);
       return;
     }
-    heightGrid[tileLocation.floorLayer][GridManager.Instance.CoordsToKey(tileLocation.tilemapCoordinates)] = heightValue;
-    Debug.Log("setting value to " + heightGrid[tileLocation.floorLayer][GridManager.Instance.CoordsToKey(tileLocation.tilemapCoordinates)]);
+    // Debug.Log("setting value to " + heightGrid[tileLocation.floorLayer][GridManager.Instance.CoordsToKey(tileLocation.tilemapCoordinates)]);
     WallObject wallObject;
     if (placedGameObjects.ContainsKey(CoordsToKey(tileLocation)) && placedGameObjects[CoordsToKey(tileLocation)] != null)
     {
@@ -200,12 +213,16 @@ public class WorldGridData : ScriptableObject
   }
   public void RemoveHeightDataAtLocation(FloorLayer layer, Vector2Int location)
   {
-    TileLocation loc = new TileLocation(location.x, location.y, layer);
     if (heightGrid[layer].ContainsKey(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))))
     {
       Debug.Log("contains key " + GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)) + ", contents " + heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))]);
       heightGrid[layer].Remove(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)));
     }
+  }
+
+  public void DestroyWallObjectAtLocation(FloorLayer layer, Vector2Int location)
+  {
+    TileLocation loc = new TileLocation(location.x, location.y, layer);
     if (placedGameObjects.ContainsKey(CoordsToKey(loc)) && placedGameObjects[CoordsToKey(loc)] != null)
     {
       Debug.Log("set height to 0, should destroy");
@@ -213,6 +230,7 @@ public class WorldGridData : ScriptableObject
       placedGameObjects.Remove(CoordsToKey(loc));
     }
   }
+
   public float GetFloorHeight(TileLocation loc)
   {
     return GetFloorHeight(loc.floorLayer, loc.tilemapCoordinates);
@@ -259,6 +277,11 @@ public class WorldGridData : ScriptableObject
 
   }
 
+  public void CountExistingPlacedObjects()
+  {
+    Debug.Log("placed game objects count: " + placedGameObjects.Count);
+  }
+
   public void CreateAndPopulatePlacedObjects()
   {
     for (int i = Enum.GetValues(typeof(FloorLayer)).Length - 1; i >= 0; i--)
@@ -279,9 +302,17 @@ public class WorldGridData : ScriptableObject
         for (int y = maxYAcrossAllFloors; y > minYAcrossAllFloors; y--)
         {
           TileLocation loc = new TileLocation(new Vector2Int(x, y), layer);
+          Vector2 heightValue = Vector2.up;
+          if ((EnvironmentTile)objectTilemap.GetTile(loc.tilemapCoordinatesVector3) != null)
+          {
+            heightValue = Vector2.zero;
+          }
           if (heightGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)))
           {
-            Vector2 heightValue = heightGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)];
+            heightValue = heightGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)];
+          }
+          if (heightValue != Vector2.up)
+          {
             AdjustWallObject(
               loc,
               heightValue,

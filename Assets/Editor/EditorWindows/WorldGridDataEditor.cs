@@ -26,6 +26,11 @@ public class WorldGridDataEditor : Editor
       WorldGridData worldGridData = target as WorldGridData;
       worldGridData.RebuildPlacedObjects();
     }
+    if (GUILayout.Button("Count placed objects"))
+    {
+      WorldGridData worldGridData = target as WorldGridData;
+      worldGridData.CountExistingPlacedObjects();
+    }
   }
 
 }
