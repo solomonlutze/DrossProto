@@ -1112,7 +1112,6 @@ public class GridManager : Singleton<GridManager>
   // -(CeilToInt(11.002) - 12))
   public static FloorLayer GetFloorLayerFromZPosition(float zPos)
   {
-    Debug.Log("floor layer for z position " + zPos + " is " + (FloorLayer)(-(Mathf.CeilToInt(zPos) - 12)));
     return (FloorLayer)(-(Mathf.CeilToInt(zPos) - 12));
   }
 

@@ -1067,7 +1067,6 @@ public class Character : WorldObject
     }
     if (GetMinDistanceFromOverlappingFloorTiles(increment) < 0)
     {
-      Debug.Log("becoming grounded because we're on a floor?");
       BecomeGrounded();
       return;
     }
@@ -1085,7 +1084,6 @@ public class Character : WorldObject
 
   public void BecomeGrounded()
   {
-    Debug.Log("current z is " + transform.position.z + ", setting to " + (GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - GetMaxFloorHeight()));
     transform.position = new Vector3(transform.position.x, transform.position.y, GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - GetMaxFloorHeight());
     if (activeSkill && activeSkill.IsWhileAirborne(this))
     {
@@ -1872,7 +1870,6 @@ public class Character : WorldObject
     }
     if (IsMidair())
     {
-      Debug.Log("midair, distance " + GetMinDistanceFromOverlappingFloorTiles());
       return true;
     }
 
@@ -2131,8 +2128,8 @@ public class Character : WorldObject
         wallObject == null || wallObject.ceilingTile == null  // TODO: BETTER WAY OF EVALUATING WHERE COLLISIONS SHOULD OCCUR ON A TILE
         || Mathf.Abs(wallObject.groundHeight - wallObject.ceilingHeight) > .100f // TODO: CLEAR MAGIC NUMBER
       ));
-    //
   }
+
   public void OnWallObjectCollisionStay(Vector3 wallPosition)
   {
     if (CanHopUpAtLocation(wallPosition)) // TODO: CLEAR MAGIC NUMBER
