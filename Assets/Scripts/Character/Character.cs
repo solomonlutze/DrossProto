@@ -2120,9 +2120,22 @@ public class Character : WorldObject
   }
 
 
-  public void OnWallObjectCollisionStay(WallObject wallObject)
+  public bool CanHopUpAtLocation(Vector3 wallPosition)
   {
-    if (wallObject.transform.position.z - wallObject.groundHeight > transform.position.z - .25f) // TODO: CLEAR MAGIC NUMBER
+    Vector3 hopCheckLocation = new Vector3(wallPosition.x, wallPosition.y, transform.position.z - .25f); // the spot whose wallObject we want to compare
+    WallObject wallObject = GridManager.Instance.GetWallObjectAtLocation(new TileLocation(hopCheckLocation));
+    float groundHeightOffset = wallObject ? wallObject.groundHeight : 0;
+    return (
+      wallPosition.z - groundHeightOffset > transform.position.z - .25f // TODO: CLEAR MAGIC NUMBER
+      && (
+        wallObject == null || wallObject.ceilingTile == null  // TODO: BETTER WAY OF EVALUATING WHERE COLLISIONS SHOULD OCCUR ON A TILE
+        || Mathf.Abs(wallObject.groundHeight - wallObject.ceilingHeight) > .100f // TODO: CLEAR MAGIC NUMBER
+      ));
+    //
+  }
+  public void OnWallObjectCollisionStay(Vector3 wallPosition)
+  {
+    if (CanHopUpAtLocation(wallPosition)) // TODO: CLEAR MAGIC NUMBER
     {
       BeginSkill(hopSkill);
     }

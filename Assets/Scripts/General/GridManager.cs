@@ -113,6 +113,10 @@ public class TileLocation
     ), fl);
   }
 
+  public TileLocation(Vector3 pos)
+  { // this initializer assumes a correct z position! beware!
+    Initialize(pos, GridManager.GetFloorLayerFromZPosition(pos.z));
+  }
 
   public void Initialize(Vector3 worldPos, FloorLayer fl)
   {
@@ -693,6 +697,11 @@ public class GridManager : Singleton<GridManager>
     return i;
   }
 
+  public WallObject GetWallObjectAtLocation(TileLocation loc)
+  {
+    GameObject go = worldGridData.GetPlacedObjectAtLocation(loc);
+    return go == null ? null : go.GetComponent<WallObject>();
+  }
   public LayerFloor GetFloorLayerAbove(FloorLayer floorLayer)
   {
     FloorLayer fl = (FloorLayer)floorLayer + 1;
@@ -1089,6 +1098,22 @@ public class GridManager : Singleton<GridManager>
     // int firstFloorLayerIndex = LayerMask.NameToLayer("B6"); // like... 15
     // return firstFloorLayerIndex - floorLayer;
     // int numberOfFloorLayers = Constants.numberOfFloorLayers; // 12?
+  }
+
+  // 0 - 1: f6
+  // 1.0000001 - 2: f5
+  // etc
+
+  //.. but also 
+  // (int) f6 = 11
+  // (int) f5 = 10  
+
+  // -(1 - 12) = -(-11) = 11
+  // -(CeilToInt(11.002) - 12))
+  public static FloorLayer GetFloorLayerFromZPosition(float zPos)
+  {
+    Debug.Log("floor layer for z position " + zPos + " is " + (FloorLayer)(-(Mathf.CeilToInt(zPos) - 12)));
+    return (FloorLayer)(-(Mathf.CeilToInt(zPos) - 12));
   }
 
   public float GetFloorHeightForTileLocation(TileLocation loc)
