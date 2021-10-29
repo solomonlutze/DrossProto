@@ -254,7 +254,6 @@ public class EnvironmentTileInfo
     return groundHeight;
   }
 
-
   public float CeilingHeight()
   {
     if (objectTileType != null)

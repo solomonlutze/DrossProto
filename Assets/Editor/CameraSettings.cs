@@ -13,7 +13,7 @@ public class CameraSettings
     // settings.easingEnabled = true;
     // settings.easingDuration = 0.6f;
     // settings.dynamicClip = false;
-    settings.fieldOfView = 160f;
+    settings.fieldOfView = 130f;
     // settings.nearClip = 0.01f;
     // settings.farClip = 1000f;
     // settings.occlusionCulling = true;

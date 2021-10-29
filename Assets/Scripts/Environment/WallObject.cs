@@ -9,7 +9,6 @@ public class WallObject : MonoBehaviour
   public GameObject[] wallPieces;
   public GameObject wallPieceObject;
   public int numberOfPieces;
-  // public float spriteFrequency = 1f / 15f;
   public int orderInLayer;
   public float groundHeight; // floor distance from own layer
   public float ceilingHeight = 0; // ceiling distance from above layer
@@ -37,17 +36,11 @@ public class WallObject : MonoBehaviour
       }
       if (progress > 1 - groundHeight && groundTile != null)
       {
-        // Debug.Log("progress==" + progress + ", create ground tile");
         CreateWallPiece(groundTile, i);
       }
       else if (progress < 1 - ceilingHeight && ceilingTile != null)
       {
-        // Debug.Log("progress==" + progress + ", create ceiling tile");
         CreateWallPiece(ceilingTile, i);
-      }
-      else
-      {
-        // Debug.Log("progress==" + progress + ", do nothing");
       }
     }
     WorldObject.ChangeLayersRecursively(transform, floorLayer);
@@ -84,25 +77,28 @@ public class WallObject : MonoBehaviour
   void OnTriggerStay2D(Collider2D col)
   {
     // remember: "up" is a _negative_ z value, that's why this math is fucky!
-    // e.g. if the floor is at z = 7, and the floor height is .4, then collision occurs between 7 and 6.6.
-    float offset = .001f;
-    if (col.GetComponent<Character>())
-    {
-      Debug.Log("ceiling check! col: " + col.gameObject.name + ", z: " + col.transform.position.z + ", ceiling location " + (transform.position.z - ceilingHeight));
-    }
-    bool enableCollision =
-      (col.transform.position.z <= transform.position.z // between bottom of tile area...
-      && col.transform.position.z > (transform.position.z - groundHeight + offset)) //...and top of ground
-      || (ceilingTile != null && // or, ceiling tile exists, and we're
-      (col.transform.position.z <= (transform.position.z - ceilingHeight + offset)//...between bottom of ceiling...
-      && col.transform.position.z >= (transform.position.z - 1))); //... and top of tile area
-    //  || (col.transform.position.z < (transform.position.z - ceilingHeight + offset) && col.transform.position.z > (transform.position.z - 1))
+    // e.g. if the floor is at z = 7, and the floor height is .4, then collision occurs between 7 and 6.6
+    bool enableCollision = ShouldHaveCollisionWith(col.transform.position.z); //... and top of tile area
     Physics2D.IgnoreCollision(col, wallCollider, !enableCollision);
   }
 
-  public bool ShouldHaveCollisionWith(Vector3 other)
+  public bool ShouldHaveCollisionWith(float otherZ)
   {
-    return false;
+    float offset = -.001f;
+    return GroundHasCollisionWith(otherZ, offset) || CeilingHasCollisionWith(otherZ, offset);
+  }
+
+  public bool GroundHasCollisionWith(float otherZ, float offset = 0)
+  {
+    return otherZ <= transform.position.z // between bottom of tile area...
+      && otherZ > (transform.position.z - groundHeight - offset); //...and top of ground
+  }
+
+  public bool CeilingHasCollisionWith(float otherZ, float offset = 0)
+  {
+    return ceilingTile != null && // ceiling tile exists, and we're ...
+      (otherZ <= (transform.position.z - ceilingHeight - offset)//...between bottom of ceiling...
+      && otherZ >= (transform.position.z - 1)); // and top of tile area
   }
   void OnCollisionStay2D(Collision2D col)
   {

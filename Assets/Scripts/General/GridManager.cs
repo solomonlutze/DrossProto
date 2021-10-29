@@ -1120,6 +1120,11 @@ public class GridManager : Singleton<GridManager>
     return GetTileAtLocation(loc).GroundHeight();
   }
 
+  public float GetCeilingHeightForTileLocation(TileLocation loc)
+  {
+    return GetTileAtLocation(loc).CeilingHeight();
+  }
+
   public static TilemapDirection GetOppositeTilemapDirection(TilemapDirection d)
   {
     switch (d)
