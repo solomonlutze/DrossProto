@@ -1067,7 +1067,6 @@ public class Character : WorldObject
     }
     if (GetMinDistanceFromOverlappingFloorTiles(increment) < 0)
     {
-      Debug.Log("becoming grounded because we're on a floor?");
       BecomeGrounded();
       return;
     }
@@ -1080,12 +1079,16 @@ public class Character : WorldObject
       }
       SetCurrentFloor(currentFloor + 1);
     }
+    else if (ShouldCollideWithCeilingTile(increment))
+    {
+      EndSkill();
+      return;
+    }
     transform.position += new Vector3(0, 0, -increment);
   }
 
   public void BecomeGrounded()
   {
-    Debug.Log("current z is " + transform.position.z + ", setting to " + (GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - GetMaxFloorHeight()));
     transform.position = new Vector3(transform.position.x, transform.position.y, GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - GetMaxFloorHeight());
     if (activeSkill && activeSkill.IsWhileAirborne(this))
     {
@@ -1109,10 +1112,39 @@ public class Character : WorldObject
     return minDistance;
   }
 
+  // NOTE: only works for current floor!!
+  bool IsOverlappingWithCeilingTile()
+  {
+    foreach (WallObject wallObject in GetOverlappingWallObjects(currentFloor))
+    {
+      if (wallObject != null && wallObject.ceilingTile != null)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool ShouldCollideWithCeilingTile(float increment = 0)
+  {
+    foreach (WallObject wallObject in GetOverlappingWallObjects(currentFloor))
+    {
+      if (wallObject != null && wallObject.CeilingHasCollisionWith(transform.position.z - increment))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
   float GetDistanceFromFloorTile(TileLocation loc, float withIncrement = 0)
   {
-
     return GetZOffsetFromCurrentFloorLayer(withIncrement) - GridManager.Instance.GetFloorHeightForTileLocation(loc);
+  }
+
+  float GetDistanceFromCeilingTile(TileLocation loc, float withIncrement = 0)
+  {
+    return GridManager.Instance.GetCeilingHeightForTileLocation(loc) - GetZOffsetFromCurrentFloorLayer(withIncrement);
   }
 
   public void HandleAscendOrDescend()
@@ -1817,6 +1849,16 @@ public class Character : WorldObject
     return overlappingTiles;
   }
 
+  protected HashSet<WallObject> GetOverlappingWallObjects(FloorLayer layerToConsider)
+  {
+    HashSet<WallObject> overlappingWallObjects = new HashSet<WallObject>();
+    foreach (Vector2 point in physicsCollider.points)
+    {
+      overlappingWallObjects.Add(GridManager.Instance.GetWallObjectAtLocation(new TileLocation(transform.TransformPoint(point.x, point.y, transform.position.z), layerToConsider)));
+    }
+    return overlappingWallObjects;
+  }
+
   public bool TouchingTileWithTag(TileTag tag)
   {
     HashSet<EnvironmentTileInfo> touchingTiles = GetTouchingTiles(currentFloor);
@@ -1872,7 +1914,6 @@ public class Character : WorldObject
     }
     if (IsMidair())
     {
-      Debug.Log("midair, distance " + GetMinDistanceFromOverlappingFloorTiles());
       return true;
     }
 
@@ -2120,9 +2161,17 @@ public class Character : WorldObject
   }
 
 
-  public void OnWallObjectCollisionStay(WallObject wallObject)
+  public bool CanHopUpAtLocation(Vector3 wallPosition)
   {
-    if (wallObject.transform.position.z - wallObject.groundHeight > transform.position.z - .25f) // TODO: CLEAR MAGIC NUMBER
+    Vector3 hopCheckLocation = new Vector3(wallPosition.x, wallPosition.y, transform.position.z - .25f); // the spot whose wallObject we want to compare // TODO: CLEAR MAGIC NUMBER
+    WallObject wallObject = GridManager.Instance.GetWallObjectAtLocation(new TileLocation(hopCheckLocation));
+    float groundHeightOffset = wallObject ? wallObject.groundHeight : 0;
+    return CanUseSkill(hopSkill) && (wallObject == null || !wallObject.ShouldHaveCollisionWith(transform.position.z - .25f)); // TODO: CLEAR MAGIC NUMBER
+  }
+
+  public void OnWallObjectCollisionStay(Vector3 wallPosition)
+  {
+    if (CanHopUpAtLocation(wallPosition)) // TODO: CLEAR MAGIC NUMBER
     {
       BeginSkill(hopSkill);
     }

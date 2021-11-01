@@ -97,6 +97,11 @@ public class WorldGridData : ScriptableObject
     if (heightGrid[layer].ContainsKey(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))))
     {
       heightValue = heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))];
+      if (float.IsNaN(heightValue.x) || float.IsNaN(heightValue.y))
+      {
+        Debug.Log("trying to set NAN, value " + heightValue);
+        heightValue = new Vector2(0, 1);
+      }
     }
     else
     {
@@ -171,11 +176,23 @@ public class WorldGridData : ScriptableObject
   // 0,1 is "empty" - floors do not extend, ceilings do not extend. 
   // --this is not the default, but it's also not a wallObject. We SHOULD track it, and should NOT have a wallObject. 
 
+  public void SetHeightValue(TileLocation location, Vector2 heightValue)
+  {
+    if (float.IsNaN(heightValue.x) || float.IsNaN(heightValue.y))
+    {
+      Debug.Log("trying to set NAN at " + location.cellCenterPosition + ", value " + heightValue);
+    }
+    else
+    {
+      heightGrid[location.floorLayer][GridManager.Instance.CoordsToKey(location.tilemapCoordinates)] = heightValue;
+    }
+  }
   public void AdjustWallObject(TileLocation tileLocation, Vector2 heightValue, EnvironmentTile groundTile, EnvironmentTile objectTile)
   {
     if (heightValue != Vector2.zero)
     {
-      heightGrid[tileLocation.floorLayer][GridManager.Instance.CoordsToKey(tileLocation.tilemapCoordinates)] = heightValue;
+      SetHeightValue(tileLocation, heightValue);
+      // heightGrid[tileLocation.floorLayer][GridManager.Instance.CoordsToKey(tileLocation.tilemapCoordinates)] = heightValue;
     }
     else
     {
@@ -191,12 +208,10 @@ public class WorldGridData : ScriptableObject
     WallObject wallObject;
     if (placedGameObjects.ContainsKey(CoordsToKey(tileLocation)) && placedGameObjects[CoordsToKey(tileLocation)] != null)
     {
-      Debug.Log("replacing existing object");
       wallObject = placedGameObjects[CoordsToKey(tileLocation)].GetComponent<WallObject>();
     }
     else
     {
-      Debug.Log("instantiating new object " + defaultWallObjectPrefab);
       wallObject = Instantiate(defaultWallObjectPrefab);
       wallObject.transform.position = tileLocation.cellCenterWorldPosition;
     }
@@ -220,6 +235,14 @@ public class WorldGridData : ScriptableObject
     }
   }
 
+  public GameObject GetPlacedObjectAtLocation(TileLocation loc)
+  {
+    if (placedGameObjects.ContainsKey(CoordsToKey(loc)) && placedGameObjects[CoordsToKey(loc)] != null)
+    {
+      return placedGameObjects[CoordsToKey(loc)];
+    }
+    return null;
+  }
   public void DestroyWallObjectAtLocation(FloorLayer layer, Vector2Int location)
   {
     TileLocation loc = new TileLocation(location.x, location.y, layer);
@@ -236,12 +259,17 @@ public class WorldGridData : ScriptableObject
     return GetFloorHeight(loc.floorLayer, loc.tilemapCoordinates);
   }
 
+  public bool HasFloorHeightInfo(TileLocation loc)
+  {
+    return heightGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates));
+  }
+
   public float GetFloorHeight(FloorLayer layer, Vector2Int location)
   {
     int locKey = GridManager.Instance.CoordsToKey(location);
-    if (heightGrid[layer].ContainsKey(locKey))
+    if (heightGrid[layer].ContainsKey(locKey) && heightGrid[layer][locKey] != null)
     {
-      return heightGrid[layer][GridManager.Instance.CoordsToKey(location)].x;
+      return heightGrid[layer][locKey].x;
     }
     return 0;
   }

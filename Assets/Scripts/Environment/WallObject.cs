@@ -9,10 +9,10 @@ public class WallObject : MonoBehaviour
   public GameObject[] wallPieces;
   public GameObject wallPieceObject;
   public int numberOfPieces;
-  // public float spriteFrequency = 1f / 15f;
   public int orderInLayer;
   public float groundHeight; // floor distance from own layer
   public float ceilingHeight = 0; // ceiling distance from above layer
+  public FloorLayer floorLayer;
   public Collider2D wallCollider;
 
 
@@ -25,30 +25,25 @@ public class WallObject : MonoBehaviour
     {
       wallPieces = new GameObject[numberOfPieces];
     }
-    string sortingLayer = location.floorLayer.ToString();
+    floorLayer = location.floorLayer;
+    string sortingLayer = floorLayer.ToString();
     for (int i = 0; i < numberOfPieces; i++)
     {
-      float progress = 1f / numberOfPieces * i;
+      float progress = 1f / numberOfPieces * (i + 1);
       if (wallPieces[i] != null)
       {
         DestroyImmediate(wallPieces[i]);
       }
       if (progress > 1 - groundHeight && groundTile != null)
       {
-        Debug.Log("progress==" + progress + ", create ground tile");
         CreateWallPiece(groundTile, i);
       }
       else if (progress < 1 - ceilingHeight && ceilingTile != null)
       {
-        Debug.Log("progress==" + progress + ", create ceiling tile");
         CreateWallPiece(ceilingTile, i);
       }
-      else
-      {
-        Debug.Log("progress==" + progress + ", do nothing");
-      }
     }
-    WorldObject.ChangeLayersRecursively(transform, location.floorLayer);
+    WorldObject.ChangeLayersRecursively(transform, floorLayer);
   }
 
   public void SetCeilingInfo(EnvironmentTile tile, float height)
@@ -76,19 +71,37 @@ public class WallObject : MonoBehaviour
       wallPieces[i].transform.localScale = locScale * tile.wallSizeCurve.Evaluate(1f / numberOfPieces * i);
     }
     wallPieces[i].transform.parent = transform;
-    wallPieces[i].transform.localPosition = new Vector3(0, 0, (1f / numberOfPieces * i) - 1);
+    wallPieces[i].transform.localPosition = new Vector3(0, 0, (1f / numberOfPieces * (i + 1)) - 1);
   }
 
   void OnTriggerStay2D(Collider2D col)
   {
     // remember: "up" is a _negative_ z value, that's why this math is fucky!
-    // e.g. if the floor is at z = 7, and the floor height is .4, then collision occurs between 7 and 6.6.
-    float offset = .0001f;
-    bool enableCollision = col.transform.position.z > (transform.position.z - groundHeight + offset) && col.transform.position.z <= (transform.position.z);
+    // e.g. if the floor is at z = 7, and the floor height is .4, then collision occurs between 7 and 6.6
+    bool enableCollision = ShouldHaveCollisionWith(col.transform.position.z); //... and top of tile area
     Physics2D.IgnoreCollision(col, wallCollider, !enableCollision);
+  }
+
+  public bool ShouldHaveCollisionWith(float otherZ)
+  {
+    float offset = -.001f;
+    return GroundHasCollisionWith(otherZ, offset) || CeilingHasCollisionWith(otherZ, offset);
+  }
+
+  public bool GroundHasCollisionWith(float otherZ, float offset = 0)
+  {
+    return otherZ <= transform.position.z // between bottom of tile area...
+      && otherZ > (transform.position.z - groundHeight - offset); //...and top of ground
+  }
+
+  public bool CeilingHasCollisionWith(float otherZ, float offset = 0)
+  {
+    return ceilingTile != null && // ceiling tile exists, and we're ...
+      (otherZ <= (transform.position.z - ceilingHeight - offset)//...between bottom of ceiling...
+      && otherZ >= (transform.position.z - 1)); // and top of tile area
   }
   void OnCollisionStay2D(Collision2D col)
   {
-    col.gameObject.SendMessage("OnWallObjectCollisionStay", this, SendMessageOptions.DontRequireReceiver);
+    col.gameObject.SendMessage("OnWallObjectCollisionStay", transform.position, SendMessageOptions.DontRequireReceiver);
   }
 }

@@ -251,10 +251,8 @@ public class EnvironmentTileInfo
 
   public float GroundHeight()
   {
-    Debug.Log("groundheight: " + groundHeight);
     return groundHeight;
   }
-
 
   public float CeilingHeight()
   {
