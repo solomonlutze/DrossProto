@@ -256,6 +256,7 @@ public class GridManager : Singleton<GridManager>
   public bool DEBUG_IgnoreLighting;
   public int initialWallObjectPoolSize;
   public HashSet<Vector2Int> loadedChunks;
+  Coroutine chunkLoadCoroutine;
   public WorldGridData worldGridData;
   [HideInInspector]
   public Vector2IntToWorldGridChunkDictionary worldGridChunks;
@@ -1282,18 +1283,24 @@ public class GridManager : Singleton<GridManager>
 
   void PlayerChangedChunk(TileLocation newPlayerTileLocation)
   {
+    HashSet<Vector2Int> desiredChunks = new HashSet<Vector2Int>();
+    if (loadedChunks == null)
+    {
+      loadedChunks = new HashSet<Vector2Int>();
+    }
     for (int x = -worldGridData.chunksToLoad.x; x <= worldGridData.chunksToLoad.x; x++)
     {
       for (int y = -worldGridData.chunksToLoad.y; y <= worldGridData.chunksToLoad.y; y++)
       {
         Vector2Int offset = new Vector2Int(x, y);
-        if (!loadedChunks.Contains(newPlayerTileLocation.chunkCoordinates + offset))
-        {
-          loadedChunks.Add(newPlayerTileLocation.chunkCoordinates + offset);
-          worldGridData.LoadChunk(newPlayerTileLocation.chunkCoordinates + offset);
-        }
+        desiredChunks.Add(newPlayerTileLocation.chunkCoordinates + offset);
       }
     }
+    if (chunkLoadCoroutine != null)
+    {
+      StopCoroutine(chunkLoadCoroutine);
+    }
+    chunkLoadCoroutine = StartCoroutine(LoadAndUnloadChunksCoroutine(desiredChunks));
   }
 
   public void LoadAndUnloadChunks(TileLocation centeredOnLocation)
@@ -1309,11 +1316,6 @@ public class GridManager : Singleton<GridManager>
       {
         Vector2Int offset = new Vector2Int(x, y);
         desiredChunks.Add(centeredOnLocation.chunkCoordinates + offset);
-        if (!loadedChunks.Contains(centeredOnLocation.chunkCoordinates + offset))
-        {
-          loadedChunks.Add(centeredOnLocation.chunkCoordinates + offset);
-          worldGridData.LoadChunk(centeredOnLocation.chunkCoordinates + offset);
-        }
       }
     }
     HashSet<Vector2Int> chunksToUnload = new HashSet<Vector2Int>();
@@ -1323,6 +1325,60 @@ public class GridManager : Singleton<GridManager>
       {
         chunksToUnload.Add(loadedChunk);
         worldGridData.UnloadChunk(loadedChunk);
+      }
+    }
+    foreach (Vector2Int chunk in chunksToUnload)
+    {
+      loadedChunks.Remove(chunk);
+    }
+  }
+
+  IEnumerator LoadAndUnloadChunksCoroutine(HashSet<Vector2Int> chunksToLoad)
+  {
+    System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+    watch.Start();
+    yield return LoadChunksCoroutine(chunksToLoad);
+    yield return UnloadChunksCoroutine(chunksToLoad);
+    Debug.Log("load/unload took " + watch.ElapsedMilliseconds + "ms");
+    chunkLoadCoroutine = null;
+  }
+
+  IEnumerator LoadChunksCoroutine(HashSet<Vector2Int> desiredChunks)
+  {
+    System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+    watch.Start();
+    foreach (Vector2Int chunk in desiredChunks)
+    {
+      if (!loadedChunks.Contains(chunk))
+      {
+        loadedChunks.Add(chunk);
+        worldGridData.LoadChunk(chunk);
+        if (watch.ElapsedMilliseconds > .3)
+        {
+          yield return null;
+          watch.Restart();
+        }
+      }
+    }
+  }
+
+  // not a typo; "chunks to load" is the
+  IEnumerator UnloadChunksCoroutine(HashSet<Vector2Int> desiredChunks)
+  {
+    System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+    HashSet<Vector2Int> chunksToUnload = new HashSet<Vector2Int>();
+    watch.Start();
+    foreach (Vector2Int loadedChunk in loadedChunks)
+    {
+      if (!desiredChunks.Contains(loadedChunk))
+      {
+        chunksToUnload.Add(loadedChunk);
+        worldGridData.UnloadChunk(loadedChunk);
+        if (watch.ElapsedMilliseconds > .3)
+        {
+          yield return null;
+          watch.Restart();
+        }
       }
     }
     foreach (Vector2Int chunk in chunksToUnload)
