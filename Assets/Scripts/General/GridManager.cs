@@ -53,6 +53,20 @@ public class TileLocation
     }
   }
 
+  public Vector2Int zeroIndexedTilemapCoordinates
+  {
+    get
+    {
+      return tilemapCoordinates - new Vector2Int(GridManager.Instance.worldGridData.minXAcrossAllFloors, GridManager.Instance.worldGridData.minYAcrossAllFloors);
+    }
+  }
+  public Vector2Int chunkCoordinates
+  {
+    get
+    {
+      return new Vector2Int(zeroIndexedTilemapCoordinates.x / GridManager.Instance.worldGridData.chunkSize, zeroIndexedTilemapCoordinates.y / GridManager.Instance.worldGridData.chunkSize);
+    }
+  }
   public Vector3 cellCenterWorldPosition
   {
     get
@@ -226,11 +240,25 @@ public class TileLocation
   }
 }
 
+public class WorldGridChunk
+{
+  bool isLoaded = false;
+  List<GameObject> loadedGameObjects;
+
+  public WorldGridChunk()
+  {
+    loadedGameObjects = new List<GameObject>();
+  }
+}
 public class GridManager : Singleton<GridManager>
 {
 
   public bool DEBUG_IgnoreLighting;
-  public WorldGridData worldGridData; // TODO: serialize all data here!
+  public int initialWallObjectPoolSize;
+  public HashSet<Vector2Int> loadedChunks;
+  public WorldGridData worldGridData;
+  [HideInInspector]
+  public Vector2IntToWorldGridChunkDictionary worldGridChunks;
   public Grid levelGrid;
   public Material semiTransparentMaterial;
   public Material fullyOpaqueMaterial;
@@ -271,6 +299,9 @@ public class GridManager : Singleton<GridManager>
     worldGrid = worldGridData.worldGrid;
     tilesToDestroyOnPlayerRespawn = new List<EnvironmentTileInfo>();
     tilesToRestoreOnPlayerRespawn = new List<EnvironmentTileInfo>();
+    loadedChunks = new HashSet<Vector2Int>();
+    worldGridData.ClearExistingPlacedObjectsAndPool();
+    StartCoroutine(ObjectPoolManager.Instance.GetWallObjectPool().Populate(initialWallObjectPoolSize));
     // worldGrid = new FloorLayerToTileInfosDictionary();
     return;
     visibleTiles = new HashSet<EnvironmentTileInfo>();
@@ -1242,11 +1273,73 @@ public class GridManager : Singleton<GridManager>
         }
       }
     }
-    currentPlayerLocation = newPlayerTileLocation;
-    if (nextInfoTile != null)
+    if (currentPlayerLocation == null || currentPlayerLocation.chunkCoordinates != newPlayerTileLocation.chunkCoordinates)
     {
-
+      PlayerChangedChunk(newPlayerTileLocation);
     }
+    currentPlayerLocation = newPlayerTileLocation;
+  }
+
+  void PlayerChangedChunk(TileLocation newPlayerTileLocation)
+  {
+    for (int x = -worldGridData.chunksToLoad.x; x <= worldGridData.chunksToLoad.x; x++)
+    {
+      for (int y = -worldGridData.chunksToLoad.y; y <= worldGridData.chunksToLoad.y; y++)
+      {
+        Vector2Int offset = new Vector2Int(x, y);
+        if (!loadedChunks.Contains(newPlayerTileLocation.chunkCoordinates + offset))
+        {
+          loadedChunks.Add(newPlayerTileLocation.chunkCoordinates + offset);
+          worldGridData.LoadChunk(newPlayerTileLocation.chunkCoordinates + offset);
+        }
+      }
+    }
+  }
+
+  public void LoadAndUnloadChunks(TileLocation centeredOnLocation)
+  {
+    List<Vector2Int> desiredChunks = new List<Vector2Int>();
+    if (loadedChunks == null)
+    {
+      loadedChunks = new HashSet<Vector2Int>();
+    }
+    for (int x = -worldGridData.chunksToLoad.x; x <= worldGridData.chunksToLoad.x; x++)
+    {
+      for (int y = -worldGridData.chunksToLoad.y; y <= worldGridData.chunksToLoad.y; y++)
+      {
+        Vector2Int offset = new Vector2Int(x, y);
+        desiredChunks.Add(centeredOnLocation.chunkCoordinates + offset);
+        if (!loadedChunks.Contains(centeredOnLocation.chunkCoordinates + offset))
+        {
+          loadedChunks.Add(centeredOnLocation.chunkCoordinates + offset);
+          worldGridData.LoadChunk(centeredOnLocation.chunkCoordinates + offset);
+        }
+      }
+    }
+    HashSet<Vector2Int> chunksToUnload = new HashSet<Vector2Int>();
+    foreach (Vector2Int loadedChunk in loadedChunks)
+    {
+      if (!desiredChunks.Contains(loadedChunk))
+      {
+        chunksToUnload.Add(loadedChunk);
+        worldGridData.UnloadChunk(loadedChunk);
+      }
+    }
+    foreach (Vector2Int chunk in chunksToUnload)
+    {
+      loadedChunks.Remove(chunk);
+    }
+  }
+
+  public void ClearLoadedChunksAndResetPool()
+  {
+    ObjectPoolManager.Instance.GetWallObjectPool().Clear();
+    ClearLoadedChunks();
+  }
+
+  public void ClearLoadedChunks()
+  {
+    loadedChunks.Clear();
   }
 
   void RecalculateVisibility(DarkVisionInfo[] darkVisionInfos)

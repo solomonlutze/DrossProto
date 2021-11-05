@@ -4,21 +4,32 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEditor;
+using UnityEngine.SceneManagement;
+using UnityEditor.SceneManagement;
+using UnityEditor.SceneTemplate;
+
+
 
 public class WorldGridData : ScriptableObject
 {
 
+  [HideInInspector]
+  public Vector2IntToStringDictionary chunkScenes;
   [HideInInspector]
   public CoordsToGameObjectDictionary placedGameObjects;
   [HideInInspector]
   public FloorLayerToTileInfosDictionary worldGrid;
   [HideInInspector]
   public FloorLayerToTileHeightInfosDictionary heightGrid; // X is floor height; y is ceiling height
-  // public HashSet<EnvironmentTileInfo> lightSources;
   public int minXAcrossAllFloors = -5000;
   public int maxXAcrossAllFloors = 5000;
   public int minYAcrossAllFloors = -5000;
   public int maxYAcrossAllFloors = 5000;
+  [Tooltip("Square size of a chunk, in tiles")]
+  public int chunkSize = 10; // square size of a chunk, in tiles
+  [Tooltip("how many chunks to load at once on either side of current chunk. EG 1,1 = 3x3 grid")]
+  public Vector2Int chunksToLoad;
+  public SceneTemplateAsset chunkSceneTemplate;
   public Tilemap waterTilemapPrefab;
   public WallObject defaultWallObjectPrefab;
   public static float heightToPaint = 0.0f;
@@ -212,7 +223,7 @@ public class WorldGridData : ScriptableObject
     }
     else
     {
-      wallObject = Instantiate(defaultWallObjectPrefab);
+      wallObject = ObjectPoolManager.Instance.GetWallObjectPool().GetObject();
       wallObject.transform.position = tileLocation.cellCenterWorldPosition;
     }
     if (groundTile != null)
@@ -223,14 +234,14 @@ public class WorldGridData : ScriptableObject
     {
       wallObject.SetCeilingInfo(objectTile, heightValue.y);
     }
-    wallObject.Init(tileLocation); // WARNING: expects ceiling/wall tile info to already be set! provide those, maybe?
+    wallObject.Init(tileLocation);
     placedGameObjects[CoordsToKey(tileLocation)] = wallObject.gameObject;
   }
+
   public void RemoveHeightDataAtLocation(FloorLayer layer, Vector2Int location)
   {
     if (heightGrid[layer].ContainsKey(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))))
     {
-      Debug.Log("contains key " + GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)) + ", contents " + heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))]);
       heightGrid[layer].Remove(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)));
     }
   }
@@ -246,10 +257,11 @@ public class WorldGridData : ScriptableObject
   public void DestroyWallObjectAtLocation(FloorLayer layer, Vector2Int location)
   {
     TileLocation loc = new TileLocation(location.x, location.y, layer);
-    if (placedGameObjects.ContainsKey(CoordsToKey(loc)) && placedGameObjects[CoordsToKey(loc)] != null)
+    GameObject placedObject;
+    if (placedGameObjects.TryGetValue(CoordsToKey(loc), out placedObject) && placedObject != null)
     {
-      Debug.Log("set height to 0, should destroy");
-      GameObject.DestroyImmediate(placedGameObjects[CoordsToKey(loc)]);
+      WallObject wallObject = placedObject.GetComponent<WallObject>();
+      ObjectPoolManager.Instance.wallObjectPool.Release(wallObject);
       placedGameObjects.Remove(CoordsToKey(loc));
     }
   }
@@ -299,10 +311,19 @@ public class WorldGridData : ScriptableObject
   {
     foreach (GameObject obj in placedGameObjects.Values)
     {
-      GameObject.DestroyImmediate(obj);
+      if (obj != null)
+      {
+        obj.SetActive(false);
+      }
     }
+    GridManager.Instance.ClearLoadedChunks();
     placedGameObjects.Clear();
+  }
 
+  public void ClearExistingPlacedObjectsAndPool()
+  {
+    GridManager.Instance.ClearLoadedChunksAndResetPool();
+    placedGameObjects.Clear();
   }
 
   public void CountExistingPlacedObjects()
@@ -351,6 +372,72 @@ public class WorldGridData : ScriptableObject
         }
       }
     }
+  }
+
+
+  public void CreateAndPopulatePlacedObjectsForChunk(Vector2Int chunkCoords)
+  {
+    CreateAndPopulatePlacedObjectsForChunk(chunkCoords.x * chunkSize + minXAcrossAllFloors, chunkCoords.y * chunkSize + minYAcrossAllFloors);
+  }
+
+  public void UnloadPlacedObjectsForChunk(Vector2Int chunkCoords)
+  {
+    UnloadPlacedObjectsForChunk(chunkCoords.x * chunkSize + minXAcrossAllFloors, chunkCoords.y * chunkSize + minYAcrossAllFloors);
+  }
+
+  public void UnloadPlacedObjectsForChunk(int xMin, int yMin)
+  {
+
+    for (int i = Enum.GetValues(typeof(FloorLayer)).Length - 1; i >= 0; i--)
+    {
+      FloorLayer layer = (FloorLayer)i;
+      for (int x = xMin; x < xMin + chunkSize; x++)
+      {
+        for (int y = yMin; y < yMin + chunkSize; y++)
+        { DestroyWallObjectAtLocation(layer, new Vector2Int(x, y)); }
+      }
+    }
+  }
+
+  public void CreateAndPopulatePlacedObjectsForChunk(int xMin, int yMin)
+  {
+    int count = 0;
+    for (int i = Enum.GetValues(typeof(FloorLayer)).Length - 1; i >= 0; i--)
+    {
+      FloorLayer layer = (FloorLayer)i;
+      LayerFloor layerFloor = GridManager.Instance.layerFloors[layer];
+      Tilemap groundTilemap = layerFloor.groundTilemap;
+      Tilemap objectTilemap = layerFloor.objectTilemap;
+      Tilemap waterTilemap = layerFloor.waterTilemap;
+      Tilemap infoTilemap = layerFloor.infoTilemap;
+      for (int x = xMin; x < xMin + chunkSize; x++)
+      {
+        for (int y = yMin; y < yMin + chunkSize; y++)
+        {
+          TileLocation loc = new TileLocation(new Vector2Int(x, y), layer);
+          Vector2 heightValue = Vector2.up;
+          if ((EnvironmentTile)objectTilemap.GetTile(loc.tilemapCoordinatesVector3) != null)
+          {
+            heightValue = Vector2.zero;
+          }
+          if (heightGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)))
+          {
+            heightValue = heightGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)];
+          }
+          if (heightValue != Vector2.up)
+          {
+            count++;
+            AdjustWallObject(
+              loc,
+              heightValue,
+              (EnvironmentTile)groundTilemap.GetTile(loc.tilemapCoordinatesVector3),
+              (EnvironmentTile)objectTilemap.GetTile(loc.tilemapCoordinatesVector3)
+            );
+          }
+        }
+      }
+    }
+    Debug.Log("object count at " + xMin + "," + yMin + ": " + count);
   }
 
   public void CreateAndPopulateNewWorldGrid()
@@ -461,22 +548,19 @@ public class WorldGridData : ScriptableObject
     + ((maxXAcrossAllFloors - minXAcrossAllFloors + 1) * (maxYAcrossAllFloors - minYAcrossAllFloors + 1) * (int)coordinates.floorLayer);
   }
 
-  // public void RecalculateBounds()
-  // {
-  //   maxXAcrossAllFloors = 5000;
-  //   minXAcrossAllFloors = -5000;
-  //   minYAcrossAllFloors = -5000;
-  //   maxYAcrossAllFloors = 5000;
-  //   foreach (LayerFloor lf in GridManager.Instance.layerFloors.Values)
-  //   {
-  //     minXAcrossAllFloors = Mathf.Min(minXAcrossAllFloors, lf.groundTilemap.cellBounds.xMin);
-  //     maxXAcrossAllFloors = Mathf.Max(maxXAcrossAllFloors, lf.groundTilemap.cellBounds.xMax);
-  //     minYAcrossAllFloors = Mathf.Min(minYAcrossAllFloors, lf.groundTilemap.cellBounds.yMin);
-  //     maxYAcrossAllFloors = Mathf.Max(maxYAcrossAllFloors, lf.groundTilemap.cellBounds.yMax);
-  //   }
-  //   if (minXAcrossAllFloors + maxXAcrossAllFloors % 2 != 0) { maxXAcrossAllFloors += 1; }
-  //   if (minYAcrossAllFloors + maxYAcrossAllFloors % 2 != 0) { maxYAcrossAllFloors += 1; }
-  // }
+  public void LoadChunk(TileLocation loc)
+  {
+    LoadChunk(loc.chunkCoordinates);
+  }
+  public void LoadChunk(Vector2Int chunkCoords)
+  {
+    CreateAndPopulatePlacedObjectsForChunk(chunkCoords);
+  }
+
+  public void UnloadChunk(Vector2Int chunkCoords)
+  {
+    UnloadPlacedObjectsForChunk(chunkCoords);
+  }
 
   [MenuItem("CustomTools/World Grid/Painting/Increase Floor Height %#UP")]
   public static void IncreaseFloorHeightToPaint()
