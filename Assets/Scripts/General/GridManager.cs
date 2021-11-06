@@ -256,6 +256,7 @@ public class GridManager : Singleton<GridManager>
   public bool DEBUG_IgnoreLighting;
   public int initialWallObjectPoolSize;
   public HashSet<Vector2Int> loadedChunks;
+  public Dictionary<int, GameObject> placedGameObjects;
   Coroutine chunkLoadCoroutine;
   public WorldGridData worldGridData;
   [HideInInspector]
@@ -301,7 +302,8 @@ public class GridManager : Singleton<GridManager>
     tilesToDestroyOnPlayerRespawn = new List<EnvironmentTileInfo>();
     tilesToRestoreOnPlayerRespawn = new List<EnvironmentTileInfo>();
     loadedChunks = new HashSet<Vector2Int>();
-    worldGridData.ClearExistingPlacedObjectsAndPool();
+    placedGameObjects = new Dictionary<int, GameObject>();
+    ClearLoadedChunksAndResetPool();
     StartCoroutine(ObjectPoolManager.Instance.GetWallObjectPool().Populate(initialWallObjectPoolSize));
     // worldGrid = new FloorLayerToTileInfosDictionary();
     return;

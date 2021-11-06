@@ -16,8 +16,6 @@ public class WorldGridData : ScriptableObject
   [HideInInspector]
   public Vector2IntToStringDictionary chunkScenes;
   [HideInInspector]
-  public CoordsToGameObjectDictionary placedGameObjects;
-  [HideInInspector]
   public FloorLayerToTileInfosDictionary worldGrid;
   [HideInInspector]
   public FloorLayerToTileHeightInfosDictionary heightGrid; // X is floor height; y is ceiling height
@@ -131,10 +129,10 @@ public class WorldGridData : ScriptableObject
   //     {
   //       heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))] = new Vector2(heightToPaint, heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))].y);
   //       WallObject wallObject;
-  //       if (placedGameObjects.ContainsKey(CoordsToKey(loc)) && placedGameObjects[CoordsToKey(loc)] != null)
+  //       if (GridManager.Instance.placedGameObjects.ContainsKey(CoordsToKey(loc)) && GridManager.Instance.placedGameObjects[CoordsToKey(loc)] != null)
   //       {
   //         Debug.Log("replacing existing object");
-  //         wallObject = placedGameObjects[CoordsToKey(loc)].GetComponent<WallObject>();
+  //         wallObject = GridManager.Instance.placedGameObjects[CoordsToKey(loc)].GetComponent<WallObject>();
   //       }
   //       else
   //       {
@@ -143,7 +141,7 @@ public class WorldGridData : ScriptableObject
   //         wallObject.transform.position = loc.cellCenterWorldPosition;
   //       }
   //       wallObject.Init(loc, tile, heightToPaint, ceiling);
-  //       placedGameObjects[CoordsToKey(loc)] = wallObject.gameObject;
+  //       GridManager.Instance.placedGameObjects[CoordsToKey(loc)] = wallObject.gameObject;
   //     }
   //   }
   //   else
@@ -156,10 +154,10 @@ public class WorldGridData : ScriptableObject
   //     {
   //       heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))] = new Vector2(heightToPaint, heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))].y);
   //       WallObject wallObject;
-  //       if (placedGameObjects.ContainsKey(CoordsToKey(loc)) && placedGameObjects[CoordsToKey(loc)] != null)
+  //       if (GridManager.Instance.placedGameObjects.ContainsKey(CoordsToKey(loc)) && GridManager.Instance.placedGameObjects[CoordsToKey(loc)] != null)
   //       {
   //         Debug.Log("replacing existing object");
-  //         wallObject = placedGameObjects[CoordsToKey(loc)].GetComponent<WallObject>();
+  //         wallObject = GridManager.Instance.placedGameObjects[CoordsToKey(loc)].GetComponent<WallObject>();
   //       }
   //       else
   //       {
@@ -168,16 +166,16 @@ public class WorldGridData : ScriptableObject
   //         wallObject.transform.position = loc.cellCenterWorldPosition;
   //       }
   //       wallObject.Init(loc, tile, heightToPaint, !ceiling);
-  //       placedGameObjects[CoordsToKey(loc)] = wallObject.gameObject;
+  //       GridManager.Instance.placedGameObjects[CoordsToKey(loc)] = wallObject.gameObject;
   //     }
   //   }
   //   if (heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))] == Vector2.zero)
   //   {
   //     heightGrid[layer].Remove(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)));
-  //     if (placedGameObjects.ContainsKey(CoordsToKey(loc)) && placedGameObjects[CoordsToKey(loc)] != null)
+  //     if (GridManager.Instance.placedGameObjects.ContainsKey(CoordsToKey(loc)) && GridManager.Instance.placedGameObjects[CoordsToKey(loc)] != null)
   //     {
-  //       GameObject.DestroyImmediate(placedGameObjects[CoordsToKey(loc)]);
-  //       placedGameObjects.Remove(CoordsToKey(loc));
+  //       GameObject.DestroyImmediate(GridManager.Instance.placedGameObjects[CoordsToKey(loc)]);
+  //       GridManager.Instance.placedGameObjects.Remove(CoordsToKey(loc));
   //     }
   //   }}
   // }
@@ -217,9 +215,9 @@ public class WorldGridData : ScriptableObject
     }
     // Debug.Log("setting value to " + heightGrid[tileLocation.floorLayer][GridManager.Instance.CoordsToKey(tileLocation.tilemapCoordinates)]);
     WallObject wallObject;
-    if (placedGameObjects.ContainsKey(CoordsToKey(tileLocation)) && placedGameObjects[CoordsToKey(tileLocation)] != null)
+    if (GridManager.Instance.placedGameObjects.ContainsKey(CoordsToKey(tileLocation)) && GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)] != null)
     {
-      wallObject = placedGameObjects[CoordsToKey(tileLocation)].GetComponent<WallObject>();
+      wallObject = GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)].GetComponent<WallObject>();
     }
     else
     {
@@ -235,7 +233,7 @@ public class WorldGridData : ScriptableObject
       wallObject.SetCeilingInfo(objectTile, heightValue.y);
     }
     wallObject.Init(tileLocation);
-    placedGameObjects[CoordsToKey(tileLocation)] = wallObject.gameObject;
+    GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)] = wallObject.gameObject;
   }
 
   public void RemoveHeightDataAtLocation(FloorLayer layer, Vector2Int location)
@@ -248,9 +246,9 @@ public class WorldGridData : ScriptableObject
 
   public GameObject GetPlacedObjectAtLocation(TileLocation loc)
   {
-    if (placedGameObjects.ContainsKey(CoordsToKey(loc)) && placedGameObjects[CoordsToKey(loc)] != null)
+    if (GridManager.Instance.placedGameObjects.ContainsKey(CoordsToKey(loc)) && GridManager.Instance.placedGameObjects[CoordsToKey(loc)] != null)
     {
-      return placedGameObjects[CoordsToKey(loc)];
+      return GridManager.Instance.placedGameObjects[CoordsToKey(loc)];
     }
     return null;
   }
@@ -258,11 +256,12 @@ public class WorldGridData : ScriptableObject
   {
     TileLocation loc = new TileLocation(location.x, location.y, layer);
     GameObject placedObject;
-    if (placedGameObjects.TryGetValue(CoordsToKey(loc), out placedObject) && placedObject != null)
+    int key = CoordsToKey(loc);
+    if (GridManager.Instance.placedGameObjects.TryGetValue(key, out placedObject) && placedObject != null)
     {
       WallObject wallObject = placedObject.GetComponent<WallObject>();
       ObjectPoolManager.Instance.wallObjectPool.Release(wallObject);
-      placedGameObjects.Remove(CoordsToKey(loc));
+      GridManager.Instance.placedGameObjects.Remove(key);
     }
   }
 
@@ -309,7 +308,11 @@ public class WorldGridData : ScriptableObject
   // Delete any physical objects associated with the grid
   public void ClearExistingPlacedObjects()
   {
-    foreach (GameObject obj in placedGameObjects.Values)
+    if (GridManager.Instance.placedGameObjects == null)
+    {
+      GridManager.Instance.placedGameObjects = new Dictionary<int, GameObject>();
+    }
+    foreach (GameObject obj in GridManager.Instance.placedGameObjects.Values)
     {
       if (obj != null)
       {
@@ -317,18 +320,17 @@ public class WorldGridData : ScriptableObject
       }
     }
     GridManager.Instance.ClearLoadedChunks();
-    placedGameObjects.Clear();
+    GridManager.Instance.placedGameObjects.Clear();
   }
 
   public void ClearExistingPlacedObjectsAndPool()
   {
     GridManager.Instance.ClearLoadedChunksAndResetPool();
-    placedGameObjects.Clear();
   }
 
   public void CountExistingPlacedObjects()
   {
-    Debug.Log("placed game objects count: " + placedGameObjects.Count);
+    Debug.Log("placed game objects count: " + GridManager.Instance.placedGameObjects.Count);
   }
 
   public void CreateAndPopulatePlacedObjects()
