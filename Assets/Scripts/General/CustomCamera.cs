@@ -16,7 +16,7 @@ public class CustomCamera : MonoBehaviour
     int mask = 0;
     for (
         int i = firstFloorLayerIndex;
-        i < firstFloorLayerIndex + Constants.numberOfFloorLayers;
+        i < firstFloorLayerIndex + DrossConstants.numberOfFloorLayers;
         i++
     )
     {

@@ -37,19 +37,19 @@ public class CanvasHandler : MonoBehaviour
   {
     switch (GameMaster.Instance.GetGameStatus())
     {
-      case Constants.GameState.ChooseBug:
+      case DrossConstants.GameState.ChooseBug:
         if (!startingBugSelectScreen.gameObject.activeSelf)
         {
           DisplaySelectBugScreen();
         }
         break;
-      case Constants.GameState.Menu:
+      case DrossConstants.GameState.Menu:
         if (rewiredPlayer.GetButtonDown("UICancel"))
         {
           CloseMenus();
         }
         break;
-      case Constants.GameState.Play:
+      case DrossConstants.GameState.Play:
         if (Input.GetKeyDown(KeyCode.I))
         {
           {
@@ -67,7 +67,7 @@ public class CanvasHandler : MonoBehaviour
   public void AdvanceDialogue()
   {
     SetAllCanvasesInactive();
-    GameMaster.Instance.SetGameStatus(Constants.GameState.Play);
+    GameMaster.Instance.SetGameStatus(DrossConstants.GameState.Play);
   }
 
   public void CloseMenus()

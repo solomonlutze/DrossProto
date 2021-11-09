@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-public static class Constants
+public static class DrossConstants
 {
   public enum GameState { Play, Dead, Dialogue, Menu, ChooseBug, Pause }
   public const float DEFAULT_DETECTION_RANGE = 20f;

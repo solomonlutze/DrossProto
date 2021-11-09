@@ -211,7 +211,7 @@ namespace RotaryHeart.Lib.SerializableDictionary
         public SerializedProperty List
         {
             get { return list; }
-            internal set { list = value; }
+            set { list = value; }
         }
 
         public bool HasList
@@ -265,6 +265,7 @@ namespace RotaryHeart.Lib.SerializableDictionary
         public void DoList(Rect rect, GUIContent label, bool enablePages, int perPageCount)
         {
             int indent = EditorGUI.indentLevel;
+            rect = EditorGUI.IndentedRect(rect);
             EditorGUI.indentLevel = 0;
 
             Rect headerRect = rect;

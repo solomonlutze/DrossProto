@@ -53,6 +53,20 @@ public class TileLocation
     }
   }
 
+  public Vector2Int zeroIndexedTilemapCoordinates
+  {
+    get
+    {
+      return tilemapCoordinates - new Vector2Int(GridManager.Instance.worldGridData.minXAcrossAllFloors, GridManager.Instance.worldGridData.minYAcrossAllFloors);
+    }
+  }
+  public Vector2Int chunkCoordinates
+  {
+    get
+    {
+      return new Vector2Int(zeroIndexedTilemapCoordinates.x / GridManager.Instance.worldGridData.chunkSize, zeroIndexedTilemapCoordinates.y / GridManager.Instance.worldGridData.chunkSize);
+    }
+  }
   public Vector3 cellCenterWorldPosition
   {
     get
@@ -226,11 +240,29 @@ public class TileLocation
   }
 }
 
+public class WorldGridChunk
+{
+  bool isLoaded = false;
+  List<GameObject> loadedGameObjects;
+
+  public WorldGridChunk()
+  {
+    loadedGameObjects = new List<GameObject>();
+  }
+}
 public class GridManager : Singleton<GridManager>
 {
 
   public bool DEBUG_IgnoreLighting;
-  public WorldGridData worldGridData; // TODO: serialize all data here!
+  public int initialWallObjectPoolSize;
+  public HashSet<Vector2Int> loadedChunks;
+  public HashSet<Vector2Int> desiredChunks;
+  // public HashSet<Vector2Int> chunksToUnload;
+  public CoordsToGameObjectDictionary placedGameObjects;
+  Coroutine chunkLoadCoroutine;
+  public WorldGridData worldGridData;
+  [HideInInspector]
+  public Vector2IntToWorldGridChunkDictionary worldGridChunks;
   public Grid levelGrid;
   public Material semiTransparentMaterial;
   public Material fullyOpaqueMaterial;
@@ -271,6 +303,10 @@ public class GridManager : Singleton<GridManager>
     worldGrid = worldGridData.worldGrid;
     tilesToDestroyOnPlayerRespawn = new List<EnvironmentTileInfo>();
     tilesToRestoreOnPlayerRespawn = new List<EnvironmentTileInfo>();
+    loadedChunks = new HashSet<Vector2Int>();
+    placedGameObjects = new CoordsToGameObjectDictionary();
+    ClearLoadedChunksAndResetPool();
+    StartCoroutine(ObjectPoolManager.Instance.GetWallObjectPool().Populate(initialWallObjectPoolSize));
     // worldGrid = new FloorLayerToTileInfosDictionary();
     return;
     visibleTiles = new HashSet<EnvironmentTileInfo>();
@@ -836,7 +872,7 @@ public class GridManager : Singleton<GridManager>
 
   public bool AdjacentTileIsValid(TileLocation location, TilemapDirection direction)
   {
-    if (direction == TilemapDirection.Above && (int)location.floorLayer == Constants.numberOfFloorLayers)
+    if (direction == TilemapDirection.Above && (int)location.floorLayer == DrossConstants.numberOfFloorLayers)
     {
       return false;
     }
@@ -1090,7 +1126,7 @@ public class GridManager : Singleton<GridManager>
   }
   public static int GetZOffsetForGameObjectLayer(int floorLayer)
   {
-    return (LayerMask.NameToLayer("B6") + Constants.numberOfFloorLayers) - floorLayer;
+    return (LayerMask.NameToLayer("B6") + DrossConstants.numberOfFloorLayers) - floorLayer;
     // floor layers 9-20 (bottom to top)
     // we want them from 0-12, top to bottom
     // 20 = 0, 19 = 1, 18 = 2, 17 = 3
@@ -1242,11 +1278,137 @@ public class GridManager : Singleton<GridManager>
         }
       }
     }
-    currentPlayerLocation = newPlayerTileLocation;
-    if (nextInfoTile != null)
+    if (currentPlayerLocation == null || currentPlayerLocation.chunkCoordinates != newPlayerTileLocation.chunkCoordinates)
     {
-
+      PlayerChangedChunk(newPlayerTileLocation);
     }
+    currentPlayerLocation = newPlayerTileLocation;
+  }
+
+  public void PlayerChangedChunk(TileLocation newPlayerTileLocation)
+  {
+    StartLoadAndUnloadChunks(newPlayerTileLocation);
+  }
+
+  public void StartLoadAndUnloadChunks(TileLocation centeredOnLocation)
+  {
+    HashSet<Vector2Int> chunksToLoad = new HashSet<Vector2Int>();
+    if (loadedChunks == null)
+    {
+      loadedChunks = new HashSet<Vector2Int>();
+    }
+    if (placedGameObjects == null)
+    {
+      Debug.LogWarning("making new placedGameObjects!!");
+      placedGameObjects = new CoordsToGameObjectDictionary();
+    }
+    for (int x = -worldGridData.chunksToLoad.x; x <= worldGridData.chunksToLoad.x; x++)
+    {
+      for (int y = -worldGridData.chunksToLoad.y; y <= worldGridData.chunksToLoad.y; y++)
+      {
+        Vector2Int offset = new Vector2Int(x, y);
+        chunksToLoad.Add(centeredOnLocation.chunkCoordinates + offset);
+      }
+    }
+    if (chunkLoadCoroutine != null)
+    {
+      StopCoroutine(chunkLoadCoroutine);
+    }
+    Debug.Log("starting coroutine!!");
+    chunkLoadCoroutine = StartCoroutine(LoadAndUnloadChunksCoroutine(chunksToLoad));
+  }
+  public void LoadAndUnloadChunks(TileLocation centeredOnLocation)
+  {
+    List<Vector2Int> chunksToLoad = new List<Vector2Int>();
+    if (loadedChunks == null)
+    {
+      loadedChunks = new HashSet<Vector2Int>();
+    }
+    for (int x = -worldGridData.chunksToLoad.x; x <= worldGridData.chunksToLoad.x; x++)
+    {
+      for (int y = -worldGridData.chunksToLoad.y; y <= worldGridData.chunksToLoad.y; y++)
+      {
+        Vector2Int offset = new Vector2Int(x, y);
+        chunksToLoad.Add(centeredOnLocation.chunkCoordinates + offset);
+      }
+    }
+    HashSet<Vector2Int> chunksToUnload = new HashSet<Vector2Int>();
+    foreach (Vector2Int loadedChunk in loadedChunks)
+    {
+      if (!chunksToLoad.Contains(loadedChunk))
+      {
+        chunksToUnload.Add(loadedChunk);
+        worldGridData.UnloadChunk(loadedChunk);
+      }
+    }
+    foreach (Vector2Int chunk in chunksToUnload)
+    {
+      loadedChunks.Remove(chunk);
+    }
+  }
+
+  IEnumerator LoadAndUnloadChunksCoroutine(HashSet<Vector2Int> chunksToLoad)
+  {
+    System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+    watch.Start();
+    yield return LoadChunksCoroutine(chunksToLoad);
+    yield return UnloadChunksCoroutine(chunksToLoad);
+    Debug.Log("load/unload took " + watch.ElapsedMilliseconds + "ms");
+    chunkLoadCoroutine = null;
+  }
+
+  IEnumerator LoadChunksCoroutine(HashSet<Vector2Int> desiredChunks)
+  {
+    System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+    watch.Start();
+    foreach (Vector2Int chunk in desiredChunks)
+    {
+      if (!loadedChunks.Contains(chunk))
+      {
+        worldGridData.LoadChunk(chunk);
+        loadedChunks.Add(chunk);
+        if (watch.ElapsedMilliseconds > .3)
+        {
+          yield return null;
+          watch.Restart();
+        }
+      }
+    }
+  }
+
+  IEnumerator UnloadChunksCoroutine(HashSet<Vector2Int> desiredChunks)
+  {
+    System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+    HashSet<Vector2Int> chunksToUnload = new HashSet<Vector2Int>();
+    watch.Start();
+    foreach (Vector2Int loadedChunk in loadedChunks)
+    {
+      if (!desiredChunks.Contains(loadedChunk))
+      {
+        chunksToUnload.Add(loadedChunk);
+        worldGridData.UnloadChunk(loadedChunk);
+        if (watch.ElapsedMilliseconds > .3)
+        {
+          yield return null;
+          watch.Restart();
+        }
+      }
+    }
+    foreach (Vector2Int chunk in chunksToUnload)
+    {
+      loadedChunks.Remove(chunk);
+    }
+  }
+
+  public void ClearLoadedChunksAndResetPool()
+  {
+    ObjectPoolManager.Instance.GetWallObjectPool().Clear();
+    ClearLoadedChunks();
+  }
+
+  public void ClearLoadedChunks()
+  {
+    loadedChunks.Clear();
   }
 
   void RecalculateVisibility(DarkVisionInfo[] darkVisionInfos)

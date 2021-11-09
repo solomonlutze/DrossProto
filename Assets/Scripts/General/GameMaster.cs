@@ -15,7 +15,7 @@ public class GameMaster : Singleton<GameMaster>
   public int rewiredPlayerId = 0;
   private Rewired.Player rewiredPlayer;
   public IntVariable trophyGrubCount;
-  public Constants.GameState startingGameStatus;
+  public DrossConstants.GameState startingGameStatus;
   public CanvasHandler canvasHandler;
   public ParticleSystemMaster particleSystemMaster;
   public InputGlyphHelper inputGlyphHelper;
@@ -24,7 +24,7 @@ public class GameMaster : Singleton<GameMaster>
   public VariableStorage dialogueVariableStorage;
   private PlayerController playerController;
   private PathfindingSystem pathfinding;
-  public Constants.GameState gameStatus;
+  public DrossConstants.GameState gameStatus;
 
   // Saved when player dies so their next life can be preserved
   private TraitSlotToTraitDictionary cachedPupa;
@@ -52,10 +52,10 @@ public class GameMaster : Singleton<GameMaster>
     SetGameStatus(startingGameStatus);
     switch (GetGameStatus())
     {
-      case Constants.GameState.Play:
+      case DrossConstants.GameState.Play:
         BeginGame();
         break;
-      case Constants.GameState.ChooseBug:
+      case DrossConstants.GameState.ChooseBug:
         canvasHandler.DisplaySelectBugScreen();
         break;
     }
@@ -64,13 +64,13 @@ public class GameMaster : Singleton<GameMaster>
   public void SelectBugPresetAndBegin(BugPresetData data)
   {
     canvasHandler.SetAllCanvasesInactive();
-    SetGameStatus(Constants.GameState.Play);
+    SetGameStatus(DrossConstants.GameState.Play);
     Respawn(data.loadout);
   }
 
   void BeginGame()
   {
-    SetGameStatus(Constants.GameState.Play);
+    SetGameStatus(DrossConstants.GameState.Play);
     Respawn();
   }
 
@@ -84,10 +84,10 @@ public class GameMaster : Singleton<GameMaster>
   {
     switch (gameStatus)
     {
-      case Constants.GameState.Dead:
+      case DrossConstants.GameState.Dead:
         HandleDeadInput();
         break;
-      case Constants.GameState.Play:
+      case DrossConstants.GameState.Play:
         if (rewiredPlayer.GetButtonDown("Restart") && playerController != null)
         {
           playerController.Die();
@@ -97,7 +97,7 @@ public class GameMaster : Singleton<GameMaster>
           SetGamePaused();
         }
         break;
-      case Constants.GameState.Pause:
+      case DrossConstants.GameState.Pause:
         if (rewiredPlayer.GetButtonDown("Pause"))
         {
           SetGameUnpaused();
@@ -117,20 +117,20 @@ public class GameMaster : Singleton<GameMaster>
   public void SetGameMenu()
   {
     PauseGame();
-    SetGameStatus(Constants.GameState.Menu);
+    SetGameStatus(DrossConstants.GameState.Menu);
   }
   public void SetGamePaused()
   {
     PauseGame();
     canvasHandler.DisplayPauseMenu();
-    SetGameStatus(Constants.GameState.Pause);
+    SetGameStatus(DrossConstants.GameState.Pause);
   }
 
   public void SetGameUnpaused()
   {
     UnpauseGame();
     canvasHandler.ClosePauseMenu();
-    SetGameStatus(Constants.GameState.Play);
+    SetGameStatus(DrossConstants.GameState.Play);
   }
 
   public void PauseGame()
@@ -154,7 +154,7 @@ public class GameMaster : Singleton<GameMaster>
   {
     UnpauseGame();
     SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    SetGameStatus(Constants.GameState.ChooseBug);
+    SetGameStatus(DrossConstants.GameState.ChooseBug);
     canvasHandler.DisplaySelectBugScreen();
   }
   private void Respawn(TraitSlotToTraitDictionary overrideTraits = null)
@@ -197,7 +197,7 @@ public class GameMaster : Singleton<GameMaster>
     AkSoundEngine.PostEvent("PlayClergyLoop", GameMaster.Instance.gameObject);
     DoActivateOnPlayerRespawn();
     DoDestroyOnPlayerRespawn();
-    SetGameStatus(Constants.GameState.Play);
+    SetGameStatus(DrossConstants.GameState.Play);
   }
 
   private void DoActivateOnPlayerRespawn()
@@ -233,7 +233,7 @@ public class GameMaster : Singleton<GameMaster>
     return playerController;
   }
 
-  public void SetGameStatus(Constants.GameState newStatus)
+  public void SetGameStatus(DrossConstants.GameState newStatus)
   {
     gameStatus = newStatus;
   }
@@ -242,10 +242,10 @@ public class GameMaster : Singleton<GameMaster>
   {
     cachedPupa = pupa;
     playerController = null;
-    SetGameStatus(Constants.GameState.Dead);
+    SetGameStatus(DrossConstants.GameState.Dead);
   }
 
-  public Constants.GameState GetGameStatus()
+  public DrossConstants.GameState GetGameStatus()
   {
     return gameStatus;
   }

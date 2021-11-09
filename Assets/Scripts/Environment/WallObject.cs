@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WallObject : MonoBehaviour
+public class WallObject : MonoBehaviour, IPoolable
 {
   public EnvironmentTile groundTile;
   public EnvironmentTile ceilingTile;
@@ -24,6 +24,12 @@ public class WallObject : MonoBehaviour
     if (wallPieces == null || wallPieces.Length == 0)
     {
       wallPieces = new GameObject[numberOfPieces];
+      for (int i = 0; i < numberOfPieces; i++)
+      {
+        wallPieces[i] = Instantiate(wallPieceObject, transform.position, Quaternion.identity);
+        wallPieces[i].transform.parent = transform;
+        wallPieces[i].transform.localPosition = new Vector3(0, 0, (1f / numberOfPieces * (i + 1)) - 1);
+      }
     }
     floorLayer = location.floorLayer;
     string sortingLayer = floorLayer.ToString();
@@ -32,7 +38,7 @@ public class WallObject : MonoBehaviour
       float progress = 1f / numberOfPieces * (i + 1);
       if (wallPieces[i] != null)
       {
-        DestroyImmediate(wallPieces[i]);
+        wallPieces[i].SetActive(false);
       }
       if (progress > 1 - groundHeight && groundTile != null)
       {
@@ -46,6 +52,13 @@ public class WallObject : MonoBehaviour
     WorldObject.ChangeLayersRecursively(transform, floorLayer);
   }
 
+  public void Clear()
+  {
+    groundTile = null;
+    ceilingTile = null;
+    groundHeight = 0;
+    ceilingHeight = 0;
+  }
   public void SetCeilingInfo(EnvironmentTile tile, float height)
   {
     ceilingTile = tile;
@@ -61,17 +74,17 @@ public class WallObject : MonoBehaviour
 
   void CreateWallPiece(EnvironmentTile tile, int i)
   {
-    wallPieces[i] = Instantiate(wallPieceObject, transform.position, Quaternion.identity);
-    SpriteRenderer sr = wallPieces[i].GetComponent<SpriteRenderer>();
+    GameObject wallPiece = wallPieces[i];
+    wallPiece.SetActive(true);
+    SpriteRenderer sr = wallPiece.GetComponent<SpriteRenderer>();
     sr.sprite = tile.sprite;
     sr.sortingOrder = orderInLayer;
-    Vector3 locScale = wallPieces[i].transform.localScale;
-    if (tile.wallSizeCurve.length > 0)
+    Vector3 locScale = Vector3.one;
+    if (tile.wallSizeCurve != null && tile.wallSizeCurve.length > 0)
     {
-      wallPieces[i].transform.localScale = locScale * tile.wallSizeCurve.Evaluate(1f / numberOfPieces * i);
+      locScale = locScale * tile.wallSizeCurve.Evaluate(1f / numberOfPieces * i);
     }
-    wallPieces[i].transform.parent = transform;
-    wallPieces[i].transform.localPosition = new Vector3(0, 0, (1f / numberOfPieces * (i + 1)) - 1);
+    wallPiece.transform.localScale = locScale;
   }
 
   void OnTriggerStay2D(Collider2D col)

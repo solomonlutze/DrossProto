@@ -1,19 +1,11 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 
-namespace RotaryHeart.Lib.SerializableDictionary
+namespace RotaryHeart.Lib
 {
-    [InitializeOnLoad]
-    public class Definer
+
+    public static class Definer
     {
-        static Definer()
-        {
-            List<string> defines = new List<string>(1)
-            {
-                "RHSD"
-            };
-            ApplyDefines(defines);
-        }
 
         public static void ApplyDefines(List<string> defines)
         {
@@ -23,7 +15,7 @@ namespace RotaryHeart.Lib.SerializableDictionary
             string availableDefines = PlayerSettings.GetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
             List<string> definesSplit = new List<string>(availableDefines.Split(';'));
 
-            foreach (var define in defines)
+            foreach (string define in defines)
                 if (!definesSplit.Contains(define))
                     definesSplit.Add(define);
 
@@ -38,13 +30,13 @@ namespace RotaryHeart.Lib.SerializableDictionary
             string availableDefines = PlayerSettings.GetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
             List<string> definesSplit = new List<string>(availableDefines.Split(';'));
 
-            foreach (var define in defines)
+            foreach (string define in defines)
                 definesSplit.Remove(define);
 
             _ApplyDefine(string.Join(";", definesSplit.ToArray()));
         }
 
-        private static void _ApplyDefine(string define)
+        static void _ApplyDefine(string define)
         {
             if (string.IsNullOrEmpty(define))
                 return;
@@ -52,4 +44,5 @@ namespace RotaryHeart.Lib.SerializableDictionary
             PlayerSettings.SetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup, define);
         }
     }
+    
 }
