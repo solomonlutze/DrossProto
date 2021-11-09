@@ -308,7 +308,7 @@ public class WorldGridData : ScriptableObject
   {
     if (GridManager.Instance.placedGameObjects == null)
     {
-      GridManager.Instance.placedGameObjects = new Dictionary<int, GameObject>();
+      GridManager.Instance.placedGameObjects = new CoordsToGameObjectDictionary();
     }
     foreach (GameObject obj in GridManager.Instance.placedGameObjects.Values)
     {

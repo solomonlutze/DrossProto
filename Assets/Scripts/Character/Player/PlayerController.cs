@@ -115,8 +115,8 @@ public class PlayerController : Character
     switch (GameMaster.Instance.GetGameStatus())
     {
 
-      case Constants.GameState.Play:
-      case Constants.GameState.Menu:
+      case DrossConstants.GameState.Play:
+      case DrossConstants.GameState.Menu:
         HandleMovementInput();
         HandleActionInput();
         break;
@@ -366,7 +366,7 @@ public class PlayerController : Character
     {
       // holding down block should cause us to block.
       // taking _any other action_ or releasing the key should cancel the block.
-      case (Constants.GameState.Play):
+      case (DrossConstants.GameState.Play):
         // Debug.Log("handling player input");
         bool shouldBlock = false;
         if ((CanBlock() && Input.GetButton("Block")) /*|| using block attack?*/)
@@ -420,7 +420,7 @@ public class PlayerController : Character
         }
         SetBlocking(shouldBlock);
         break;
-      case (Constants.GameState.Menu):
+      case (DrossConstants.GameState.Menu):
         break;
     }
 

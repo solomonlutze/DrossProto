@@ -706,7 +706,7 @@ public class Character : WorldObject
     {
       return 0;
     }
-    return attackModifiers[value] * Constants.CharacterAttackAdjustmentIncrements[value];
+    return attackModifiers[value] * DrossConstants.CharacterAttackAdjustmentIncrements[value];
   }
 
   // public string GetSkillNameFromIndex(int idx)
@@ -1397,7 +1397,7 @@ public class Character : WorldObject
         // set carapace to 0
         damageAfterResistances += (GetCharacterVital(CharacterVital.CurrentCarapace) * -1);
         vitals[CharacterVital.CurrentCarapace] = 0;
-        StartCoroutine(ApplyCarapaceBreak(Constants.CARAPACE_BREAK_STUN_DURATION)); // don't want to reapply if already stunned, but can't block if stunned
+        StartCoroutine(ApplyCarapaceBreak(DrossConstants.CARAPACE_BREAK_STUN_DURATION)); // don't want to reapply if already stunned, but can't block if stunned
       }
       else
       {

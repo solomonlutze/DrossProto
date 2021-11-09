@@ -258,7 +258,7 @@ public class GridManager : Singleton<GridManager>
   public HashSet<Vector2Int> loadedChunks;
   public HashSet<Vector2Int> desiredChunks;
   // public HashSet<Vector2Int> chunksToUnload;
-  public Dictionary<int, GameObject> placedGameObjects;
+  public CoordsToGameObjectDictionary placedGameObjects;
   Coroutine chunkLoadCoroutine;
   public WorldGridData worldGridData;
   [HideInInspector]
@@ -304,7 +304,7 @@ public class GridManager : Singleton<GridManager>
     tilesToDestroyOnPlayerRespawn = new List<EnvironmentTileInfo>();
     tilesToRestoreOnPlayerRespawn = new List<EnvironmentTileInfo>();
     loadedChunks = new HashSet<Vector2Int>();
-    placedGameObjects = new Dictionary<int, GameObject>();
+    placedGameObjects = new CoordsToGameObjectDictionary();
     ClearLoadedChunksAndResetPool();
     StartCoroutine(ObjectPoolManager.Instance.GetWallObjectPool().Populate(initialWallObjectPoolSize));
     // worldGrid = new FloorLayerToTileInfosDictionary();
@@ -872,7 +872,7 @@ public class GridManager : Singleton<GridManager>
 
   public bool AdjacentTileIsValid(TileLocation location, TilemapDirection direction)
   {
-    if (direction == TilemapDirection.Above && (int)location.floorLayer == Constants.numberOfFloorLayers)
+    if (direction == TilemapDirection.Above && (int)location.floorLayer == DrossConstants.numberOfFloorLayers)
     {
       return false;
     }
@@ -1126,7 +1126,7 @@ public class GridManager : Singleton<GridManager>
   }
   public static int GetZOffsetForGameObjectLayer(int floorLayer)
   {
-    return (LayerMask.NameToLayer("B6") + Constants.numberOfFloorLayers) - floorLayer;
+    return (LayerMask.NameToLayer("B6") + DrossConstants.numberOfFloorLayers) - floorLayer;
     // floor layers 9-20 (bottom to top)
     // we want them from 0-12, top to bottom
     // 20 = 0, 19 = 1, 18 = 2, 17 = 3
@@ -1300,7 +1300,7 @@ public class GridManager : Singleton<GridManager>
     if (placedGameObjects == null)
     {
       Debug.LogWarning("making new placedGameObjects!!");
-      placedGameObjects = new Dictionary<int, GameObject>();
+      placedGameObjects = new CoordsToGameObjectDictionary();
     }
     for (int x = -worldGridData.chunksToLoad.x; x <= worldGridData.chunksToLoad.x; x++)
     {

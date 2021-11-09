@@ -1,6 +1,7 @@
 //Based of the following thread https://forum.unity.com/threads/finally-a-serializable-dictionary-for-unity-extracted-from-system-collections-generic.335797/
 
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace RotaryHeart.Lib.SerializableDictionary
@@ -25,8 +26,8 @@ namespace RotaryHeart.Lib.SerializableDictionary
     [System.Serializable]
     public class SerializableDictionaryBase<TKey, TValue> : DrawableDictionary, IDictionary<TKey, TValue>, UnityEngine.ISerializationCallbackReceiver
     {
-        private Dictionary<TKey, TValue> _dict;
-        private readonly static Dictionary<TKey, TValue> _staticEmptyDict = new Dictionary<TKey, TValue>(0);
+        Dictionary<TKey, TValue> _dict;
+        static readonly Dictionary<TKey, TValue> _staticEmptyDict = new Dictionary<TKey, TValue>(0);
 
         /// <summary>
         /// Copies the data from a dictionary. If an entry with the same key is found it replaces the value
@@ -34,7 +35,7 @@ namespace RotaryHeart.Lib.SerializableDictionary
         /// <param name="src">Dictionary to copy the data from</param>
         public void CopyFrom(IDictionary<TKey, TValue> src)
         {
-            foreach (var data in src)
+            foreach (KeyValuePair<TKey, TValue> data in src)
             {
                 if (ContainsKey(data.Key))
                 {
@@ -53,7 +54,7 @@ namespace RotaryHeart.Lib.SerializableDictionary
         /// <param name="src">Dictionary to copy the data from</param>
         public void CopyFrom(object src)
         {
-            var dictionary = src as Dictionary<TKey, TValue>;
+            Dictionary<TKey, TValue> dictionary = src as Dictionary<TKey, TValue>;
             if (dictionary != null)
             {
                 CopyFrom(dictionary);
@@ -66,7 +67,7 @@ namespace RotaryHeart.Lib.SerializableDictionary
         /// <param name="dest">Dictionary to copy the data to</param>
         public void CopyTo(IDictionary<TKey, TValue> dest)
         {
-            foreach (var data in this)
+            foreach (KeyValuePair<TKey, TValue> data in this)
             {
                 if (dest.ContainsKey(data.Key))
                 {
@@ -86,7 +87,7 @@ namespace RotaryHeart.Lib.SerializableDictionary
         {
             Dictionary<TKey, TValue> dest = new Dictionary<TKey, TValue>(Count);
 
-            foreach (var data in this)
+            foreach (KeyValuePair<TKey, TValue> data in this)
             {
                 dest.Add(data.Key, data.Value);
             }
@@ -161,43 +162,6 @@ namespace RotaryHeart.Lib.SerializableDictionary
 
         #endregion Properties
 
-        public void Add(TKey key, TValue value)
-        {
-            if (_dict == null)
-                _dict = new Dictionary<TKey, TValue>();
-
-            _dict.Add(key, value);
-
-            if (Application.isEditor)
-            {
-                if (_keyValues == null)
-                    _keyValues = new List<TKey>();
-                if (_keys == null)
-                    _keys = new List<TKey>();
-                if (_values == null)
-                    _values = new List<TValue>();
-
-                _keyValues.Add(key);
-                _keys.Add(key);
-                _values.Add(value);
-            }
-        }
-
-        public void Clear()
-        {
-            if (_dict != null)
-                _dict.Clear();
-
-            if (Application.isEditor)
-            {
-                if (_keyValues != null)
-                    _keyValues.Clear();
-                if (_keys != null)
-                    _keys.Clear();
-                if (_values != null)
-                    _values.Clear();
-            }
-        }
 
         public bool ContainsKey(TKey key)
         {
@@ -207,27 +171,91 @@ namespace RotaryHeart.Lib.SerializableDictionary
             return _dict.ContainsKey(key);
         }
 
+#if UNITY_EDITOR
+
+        public void Add(TKey key, TValue value)
+        {
+            if (_dict == null)
+                _dict = new Dictionary<TKey, TValue>();
+
+            _dict.Add(key, value);
+
+            if (_keyValues == null)
+                _keyValues = new List<TKey>();
+            if (_keys == null)
+                _keys = new List<TKey>();
+            if (_values == null)
+                _values = new List<TValue>();
+
+            _keyValues.Add(key);
+            _keys.Add(key);
+            _values.Add(value);
+        }
+        
+        public void Clear()
+        {
+            if (_dict != null)
+                _dict.Clear();
+
+            if (_keyValues != null)
+                _keyValues.Clear();
+            if (_keys != null)
+                _keys.Clear();
+            if (_values != null)
+                _values.Clear();
+        }
+        
         public bool Remove(TKey key)
         {
             if (_dict == null)
                 return false;
 
-            if (Application.isEditor)
+            int index = -1;
+
+            if (_keys != null)
+            {
+                index = _keys.IndexOf(key);
+                
+                if (index != -1)
+                    _keys.RemoveAt(index);
+            }
+
+            if (index != -1)
             {
                 if (_keyValues != null)
-                    _keyValues.Remove(key);
-                if (_keys != null)
-                {
-                    int index = _keys.IndexOf(key);
-                    _keys.Remove(key);
+                    _keyValues.RemoveAt(index);
 
-                    if (_values != null)
-                        _values.RemoveAt(index);
-                }
+                if (_values != null)
+                    _values.RemoveAt(index);
             }
 
             return _dict.Remove(key);
         }
+#else
+
+        public void Add(TKey key, TValue value)
+        {
+            if (_dict == null)
+                _dict = new Dictionary<TKey, TValue>();
+
+            _dict.Add(key, value);
+        }
+
+        public void Clear()
+        {
+            if (_dict != null)
+                _dict.Clear();
+        }
+
+        public bool Remove(TKey key)
+        {
+            if (_dict == null)
+                return false;
+
+            return _dict.Remove(key);
+        }
+        
+#endif
 
         public bool TryGetValue(TKey key, out TValue value)
         {
@@ -285,12 +313,14 @@ namespace RotaryHeart.Lib.SerializableDictionary
         #region ISerializationCallbackReceiver
 
         [SerializeField]
-        private List<TKey> _keyValues;
+        List<TKey> _keyValues;
 
         [SerializeField]
-        private List<TKey> _keys;
+        List<TKey> _keys;
         [SerializeField]
-        private List<TValue> _values;
+        List<TValue> _values;
+
+#if UNITY_EDITOR
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
@@ -321,7 +351,70 @@ namespace RotaryHeart.Lib.SerializableDictionary
                             }
 
                             //Use reflection to check all the fields included on the class
-                            foreach (var field in typeof(RequiredReferences).GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic))
+                            foreach (FieldInfo field in typeof(RequiredReferences).GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
+                            {
+                                //Only set the value if the type is the same
+                                if (field.FieldType.ToString().Equals(tKeyType))
+                                {
+                                    _keys[i] = (TKey)(field.GetValue(reqReferences));
+                                    break;
+                                }
+                            }
+
+                            //References class is missing the field, skip the element
+                            if (_keys[i] == null)
+                            {
+                                Debug.LogError("Couldn't find " + tKeyType + " reference.");
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            //Create a instance for the key
+                            _keys[i] = System.Activator.CreateInstance<TKey>();
+                        }
+                    }
+
+                    //Add the data to the dictionary. Value can be null so no special step is required
+                    if (i < _values.Count)
+                        _dict[_keys[i]] = _values[i];
+                    else
+                        _dict[_keys[i]] = default(TValue);
+                }
+            }
+        }
+
+#else
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            if (_keys != null && _values != null)
+            {
+                //Need to clear the dictionary
+                if (_dict == null)
+                    _dict = new Dictionary<TKey, TValue>(_keys.Count);
+                else
+                    _dict.Clear();
+
+                for (int i = 0; i < _keys.Count; i++)
+                {
+                    //This should only happen with reference type keys (Generic, Object, etc)
+                    if (_keys[i] == null)
+                    {
+                        //Special case for UnityEngine.Object classes
+                        if (typeof(Object).IsAssignableFrom(typeof(TKey)))
+                        {
+                            //Key type
+                            string tKeyType = typeof(TKey).ToString();
+
+                            //We need the reference to the reference holder class
+                            if (reqReferences == null)
+                            {
+                                Debug.LogError("A key of type: " + tKeyType + " requires to have a valid RequiredReferences reference");
+                                continue;
+                            }
+
+                            //Use reflection to check all the fields included on the class
+                            foreach (FieldInfo field in typeof(RequiredReferences).GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
                             {
                                 //Only set the value if the type is the same
                                 if (field.FieldType.ToString().Equals(tKeyType))
@@ -353,15 +446,19 @@ namespace RotaryHeart.Lib.SerializableDictionary
                 }
             }
 
+            _keyValues = null;
             _keys = null;
             _values = null;
         }
 
+#endif
+        
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
             if (_dict == null || _dict.Count == 0)
             {
                 //Dictionary is empty, erase data
+                _keyValues = null;
                 _keys = null;
                 _values = null;
             }
@@ -369,15 +466,19 @@ namespace RotaryHeart.Lib.SerializableDictionary
             {
                 //Initialize arrays
                 int cnt = _dict.Count;
+                _keyValues = new List<TKey>(cnt);
                 _keys = new List<TKey>(cnt);
                 _values = new List<TValue>(cnt);
 
-                var e = _dict.GetEnumerator();
-                while (e.MoveNext())
+                using (Dictionary<TKey, TValue>.Enumerator e = _dict.GetEnumerator())
                 {
-                    //Set the respective data from the dictionary
-                    _keys.Add(e.Current.Key);
-                    _values.Add(e.Current.Value);
+                    while (e.MoveNext())
+                    {
+                        //Set the respective data from the dictionary
+                        _keyValues.Add(e.Current.Key);
+                        _keys.Add(e.Current.Key);
+                        _values.Add(e.Current.Value);
+                    }
                 }
             }
         }
