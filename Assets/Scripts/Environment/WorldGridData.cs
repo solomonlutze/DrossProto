@@ -201,7 +201,6 @@ public class WorldGridData : ScriptableObject
     if (heightValue != Vector2.zero)
     {
       SetHeightValue(tileLocation, heightValue);
-      // heightGrid[tileLocation.floorLayer][GridManager.Instance.CoordsToKey(tileLocation.tilemapCoordinates)] = heightValue;
     }
     else
     {
@@ -213,7 +212,6 @@ public class WorldGridData : ScriptableObject
       DestroyWallObjectAtLocation(tileLocation.floorLayer, tileLocation.tilemapCoordinates);
       return;
     }
-    // Debug.Log("setting value to " + heightGrid[tileLocation.floorLayer][GridManager.Instance.CoordsToKey(tileLocation.tilemapCoordinates)]);
     WallObject wallObject;
     if (GridManager.Instance.placedGameObjects.ContainsKey(CoordsToKey(tileLocation)) && GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)] != null)
     {
@@ -224,6 +222,7 @@ public class WorldGridData : ScriptableObject
       wallObject = ObjectPoolManager.Instance.GetWallObjectPool().GetObject();
       wallObject.transform.position = tileLocation.cellCenterWorldPosition;
     }
+    GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)] = wallObject.gameObject;
     if (groundTile != null)
     {
       wallObject.SetGroundInfo(groundTile, heightValue.x);
@@ -233,7 +232,6 @@ public class WorldGridData : ScriptableObject
       wallObject.SetCeilingInfo(objectTile, heightValue.y);
     }
     wallObject.Init(tileLocation);
-    GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)] = wallObject.gameObject;
   }
 
   public void RemoveHeightDataAtLocation(FloorLayer layer, Vector2Int location)
@@ -439,7 +437,7 @@ public class WorldGridData : ScriptableObject
         }
       }
     }
-    Debug.Log("object count at " + xMin + "," + yMin + ": " + count);
+    // Debug.Log("object count at " + xMin + "," + yMin + ": " + count);
   }
 
   public void CreateAndPopulateNewWorldGrid()

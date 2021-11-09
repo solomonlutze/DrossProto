@@ -11,11 +11,11 @@ public class ObjectPool<T> where T : MonoBehaviour, IPoolable
 
   int currentIndex;
   T defaultObject;
-  List<T> pool;
+  Stack<T> pool;
 
   public ObjectPool(T defaultObj)
   {
-    pool = new List<T>();
+    pool = new Stack<T>();
     defaultObject = defaultObj;
   }
 
@@ -31,7 +31,7 @@ public class ObjectPool<T> where T : MonoBehaviour, IPoolable
     {
       obj = GameObject.Instantiate(defaultObject);
       obj.gameObject.SetActive(false);
-      pool.Add(obj);
+      pool.Push(obj);
       objectCount++;
       if (stopwatch2.ElapsedMilliseconds > .5f)
       {
@@ -50,7 +50,7 @@ public class ObjectPool<T> where T : MonoBehaviour, IPoolable
     {
       obj = GameObject.Instantiate(defaultObject);
       obj.gameObject.SetActive(false);
-      pool.Add(obj);
+      pool.Push(obj);
     }
   }
   public T GetObject()
@@ -59,32 +59,41 @@ public class ObjectPool<T> where T : MonoBehaviour, IPoolable
     {
       PopulateInstant(30);
     }
-    while (currentIndex < pool.Count)
+    while (pool.Count > 0)
+    // while (currentIndex < pool.Count)
     {
-      currentIndex++;
-      if (!pool[currentIndex - 1].gameObject.activeInHierarchy)
+      // currentIndex++;
+      T ret = pool.Pop();
+      if (ret == null || ret.gameObject == null)
       {
-        pool[currentIndex - 1].gameObject.SetActive(true);
-        return pool[currentIndex - 1];
+        Debug.LogError("WARNING: gameobject or component destroyed but object not removed from pool");
       }
+      ret.gameObject.SetActive(true);
+      return ret;
+      // if (!pool[currentIndex - 1].gameObject.activeInHierarchy)
+      // {
+      //   pool[currentIndex - 1].gameObject.SetActive(true);
+      //   return pool[currentIndex - 1];
+      // }
     }
-    if (!pool[0].gameObject.activeInHierarchy)
-    {
-      currentIndex = 0;
-      return pool[0];
-    }
-    else
-    {
-      T objectInstance = GameObject.Instantiate(defaultObject);
-      pool.Add(objectInstance);
-      Debug.LogWarning("WARNING: wall object pool size exceeded! benefits of pooling lost!");
-      return objectInstance;
-    }
+    // if (!pool[0].gameObject.activeInHierarchy)
+    // {
+    //   currentIndex = 0;
+    //   return pool[0];
+    // }
+    // else
+    // {
+    T objectInstance = GameObject.Instantiate(defaultObject);
+    pool.Push(objectInstance);
+    Debug.LogWarning("WARNING: wall object pool size exceeded!");
+    return objectInstance;
+    // }
   }
   public void Release(T objectToRelease)
   {
     objectToRelease.Clear();
     objectToRelease.gameObject.SetActive(false);
+    pool.Push(objectToRelease);
   }
   public void ReleaseAll()
   {
@@ -98,9 +107,13 @@ public class ObjectPool<T> where T : MonoBehaviour, IPoolable
   {
     foreach (T obj in pool)
     {
-      GameObject.DestroyImmediate(obj.gameObject);
+      if (obj != null && obj.gameObject != null)
+      {
+        GameObject.DestroyImmediate(obj.gameObject);
+      }
     }
     pool.Clear();
+    Debug.Log("pool clear!");
     currentIndex = 0;
   }
 }
