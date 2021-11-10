@@ -59,9 +59,7 @@ public class ObjectPool<T> where T : MonoBehaviour, IPoolable
       PopulateInstant(30);
     }
     while (pool.Count > 0)
-    // while (currentIndex < pool.Count)
     {
-      // currentIndex++;
       T ret = pool.Pop();
       if (ret == null || ret.gameObject == null)
       {
@@ -70,24 +68,10 @@ public class ObjectPool<T> where T : MonoBehaviour, IPoolable
       }
       ret.gameObject.SetActive(true);
       return ret;
-      // if (!pool[currentIndex - 1].gameObject.activeInHierarchy)
-      // {
-      //   pool[currentIndex - 1].gameObject.SetActive(true);
-      //   return pool[currentIndex - 1];
-      // }
     }
-    // if (!pool[0].gameObject.activeInHierarchy)
-    // {
-    //   currentIndex = 0;
-    //   return pool[0];
-    // }
-    // else
-    // {
     T objectInstance = GameObject.Instantiate(defaultObject);
     pool.Push(objectInstance);
-    Debug.LogWarning("WARNING: wall object pool size exceeded!");
     return objectInstance;
-    // }
   }
   public void Release(T objectToRelease)
   {

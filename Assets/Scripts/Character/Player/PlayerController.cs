@@ -367,11 +367,6 @@ public class PlayerController : Character
       // taking _any other action_ or releasing the key should cancel the block.
       case (DrossConstants.GameState.Play):
         // Debug.Log("handling player input");
-        bool shouldBlock = false;
-        if ((CanBlock() && Input.GetButton("Block")) /*|| using block attack?*/)
-        {
-          shouldBlock = true;
-        }
         foreach (string skillActionName in skillActionNames)
         {
           if (rewiredPlayer.GetButtonDown(skillActionName))
@@ -391,12 +386,7 @@ public class PlayerController : Character
         {
           if (Input.GetButtonDown("Ascend"))
           {
-            if (flying && GetCanFlyUp() && GridManager.Instance.AdjacentTileIsValidAndEmpty(GetTileLocation(), TilemapDirection.Above))
-            {
-              FlyUp();
-              return;
-            }
-            else if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
+            if (GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
             {
               AscendOneFloor();
               return;
@@ -417,7 +407,6 @@ public class PlayerController : Character
           AdvanceSelectedContextualAction();
           return;
         }
-        SetBlocking(shouldBlock);
         break;
       case (DrossConstants.GameState.Menu):
         break;

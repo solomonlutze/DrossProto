@@ -115,12 +115,6 @@ public class TraitEffect
           owner.ApplyAttackModifier(attackModifiers, false);
         }
         break;
-      // case TraitEffectType.CharacterStat:
-      //     owner.AddStatMod(stat, magnitude, sourceString);
-      //     break;
-      case TraitEffectType.Aura:
-        owner.AddAura(this);
-        break;
     }
   }
 
@@ -155,12 +149,9 @@ public class TraitEffect
             break;
         }
         break;
-      // case TraitEffectType.CharacterStat:
-      //     owner.RemoveStatMod(sourceString);
-      //     break;
-      case TraitEffectType.Aura:
-        owner.RemoveAura(this);
-        break;
+        // case TraitEffectType.CharacterStat:
+        //     owner.RemoveStatMod(sourceString);
+        //     break;
     }
     if (activatingCondition != ConditionallyActivatedTraitCondition.None
       && owner.activeConditionallyActivatedTraitEffects.Contains(this)

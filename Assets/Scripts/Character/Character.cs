@@ -296,8 +296,6 @@ public class Character : WorldObject
   public float timeSpentInSkillEffect = 0f;
   public int currentSkillEffectSetIndex = 0;
   public int currentSkillEffectIndex = 0;
-  public bool flying = false;
-  public bool blocking = false;
   public bool molting = false;
   public float easedSkillForwardMovementProgressIncrement = 0.0f;
   public float easedSkillUpwardMovementProgressIncrement = 0.0f;
@@ -695,11 +693,6 @@ public class Character : WorldObject
     pressingSkill = skill;
   }
 
-  public void SetBlocking(bool blockingFlag)
-  {
-    blocking = blockingFlag;
-  }
-
   public static float GetAttackValueModifier(CharacterAttackValueToIntDictionary attackModifiers, CharacterAttackValue value)
   {
     if (attackModifiers == null || !attackModifiers.ContainsKey(value))
@@ -709,25 +702,11 @@ public class Character : WorldObject
     return attackModifiers[value] * DrossConstants.CharacterAttackAdjustmentIncrements[value];
   }
 
-  // public string GetSkillNameFromIndex(int idx)
-  // {
-  //   return characterSkills[idx].name;
-  // }
-
   public SkillRangeInfo[] GetAttackRangeForSkill(CharacterSkillData skillData)
   {
     return skillData.CalculateRangeInfosForSkillEffectSet(this, activeSkill == skillData ? currentSkillEffectIndex + 1 : 0);
   }
 
-  // public SkillRangeInfo[] GetAttackRangeInfo(AttackType attack)
-  // {
-  //   return GetSkillDataForAttackType(attack).skillRangeInfo;
-  // }
-
-  // public SkillRangeInfo[] GetAttackRangeInfo()
-  // {
-  //   return GetSelectedCharacterSkill().CalculateRangeInfosForSkillEffectSet(this, 0);
-  // }
 
   public int GetAttackRadiusInDegrees(int skillIdxForAttack)
   {
@@ -812,7 +791,7 @@ public class Character : WorldObject
   {
     if (CanMove())
     {
-      if (!UsingMovementSkill() && !flying && (movementInput == Vector2.zero))
+      if (!UsingMovementSkill() && (movementInput == Vector2.zero))
       { // should be an approximate equals
         animator.SetBool("IsWalking", false);
         timeStandingStill += Time.deltaTime;
@@ -986,41 +965,6 @@ public class Character : WorldObject
     knockbackAmount = 0;
     easedKnockbackProgressIncrement = 0;
     knockbackProgress = 0;
-  }
-
-
-  protected void Fly()
-  {
-    BeginFly();
-  }
-
-  protected void BeginFly()
-  {
-    flying = true;
-    AscendOneFloor();
-  }
-
-  protected void EndFly()
-  {
-    flying = false;
-  }
-
-  protected void FlyUp()
-  {
-    // consume stamina here
-    AscendOneFloor();
-  }
-
-  protected void FlyDown()
-  {
-    if (GridManager.Instance.TileIsValidAndEmpty(GetTileLocation()))
-    {
-      DescendOneFloor();
-    }
-    else
-    {
-      EndFly();
-    }
   }
 
   protected void AscendOneFloor()
@@ -1261,7 +1205,7 @@ public class Character : WorldObject
   // Can move UDLR on current floor
   protected virtual bool CanMove()
   {
-    if ((ascending && !flying)
+    if (ascending
       || stunned
       || molting
       || carapaceBroken
@@ -1279,7 +1223,7 @@ public class Character : WorldObject
   protected virtual bool CanDash()
   {
     if (
-      (ascending && !flying)
+      ascending
       || stunned
       || molting
       || carapaceBroken
@@ -1298,7 +1242,7 @@ public class Character : WorldObject
   protected virtual bool CanAct()
   {
     if (
-      (ascending && !flying)
+      ascending
       || stunned
       || molting
       || carapaceBroken
@@ -1384,33 +1328,12 @@ public class Character : WorldObject
     {
       return;
     }
-    // if (carapaceBroken) // full damage to health and then some!!
-    // {
-    //     damageToHealth *= Constants.STUN_DAMAGE_MULTIPLIER;
-    //     Debug.Log("guard broken! damage to health is now " + damageToHealth);
-    // }
-    if (blocking && !carapaceBroken)
-    {
-      vitals[CharacterVital.CurrentCarapace] = GetCharacterVital(CharacterVital.CurrentCarapace) - damageAfterResistances; // carapace takes brunt of damage
-      if (GetCharacterVital(CharacterVital.CurrentCarapace) < 0)
-      {
-        // set carapace to 0
-        damageAfterResistances += (GetCharacterVital(CharacterVital.CurrentCarapace) * -1);
-        vitals[CharacterVital.CurrentCarapace] = 0;
-        StartCoroutine(ApplyCarapaceBreak(DrossConstants.CARAPACE_BREAK_STUN_DURATION)); // don't want to reapply if already stunned, but can't block if stunned
-      }
-      else
-      {
-        damageAfterResistances = 0;
-      }
-    }
     characterVisuals.DamageFlash(damageFlashColor);
     if (damageAfterResistances > 0 && activeSkill != null && activeSkill.SkillIsInterruptable(this))
     {
       EndSkill();
     }
     InterruptAnimation();
-    // Debug.Log("taking " + damageToHealth + " damage");
     AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
     StartCoroutine(ApplyInvulnerability(damageSource));
     Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
@@ -1419,17 +1342,6 @@ public class Character : WorldObject
       BeginKnockback(knockback);
     }
   }
-
-  // public int GetDamageTypeResistanceLevel(DamageType type)
-  // {
-  //   bool exists = Enum.TryParse("Resist_" + type.ToString(), out CharacterAttribute resistAttribute);
-  //   if (!exists)
-  //   {
-  //     Debug.LogError("Could not find attribute Resist_" + type.ToString());
-  //     return 0;
-  //   }
-  //   return GetAttribute(resistAttribute);
-  // }
 
   public int GetDamageTypeResistanceLevel(DamageType type) // we could also just return the 
   {
@@ -1443,19 +1355,6 @@ public class Character : WorldObject
       return activeSkill.GetDamageMultiplierForType(this, type);
     }
     return 1.0f;
-  }
-  private IEnumerator ApplyDamageFlash(DamageData_OLD damageObj)
-  {
-    // Todo: might wanna change this!
-    Color baseColor = Color.white;
-    yield break;
-    // mainRenderer.color = damageFlashColor;
-    // yield return new WaitForSeconds(damageFlashSpeed / 3);
-    // mainRenderer.color = baseColor;
-    // yield return new WaitForSeconds(damageFlashSpeed / 3);
-    // mainRenderer.color = damageFlashColor;
-    // yield return new WaitForSeconds(damageFlashSpeed / 3);
-    // mainRenderer.color = baseColor;
   }
   public virtual void Die()
   {
@@ -1501,18 +1400,7 @@ public class Character : WorldObject
     stunned = false;
   }
 
-  // same as stun, basically
-
-  IEnumerator ApplyCarapaceBreak(float carapaceBreakDuration)
-  {
-    carapaceBroken = true;
-    // Debug.Log("Carapace broken!!");
-    yield return new WaitForSeconds(carapaceBreakDuration);
-    carapaceBroken = false;
-    // Debug.Log("Carapace restored!!");
-  }
-
-  // End current attack/attack animation/combo and reset us to idle.
+  // same as stun, basicallyation/combo and reset us to idle.
   // Used to keep us from finishing our attack after getting knocked across the screen.
   // TODO: it should be possible to "tank" some attacks and finish attacking
   void InterruptAnimation()
@@ -1568,14 +1456,6 @@ public class Character : WorldObject
     return GetMaxCarapace()
         - (GetMaxCarapaceLostPerMolt() * GetCharacterVital(CharacterVital.CurrentMoltCount));
   }
-  public float GetMovementStaminaCost()
-  {
-    if (GetAttribute(CharacterAttribute.Metabolism) < 2)
-    {
-      return GetStaminaRecoveryRate() / 2;
-    }
-    return 0;
-  }
 
   public float GetStaminaRecoverySpeed()
   {
@@ -1602,26 +1482,11 @@ public class Character : WorldObject
   }
   public float GetMoveAcceleration()
   {
-    if (flying)
-    {
-      return GetStat(CharacterStat.FlightAcceleration);
-    }
-    if (blocking)
-    {
-      return GetStat(CharacterStat.BlockingMoveAcceleration);
-    }
-    else
-    {
-      return GetStat(CharacterStat.MoveAcceleration); // * GetMoveSpeedMultiplier();
-    }
+    return GetStat(CharacterStat.MoveAcceleration); // * GetMoveSpeedMultiplier();
   }
 
   public float GetRotationSpeed()
   {
-    if (blocking)
-    {
-      return GetStat(CharacterStat.BlockingRotationSpeed);
-    }
     return GetStat(CharacterStat.RotationSpeed);
   }
 
@@ -1769,16 +1634,7 @@ public class Character : WorldObject
   }
   public virtual void SetCurrentFloor(FloorLayer newFloorLayer)
   {
-    if (flying)
-    {
-      if (!AllTilesOnTargetFloorEmpty(newFloorLayer))
-      {
-        flying = false;
-        ascendingDescendingState = AscendingDescendingState.Descending;
-        return;
-      }
-    }
-    else if (!AllTilesOnTargetFloorClearOfObjects(newFloorLayer) && currentTile != null)
+    if (!AllTilesOnTargetFloorClearOfObjects(newFloorLayer) && currentTile != null)
     {
       CenterCharacterOnCurrentTile();
     }
@@ -1905,7 +1761,6 @@ public class Character : WorldObject
         activeMovementAbilities.Contains(CharacterMovementAbility.Hover)
           || UsingVerticalMovementSkill()
           || sticking
-          || flying
           || ascending
           || descending
         )
@@ -1987,7 +1842,6 @@ public class Character : WorldObject
     }
     else if (tile.groundTileType != null && ascendingDescendingState != AscendingDescendingState.Ascending)
     {
-      flying = false;
       lastSafeTileLocation = currentTileLocation;
     }
   }
@@ -2032,16 +1886,6 @@ public class Character : WorldObject
     {
       switch (trait.activatingCondition)
       {
-        case ConditionallyActivatedTraitCondition.Dashing:
-          if (flying)
-          {
-            trait.Apply(this);
-          }
-          else
-          {
-            trait.Expire(this);
-          }
-          break;
         case ConditionallyActivatedTraitCondition.NotMoving:
           if (timeStandingStill > trait.activatingConditionRequiredDuration)
           {
@@ -2081,19 +1925,9 @@ public class Character : WorldObject
 
   protected void HandleCooldowns()
   {
-    if (flying)
-    {
-      vitals[CharacterVital.CurrentStamina] -= Time.deltaTime * GetMaxStamina() / 5;
-      if (vitals[CharacterVital.CurrentStamina] <= 0)
-      {
-        EndFly();
-      }
-    }
     if (!UsingSkill())
     {
       AdjustCurrentStamina(GetStaminaRecoveryRate());
-      // vitals[CharacterVital.RemainingStamina]
-      //   = Mathf.Min(vitals[CharacterVital.RemainingStamina] + (Time.deltaTime * GetMaxStamina() / GetStaminaRecoverySpeed()), GetMaxStamina());
       dashAttackQueued = false;
     }
 
@@ -2101,15 +1935,6 @@ public class Character : WorldObject
     {
       footstepCooldown -= Time.deltaTime;
     }
-    // if (IsChargingAttack())
-    // {
-    //   chargeAttackTime += Time.deltaTime;
-    //   if (chargeAttackTime > GetSkillDataForAttackType(AttackType.Charge).warmup.duration)
-    //   {
-    //     chargeAttackTime = 0;
-    //     UseSkill(GetSkillDataForAttackType(AttackType.Charge), true);
-    //   }
-    // }
   }
 
   public void QueueDashAttack()
@@ -2142,25 +1967,6 @@ public class Character : WorldObject
       easedKnockbackProgressIncrement = (newEasedKnockbackProgress - oldEasedKnockbackProgress) * knockbackAmount; // kill me a little
     }
   }
-
-  public virtual void AddAura(TraitEffect effect)
-  {
-    GameObject go = GameObject.Instantiate(effect.auraPrefab, transform.position, transform.rotation);
-    go.layer = gameObject.layer;
-    go.GetComponent<Renderer>().sortingLayerName = LayerMask.LayerToName(go.layer);
-    go.transform.parent = transform;
-    traitSpawnedGameObjects.Add(effect.sourceString, go);
-  }
-
-  public virtual void RemoveAura(TraitEffect effect)
-  {
-    if (traitSpawnedGameObjects.ContainsKey(effect.sourceString))
-    {
-      Destroy(traitSpawnedGameObjects[effect.sourceString]);
-      traitSpawnedGameObjects.Remove(effect.sourceString);
-    }
-  }
-
 
   public bool CanHopUpAtLocation(Vector3 wallPosition)
   {
