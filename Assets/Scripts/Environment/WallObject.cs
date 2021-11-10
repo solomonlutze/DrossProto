@@ -87,11 +87,11 @@ public class WallObject : MonoBehaviour, IPoolable
     wallPiece.transform.localScale = locScale;
   }
 
-  void OnTriggerStay2D(Collider2D col)
+  public void UpdateCollisions(Collider2D col)
   {
     // remember: "up" is a _negative_ z value, that's why this math is fucky!
     // e.g. if the floor is at z = 7, and the floor height is .4, then collision occurs between 7 and 6.6
-    bool enableCollision = ShouldHaveCollisionWith(col.transform.position.z); //... and top of tile area
+    bool enableCollision = ShouldHaveCollisionWith(col.transform.position.z);
     Physics2D.IgnoreCollision(col, wallCollider, !enableCollision);
   }
 

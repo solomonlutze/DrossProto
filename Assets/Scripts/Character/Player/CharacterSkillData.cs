@@ -256,9 +256,7 @@ public class CharacterSkillData : ScriptableObject
 
   public void OnValidate()
   {
-    Debug.Log("onvalidate for " + name);
     SetIsAttack();
-    Debug.Log("isAttack is " + isAttack);
   }
 
 }

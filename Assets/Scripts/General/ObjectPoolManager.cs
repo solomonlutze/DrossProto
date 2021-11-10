@@ -9,7 +9,6 @@ public interface IPoolable
 public class ObjectPool<T> where T : MonoBehaviour, IPoolable
 {
 
-  int currentIndex;
   T defaultObject;
   Stack<T> pool;
 
@@ -67,6 +66,7 @@ public class ObjectPool<T> where T : MonoBehaviour, IPoolable
       if (ret == null || ret.gameObject == null)
       {
         Debug.LogError("WARNING: gameobject or component destroyed but object not removed from pool");
+        continue;
       }
       ret.gameObject.SetActive(true);
       return ret;
@@ -95,14 +95,15 @@ public class ObjectPool<T> where T : MonoBehaviour, IPoolable
     objectToRelease.gameObject.SetActive(false);
     pool.Push(objectToRelease);
   }
+
   public void ReleaseAll()
   {
     foreach (T obj in pool)
     {
       obj.gameObject.SetActive(false);
     }
-    currentIndex = 0;
   }
+
   public void Clear()
   {
     foreach (T obj in pool)
@@ -113,10 +114,9 @@ public class ObjectPool<T> where T : MonoBehaviour, IPoolable
       }
     }
     pool.Clear();
-    Debug.Log("pool clear!");
-    currentIndex = 0;
   }
 }
+
 public class ObjectPoolManager : Singleton<ObjectPoolManager>
 {
   public WallObject defaultWallObject;

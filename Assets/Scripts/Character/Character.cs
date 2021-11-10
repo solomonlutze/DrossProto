@@ -1964,6 +1964,7 @@ public class Character : WorldObject
     {
       currentTileLocation = nowTileLocation;
     }
+    GridManager.Instance.UpdateWallObjectCollisionsForCharacter(this);
     if (ascending || descending) { return; }
 
     if (tile.dealsDamage/* && vitals[CharacterVital.CurrentEnvironmentalDamageCooldown] <= 0*/)

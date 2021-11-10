@@ -1,11 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEditor;
-using UnityEngine.SceneManagement;
-using UnityEditor.SceneManagement;
 using UnityEditor.SceneTemplate;
 
 
@@ -25,8 +22,22 @@ public class WorldGridData : ScriptableObject
   public int maxYAcrossAllFloors = 5000;
   [Tooltip("Square size of a chunk, in tiles")]
   public int chunkSize = 10; // square size of a chunk, in tiles
-  [Tooltip("how many chunks to load at once on either side of current chunk. EG 1,1 = 3x3 grid")]
-  public Vector2Int chunksToLoad;
+  [HideInInspector]
+  public Vector2Int chunksToLoad
+  {
+    get
+    {
+      if (Application.IsPlaying(GridManager.Instance.gameObject))
+      {
+        return chunksToLoad_runtime;
+      }
+      return chunksToLoad_editor;
+    }
+  }
+  [Tooltip("how many chunks to load at once *in editor* on either side of current chunk. EG 1,1 = 3x3 grid")]
+  public Vector2Int chunksToLoad_editor;
+  [Tooltip("how many chunks to load at once *during runtime* on either side of current chunk. EG 1,1 = 3x3 grid")]
+  public Vector2Int chunksToLoad_runtime;
   public SceneTemplateAsset chunkSceneTemplate;
   public Tilemap waterTilemapPrefab;
   public WallObject defaultWallObjectPrefab;
@@ -126,59 +137,6 @@ public class WorldGridData : ScriptableObject
     }
     AdjustWallObject(loc, heightValue, ceiling ? null : tile, ceiling ? tile : null);
   }
-  //     {
-  //       heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))] = new Vector2(heightToPaint, heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))].y);
-  //       WallObject wallObject;
-  //       if (GridManager.Instance.placedGameObjects.ContainsKey(CoordsToKey(loc)) && GridManager.Instance.placedGameObjects[CoordsToKey(loc)] != null)
-  //       {
-  //         Debug.Log("replacing existing object");
-  //         wallObject = GridManager.Instance.placedGameObjects[CoordsToKey(loc)].GetComponent<WallObject>();
-  //       }
-  //       else
-  //       {
-  //         Debug.Log("instantiating new object");
-  //         wallObject = Instantiate(defaultWallObjectPrefab);
-  //         wallObject.transform.position = loc.cellCenterWorldPosition;
-  //       }
-  //       wallObject.Init(loc, tile, heightToPaint, ceiling);
-  //       GridManager.Instance.placedGameObjects[CoordsToKey(loc)] = wallObject.gameObject;
-  //     }
-  //   }
-  //   else
-  //   {
-  //     if (heightToPaint == 0 && heightValue.y == 1) // this location should have no object tile
-  //     {
-  //       RemoveHeightDataAtLocation(layer, location);
-  //     }
-  //     else
-  //     {
-  //       heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))] = new Vector2(heightToPaint, heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))].y);
-  //       WallObject wallObject;
-  //       if (GridManager.Instance.placedGameObjects.ContainsKey(CoordsToKey(loc)) && GridManager.Instance.placedGameObjects[CoordsToKey(loc)] != null)
-  //       {
-  //         Debug.Log("replacing existing object");
-  //         wallObject = GridManager.Instance.placedGameObjects[CoordsToKey(loc)].GetComponent<WallObject>();
-  //       }
-  //       else
-  //       {
-  //         Debug.Log("instantiating new object");
-  //         wallObject = Instantiate(defaultWallObjectPrefab);
-  //         wallObject.transform.position = loc.cellCenterWorldPosition;
-  //       }
-  //       wallObject.Init(loc, tile, heightToPaint, !ceiling);
-  //       GridManager.Instance.placedGameObjects[CoordsToKey(loc)] = wallObject.gameObject;
-  //     }
-  //   }
-  //   if (heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))] == Vector2.zero)
-  //   {
-  //     heightGrid[layer].Remove(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)));
-  //     if (GridManager.Instance.placedGameObjects.ContainsKey(CoordsToKey(loc)) && GridManager.Instance.placedGameObjects[CoordsToKey(loc)] != null)
-  //     {
-  //       GameObject.DestroyImmediate(GridManager.Instance.placedGameObjects[CoordsToKey(loc)]);
-  //       GridManager.Instance.placedGameObjects.Remove(CoordsToKey(loc));
-  //     }
-  //   }}
-  // }
 
   // 0,0 is the default - floors extend nowhere, and wall objects take up the whole height. 
   // --we do not need to track this as height data, but we do need a wallObject if there's an objectTile at that location.
@@ -221,6 +179,7 @@ public class WorldGridData : ScriptableObject
     {
       wallObject = ObjectPoolManager.Instance.GetWallObjectPool().GetObject();
       wallObject.transform.position = tileLocation.cellCenterWorldPosition;
+      wallObject.transform.SetParent(GridManager.Instance.wallObjectContainer, true);
     }
     GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)] = wallObject.gameObject;
     if (groundTile != null)
@@ -308,17 +267,22 @@ public class WorldGridData : ScriptableObject
   {
     if (GridManager.Instance.placedGameObjects == null)
     {
-      GridManager.Instance.placedGameObjects = new CoordsToGameObjectDictionary();
+      GridManager.Instance.placedGameObjects = new Dictionary<int, GameObject>();
     }
     foreach (GameObject obj in GridManager.Instance.placedGameObjects.Values)
     {
-      if (obj != null)
+      if (obj != null && obj.GetComponent<WallObject>() != null)
       {
-        obj.SetActive(false);
+        ObjectPoolManager.Instance.GetWallObjectPool().Release(obj.GetComponent<WallObject>());
       }
     }
     GridManager.Instance.ClearLoadedChunks();
     GridManager.Instance.placedGameObjects.Clear();
+    int childCount = GridManager.Instance.wallObjectContainer.transform.childCount;
+    for (int i = childCount - 1; i >= 0; i--)
+    {
+      DestroyImmediate(GridManager.Instance.wallObjectContainer.transform.GetChild(i).gameObject);
+    }
   }
 
   public void ClearExistingPlacedObjectsAndPool()

@@ -74,6 +74,10 @@ public class TileLocation
       return cellCenterPosition + new Vector3(0, 0, 0f);
     }
   }
+  public TileLocation WithOffset(Vector2Int offset)
+  {
+    return new TileLocation(tilemapCoordinates.x + offset.x, tilemapCoordinates.y + offset.y, floorLayer);
+  }
 
   public Vector3 cubeCoords;
   public FloorLayer floorLayer;
@@ -257,8 +261,8 @@ public class GridManager : Singleton<GridManager>
   public int initialWallObjectPoolSize;
   public HashSet<Vector2Int> loadedChunks;
   public HashSet<Vector2Int> desiredChunks;
-  // public HashSet<Vector2Int> chunksToUnload;
-  public CoordsToGameObjectDictionary placedGameObjects;
+  public Dictionary<int, GameObject> placedGameObjects;
+  public Transform wallObjectContainer;
   Coroutine chunkLoadCoroutine;
   public WorldGridData worldGridData;
   [HideInInspector]
@@ -303,11 +307,12 @@ public class GridManager : Singleton<GridManager>
     worldGrid = worldGridData.worldGrid;
     tilesToDestroyOnPlayerRespawn = new List<EnvironmentTileInfo>();
     tilesToRestoreOnPlayerRespawn = new List<EnvironmentTileInfo>();
+    placedGameObjects = new Dictionary<int, GameObject>();
     loadedChunks = new HashSet<Vector2Int>();
-    placedGameObjects = new CoordsToGameObjectDictionary();
-    ClearLoadedChunksAndResetPool();
+    worldGridData.ClearExistingPlacedObjects();
     StartCoroutine(ObjectPoolManager.Instance.GetWallObjectPool().Populate(initialWallObjectPoolSize));
-    // worldGrid = new FloorLayerToTileInfosDictionary();
+    StartLoadAndUnloadChunks(new TileLocation(Vector3.zero));
+    worldGrid = new FloorLayerToTileInfosDictionary();
     return;
     visibleTiles = new HashSet<EnvironmentTileInfo>();
     recentlyVisibleTiles = new HashSet<EnvironmentTileInfo>();
@@ -1300,7 +1305,7 @@ public class GridManager : Singleton<GridManager>
     if (placedGameObjects == null)
     {
       Debug.LogWarning("making new placedGameObjects!!");
-      placedGameObjects = new CoordsToGameObjectDictionary();
+      placedGameObjects = new Dictionary<int, GameObject>();
     }
     for (int x = -worldGridData.chunksToLoad.x; x <= worldGridData.chunksToLoad.x; x++)
     {
@@ -1314,7 +1319,6 @@ public class GridManager : Singleton<GridManager>
     {
       StopCoroutine(chunkLoadCoroutine);
     }
-    Debug.Log("starting coroutine!!");
     chunkLoadCoroutine = StartCoroutine(LoadAndUnloadChunksCoroutine(chunksToLoad));
   }
   public void LoadAndUnloadChunks(TileLocation centeredOnLocation)
@@ -1400,6 +1404,24 @@ public class GridManager : Singleton<GridManager>
     }
   }
 
+  public void UpdateWallObjectCollisionsForCharacter(Character c)
+  {
+    TileLocation location;
+    TileLocation characterLocation = c.GetTileLocation();
+    for (int x = -2; x <= 2; x++)
+    {
+      for (int y = -2; y <= 2; y++)
+      {
+        location = characterLocation.WithOffset(new Vector2Int(x, y));
+        GameObject placedObject;
+        placedGameObjects.TryGetValue(worldGridData.CoordsToKey(location), out placedObject);
+        if (placedObject != null && placedObject.GetComponent<WallObject>() != null)
+        {
+          placedObject.GetComponent<WallObject>().UpdateCollisions(c.physicsCollider);
+        }
+      }
+    }
+  }
   public void ClearLoadedChunksAndResetPool()
   {
     ObjectPoolManager.Instance.GetWallObjectPool().Clear();
@@ -1408,6 +1430,10 @@ public class GridManager : Singleton<GridManager>
 
   public void ClearLoadedChunks()
   {
+    if (loadedChunks == null)
+    {
+      loadedChunks = new HashSet<Vector2Int>();
+    }
     loadedChunks.Clear();
   }
 
