@@ -329,8 +329,5 @@ public class FloorLayerToTileHeightInfosDictionary : SerializableDictionaryBase<
 public class IntToFloatDictionary : SerializableDictionaryBase<int, float> { }
 [System.Serializable]
 public class IntToVector2Dictionary : SerializableDictionaryBase<int, Vector2> { }
-
-[System.Serializable]
-public class Vector2IntToWorldGridChunkDictionary : SerializableDictionaryBase<Vector2Int, WorldGridChunk> { }
 [System.Serializable]
 public class Vector2IntToStringDictionary : SerializableDictionaryBase<Vector2Int, string> { }

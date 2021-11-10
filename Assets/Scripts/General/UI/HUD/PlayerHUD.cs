@@ -10,7 +10,6 @@ public class PlayerHUD : MonoBehaviour
   public IntVariable grubCount;
   public StringVariable areaName;
   public HealthBar healthBar;
-  public CarapaceBar carapaceBar;
   public StaminaBar staminaBar;
   public SuperTextMesh grubCountText;
   // private SuperTextMesh healthFieldText;
