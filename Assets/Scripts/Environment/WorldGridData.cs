@@ -94,6 +94,10 @@ public class WorldGridData : ScriptableObject
   public void ClearWallObject(FloorLayer layer, Vector3Int location, EnvironmentTile tile)
   {
     Debug.Log("clear wall object");
+    if (tile == null)
+    {
+
+    }
     if (tile.floorTilemapType == FloorTilemapType.Object)
     {
       ModifyFloorHeight(layer, location, tile, 1);
