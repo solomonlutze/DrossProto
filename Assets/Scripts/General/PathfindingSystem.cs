@@ -38,7 +38,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     List<Node> finalPath = new List<Node>();
     if (!GridManager.Instance.GetTileAtLocation(targetLocation).HasSolidObject()) // if false there won't be a path. I think?
     {
-      Node startNode = InitNewNode(new TileLocation(startPosition, ai.currentFloor), 0, null, targetLocation);
+      Node startNode = InitNewNode(new TileLocation(startPosition), 0, null, targetLocation);
       openNodes.Enqueue(startNode.loc, startNode.f);
       nodeLocationsToNodes[startNode.loc] = startNode;
     }
@@ -140,8 +140,8 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.LowerLeft), originNode, targetLocation, ai, initiatingAction);
     MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Left), originNode, targetLocation, ai, initiatingAction);
     MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.UpperLeft), originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Above), originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Below), originNode, targetLocation, ai, initiatingAction);
+    // MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Above), originNode, targetLocation, ai, initiatingAction);
+    // MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Below), originNode, targetLocation, ai, initiatingAction);
     return nodes;
   }
 
@@ -199,51 +199,6 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     return results;
   }
 
-
-  // public HashSet<Vector2Int> GetTilesCoordsAlongLine(Vector2Int a, Vector2Int b, bool drawTiles = false)
-  // {
-  //   HashSet<Vector2Int> results = new HashSet<Vector2Int>();
-  //   const float LINE_EPSILON = .01f;
-  //   if (a == b)
-  //     return results;
-  //   float slope = (b.y - a.y) / (b.x - a.x);
-  //   float perpendicular = -1 / slope; // right?
-
-  //   float distance = Vector2.Distance(a, b);
-  //   float distanceDelta = 1.0f / distance;
-
-  //   for (int lineIndex = 0; lineIndex < 2; ++lineIndex)
-  //   {
-  //     if (lineIndex == 1)
-  //       perpendicular = -perpendicular;
-
-  //     TileLocation aLoc = new TileLocation(a.worldPosition + perpendicular * LINE_EPSILON, a.floorLayer);
-  //     TileLocation bLoc = new TileLocation(b.worldPosition + perpendicular * LINE_EPSILON, b.floorLayer);
-  //     Vector3 aCoord = new TileLocation(a.worldPosition + perpendicular * LINE_EPSILON, a.floorLayer).cubeCoords;
-  //     Vector3 bCoord = new TileLocation(b.worldPosition + perpendicular * LINE_EPSILON, b.floorLayer).cubeCoords;
-
-  //     float xDiff = bCoord.x - aCoord.x;
-  //     float yDiff = bCoord.y - aCoord.y;
-  //     float zDiff = bCoord.z - aCoord.z;
-  //     // UnityEngine.Debug.Log("xDiff: " + xDiff + ",yDiff: " + yDiff + "zDiff: " + zDiff);
-  //     for (int i = 1; i <= distance; ++i)
-  //     {
-  //       float fi = (float)i;
-  //       TileLocation lerpedWorldPosition = TileLocation.FromCubicCoords(
-  //           new Vector3(aCoord.x + xDiff * distanceDelta * fi,
-  //           aCoord.y + yDiff * distanceDelta * fi,
-  //           aCoord.z + zDiff * distanceDelta * fi),
-  //           a.floorLayer);
-  //       if (drawTiles)
-  //       {
-  //         GridManager.Instance.DEBUGHighlightTile(lerpedWorldPosition);
-  //       }
-  //       results.Add(GridManager.Instance.GetTileAtLocation(lerpedWorldPosition));
-  //     }
-  //   }
-
-  //   return results;
-  // }
   public bool IsPathClearOfHazards_SquareGrid(Vector3 targetPosition, FloorLayer targetFloor, AiStateController ai)
   {
     return false; // eat shiiiiit
