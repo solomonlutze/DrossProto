@@ -114,7 +114,6 @@ public class EnvironmentTileInfo
     objectTileType = objectTile;
     infoTileType = infoTile;
     heightInfo = height;
-    Debug.Log(heightInfo);
     environmentalDamageSources = new List<EnvironmentalDamage>();
     foreach (EnvironmentTile t in new EnvironmentTile[] { groundTile, objectTile })
       if (t != null && t.dealsDamage)

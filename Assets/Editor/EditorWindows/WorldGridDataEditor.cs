@@ -21,6 +21,11 @@ public class WorldGridDataEditor : Editor
       WorldGridData worldGridData = target as WorldGridData;
       worldGridData.CountExistingPlacedObjects();
     }
+    if (GUILayout.Button("Normalize height grid"))
+    {
+      WorldGridData worldGridData = target as WorldGridData;
+      worldGridData.CleanAllHeightGridValues();
+    }
   }
 
 }
