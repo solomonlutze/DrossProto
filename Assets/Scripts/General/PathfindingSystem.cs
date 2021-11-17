@@ -644,6 +644,11 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
 
   void MaybeAddNode(List<Node> nodeList, TileLocation possibleNodeLocation, Node originNode, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction)
   {
+
+    // if we can't cross the boundary, return
+    // if we can cross the boundary, identify ending tileLocation (do we fall? do we hop up a floor?)
+    // if the ending tileLocation is undesirable, return
+    // else, add
     if (!gridManager.layerFloors.ContainsKey(possibleNodeLocation.floorLayer)) { return; }
     LayerFloor layer = gridManager.layerFloors[possibleNodeLocation.floorLayer];
     if (layer == null || layer.groundTilemap == null || layer.objectTilemap == null)
@@ -651,17 +656,26 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       // this floor doesn't exist, so don't worry about it
       return;
     }
-    if (possibleNodeLocation.floorLayer != originNode.loc.floorLayer && !ConnectionBetweenNodesOnDifferentFloorsExists(originNode, possibleNodeLocation.floorLayer))
-    {
-      return;
-    }
     EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(possibleNodeLocation);
-    if ((eti == null || eti.IsEmpty()) && GridManager.Instance.AdjacentTileIsValid(possibleNodeLocation, TilemapDirection.Below))
+    if (!CharacterCanPassTile(ai, eti))
     {
-      MaybeAddNode(nodeList, GridManager.Instance.GetAdjacentTileLocation(possibleNodeLocation, TilemapDirection.Below), InitNewNode(possibleNodeLocation, 0, originNode, targetLocation), targetLocation, ai, initiatingAction);
       return;
     }
-    if (eti.groundTileType == null) { return; }
+    TileLocation endLocation = GetEndTileLocation(possibleNodeLocation);
+    // if (possibleNodeLocation.floorLayer != originNode.loc.floorLayer && !ConnectionBetweenNodesOnDifferentFloorsExists(originNode, possibleNodeLocation.floorLayer))
+    // {
+    //   return;
+    // }
+    if (!TileIsDesirable())
+    {
+      return;
+    }
+    // if ((eti == null || eti.IsEmpty()) && GridManager.Instance.AdjacentTileIsValid(possibleNodeLocation, TilemapDirection.Below))
+    // {
+    //   MaybeAddNode(nodeList, GridManager.Instance.GetAdjacentTileLocation(possibleNodeLocation, TilemapDirection.Below), InitNewNode(possibleNodeLocation, 0, originNode, targetLocation), targetLocation, ai, initiatingAction);
+    //   return;
+    // }
+    // if (eti.groundTileType == null) { return; }
     int costToTravelOverNode = GetNodeTravelCost(eti, ai, initiatingAction);
     if (costToTravelOverNode < 0)
     {
@@ -671,6 +685,29 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     nodeList.Add(InitNewNode(possibleNodeLocation, costToTravelOverNode, originNode, targetLocation));
   }
 
+  bool CharacterCanPassTile(Character c, EnvironmentTileInfo eti)
+  {
+    // either we don't collide with the tile, or we can hop up it
+    // maybe add this check to ETI?
+    if (GridManager.Instance.ShouldHaveCollisionWith(c.transform, eti))
+    {
+      return false;
+    }
+    return true;
+  }
+
+  TileLocation GetEndTileLocation(TileLocation possibleNodeLocation)
+  {
+    // if the location is empty, then this is the first nonempty tile below it
+    // if the location has a hoppable wall that brings us to the floor above, this is the location directly above it
+    // otherwise, return original location
+    return possibleNodeLocation;
+  }
+
+  bool TileIsDesirable()
+  {
+    return false;
+  }
   Node InitNewNode(TileLocation nodeLocation, int g, Node parent, TileLocation targetLocation)
   {
     Node newNode = new Node();

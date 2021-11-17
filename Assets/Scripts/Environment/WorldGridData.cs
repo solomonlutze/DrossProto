@@ -15,7 +15,7 @@ public class WorldGridData : ScriptableObject
   [HideInInspector]
   public FloorLayerToTileInfosDictionary worldGrid;
   [HideInInspector]
-  public FloorLayerToTileHeightInfosDictionary heightGrid; // X is floor height; y is ceiling height
+  public FloorLayerToTileHeightInfosDictionary heightGrid; // x is floor height; y is ceiling height
   public int minXAcrossAllFloors = -5000;
   public int maxXAcrossAllFloors = 5000;
   public int minYAcrossAllFloors = -5000;
@@ -231,6 +231,15 @@ public class WorldGridData : ScriptableObject
   {
     return heightGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates));
   }
+
+  public Vector2 GetFloorHeightInfo(TileLocation loc)
+  {
+    Vector2 heightInfo;
+    return heightGrid[loc.floorLayer].TryGetValue(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates), out heightInfo) ? heightInfo : new Vector2(0, 1);
+    // return heightGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates));
+  }
+
+
 
   public float GetFloorHeight(FloorLayer layer, Vector2Int location)
   {

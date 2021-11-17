@@ -15,6 +15,13 @@ public class TileLocation
     }
   }
   public Vector3 worldPosition;
+  public float z
+  {
+    get
+    {
+      return worldPosition.z;
+    }
+  }
   // use this for putting child objects on the tilemap? I guess?
   public Vector3 cellCenterPosition
   {

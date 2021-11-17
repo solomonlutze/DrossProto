@@ -6,12 +6,27 @@ public class WallObject : MonoBehaviour, IPoolable
 {
   public EnvironmentTile groundTile;
   public EnvironmentTile ceilingTile;
+  public TileLocation tileLocation;
   public GameObject[] wallPieces;
   public GameObject wallPieceObject;
   public int numberOfPieces;
   public int orderInLayer;
-  public float groundHeight; // floor distance from own layer
-  public float ceilingHeight = 0; // ceiling distance from above layer
+
+  public Vector2 heightInfo;
+  // public float groundHeight // floor distance from own layer
+  // {
+  //   get
+  //   {
+  //     return heightInfo.x;
+  //   }
+  // }
+  // public float ceilingHeight // ceiling distance from above layer
+  // {
+  //   get
+  //   {
+  //     return heightInfo.y;
+  //   }
+  // }
   public FloorLayer floorLayer;
   public Collider2D wallCollider;
 
@@ -21,6 +36,7 @@ public class WallObject : MonoBehaviour, IPoolable
   // or during a total rebuild
   public void Init(TileLocation location)
   {
+    tileLocation = location;
     if (wallPieces == null || wallPieces.Length == 0)
     {
       wallPieces = new GameObject[numberOfPieces];
@@ -40,11 +56,11 @@ public class WallObject : MonoBehaviour, IPoolable
       {
         wallPieces[i].SetActive(false);
       }
-      if (progress > 1 - groundHeight && groundTile != null)
+      if (progress > 1 - heightInfo.x && groundTile != null)
       {
         CreateWallPiece(groundTile, i);
       }
-      else if (progress < 1 - ceilingHeight && ceilingTile != null)
+      else if (progress < 1 - heightInfo.y && ceilingTile != null)
       {
         CreateWallPiece(ceilingTile, i);
       }
@@ -56,20 +72,20 @@ public class WallObject : MonoBehaviour, IPoolable
   {
     groundTile = null;
     ceilingTile = null;
-    groundHeight = 0;
-    ceilingHeight = 0;
+    heightInfo = new Vector2(0, 0);
   }
   public void SetCeilingInfo(EnvironmentTile tile, float height)
   {
     ceilingTile = tile;
-    ceilingHeight = height;
+    heightInfo = new Vector2(heightInfo.x, height);
+    // ceilingHeight = height;
   }
 
 
   public void SetGroundInfo(EnvironmentTile tile, float height)
   {
     groundTile = tile;
-    groundHeight = height;
+    heightInfo = new Vector2(height, heightInfo.y);
   }
 
   void CreateWallPiece(EnvironmentTile tile, int i)
@@ -91,28 +107,11 @@ public class WallObject : MonoBehaviour, IPoolable
   {
     // remember: "up" is a _negative_ z value, that's why this math is fucky!
     // e.g. if the floor is at z = 7, and the floor height is .4, then collision occurs between 7 and 6.6
-    bool enableCollision = ShouldHaveCollisionWith(col.transform.position.z);
+    bool enableCollision = GridManager.Instance.ShouldHaveCollisionWith(col.transform, GridManager.Instance.GetTileAtLocation(tileLocation), heightInfo);
     Physics2D.IgnoreCollision(col, wallCollider, !enableCollision);
   }
 
-  public bool ShouldHaveCollisionWith(float otherZ)
-  {
-    float offset = -.001f;
-    return GroundHasCollisionWith(otherZ, offset) || CeilingHasCollisionWith(otherZ, offset);
-  }
 
-  public bool GroundHasCollisionWith(float otherZ, float offset = 0)
-  {
-    return otherZ <= transform.position.z // between bottom of tile area...
-      && otherZ > (transform.position.z - groundHeight - offset); //...and top of ground
-  }
-
-  public bool CeilingHasCollisionWith(float otherZ, float offset = 0)
-  {
-    return ceilingTile != null && // ceiling tile exists, and we're ...
-      (otherZ <= (transform.position.z - ceilingHeight - offset)//...between bottom of ceiling...
-      && otherZ >= (transform.position.z - 1)); // and top of tile area
-  }
   void OnCollisionStay2D(Collision2D col)
   {
     col.gameObject.SendMessage("OnWallObjectCollisionStay", transform.position, SendMessageOptions.DontRequireReceiver);

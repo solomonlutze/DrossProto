@@ -103,17 +103,17 @@ public class EnvironmentTileInfo
     || objectTileType != null && groundTileType.dealsDamage;
     }
   }
-  public float groundHeight;
+  public Vector2 heightInfo;
 
   public IlluminationInfo illuminationInfo;
 
-  public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile, InfoTile infoTile, float gHeight)
+  public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile, InfoTile infoTile, Vector2 height)
   {
     tileLocation = location;
     groundTileType = groundTile;
     objectTileType = objectTile;
     infoTileType = infoTile;
-    groundHeight = gHeight;
+    heightInfo = height;
     environmentalDamageSources = new List<EnvironmentalDamage>();
     foreach (EnvironmentTile t in new EnvironmentTile[] { groundTile, objectTile })
       if (t != null && t.dealsDamage)
@@ -251,16 +251,17 @@ public class EnvironmentTileInfo
 
   public float GroundHeight()
   {
-    return groundHeight;
+    return heightInfo.x;
   }
 
   public float CeilingHeight()
   {
-    if (objectTileType != null)
-    {
-      return objectTileType.ceilingHeight;
-    }
-    return 1;
+    return heightInfo.y;
+    // if (objectTileType != null)
+    // {
+    //   return objectTileType.ceilingHeight;
+    // }
+    // return 1;
   }
 
   // TODO: this should eventually be based on whether it _will_ respawn player/deal damage

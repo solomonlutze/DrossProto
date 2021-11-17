@@ -1968,17 +1968,18 @@ public class Character : WorldObject
     }
   }
 
-  public bool CanHopUpAtLocation(Vector3 wallPosition)
+  // accepts ownPosition so pathfinding can consider places we aren't currently
+  public bool CanHopUpAtLocation(Vector3 ownPosition, Vector3 wallPosition)
   {
-    Vector3 hopCheckLocation = new Vector3(wallPosition.x, wallPosition.y, transform.position.z - .25f); // the spot whose wallObject we want to compare // TODO: CLEAR MAGIC NUMBER
+    Vector3 hopCheckLocation = new Vector3(wallPosition.x, wallPosition.y, ownPosition.z - .25f); // the spot whose wallObject we want to compare // TODO: CLEAR MAGIC NUMBER
     WallObject wallObject = GridManager.Instance.GetWallObjectAtLocation(new TileLocation(hopCheckLocation));
     float groundHeightOffset = wallObject ? wallObject.groundHeight : 0;
-    return CanUseSkill(hopSkill) && (wallObject == null || !wallObject.ShouldHaveCollisionWith(transform.position.z - .25f)); // TODO: CLEAR MAGIC NUMBER
+    return CanUseSkill(hopSkill) && (wallObject == null || !wallObject.ShouldHaveCollisionWith(ownPosition.z - .25f)); // TODO: CLEAR MAGIC NUMBER
   }
 
   public void OnWallObjectCollisionStay(Vector3 wallPosition)
   {
-    if (CanHopUpAtLocation(wallPosition)) // TODO: CLEAR MAGIC NUMBER
+    if (CanHopUpAtLocation(transform.position, wallPosition)) // TODO: CLEAR MAGIC NUMBER
     {
       BeginSkill(hopSkill);
     }

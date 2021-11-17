@@ -84,7 +84,7 @@ public class GridManager : Singleton<GridManager>
       (EnvironmentTile)layerFloors[loc.floorLayer].groundTilemap.GetTile(loc.tilemapCoordinatesVector3),
       (EnvironmentTile)layerFloors[loc.floorLayer].objectTilemap.GetTile(loc.tilemapCoordinatesVector3),
       it,
-      worldGridData.GetFloorHeight(loc));
+      worldGridData.GetFloorHeightInfo(loc));
     return i;
   }
 
@@ -154,6 +154,31 @@ public class GridManager : Singleton<GridManager>
       return GetTileAtLocation(tileAbove.tileLocation).CharacterCanPassThroughFloorTile(c);
     }
     return false;
+  }
+
+  // public bool ShouldCollideAtLocation(TileLocation location, Character c)
+  // {
+  //   EnvironmentTileInfo info = GetTileAtLocation(location);
+  //   if (ShouldHaveCollisionWith)
+  // }
+
+  public bool ShouldHaveCollisionWith(Transform colliderTransform, EnvironmentTileInfo eti)
+  {
+    float offset = -.001f;
+    return GroundHasCollisionWith(eti, colliderTransform.position.z, offset) || CeilingHasCollisionWith(eti, colliderTransform.position.z, offset);
+  }
+
+  public bool GroundHasCollisionWith(EnvironmentTileInfo eti, float otherZ, float offset = 0)
+  {
+    return otherZ <= eti.tileLocation.z // between bottom of tile area...
+      && otherZ > (eti.tileLocation.z - eti.GroundHeight() - offset); //...and top of ground
+  }
+
+  public bool CeilingHasCollisionWith(EnvironmentTileInfo eti, float otherZ, float offset = 0)
+  {
+    return eti.objectTileType != null && // ceiling tile exists, and we're ...
+      (otherZ <= (eti.tileLocation.z - eti.CeilingHeight() - offset)//...between bottom of ceiling...
+      && otherZ >= (eti.tileLocation.z - 1)); // and top of tile area
   }
 
   public bool AdjacentTileIsValid(TileLocation location, TilemapDirection direction)
