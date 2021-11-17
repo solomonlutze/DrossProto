@@ -162,12 +162,20 @@ public class GridManager : Singleton<GridManager>
   //   if (ShouldHaveCollisionWith)
   // }
 
-  public bool ShouldHaveCollisionWith(Transform colliderTransform, EnvironmentTileInfo eti)
+  public bool ShouldHaveCollisionWith(EnvironmentTileInfo eti, Transform colliderTransform)
   {
-    float offset = -.001f;
-    return GroundHasCollisionWith(eti, colliderTransform.position.z, offset) || CeilingHasCollisionWith(eti, colliderTransform.position.z, offset);
+    return ShouldHaveCollisionWith(eti, colliderTransform.position.z);
   }
 
+  public bool ShouldHaveCollisionWith(EnvironmentTileInfo eti, float otherZ)
+  {
+    float offset = -.001f;
+    if (eti.heightInfo.x > 0)
+    {
+      Debug.Log("heightInfo" + eti.heightInfo + ",otherZ " + otherZ);
+    }
+    return GroundHasCollisionWith(eti, otherZ, offset) || CeilingHasCollisionWith(eti, otherZ, offset);
+  }
   public bool GroundHasCollisionWith(EnvironmentTileInfo eti, float otherZ, float offset = 0)
   {
     return otherZ <= eti.tileLocation.z // between bottom of tile area...

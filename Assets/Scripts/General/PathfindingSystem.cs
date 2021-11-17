@@ -689,7 +689,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   {
     // either we don't collide with the tile, or we can hop up it
     // maybe add this check to ETI?
-    if (GridManager.Instance.ShouldHaveCollisionWith(c.transform, eti))
+    if (GridManager.Instance.ShouldHaveCollisionWith(eti, c.transform))
     {
       return false;
     }

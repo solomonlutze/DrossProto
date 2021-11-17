@@ -1071,9 +1071,9 @@ public class Character : WorldObject
 
   bool ShouldCollideWithCeilingTile(float increment = 0)
   {
-    foreach (WallObject wallObject in GetOverlappingWallObjects(currentFloor))
+    foreach (EnvironmentTileInfo tile in GetOverlappingTiles(currentFloor))
     {
-      if (wallObject != null && wallObject.CeilingHasCollisionWith(transform.position.z - increment))
+      if (tile != null && GridManager.Instance.CeilingHasCollisionWith(tile, transform.position.z - increment))
       {
         return true;
       }
@@ -1972,9 +1972,10 @@ public class Character : WorldObject
   public bool CanHopUpAtLocation(Vector3 ownPosition, Vector3 wallPosition)
   {
     Vector3 hopCheckLocation = new Vector3(wallPosition.x, wallPosition.y, ownPosition.z - .25f); // the spot whose wallObject we want to compare // TODO: CLEAR MAGIC NUMBER
+    EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(new TileLocation(hopCheckLocation));
     WallObject wallObject = GridManager.Instance.GetWallObjectAtLocation(new TileLocation(hopCheckLocation));
-    float groundHeightOffset = wallObject ? wallObject.groundHeight : 0;
-    return CanUseSkill(hopSkill) && (wallObject == null || !wallObject.ShouldHaveCollisionWith(ownPosition.z - .25f)); // TODO: CLEAR MAGIC NUMBER
+    float groundHeightOffset = eti.GroundHeight();
+    return CanUseSkill(hopSkill) && (wallObject == null || !GridManager.Instance.ShouldHaveCollisionWith(eti, ownPosition.z - .25f)); // TODO: CLEAR MAGIC NUMBER
   }
 
   public void OnWallObjectCollisionStay(Vector3 wallPosition)
