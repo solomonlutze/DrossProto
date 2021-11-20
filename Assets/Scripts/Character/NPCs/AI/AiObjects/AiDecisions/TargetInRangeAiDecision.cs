@@ -17,15 +17,16 @@ public class TargetInRangeAiDecision : AiDecision
   {
     if (c == null || c.currentTile == null) { return false; }
     float distance = Vector2.Distance(c.transform.position, controller.transform.position);
-    if (distance < controller.GetAwarenessRange()) // antennae overrides camouflage and darkvision; kinda broken for AI tbh!
-    {
-      return true;
-    }
-    float camouflageRange = c.GetCamouflageRange();
-    if (camouflageRange > 0 && distance > camouflageRange)
-    {
-      return false;
-    }
-    return distance < controller.GetSightRange() * DarkVisionAttributeData.GetVisibilityMultiplierForTile(controller.GetDarkVisionInfos(), c.currentTile);
+    return (distance < controller.GetAwarenessRange());
+    // if (distance < controller.GetAwarenessRange()) // antennae overrides camouflage and darkvision; kinda broken for AI tbh!
+    // {
+    //   return true;
+    // }
+    // // float camouflageRange = c.GetCamouflageRange();
+    // // if (camouflageRange > 0 && distance > camouflageRange)
+    // // {
+    // //   return false;
+    // // }
+    // return distance < controller.GetSightRange() * DarkVisionAttributeData.GetVisibilityMultiplierForTile(controller.GetDarkVisionInfos(), c.currentTile);
   }
 }

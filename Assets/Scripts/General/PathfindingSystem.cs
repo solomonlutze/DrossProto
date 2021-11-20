@@ -231,7 +231,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       {
         return false;
       }
-      if (!CanPassOverTile(eti, ai))
+      if (!CanPassOverTile(eti, ai, eti.tileLocation.z))
       {
         return false;
       }
@@ -257,7 +257,8 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       {
         return false;
       }
-      if (!CanPassOverTile(eti, character))
+
+      if (!CanPassOverTile(eti, character, eti.tileLocation.z))
       {
         return false;
       }
@@ -493,12 +494,22 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     }
     return cost;
   }
-  public bool CanPassOverTile(EnvironmentTileInfo tile, Character ai)
+  public bool CanPassOverTile(EnvironmentTileInfo tileInfo, Character ai, float zPosition)
   {
     return
-        tile != null
-        && ((tile.GetColliderType() == Tile.ColliderType.None && !tile.dealsDamage) && !tile.CanRespawnPlayer())
+        tileInfo != null
+        && ((CanTraverse(tileInfo, ai, zPosition) && !tileInfo.dealsDamage) && !tileInfo.CanRespawnPlayer())
     ;
+  }
+
+  public bool CanTraverse(EnvironmentTileInfo tileInfo, Character ai, float zPosition)
+  {
+    if (zPosition - System.Math.Truncate(zPosition) > .0001)
+    {
+      UnityEngine.Debug.Log("zPosition: " + zPosition + ", tile groundHeight: " + tileInfo.GroundHeight());
+    }
+    // float zAtTraversal = originNode.loc.z - GridManager.Instance.GetTileAtLocation(originNode.loc).GroundHeight();
+    return !GridManager.Instance.ShouldHaveCollisionWith(tileInfo, zPosition) || ai.CanHopUpAtLocation(zPosition, tileInfo.tileLocation.cellCenterPosition);
   }
 
   private bool TakesDamageFromTile(EnvironmentTile tile, AiStateController ai)
@@ -644,12 +655,12 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
 
   void MaybeAddNode(List<Node> nodeList, TileLocation possibleNodeLocation, Node originNode, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction)
   {
-
-    // if we can't cross the boundary, return
-    // if we can cross the boundary, identify ending tileLocation (do we fall? do we hop up a floor?)
-    // if the ending tileLocation is undesirable, return
+    // 0) if the tile in question (or its floor layer) is invalid, return
+    // 1) if we can't cross the boundary, return
+    // 2) identify ending tileLocation (do we fall? do we hop up a floor?)
+    // 3) if the ending tileLocation is undesirable, return
     // else, add
-    if (!gridManager.layerFloors.ContainsKey(possibleNodeLocation.floorLayer)) { return; }
+    if (!gridManager.layerFloors.ContainsKey(possibleNodeLocation.floorLayer)) { return; } // 0
     LayerFloor layer = gridManager.layerFloors[possibleNodeLocation.floorLayer];
     if (layer == null || layer.groundTilemap == null || layer.objectTilemap == null)
     {
@@ -657,11 +668,13 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       return;
     }
     EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(possibleNodeLocation);
-    if (!CharacterCanPassTile(ai, eti))
+    float zPosition = GridManager.Instance.GetFloorPositionForTileLocation(originNode.loc);
+    UnityEngine.Debug.Log("destination zPosition: " + GridManager.Instance.GetFloorPositionForTileLocation(possibleNodeLocation) + ", origin node position: " + zPosition);
+    if (!CanPassOverTile(eti, ai, zPosition)) // 1 
     {
       return;
     }
-    TileLocation endLocation = GetEndTileLocation(possibleNodeLocation);
+    TileLocation endLocation = GetEndTileLocation(ai, possibleNodeLocation, zPosition);
     // if (possibleNodeLocation.floorLayer != originNode.loc.floorLayer && !ConnectionBetweenNodesOnDifferentFloorsExists(originNode, possibleNodeLocation.floorLayer))
     // {
     //   return;
@@ -685,28 +698,34 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     nodeList.Add(InitNewNode(possibleNodeLocation, costToTravelOverNode, originNode, targetLocation));
   }
 
-  bool CharacterCanPassTile(Character c, EnvironmentTileInfo eti)
-  {
-    // either we don't collide with the tile, or we can hop up it
-    // maybe add this check to ETI?
-    if (GridManager.Instance.ShouldHaveCollisionWith(eti, c.transform))
-    {
-      return false;
-    }
-    return true;
-  }
+  // bool CharacterCanPassTile(Character c, EnvironmentTileInfo eti)
+  // {
+  //   // either we don't collide with the tile, or we can hop up it
+  //   // maybe add this check to ETI?
+  //   if (GridManager.Instance.ShouldHaveCollisionWith(eti, c.transform) && ) 
+  //   {
+  //     return false;
+  //   }
+  //   return true;
+  // }
 
-  TileLocation GetEndTileLocation(TileLocation possibleNodeLocation)
+  TileLocation GetEndTileLocation(Character ai, TileLocation possibleNodeLocation, float previousZPosition)
   {
     // if the location is empty, then this is the first nonempty tile below it
     // if the location has a hoppable wall that brings us to the floor above, this is the location directly above it
     // otherwise, return original location
+    TileLocation location = possibleNodeLocation;
+    if (ai.CanHopUpAtLocation(previousZPosition, possibleNodeLocation.cellCenterPosition))
+    {
+      Vector3 hopCheckLocation = new Vector3(possibleNodeLocation.x, possibleNodeLocation.y, previousZPosition - .25f); // the spot whose wallObject we want to compare // TODO: CLEAR MAGIC NUMBER
+      location = new TileLocation(hopCheckLocation);
+    }
     return possibleNodeLocation;
   }
 
   bool TileIsDesirable()
   {
-    return false;
+    return true;
   }
   Node InitNewNode(TileLocation nodeLocation, int g, Node parent, TileLocation targetLocation)
   {

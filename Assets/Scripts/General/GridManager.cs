@@ -427,6 +427,10 @@ public class GridManager : Singleton<GridManager>
   {
     return GetTileAtLocation(loc).GroundHeight();
   }
+  public float GetFloorPositionForTileLocation(TileLocation loc)
+  {
+    return loc.z - GetTileAtLocation(loc).GroundHeight();
+  }
 
   public float GetCeilingHeightForTileLocation(TileLocation loc)
   {
@@ -564,7 +568,7 @@ public class GridManager : Singleton<GridManager>
     watch.Start();
     yield return LoadChunksCoroutine(chunksToLoad);
     yield return UnloadChunksCoroutine(chunksToLoad);
-    Debug.Log("load/unload took " + watch.ElapsedMilliseconds + "ms");
+    // Debug.Log("load/unload took " + watch.ElapsedMilliseconds + "ms");
     chunkLoadCoroutine = null;
   }
 

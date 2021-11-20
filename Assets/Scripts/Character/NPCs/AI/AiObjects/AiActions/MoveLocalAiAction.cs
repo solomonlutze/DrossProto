@@ -57,7 +57,7 @@ public class MoveLocalAiAction : AiAction
         !PathfindingSystem.Instance.CanPassOverTile(
           GridManager.Instance.GetTileAtWorldPosition(
             controller.transform.position + possibleMovementDirection.normalized * movementOptionProjectRange, controller.currentFloor
-          ), controller
+          ), controller, controller.transform.position.z
         )
         )
       {

@@ -226,7 +226,6 @@ public class CharacterSkillData : ScriptableObject
 
   void SetIsAttack()
   {
-    Debug.Log("set is attack, I guess??");
     if (skillEffectSets == null) { return; }
     foreach (SkillEffectSet set in skillEffectSets)
     {
