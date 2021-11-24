@@ -46,7 +46,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     while (openNodes.Count > 0)
     {
 
-      if (openNodes.Count > 80 || closedNodes.Count > 80)
+      if (openNodes.Count > 120 || closedNodes.Count > 120)
       {
         // We should give up on finding a path
         ai.SetIsCalculatingPath(false);
@@ -675,6 +675,10 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       return;
     }
     TileLocation endLocation = GetEndTileLocation(ai, possibleNodeLocation, zPosition);
+    if (endLocation != null)// why would it be
+    {
+      eti = GridManager.Instance.GetTileAtLocation(endLocation);
+    }
     // if (possibleNodeLocation.floorLayer != originNode.loc.floorLayer && !ConnectionBetweenNodesOnDifferentFloorsExists(originNode, possibleNodeLocation.floorLayer))
     // {
     //   return;
@@ -695,7 +699,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       return;
     }
     // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
-    nodeList.Add(InitNewNode(possibleNodeLocation, costToTravelOverNode, originNode, targetLocation));
+    nodeList.Add(InitNewNode(endLocation, costToTravelOverNode, originNode, targetLocation));
   }
 
   // bool CharacterCanPassTile(Character c, EnvironmentTileInfo eti)
@@ -717,10 +721,10 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     TileLocation location = possibleNodeLocation;
     if (ai.CanHopUpAtLocation(previousZPosition, possibleNodeLocation.cellCenterPosition))
     {
-      Vector3 hopCheckLocation = new Vector3(possibleNodeLocation.x, possibleNodeLocation.y, previousZPosition - .25f); // the spot whose wallObject we want to compare // TODO: CLEAR MAGIC NUMBER
-      location = new TileLocation(hopCheckLocation);
+      Vector3 hopCheckPosition = new Vector3(possibleNodeLocation.cellCenterPosition.x, possibleNodeLocation.cellCenterPosition.y, previousZPosition - .25f); // the spot whose wallObject we want to compare // TODO: CLEAR MAGIC NUMBER
+      location = new TileLocation(hopCheckPosition);
     }
-    return possibleNodeLocation;
+    return location;
   }
 
   bool TileIsDesirable()

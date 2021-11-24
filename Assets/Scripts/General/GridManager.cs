@@ -76,7 +76,8 @@ public class GridManager : Singleton<GridManager>
   public EnvironmentTileInfo GetTileAtLocation(TileLocation loc)
   {
     EnvironmentTileInfo i = new EnvironmentTileInfo();
-    InfoTile it = layerFloors[loc.floorLayer].infoTilemap.HasTile(loc.tilemapCoordinatesVector3) && layerFloors[loc.floorLayer].infoTilemap.GetTile(loc.tilemapCoordinatesVector3) as InfoTile != null ?
+    InfoTile it = layerFloors[loc.floorLayer].infoTilemap.HasTile(loc.tilemapCoordinatesVector3)
+      && layerFloors[loc.floorLayer].infoTilemap.GetTile(loc.tilemapCoordinatesVector3) as InfoTile != null ?
       (InfoTile)layerFloors[loc.floorLayer].infoTilemap.GetTile(loc.tilemapCoordinatesVector3) :
       null;
     i.Init(
