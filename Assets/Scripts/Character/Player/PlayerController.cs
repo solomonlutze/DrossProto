@@ -500,6 +500,11 @@ public class PlayerController : Character
     LymphTypeToIntDictionary lymphTypeCounts = inventory.GetLymphTypeCounts(nextLifeTraits);
   }
 
+  public override void PlayDamageSounds()
+  {
+    base.PlayDamageSounds();
+    AkSoundEngine.PostEvent("TriggerClergySmallEnemyHit", GameMaster.Instance.gameObject);
+  }
   override public void Die()
   {
     GameMaster.Instance.KillPlayer(pupa);

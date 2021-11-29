@@ -1335,12 +1335,17 @@ public class Character : WorldObject
     }
     InterruptAnimation();
     AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
+    PlayDamageSounds();
     StartCoroutine(ApplyInvulnerability(damageSource));
     Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
     if (knockback != Vector3.zero)
     {
       BeginKnockback(knockback);
     }
+  }
+
+  public virtual void PlayDamageSounds()
+  {
   }
 
   public int GetDamageTypeResistanceLevel(DamageType type) // we could also just return the 
