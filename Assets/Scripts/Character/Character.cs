@@ -1990,4 +1990,17 @@ public class Character : WorldObject
       BeginSkill(hopSkill);
     }
   }
+
+  public List<CharacterSkillData> GetSkillsThatCanCrossEmptyTiles()
+  {
+    List<CharacterSkillData> skills = new List<CharacterSkillData>();
+    foreach (CharacterSkillData skill in characterSkills.Values)
+    {
+      if (skill.CanCrossEmptyTiles())
+      {
+        skills.Add(skill);
+      }
+    }
+    return skills;
+  }
 }

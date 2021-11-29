@@ -99,8 +99,8 @@ public class EnvironmentTileInfo
   {
     get
     {
-      return groundTileType != null && groundTileType.dealsDamage
-    || objectTileType != null && groundTileType.dealsDamage;
+      return (groundTileType != null && groundTileType.dealsDamage)
+    || (objectTileType != null && objectTileType.dealsDamage);
     }
   }
   public Vector2 heightInfo;

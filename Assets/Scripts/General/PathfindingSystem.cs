@@ -12,6 +12,7 @@ public class Node
   public int g;
   public int h;
   public TileLocation loc;
+  public CharacterSkillData usingSkill;
   public Node parent;
 }
 
@@ -504,11 +505,6 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
 
   public bool CanTraverse(EnvironmentTileInfo tileInfo, Character ai, float zPosition)
   {
-    if (zPosition - System.Math.Truncate(zPosition) > .0001)
-    {
-      UnityEngine.Debug.Log("zPosition: " + zPosition + ", tile groundHeight: " + tileInfo.GroundHeight());
-    }
-    // float zAtTraversal = originNode.loc.z - GridManager.Instance.GetTileAtLocation(originNode.loc).GroundHeight();
     return !GridManager.Instance.ShouldHaveCollisionWith(tileInfo, zPosition) || ai.CanHopUpAtLocation(zPosition, tileInfo.tileLocation.cellCenterPosition);
   }
 
@@ -630,28 +626,28 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     return res;
   }
 
-  bool ConnectionBetweenNodesOnDifferentFloorsExists(Node currentNode, FloorLayer newFloor)
-  {
-    LayerFloor layer = gridManager.layerFloors[currentNode.loc.floorLayer];
-    if (layer == null || layer.groundTilemap == null || layer.objectTilemap == null)
-    {
-      // this should not happen
-      UnityEngine.Debug.LogError("missing layer information for " + currentNode.loc.floorLayer);
-      return false;
-    }
-    EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(currentNode.loc);
-    if (tileInfo.IsEmpty() && currentNode.loc.floorLayer - 1 == newFloor)
-    {
-      return true;
-    }
-    if (tileInfo == null) { return false; }
-    FloorLayer? targetLayer = null;
-    if (tileInfo.ChangesFloorLayer())
-    {
-      targetLayer = tileInfo.GetTargetFloorLayer(currentNode.loc.floorLayer);
-    }
-    return (targetLayer != null && targetLayer == newFloor);
-  }
+  // bool ConnectionBetweenNodesOnDifferentFloorsExists(Node currentNode, FloorLayer newFloor)
+  // {
+  //   LayerFloor layer = gridManager.layerFloors[currentNode.loc.floorLayer];
+  //   if (layer == null || layer.groundTilemap == null || layer.objectTilemap == null)
+  //   {
+  //     // this should not happen
+  //     UnityEngine.Debug.LogError("missing layer information for " + currentNode.loc.floorLayer);
+  //     return false;
+  //   }
+  //   EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(currentNode.loc);
+  //   if (tileInfo.IsEmpty() && currentNode.loc.floorLayer - 1 == newFloor)
+  //   {
+  //     return true;
+  //   }
+  //   if (tileInfo == null) { return false; }
+  //   FloorLayer? targetLayer = null;
+  //   if (tileInfo.ChangesFloorLayer())
+  //   {
+  //     targetLayer = tileInfo.GetTargetFloorLayer(currentNode.loc.floorLayer);
+  //   }
+  //   return (targetLayer != null && targetLayer == newFloor);
+  // }
 
   void MaybeAddNode(List<Node> nodeList, TileLocation possibleNodeLocation, Node originNode, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction)
   {
@@ -674,7 +670,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     {
       return;
     }
-    TileLocation endLocation = GetEndTileLocation(ai, possibleNodeLocation, zPosition);
+    TileLocation endLocation = GetEndTileLocation(nodeList, ai, originNode, possibleNodeLocation, targetLocation, initiatingAction, zPosition);
     if (endLocation != null)// why would it be
     {
       eti = GridManager.Instance.GetTileAtLocation(endLocation);
@@ -687,21 +683,26 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     {
       return;
     }
-    // if ((eti == null || eti.IsEmpty()) && GridManager.Instance.AdjacentTileIsValid(possibleNodeLocation, TilemapDirection.Below))
+    AddNode(nodeList, endLocation, originNode, targetLocation, ai, initiatingAction, eti);
+    // int costToTravelOverNode = GetNodeTravelCost(eti, ai, initiatingAction);
+    // if (costToTravelOverNode < 0)
     // {
-    //   MaybeAddNode(nodeList, GridManager.Instance.GetAdjacentTileLocation(possibleNodeLocation, TilemapDirection.Below), InitNewNode(possibleNodeLocation, 0, originNode, targetLocation), targetLocation, ai, initiatingAction);
     //   return;
     // }
-    // if (eti.groundTileType == null) { return; }
+    // // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
+    // nodeList.Add(InitNewNode(endLocation, costToTravelOverNode, originNode, targetLocation));
+  }
+
+  public void AddNode(List<Node> nodeList, TileLocation endLocation, Node originNode, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction, EnvironmentTileInfo eti, CharacterSkillData skill = null)
+  {
     int costToTravelOverNode = GetNodeTravelCost(eti, ai, initiatingAction);
     if (costToTravelOverNode < 0)
     {
       return;
     }
     // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
-    nodeList.Add(InitNewNode(endLocation, costToTravelOverNode, originNode, targetLocation));
+    nodeList.Add(InitNewNode(endLocation, costToTravelOverNode, originNode, targetLocation, skill));
   }
-
   // bool CharacterCanPassTile(Character c, EnvironmentTileInfo eti)
   // {
   //   // either we don't collide with the tile, or we can hop up it
@@ -713,12 +714,27 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   //   return true;
   // }
 
-  TileLocation GetEndTileLocation(Character ai, TileLocation possibleNodeLocation, float previousZPosition)
+  TileLocation GetEndTileLocation(List<Node> nodeList, AiStateController ai, Node originNode, TileLocation possibleNodeLocation, TileLocation targetLocation, PathfindAiAction initiatingAction, float previousZPosition)
   {
     // if the location is empty, then this is the first nonempty tile below it
     // if the location has a hoppable wall that brings us to the floor above, this is the location directly above it
     // otherwise, return original location
     TileLocation location = possibleNodeLocation;
+    EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(location);
+    // if it's empty and the AI can traverse empty tiles using a skill: add this tile using that skill!
+    if (tileInfo.IsEmpty())
+    {
+      foreach (CharacterSkillData skill in ai.GetSkillsThatCanCrossEmptyTiles())
+      {
+        UnityEngine.Debug.Log("adding skill " + skill);
+        AddNode(nodeList, possibleNodeLocation, originNode, targetLocation, ai, initiatingAction, tileInfo, skill);
+      }
+    }
+    while (tileInfo.IsEmpty())
+    {
+      location = GridManager.Instance.GetAdjacentTileLocation(location, TilemapDirection.Below);
+      tileInfo = GridManager.Instance.GetTileAtLocation(location);
+    }
     if (ai.CanHopUpAtLocation(previousZPosition, possibleNodeLocation.cellCenterPosition))
     {
       Vector3 hopCheckPosition = new Vector3(possibleNodeLocation.cellCenterPosition.x, possibleNodeLocation.cellCenterPosition.y, previousZPosition - .25f); // the spot whose wallObject we want to compare // TODO: CLEAR MAGIC NUMBER
@@ -731,7 +747,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   {
     return true;
   }
-  Node InitNewNode(TileLocation nodeLocation, int g, Node parent, TileLocation targetLocation)
+  Node InitNewNode(TileLocation nodeLocation, int g, Node parent, TileLocation targetLocation, CharacterSkillData skill = null)
   {
     Node newNode = new Node();
     newNode.loc = nodeLocation;
@@ -746,6 +762,10 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         + Mathf.Abs(targetLocation.tilemapCoordinates.y - nodeLocation.worldPosition.y)
         + Mathf.Abs(targetLocation.floorLayer - nodeLocation.floorLayer));
       newNode.f = newNode.g + newNode.h;
+    }
+    if (skill != null)
+    {
+      newNode.usingSkill = skill;
     }
     return newNode;
   }

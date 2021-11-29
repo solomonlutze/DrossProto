@@ -155,6 +155,21 @@ public class CharacterSkillData : ScriptableObject
     && (GetActiveSkillEffect(owner).movement[SkillEffectMovementProperty.MoveUp].magnitude.Resolve(owner) > 0);
   }
 
+  public bool SkillCanMoveCharacterVertically()
+  {
+    foreach (SkillEffectSet effectSet in skillEffectSets)
+    {
+      foreach (SkillEffect effect in effectSet.skillEffects)
+      {
+        if (effect.movement.ContainsKey(SkillEffectMovementProperty.MoveUp))
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   public bool SkillHasMovementAbility(Character owner, CharacterMovementAbility movementAbility)
   {
     return GetActiveSkillEffect(owner).movementAbilities.Contains(movementAbility);
@@ -208,6 +223,10 @@ public class CharacterSkillData : ScriptableObject
     return effectRangeInfos.ToArray();
   }
 
+  public bool CanCrossEmptyTiles()
+  {
+    return SkillCanMoveCharacterVertically();
+  }
   // This may not be useful but could be used to determine whether we're "close enough" in an abstract way,
   // vs specifically within range and angle of a particular attack effect.
   // Also tho it's probably broken

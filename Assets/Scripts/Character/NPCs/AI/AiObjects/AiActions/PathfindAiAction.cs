@@ -61,11 +61,15 @@ public class PathfindAiAction : AiAction
     }
     if (controller.pathToTarget != null && controller.pathToTarget.Count > 0)
     {
-      Vector3 nextNodeLocation = new Vector3(controller.pathToTarget[0].loc.cellCenterWorldPosition.x, controller.pathToTarget[0].loc.cellCenterWorldPosition.y, controller.pathToTarget[0].loc.z);
+      Node nextNode = controller.pathToTarget[0];
+      if (nextNode.usingSkill != null)
+      {
+        controller.HandleSkillInput(nextNode.usingSkill);
+      }
+      Vector3 nextNodeLocation = new Vector3(nextNode.loc.cellCenterWorldPosition.x, nextNode.loc.cellCenterWorldPosition.y, nextNode.loc.z);
       Vector3 colliderCenterWorldSpace = controller.transform.TransformPoint(controller.physicsCollider.offset);
       movementInput = (nextNodeLocation - colliderCenterWorldSpace).normalized;
       Debug.DrawLine(nextNodeLocation, colliderCenterWorldSpace, Color.magenta, .1f, true);
-      Debug.Log("Vector2.Distance(nextNodeLocation, colliderCenterWorldSpace) " + Vector2.Distance(nextNodeLocation, colliderCenterWorldSpace));
       if (Vector2.Distance(nextNodeLocation, colliderCenterWorldSpace) < controller.minDistanceFromPathNode)
       {
         controller.pathToTarget.RemoveAt(0);
