@@ -504,6 +504,12 @@ public class AiStateController : Character
     base.TakeDamage(damageSource);
   }
 
+  public override void PlayDamageSounds()
+  {
+    base.PlayDamageSounds();
+    AkSoundEngine.PostEvent("TriggerClergySmallPlayerHit", GameMaster.Instance.gameObject);
+
+  }
   // public override CharacterSkillData GetSelectedCharacterSkill()
   // {
   //   return GetSkillDataForAttackType(selectedAttackType);
