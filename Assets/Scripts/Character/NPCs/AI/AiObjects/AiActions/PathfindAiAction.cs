@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 // Extend, don't instantiate
 public class PathfindAiAction : AiAction
@@ -43,39 +42,44 @@ public class PathfindAiAction : AiAction
       targetWorldLocation.GetFloorLayer(),
       controller
     );
-    if (controller.lineToTargetIsClear)
-    {
-      float distanceFromTarget = CustomPhysicsController.GetMinimumDistanceBetweenObjects(targetWorldLocation.gameObject, controller.gameObject);
+    // if (controller.lineToTargetIsClear)
+    // {
+    //   float distanceFromTarget = CustomPhysicsController.GetMinimumDistanceBetweenObjects(targetWorldLocation.gameObject, controller.gameObject);
 
-      if ((distanceFromTarget + .3f) > controller.minDistanceFromTarget)
-      {
-        movementInput = (targetWorldLocation.transform.position - controller.transform.position).normalized;
-        // MaybeDash(controller, targetWorldLocation);
-      }
-    }
-    else
+    //   if ((distanceFromTarget + .3f) > controller.minDistanceFromTarget)
+    //   {
+    //     movementInput = (targetWorldLocation.transform.position - controller.transform.position).normalized;
+    //     // MaybeDash(controller, targetWorldLocation);
+    //   }
+    // }
+    // else
+    // {
+    controller.StartCalculatingPath(targetWorldLocation.GetTileLocation(), this);
+    if (controller.pathToTarget != null)
     {
-      controller.StartCalculatingPath(targetWorldLocation.GetTileLocation(), this);
-      if (controller.pathToTarget != null && controller.pathToTarget.Count > 0)
+      Debug.Log("pathToTarget count: " + controller.pathToTarget.Count);
+    }
+    if (controller.pathToTarget != null && controller.pathToTarget.Count > 0)
+    {
+      Vector3 nextNodeLocation = new Vector3(controller.pathToTarget[0].loc.cellCenterWorldPosition.x, controller.pathToTarget[0].loc.cellCenterWorldPosition.y, controller.pathToTarget[0].loc.z);
+      Vector3 colliderCenterWorldSpace = controller.transform.TransformPoint(controller.physicsCollider.offset);
+      movementInput = (nextNodeLocation - colliderCenterWorldSpace).normalized;
+      Debug.DrawLine(nextNodeLocation, colliderCenterWorldSpace, Color.magenta, .1f, true);
+      Debug.Log("Vector2.Distance(nextNodeLocation, colliderCenterWorldSpace) " + Vector2.Distance(nextNodeLocation, colliderCenterWorldSpace));
+      if (Vector2.Distance(nextNodeLocation, colliderCenterWorldSpace) < controller.minDistanceFromPathNode)
       {
-        Vector3 nextNodeLocation = new Vector3(controller.pathToTarget[0].loc.cellCenterWorldPosition.x, controller.pathToTarget[0].loc.cellCenterWorldPosition.y, controller.pathToTarget[0].loc.worldPosition.z);
-        Vector3 colliderCenterWorldSpace = controller.transform.TransformPoint(controller.circleCollider.offset);
-        movementInput = (nextNodeLocation - colliderCenterWorldSpace).normalized;
-        Debug.DrawLine(nextNodeLocation, colliderCenterWorldSpace, Color.magenta, .1f, true);
-        if (Vector2.Distance(nextNodeLocation, colliderCenterWorldSpace) < controller.minDistanceFromPathNode)
+        controller.pathToTarget.RemoveAt(0);
+        while (controller.pathToTarget.Count > 2 && PathfindingSystem.Instance.IsPathClearOfHazards(
+          controller.pathToTarget[1].loc.cellCenterWorldPosition,
+          targetWorldLocation.GetFloorLayer(),
+          controller
+        ))
         {
           controller.pathToTarget.RemoveAt(0);
-          while (controller.pathToTarget.Count > 2 && PathfindingSystem.Instance.IsPathClearOfHazards(
-            controller.pathToTarget[1].loc.cellCenterWorldPosition,
-            targetWorldLocation.GetFloorLayer(),
-            controller
-          ))
-          {
-            controller.pathToTarget.RemoveAt(0);
-          }
         }
       }
     }
+    // }
     controller.SetMoveInput(movementInput);
   }
 
@@ -119,7 +123,7 @@ public class PathfindAiAction : AiAction
   // Should be used with TargetIsReachable to fall out of state if target can't be reached.
   public override bool OnEntry(AiStateController controller)
   {
-    // Debug.Log("moveAiAction onEntry");
+    Debug.Log("PathfindAiAction onEntry");
     if (controller.objectOfInterest != null)
     {
       controller.StartCalculatingPath(controller.objectOfInterest.GetTileLocation(), this, controller.objectOfInterest);

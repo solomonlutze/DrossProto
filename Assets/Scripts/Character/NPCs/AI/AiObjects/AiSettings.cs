@@ -7,4 +7,5 @@ public class AiSettings : ScriptableObject
   public float maxCombatDistance;
   public float minAttackCooldown;
   public float minAttackAngle = 15f;
+  public float awarenessRange = 12f;
 }
