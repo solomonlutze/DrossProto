@@ -13,6 +13,7 @@ public class Node
   public int h;
   public TileLocation loc;
   public CharacterSkillData usingSkill;
+  public float distanceTraveledViaSkill = 0;
   public Node parent;
 }
 
@@ -47,9 +48,10 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     while (openNodes.Count > 0)
     {
 
-      if (openNodes.Count > 120 || closedNodes.Count > 120)
+      if (openNodes.Count > 220 || closedNodes.Count > 220)
       {
         // We should give up on finding a path
+        UnityEngine.Debug.Log("Giving up on finding a path!!");
         ai.SetIsCalculatingPath(false);
         ai.SetPathToTarget(null);
         yield break;
@@ -65,6 +67,11 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
           n = n.parent;
         }
         finalPath.Reverse();
+        UnityEngine.Debug.Log("found a path!!");
+        for (int i = 0; i < finalPath.Count - 1; i++)
+        {
+          UnityEngine.Debug.DrawLine(finalPath[i].loc.cellCenterWorldPosition, finalPath[i + 1].loc.cellCenterWorldPosition, Color.cyan, .5f);
+        }
         foundPath = true;
         break;
       }
@@ -665,16 +672,16 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     }
     EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(possibleNodeLocation);
     float zPosition = GridManager.Instance.GetFloorPositionForTileLocation(originNode.loc);
-    UnityEngine.Debug.Log("destination zPosition: " + GridManager.Instance.GetFloorPositionForTileLocation(possibleNodeLocation) + ", origin node position: " + zPosition);
     if (!CanPassOverTile(eti, ai, zPosition)) // 1 
     {
       return;
     }
     TileLocation endLocation = GetEndTileLocation(nodeList, ai, originNode, possibleNodeLocation, targetLocation, initiatingAction, zPosition);
-    if (endLocation != null)// why would it be
+    if (endLocation == null)// why would it be
     {
-      eti = GridManager.Instance.GetTileAtLocation(endLocation);
+      return;
     }
+    eti = GridManager.Instance.GetTileAtLocation(endLocation);
     // if (possibleNodeLocation.floorLayer != originNode.loc.floorLayer && !ConnectionBetweenNodesOnDifferentFloorsExists(originNode, possibleNodeLocation.floorLayer))
     // {
     //   return;
@@ -726,12 +733,20 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     {
       foreach (CharacterSkillData skill in ai.GetSkillsThatCanCrossEmptyTiles())
       {
-        UnityEngine.Debug.Log("adding skill " + skill);
-        AddNode(nodeList, possibleNodeLocation, originNode, targetLocation, ai, initiatingAction, tileInfo, skill);
+        if (originNode.distanceTraveledViaSkill + GridConstants.X_SPACING < skill.GetForwardMovementMagnitudeForPathfinding())
+        {
+          UnityEngine.Debug.Log("adding skill " + skill);
+          AddNode(nodeList, possibleNodeLocation, originNode, targetLocation, ai, initiatingAction, tileInfo, skill);
+        }
+        else
+        {
+          UnityEngine.Debug.Log("distance is " + (originNode.distanceTraveledViaSkill + GridConstants.X_SPACING) + " -too far, did not add skill (skill " + skill.displayName + ", magnitude " + skill.GetForwardMovementMagnitudeForPathfinding() + ")");
+        }
       }
     }
     while (tileInfo.IsEmpty())
     {
+      return null;
       location = GridManager.Instance.GetAdjacentTileLocation(location, TilemapDirection.Below);
       tileInfo = GridManager.Instance.GetTileAtLocation(location);
     }
@@ -754,6 +769,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     newNode.g = 0;
     newNode.h = 0;
     newNode.parent = null;
+    newNode.distanceTraveledViaSkill = 0;
     if (parent != null)
     {
       newNode.parent = parent;
@@ -762,10 +778,13 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         + Mathf.Abs(targetLocation.tilemapCoordinates.y - nodeLocation.worldPosition.y)
         + Mathf.Abs(targetLocation.floorLayer - nodeLocation.floorLayer));
       newNode.f = newNode.g + newNode.h;
+      newNode.distanceTraveledViaSkill = parent.distanceTraveledViaSkill;
     }
     if (skill != null)
     {
       newNode.usingSkill = skill;
+      newNode.distanceTraveledViaSkill += GridConstants.X_SPACING;
+      UnityEngine.Debug.Log("adding new node with distance " + newNode.distanceTraveledViaSkill);
     }
     return newNode;
   }

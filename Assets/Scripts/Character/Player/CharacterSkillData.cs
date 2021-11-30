@@ -155,6 +155,22 @@ public class CharacterSkillData : ScriptableObject
     && (GetActiveSkillEffect(owner).movement[SkillEffectMovementProperty.MoveUp].magnitude.Resolve(owner) > 0);
   }
 
+  public float GetForwardMovementMagnitudeForPathfinding()
+  {
+    float maxMagnitude = 0;
+    foreach (SkillEffectSet effectSet in skillEffectSets)
+    {
+      foreach (SkillEffect effect in effectSet.skillEffects)
+      {
+        if (effect.movement.ContainsKey(SkillEffectMovementProperty.MoveForward))
+        {
+          maxMagnitude = Mathf.Max(maxMagnitude, effect.movement[SkillEffectMovementProperty.MoveForward].magnitude.defaultValue);
+        }
+      }
+    }
+    return maxMagnitude;
+  }
+
   public bool SkillCanMoveCharacterVertically()
   {
     foreach (SkillEffectSet effectSet in skillEffectSets)
