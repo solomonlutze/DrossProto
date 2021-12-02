@@ -510,8 +510,9 @@ public class GridManager : Singleton<GridManager>
   public void StartLoadAndUnloadChunks(TileLocation centeredOnLocation)
   {
     HashSet<Vector2Int> chunksToLoad = new HashSet<Vector2Int>();
-    if (loadedChunks == null)
+    if (loadedChunks == null || loadedChunks.Count == 0)
     {
+      worldGridData.ClearExistingPlacedObjects();
       loadedChunks = new HashSet<Vector2Int>();
     }
     if (placedGameObjects == null)
