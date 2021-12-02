@@ -13,20 +13,6 @@ public class WallObject : MonoBehaviour, IPoolable
   public int orderInLayer;
 
   public Vector2 heightInfo;
-  // public float groundHeight // floor distance from own layer
-  // {
-  //   get
-  //   {
-  //     return heightInfo.x;
-  //   }
-  // }
-  // public float ceilingHeight // ceiling distance from above layer
-  // {
-  //   get
-  //   {
-  //     return heightInfo.y;
-  //   }
-  // }
   public FloorLayer floorLayer;
   public Collider2D wallCollider;
 
@@ -78,9 +64,7 @@ public class WallObject : MonoBehaviour, IPoolable
   {
     ceilingTile = tile;
     heightInfo = new Vector2(heightInfo.x, height);
-    // ceilingHeight = height;
   }
-
 
   public void SetGroundInfo(EnvironmentTile tile, float height)
   {

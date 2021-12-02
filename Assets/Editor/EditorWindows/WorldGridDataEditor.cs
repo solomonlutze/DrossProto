@@ -21,10 +21,26 @@ public class WorldGridDataEditor : Editor
       WorldGridData worldGridData = target as WorldGridData;
       worldGridData.CountExistingPlacedObjects();
     }
+    if (GUILayout.Button("Count environment tile datas"))
+    {
+      WorldGridData worldGridData = target as WorldGridData;
+      worldGridData.CountEnvironmentTileDatas();
+    }
     if (GUILayout.Button("Normalize height grid"))
     {
       WorldGridData worldGridData = target as WorldGridData;
-      worldGridData.CleanAllHeightGridValues();
+      worldGridData.CleanAllEnvironmentTileDataValues();
+    }
+    // WARNING: this blows away all height data! probably never use it!!
+    if (GUILayout.Button("Replace environment tile grid data with new"))
+    {
+      WorldGridData worldGridData = target as WorldGridData;
+      worldGridData.environmentTileDataGrid = new FloorLayerToEnvironmentTileDataDictionary();
+
+      foreach (FloorLayer fl in (FloorLayer[])Enum.GetValues(typeof(FloorLayer)))
+      {
+        worldGridData.environmentTileDataGrid.Add(fl, new IntToEnvironmentTileDataDictionary());
+      }
     }
   }
 

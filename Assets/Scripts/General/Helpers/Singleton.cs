@@ -22,12 +22,12 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
     get
     {
       // m_ShuttingDown = false;
-      // if (m_ShuttingDown)
-      // {
-      //   Debug.LogWarning("[Singleton] Instance '" + typeof(T) +
-      //       "' already destroyed. Returning null.");
-      //   return null; // yolo
-      // }
+      if (m_ShuttingDown)
+      {
+        Debug.LogWarning("[Singleton] Instance '" + typeof(T) +
+            "' already destroyed. Returning null.");
+        // return null; // yolo
+      }
 
       lock (m_Lock)
       {
@@ -49,7 +49,6 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
             singletonObject.name = typeof(T).ToString() + " (Singleton)";
 
             // Make instance persistent.
-            Debug.Log("making instance persistent " + singletonObject);
             DontDestroyOnLoad(singletonObject);
           }
           // else

@@ -18,9 +18,6 @@ public class LayerRendererController : MonoBehaviour
   {
     if (!Application.IsPlaying(gameObject))
     {
-
-      Debug.Log("gridmanager shutting down: " + GridManager.m_ShuttingDown);
-      Debug.Log("PathfindingSystem shutting down: " + PathfindingSystem.m_ShuttingDown);
       GameObject selectedObject = Selection.objects.Length > 0 ? Selection.objects[0] as GameObject : null;
       if (selectedObject && (int)WorldObject.GetFloorLayerOfGameObject(selectedObject) != currentTargetedFloorLayer)
       {

@@ -85,7 +85,7 @@ public class GridManager : Singleton<GridManager>
       (EnvironmentTile)layerFloors[loc.floorLayer].groundTilemap.GetTile(loc.tilemapCoordinatesVector3),
       (EnvironmentTile)layerFloors[loc.floorLayer].objectTilemap.GetTile(loc.tilemapCoordinatesVector3),
       it,
-      worldGridData.GetFloorHeightInfo(loc));
+      worldGridData.GetEnvironmentTileData(loc));
     return i;
   }
 
