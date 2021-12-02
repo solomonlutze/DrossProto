@@ -180,7 +180,7 @@ public class WorldGridData : ScriptableObject
   {
     EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(tileLocation);
     EnvironmentTileData tileData = GetEnvironmentTileData(tileLocation);
-    if (tileData.IsEmpty() && eti.objectTileType != null)
+    if (tileData.IsEmpty() && eti.objectTileType == null)
     {
       DestroyWallObjectAtLocation(tileLocation.floorLayer, tileLocation.tilemapCoordinates);
       return;
@@ -468,7 +468,8 @@ public class WorldGridData : ScriptableObject
           {
             tileData = environmentTileDataGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)];
           }
-          if (!tileData.IsEmpty())
+          EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(loc);
+          if (!tileData.IsEmpty() || tileInfo.objectTileType != null)
           {
             Debug.Log("should be adjusting");
             AdjustWallObject(
