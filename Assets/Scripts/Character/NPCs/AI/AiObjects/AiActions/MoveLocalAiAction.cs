@@ -55,9 +55,10 @@ public class MoveLocalAiAction : AiAction
       Vector3 possibleMovementDirection = rot * towardsTarget;
       if (
         !PathfindingSystem.Instance.CanPassOverTile(
+           controller.transform.position.z,
           GridManager.Instance.GetTileAtWorldPosition(
             controller.transform.position + possibleMovementDirection.normalized * movementOptionProjectRange, controller.currentFloor
-          ), controller, controller.transform.position.z
+          ), controller
         )
         )
       {

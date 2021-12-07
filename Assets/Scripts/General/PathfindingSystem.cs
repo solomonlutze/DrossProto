@@ -17,6 +17,26 @@ public class Node
   public Node parent;
 }
 
+public class TileNodes
+{
+  public List<Node> nodes;
+  public Node previousNode;
+  public EnvironmentTileInfo tileToConsider;
+  public AiStateController ai;
+  public TileLocation destination;
+  public PathfindAiAction initiatingAction;
+
+  public TileNodes(List<Node> n, Node p, EnvironmentTileInfo tileInfo, AiStateController aiStateController, TileLocation d, PathfindAiAction a)
+  {
+    nodes = n;
+    previousNode = p;
+    tileToConsider = tileInfo;
+    ai = aiStateController;
+    destination = d;
+    initiatingAction = a;
+  }
+}
+
 // data structures we need backing this:
 // dictionary of IDs (probably constructed from XY coords) to nodes
 // priority queue of IDs; this is so the contains check will match
@@ -209,42 +229,43 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
 
   public bool IsPathClearOfHazards_SquareGrid(Vector3 targetPosition, FloorLayer targetFloor, AiStateController ai)
   {
-    return false; // eat shiiiiit
-    if (targetFloor != ai.currentFloor)
-    {
-      return false;
-    }
-    Vector3[] colliderCorners = new Vector3[]{
-      new Vector3 (ai.circleCollider.radius, 0, 0),
-      new Vector3 (-ai.circleCollider.radius, 0, 0),
-      new Vector3 (0, ai.circleCollider.radius, 0),
-      new Vector3 (0, -ai.circleCollider.radius, 0),
-			// new Vector3 (col.bounds.extents.x, col.bounds.extents.y, 0),
-			// new Vector3 (-col.bounds.extents.x, col.bounds.extents.y, 0),
-			// new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),
-			// new Vector3 (-col.bounds.extents.x, -col.bounds.extents.y, 0),
-		};
-    HashSet<EnvironmentTileInfo> tilesAlongPath = new HashSet<EnvironmentTileInfo>();
-    foreach (Vector3 pt in colliderCorners)
-    {
-      tilesAlongPath.UnionWith(GetAllTilesBetweenPoints(ai.transform.TransformPoint(pt), targetPosition + pt, targetFloor));
-    }
+    // return false; // eat shiiiiit
+    // if (targetFloor != ai.currentFloor)
+    // {
+    //   return false;
+    // }
+    // Vector3[] colliderCorners = new Vector3[]{
+    //   new Vector3 (ai.circleCollider.radius, 0, 0),
+    //   new Vector3 (-ai.circleCollider.radius, 0, 0),
+    //   new Vector3 (0, ai.circleCollider.radius, 0),
+    //   new Vector3 (0, -ai.circleCollider.radius, 0),
+    // 	// new Vector3 (col.bounds.extents.x, col.bounds.extents.y, 0),
+    // 	// new Vector3 (-col.bounds.extents.x, col.bounds.extents.y, 0),
+    // 	// new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),
+    // 	// new Vector3 (-col.bounds.extents.x, -col.bounds.extents.y, 0),
+    // };
+    // HashSet<EnvironmentTileInfo> tilesAlongPath = new HashSet<EnvironmentTileInfo>();
+    // foreach (Vector3 pt in colliderCorners)
+    // {
+    //   tilesAlongPath.UnionWith(GetAllTilesBetweenPoints(ai.transform.TransformPoint(pt), targetPosition + pt, targetFloor));
+    // }
+    // // foreach (EnvironmentTileInfo eti in tilesAlongPath)
+    // // {
+    // // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
+    // // }
     // foreach (EnvironmentTileInfo eti in tilesAlongPath)
     // {
-    // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
+    //   if (eti == null || eti.dealsDamage)
+    //   {
+    //     return false;
+    //   }
+    //   if (!CanPassOverTile(eti.tileLocation.z,))
+    //   {
+    //     return false;
+    //   }
     // }
-    foreach (EnvironmentTileInfo eti in tilesAlongPath)
-    {
-      if (eti == null || eti.dealsDamage)
-      {
-        return false;
-      }
-      if (!CanPassOverTile(eti, ai, eti.tileLocation.z))
-      {
-        return false;
-      }
-    }
-    return true;
+    UnityEngine.Debug.LogError("Warning: something's trying to use the squareGrid clear path check");
+    return false;
   }
 
   public bool IsPathClearOfHazards(Vector3 targetPosition, FloorLayer targetFloor, Character character)
@@ -266,7 +287,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         return false;
       }
 
-      if (!CanPassOverTile(eti, character, eti.tileLocation.z))
+      if (!CanPassOverTile(eti.tileLocation.z, eti, (AiStateController)character))
       {
         return false;
       }
@@ -502,11 +523,37 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     }
     return cost;
   }
-  public bool CanPassOverTile(EnvironmentTileInfo tileInfo, Character ai, float zPosition)
+
+  public bool CanPassOverTile(float zPosition, EnvironmentTileInfo eti, AiStateController character)
   {
+    return CanPassOverTile(zPosition, new TileNodes(null, null, eti, (AiStateController)character, null, null));
+  }
+  public bool CanPassOverTile(float zPosition, TileNodes tileNodesInfo)
+  {
+    if (tileNodesInfo.tileToConsider != null && tileNodesInfo.tileToConsider.CanRespawnPlayer())
+    {
+      // if a skill would let us NOT respawn, add a path with that skill!
+      if (tileNodesInfo.nodes != null)
+      {
+
+        foreach (CharacterSkillData skill in tileNodesInfo.ai.GetSkillsThatCanCrossTileWithoutRespawning(tileNodesInfo.tileToConsider))
+        {
+          if (tileNodesInfo.previousNode.distanceTraveledViaSkill + GridConstants.X_SPACING < skill.GetForwardMovementMagnitudeForPathfinding() || skill.SkillIsRepeatable())
+          {
+            UnityEngine.Debug.Log("adding skill " + skill);
+            AddNode(tileNodesInfo, skill);
+          }
+          //   else
+          //   {
+          //     UnityEngine.Debug.Log("distance is " + (originNode.distanceTraveledViaSkill + GridConstants.X_SPACING) + " -too far, did not add skill (skill " + skill.displayName + ", magnitude " + skill.GetForwardMovementMagnitudeForPathfinding() + ")");
+          //   }
+        }
+      }
+      return false;
+    }
     return
-        tileInfo != null
-        && ((CanTraverse(tileInfo, ai, zPosition) && !tileInfo.dealsDamage) && !tileInfo.CanRespawnPlayer())
+        tileNodesInfo.tileToConsider != null
+        && ((CanTraverse(tileNodesInfo.tileToConsider, tileNodesInfo.ai, zPosition) && !tileNodesInfo.tileToConsider.dealsDamage))
     ;
   }
 
@@ -663,6 +710,8 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     // 2) identify ending tileLocation (do we fall? do we hop up a floor?)
     // 3) if the ending tileLocation is undesirable, return
     // else, add
+    EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(possibleNodeLocation);
+    TileNodes tileNodes = new TileNodes(nodeList, originNode, eti, ai, targetLocation, initiatingAction);
     if (!gridManager.layerFloors.ContainsKey(possibleNodeLocation.floorLayer)) { return; } // 0
     LayerFloor layer = gridManager.layerFloors[possibleNodeLocation.floorLayer];
     if (layer == null || layer.groundTilemap == null || layer.objectTilemap == null)
@@ -670,9 +719,8 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       // this floor doesn't exist, so don't worry about it
       return;
     }
-    EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(possibleNodeLocation);
     float zPosition = GridManager.Instance.GetFloorPositionForTileLocation(originNode.loc);
-    if (!CanPassOverTile(eti, ai, zPosition)) // 1 
+    if (!CanPassOverTile(zPosition, tileNodes)) // 1 
     {
       return;
     }
@@ -690,7 +738,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     {
       return;
     }
-    AddNode(nodeList, endLocation, originNode, targetLocation, ai, initiatingAction, eti);
+    AddNode(nodeList, eti, originNode, targetLocation, ai, initiatingAction);
     // int costToTravelOverNode = GetNodeTravelCost(eti, ai, initiatingAction);
     // if (costToTravelOverNode < 0)
     // {
@@ -700,15 +748,19 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     // nodeList.Add(InitNewNode(endLocation, costToTravelOverNode, originNode, targetLocation));
   }
 
-  public void AddNode(List<Node> nodeList, TileLocation endLocation, Node originNode, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction, EnvironmentTileInfo eti, CharacterSkillData skill = null)
+  public void AddNode(TileNodes pathInfo, CharacterSkillData skill = null)
   {
-    int costToTravelOverNode = GetNodeTravelCost(eti, ai, initiatingAction);
+    AddNode(pathInfo.nodes, pathInfo.tileToConsider, pathInfo.previousNode, pathInfo.destination, pathInfo.ai, pathInfo.initiatingAction, skill);
+  }
+  public void AddNode(List<Node> nodeList, EnvironmentTileInfo endTile, Node originNode, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction, CharacterSkillData skill = null)
+  {
+    int costToTravelOverNode = GetNodeTravelCost(endTile, ai, initiatingAction);
     if (costToTravelOverNode < 0)
     {
       return;
     }
     // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
-    nodeList.Add(InitNewNode(endLocation, costToTravelOverNode, originNode, targetLocation, skill));
+    nodeList.Add(InitNewNode(endTile.tileLocation, costToTravelOverNode, originNode, targetLocation, skill));
   }
   // bool CharacterCanPassTile(Character c, EnvironmentTileInfo eti)
   // {
@@ -733,10 +785,10 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     {
       foreach (CharacterSkillData skill in ai.GetSkillsThatCanCrossEmptyTiles())
       {
-        if (originNode.distanceTraveledViaSkill + GridConstants.X_SPACING < skill.GetForwardMovementMagnitudeForPathfinding())
+        if (originNode.distanceTraveledViaSkill + GridConstants.X_SPACING < skill.GetForwardMovementMagnitudeForPathfinding() || skill.SkillIsRepeatable())
         {
           UnityEngine.Debug.Log("adding skill " + skill);
-          AddNode(nodeList, possibleNodeLocation, originNode, targetLocation, ai, initiatingAction, tileInfo, skill);
+          AddNode(nodeList, tileInfo, originNode, targetLocation, ai, initiatingAction, skill);
         }
         else
         {
