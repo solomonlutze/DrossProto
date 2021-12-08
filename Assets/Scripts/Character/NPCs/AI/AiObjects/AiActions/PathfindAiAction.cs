@@ -62,7 +62,8 @@ public class PathfindAiAction : AiAction
     if (controller.pathToTarget != null && controller.pathToTarget.Count > 0)
     {
       Node nextNode = controller.pathToTarget[0];
-      if (nextNode.usingSkill != null)
+      Vector3 targetDirection = nextNode.loc.cellCenterWorldPosition - controller.transform.position;
+      if (nextNode.usingSkill != null && Mathf.Abs(controller.GetAngleToDirection(targetDirection)) < 5)
       {
         controller.HandleSkillInput(nextNode.usingSkill);
       }

@@ -69,6 +69,16 @@ public class CharacterSkillData : ScriptableObject
     return GetActiveSkillEffectSet(owner).skillEffects[owner.currentSkillEffectIndex];
   }
 
+  public SkillEffect GetLastSkillEffect()
+  {
+    SkillEffectSet lastSet = GetLastSkillEffectSet();
+    return lastSet.skillEffects[lastSet.skillEffects.Length - 1];
+  }
+
+  public SkillEffectSet GetLastSkillEffectSet()
+  {
+    return skillEffectSets[skillEffectSets.Length - 1];
+  }
   public virtual void UseSkill(Character owner)
   {
     SkillEffect currentSkillEffect = GetActiveSkillEffect(owner);
@@ -136,6 +146,11 @@ public class CharacterSkillData : ScriptableObject
     return GetActiveSkillEffect(owner).interruptable.get(owner);
   }
 
+  // Used only for pathfinding! Tells us that we can pivot from one use of the skill into the next.
+  public bool SkillIsRepeatable()
+  {
+    return GetLastSkillEffect().cancelable.defaultValue;
+  }
   // a skill _EFFECT_ is cancelable, but the ENTIRE SKILL gets interrupted.
   public bool SkillIsCancelable(Character owner)
   {
@@ -155,6 +170,20 @@ public class CharacterSkillData : ScriptableObject
     && (GetActiveSkillEffect(owner).movement[SkillEffectMovementProperty.MoveUp].magnitude.Resolve(owner) > 0);
   }
 
+  public bool SkillProvidesMovementAbility(CharacterMovementAbility movementAbility)
+  {
+    foreach (SkillEffectSet set in skillEffectSets)
+    {
+      foreach (SkillEffect effect in set.skillEffects)
+      {
+        if (effect.movementAbilities.Contains(movementAbility))
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
   public float GetForwardMovementMagnitudeForPathfinding()
   {
     float maxMagnitude = 0;

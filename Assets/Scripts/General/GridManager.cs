@@ -442,6 +442,22 @@ public class GridManager : Singleton<GridManager>
   {
     switch (d)
     {
+      case TilemapDirection.UpperRight:
+        return TilemapDirection.LowerLeft;
+      case TilemapDirection.Right:
+        return TilemapDirection.Left;
+      case TilemapDirection.LowerRight:
+        return TilemapDirection.UpperLeft;
+      case TilemapDirection.LowerLeft:
+        return TilemapDirection.UpperRight;
+      case TilemapDirection.Left:
+        return TilemapDirection.Right;
+      case TilemapDirection.UpperLeft:
+        return TilemapDirection.LowerRight;
+      case TilemapDirection.Above:
+        return TilemapDirection.Below;
+      case TilemapDirection.Below:
+        return TilemapDirection.Above;
       default:
         return d;
     }

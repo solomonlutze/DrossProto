@@ -379,6 +379,41 @@ public class WorldGridData : ScriptableObject
       Debug.Log("count for " + fl + ": " + environmentTileDataGrid[fl].Count);
     }
   }
+
+  public void AddWallsToEnvironmentTileData()
+  {
+
+    for (int i = Enum.GetValues(typeof(FloorLayer)).Length - 1; i >= 0; i--)
+    {
+      FloorLayer layer = (FloorLayer)i;
+      if (!GridManager.Instance.layerFloors.ContainsKey(layer))
+      {
+        continue;
+      }
+      LayerFloor layerFloor = GridManager.Instance.layerFloors[layer];
+      Tilemap objectTilemap = layerFloor.objectTilemap;
+      for (int x = minXAcrossAllFloors; x < maxXAcrossAllFloors; x++)
+      {
+        for (int y = maxYAcrossAllFloors; y > minYAcrossAllFloors; y--)
+        {
+          TileLocation loc = new TileLocation(new Vector2Int(x, y), layer);
+          EnvironmentTileData tileData = new EnvironmentTileData();
+          if ((EnvironmentTile)objectTilemap.GetTile(loc.tilemapCoordinatesVector3) != null)
+          {
+            tileData.ceilingHeight = 0;
+          }
+          if (environmentTileDataGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)))
+          {
+            tileData = environmentTileDataGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)];
+          }
+          if (!tileData.IsEmpty())
+          {
+
+          }
+        }
+      }
+    }
+  }
   public void CreateAndPopulatePlacedObjects()
   {
     for (int i = Enum.GetValues(typeof(FloorLayer)).Length - 1; i >= 0; i--)

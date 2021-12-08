@@ -178,6 +178,10 @@ public class EnvironmentTileInfo
     return (groundTileTags.Contains(tag) || objectTileTags.Contains(tag));
   }
 
+  public List<CharacterMovementAbility> GetMovementAbilitiesWhichBypassRespawn()
+  {
+    return groundTileType.movementAbilitiesWhichBypassRespawn;
+  }
   public bool CharacterCanCrossTile(Character character)
   {
     if (!CanRespawnPlayer())
@@ -188,7 +192,7 @@ public class EnvironmentTileInfo
     {
       return true;
     }
-    foreach (CharacterMovementAbility movementAbility in groundTileType.movementAbilitiesWhichBypassRespawn)
+    foreach (CharacterMovementAbility movementAbility in GetMovementAbilitiesWhichBypassRespawn())
     {
       if (character.HasMovementAbility(movementAbility))
       {
