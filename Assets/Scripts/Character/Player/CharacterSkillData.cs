@@ -151,6 +151,22 @@ public class CharacterSkillData : ScriptableObject
   {
     return GetLastSkillEffect().cancelable.defaultValue;
   }
+
+  // Used only for pathfinding! Tells us we should expect to be able to turn during this skill.
+  public bool CanTurnDuringSkill()
+  {
+    foreach (SkillEffectSet set in skillEffectSets)
+    {
+      foreach (SkillEffect effect in set.skillEffects)
+      {
+        if (effect.movement.ContainsKey(SkillEffectMovementProperty.MoveForward) && effect.properties.ContainsKey(SkillEffectFloatProperty.RotationSpeed) && effect.properties[SkillEffectFloatProperty.RotationSpeed].defaultValue < 1f)
+        {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
   // a skill _EFFECT_ is cancelable, but the ENTIRE SKILL gets interrupted.
   public bool SkillIsCancelable(Character owner)
   {
@@ -184,7 +200,7 @@ public class CharacterSkillData : ScriptableObject
     }
     return false;
   }
-  public float GetForwardMovementMagnitudeForPathfinding()
+  public float GetForwardMovementMagnitudeForPathfinding(EnvironmentTileInfo info)
   {
     float maxMagnitude = 0;
     foreach (SkillEffectSet effectSet in skillEffectSets)
@@ -193,7 +209,7 @@ public class CharacterSkillData : ScriptableObject
       {
         if (effect.movement.ContainsKey(SkillEffectMovementProperty.MoveForward))
         {
-          maxMagnitude = Mathf.Max(maxMagnitude, effect.movement[SkillEffectMovementProperty.MoveForward].magnitude.defaultValue);
+          maxMagnitude = Mathf.Max(maxMagnitude, effect.movement[SkillEffectMovementProperty.MoveForward].magnitude.Resolve(info));
         }
       }
     }

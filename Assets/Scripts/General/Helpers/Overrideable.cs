@@ -22,6 +22,22 @@ public class Overrideable<T>
     }
     return defaultValue;
   }
+
+  public T Resolve(EnvironmentTileInfo tile)
+  {
+    if (tile != null)
+    {
+
+      for (int i = overrides.Length - 1; i >= 0; i--)
+      {
+        if (overrides[i].ConditionsMet(tile))
+        {
+          return overrides[i].value;
+        }
+      }
+    }
+    return defaultValue;
+  }
   public T get(Character c)
   {
     return Resolve(c);

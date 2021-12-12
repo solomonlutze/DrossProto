@@ -13,8 +13,16 @@ public class Node
   public int h;
   public TileLocation loc;
   public TilemapDirection enteredFromDirection;
-  public CharacterSkillData usingSkill;
+  // begin using skill *to reach* this node
+  public CharacterSkillData activateSkill;
+  // skill expected to be in use *when this node is reached*
+  public CharacterSkillData continueSkill;
   public float distanceTraveledViaSkill = 0;
+  // skill progress resets to 0 each time a skill is used
+  // each node increases skill progress by the 
+  // (technically, it should do (x constant / 2 / skill distance magintude for tile 1) + (x constant / 2 / skill distance magintude for tile 2))
+  // if it's greater than 1, usingSkill = false!
+  public float skillProgress = 0;
   public Node parent;
 }
 
@@ -165,6 +173,12 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   List<Node> GetAdjacentNodes(Node originNode, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction)
   {
     List<Node> nodes = new List<Node>();
+    if (originNode.continueSkill && !originNode.continueSkill.CanTurnDuringSkill())
+    {
+      TilemapDirection facingDirection = GridManager.GetOppositeTilemapDirection(originNode.enteredFromDirection);
+      MaybeAddNode(nodes, facingDirection, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, facingDirection), originNode, targetLocation, ai, initiatingAction);
+      return nodes;
+    }
     MaybeAddNode(nodes, TilemapDirection.UpperRight, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.UpperRight), originNode, targetLocation, ai, initiatingAction);
     MaybeAddNode(nodes, TilemapDirection.Right, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Right), originNode, targetLocation, ai, initiatingAction);
     MaybeAddNode(nodes, TilemapDirection.LowerRight, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.LowerRight), originNode, targetLocation, ai, initiatingAction);
@@ -533,34 +547,36 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   }
   public bool CanPassOverTile(float zPosition, TileNodes tileNodesInfo)
   {
-    if (tileNodesInfo.tileToConsider != null && tileNodesInfo.tileToConsider.CanRespawnPlayer())
+    if (tileNodesInfo.tileToConsider == null) { return false; }
+    if (!CanTraverse(tileNodesInfo.tileToConsider, tileNodesInfo.ai, zPosition)) { return false; }
+    if (tileNodesInfo.tileToConsider.dealsDamage) { return false; }
+    if (tileNodesInfo.tileToConsider.CanRespawnPlayer())
     {
       // if a skill would let us NOT respawn, add a path with that skill!
       if (tileNodesInfo.nodes != null)
       {
+        EnvironmentTileInfo previousTile = GridManager.Instance.GetTileAtLocation(tileNodesInfo.previousNode.loc);
         foreach (CharacterSkillData skill in tileNodesInfo.ai.GetSkillsThatCanCrossTileWithoutRespawning(tileNodesInfo.tileToConsider))
         {
-          if (tileNodesInfo.previousNode.distanceTraveledViaSkill + GridConstants.X_SPACING < skill.GetForwardMovementMagnitudeForPathfinding() || skill.SkillIsRepeatable())
+          if ((tileNodesInfo.previousNode.skillProgress + GetSkillProgressCostToTraverseHalfTile(skill, previousTile) < 1) || skill.SkillIsRepeatable())
           {
             UnityEngine.Debug.Log("adding skill " + skill);
             AddNode(tileNodesInfo, skill);
           }
-          //   else
-          //   {
-          //     UnityEngine.Debug.Log("distance is " + (originNode.distanceTraveledViaSkill + GridConstants.X_SPACING) + " -too far, did not add skill (skill " + skill.displayName + ", magnitude " + skill.GetForwardMovementMagnitudeForPathfinding() + ")");
-          //   }
         }
       }
       return false;
     }
-    return
-        tileNodesInfo.tileToConsider != null
-        && ((CanTraverse(tileNodesInfo.tileToConsider, tileNodesInfo.ai, zPosition) && !tileNodesInfo.tileToConsider.dealsDamage))
-    ;
+    return true;
   }
 
+  public float GetSkillProgressCostToTraverseHalfTile(CharacterSkillData skillData, EnvironmentTileInfo eti)
+  {
+    return GridConstants.X_SPACING / (2 * skillData.GetForwardMovementMagnitudeForPathfinding(eti));
+  }
   public bool CanTraverse(EnvironmentTileInfo tileInfo, Character ai, float zPosition)
   {
+    if (GridManager.Instance.ShouldHaveCollisionWith(tileInfo, zPosition)) { }
     return !GridManager.Instance.ShouldHaveCollisionWith(tileInfo, zPosition) || ai.CanHopUpAtLocation(zPosition, tileInfo.tileLocation.cellCenterPosition);
   }
 
@@ -712,6 +728,10 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     // 2) identify ending tileLocation (do we fall? do we hop up a floor?)
     // 3) if the ending tileLocation is undesirable, return
     // else, add
+    // if (originNode.usingSkill)
+    // {
+    //   skillProgress
+    // }
     EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(possibleNodeLocation);
     TileNodes tileNodes = new TileNodes(nodeList, direction, originNode, eti, ai, targetLocation, initiatingAction);
     if (!gridManager.layerFloors.ContainsKey(possibleNodeLocation.floorLayer)) { return; } // 0
@@ -732,10 +752,6 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       return;
     }
     eti = GridManager.Instance.GetTileAtLocation(endLocation);
-    // if (possibleNodeLocation.floorLayer != originNode.loc.floorLayer && !ConnectionBetweenNodesOnDifferentFloorsExists(originNode, possibleNodeLocation.floorLayer))
-    // {
-    //   return;
-    // }
     if (!TileIsDesirable())
     {
       return;
@@ -794,14 +810,14 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     {
       foreach (CharacterSkillData skill in tileNodesInfo.ai.GetSkillsThatCanCrossEmptyTiles())
       {
-        if (tileNodesInfo.previousNode.distanceTraveledViaSkill + GridConstants.X_SPACING < skill.GetForwardMovementMagnitudeForPathfinding() || skill.SkillIsRepeatable())
+        if (tileNodesInfo.previousNode.distanceTraveledViaSkill + GridConstants.X_SPACING < skill.GetForwardMovementMagnitudeForPathfinding(tileInfo) || skill.SkillIsRepeatable())
         {
           UnityEngine.Debug.Log("adding skill " + skill);
           AddNode(tileNodesInfo, skill);
         }
         else
         {
-          UnityEngine.Debug.Log("distance is " + (tileNodesInfo.previousNode.distanceTraveledViaSkill + GridConstants.X_SPACING) + " -too far, did not add skill (skill " + skill.displayName + ", magnitude " + skill.GetForwardMovementMagnitudeForPathfinding() + ")");
+          UnityEngine.Debug.Log("distance is " + (tileNodesInfo.previousNode.distanceTraveledViaSkill + GridConstants.X_SPACING) + " -too far, did not add skill (skill " + skill.displayName + ", magnitude " + skill.GetForwardMovementMagnitudeForPathfinding(tileInfo) + ")");
         }
       }
     }
@@ -831,6 +847,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     newNode.h = 0;
     newNode.parent = null;
     newNode.distanceTraveledViaSkill = 0;
+    newNode.skillProgress = 0;
     newNode.enteredFromDirection = enteredFromDirection;
     if (parent != null)
     {
@@ -841,11 +858,28 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         + Mathf.Abs(targetLocation.floorLayer - nodeLocation.floorLayer));
       newNode.f = newNode.g + newNode.h;
       newNode.distanceTraveledViaSkill = parent.distanceTraveledViaSkill;
+      newNode.skillProgress = parent.skillProgress;
     }
     if (skill != null)
     {
-      newNode.usingSkill = skill;
+      // if previous skill progress was 0 OR >=1, that means we are newly using the skill.
+      if (parent.skillProgress <= .001 || parent.skillProgress >= 1)
+      {
+        newNode.activateSkill = skill;
+      }
+      // else
+      // {
+      //   newNode.continueSkill = skill;
+      // }
       newNode.distanceTraveledViaSkill += GridConstants.X_SPACING;
+      EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(nodeLocation);
+      EnvironmentTileInfo previousEti = GridManager.Instance.GetTileAtLocation(parent.loc);
+      newNode.skillProgress += GetSkillProgressCostToTraverseHalfTile(skill, eti);
+      newNode.skillProgress += GetSkillProgressCostToTraverseHalfTile(skill, previousEti);
+      if (newNode.skillProgress < 1)
+      {
+        newNode.continueSkill = skill; // means we cannot cancel the skill when this node is reached
+      }
       UnityEngine.Debug.Log("adding new node with distance " + newNode.distanceTraveledViaSkill);
     }
     return newNode;

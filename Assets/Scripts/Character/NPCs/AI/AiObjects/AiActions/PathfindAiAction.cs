@@ -63,9 +63,9 @@ public class PathfindAiAction : AiAction
     {
       Node nextNode = controller.pathToTarget[0];
       Vector3 targetDirection = nextNode.loc.cellCenterWorldPosition - controller.transform.position;
-      if (nextNode.usingSkill != null && Mathf.Abs(controller.GetAngleToDirection(targetDirection)) < 5)
+      if (nextNode.continueSkill != null && Mathf.Abs(controller.GetAngleToDirection(targetDirection)) < 5)
       {
-        controller.HandleSkillInput(nextNode.usingSkill);
+        controller.HandleSkillInput(nextNode.continueSkill);
       }
       Vector3 nextNodeLocation = new Vector3(nextNode.loc.cellCenterWorldPosition.x, nextNode.loc.cellCenterWorldPosition.y, nextNode.loc.z);
       Vector3 colliderCenterWorldSpace = controller.transform.TransformPoint(controller.physicsCollider.offset);
@@ -84,7 +84,6 @@ public class PathfindAiAction : AiAction
         }
       }
     }
-    // }
     controller.SetMoveInput(movementInput);
   }
 
