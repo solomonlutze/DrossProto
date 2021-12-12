@@ -79,20 +79,13 @@ public class AiStateController : Character
   {
     base.Init();
     characterAttackSkills = new List<CharacterSkillData>();
-    Debug.Log("init " + gameObject.name);
-    Debug.Log("skills length " + characterSkills.Count);
     foreach (CharacterSkillData skill in characterSkills.Values)
     {
-      Debug.Log("evaluating skill " + skill);
       if (skill.IsAttack())
       {
-
-        Debug.Log("adding skill " + skill);
         characterAttackSkills.Add(skill);
       }
     }
-
-    Debug.Log("new attack skills length " + characterAttackSkills.Count);
   }
   protected override void Update()
   {
@@ -334,6 +327,11 @@ public class AiStateController : Character
     return
       objectOfInterest != null
       && maxTargetDistanceFromSpawnPoint * maxTargetDistanceFromSpawnPoint > ((Vector2)objectOfInterest.transform.position - spawnLocation).sqrMagnitude;
+  }
+
+  public override float GetAwarenessRange()
+  {
+    return aiSettings.awarenessRange;
   }
 
   // public float GetMinPreferredAttackRange()

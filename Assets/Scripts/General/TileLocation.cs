@@ -19,7 +19,7 @@ public class TileLocation
   {
     get
     {
-      return worldPosition.z;
+      return GridManager.GetZOffsetForGameObjectLayer(WorldObject.GetGameObjectLayerFromFloorLayer(floorLayer));
     }
   }
   // use this for putting child objects on the tilemap? I guess?

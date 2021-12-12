@@ -76,7 +76,8 @@ public class GridManager : Singleton<GridManager>
   public EnvironmentTileInfo GetTileAtLocation(TileLocation loc)
   {
     EnvironmentTileInfo i = new EnvironmentTileInfo();
-    InfoTile it = layerFloors[loc.floorLayer].infoTilemap.HasTile(loc.tilemapCoordinatesVector3) ?
+    InfoTile it = layerFloors[loc.floorLayer].infoTilemap.HasTile(loc.tilemapCoordinatesVector3)
+      && layerFloors[loc.floorLayer].infoTilemap.GetTile(loc.tilemapCoordinatesVector3) as InfoTile != null ?
       (InfoTile)layerFloors[loc.floorLayer].infoTilemap.GetTile(loc.tilemapCoordinatesVector3) :
       null;
     i.Init(
@@ -170,10 +171,6 @@ public class GridManager : Singleton<GridManager>
   public bool ShouldHaveCollisionWith(EnvironmentTileInfo eti, float otherZ)
   {
     float offset = -.001f;
-    if (eti.heightInfo.x > 0)
-    {
-      Debug.Log("heightInfo" + eti.heightInfo + ",otherZ " + otherZ);
-    }
     return GroundHasCollisionWith(eti, otherZ, offset) || CeilingHasCollisionWith(eti, otherZ, offset);
   }
   public bool GroundHasCollisionWith(EnvironmentTileInfo eti, float otherZ, float offset = 0)
@@ -431,6 +428,10 @@ public class GridManager : Singleton<GridManager>
   {
     return GetTileAtLocation(loc).GroundHeight();
   }
+  public float GetFloorPositionForTileLocation(TileLocation loc)
+  {
+    return loc.z - GetTileAtLocation(loc).GroundHeight();
+  }
 
   public float GetCeilingHeightForTileLocation(TileLocation loc)
   {
@@ -568,7 +569,7 @@ public class GridManager : Singleton<GridManager>
     watch.Start();
     yield return LoadChunksCoroutine(chunksToLoad);
     yield return UnloadChunksCoroutine(chunksToLoad);
-    Debug.Log("load/unload took " + watch.ElapsedMilliseconds + "ms");
+    // Debug.Log("load/unload took " + watch.ElapsedMilliseconds + "ms");
     chunkLoadCoroutine = null;
   }
 

@@ -30,22 +30,33 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 
       lock (m_Lock)
       {
+        // Debug.Log("singleton  - wat");
         if (m_Instance == null)
         {
-          // Search for existing instance.
+          // Search for existing inst
+          // Debug.Log("singleton  - instance null");
           m_Instance = (T)FindObjectOfType(typeof(T));
 
+          // Debug.Log("singleton  - searched for instance?");
           // Create new instance if one doesn't already exist.
+
           if (m_Instance == null)
           {
+            // Debug.Log("singleton  - instance still null!!");
             // Need to create a new GameObject to attach the singleton to.
             var singletonObject = new GameObject();
             m_Instance = singletonObject.AddComponent<T>();
             singletonObject.name = typeof(T).ToString() + " (Singleton)";
 
             // Make instance persistent.
+            Debug.Log("making instance persistent " + singletonObject);
             DontDestroyOnLoad(singletonObject);
           }
+          // else
+          // {
+          //   // Debug.Log("making instance persistent " + m_Instance);
+          //   DontDestroyOnLoad(m_Instance.gameObject);
+          // }
         }
 
         return m_Instance;

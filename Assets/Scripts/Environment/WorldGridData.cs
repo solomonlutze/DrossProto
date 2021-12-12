@@ -94,7 +94,7 @@ public class WorldGridData : ScriptableObject
   public void ClearWallObject(FloorLayer layer, Vector3Int location, EnvironmentTile tile)
   {
     Debug.Log("clear wall object");
-    if (tile.floorTilemapType == FloorTilemapType.Object)
+    if (tile != null && tile.floorTilemapType == FloorTilemapType.Object)
     {
       ModifyFloorHeight(layer, location, tile, 1);
     }
@@ -112,14 +112,14 @@ public class WorldGridData : ScriptableObject
   public void ModifyFloorHeight(FloorLayer layer, Vector3Int location, EnvironmentTile tile, float height)
   {
     TileLocation loc = new TileLocation(location.x, location.y, layer);
-    bool ceiling = tile.floorTilemapType == FloorTilemapType.Object;
+    bool ceiling = tile && tile.floorTilemapType == FloorTilemapType.Object;
     Vector2 heightValue;
     if (heightGrid[layer].ContainsKey(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))))
     {
       heightValue = heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))];
       if (float.IsNaN(heightValue.x) || float.IsNaN(heightValue.y))
       {
-        Debug.Log("trying to set NAN, value " + heightValue);
+        Debug.Log("trying to set NAN while modifying floor height, value " + heightValue);
         heightValue = new Vector2(0, 1);
       }
     }
@@ -148,15 +148,21 @@ public class WorldGridData : ScriptableObject
     if (float.IsNaN(heightValue.x) || float.IsNaN(heightValue.y))
     {
       Debug.Log("trying to set NAN at " + location.cellCenterPosition + ", value " + heightValue);
+      if (float.IsNaN(heightValue.x))
+      {
+        heightValue.x = 0;
+      }
+      if (float.IsNaN(heightValue.y))
+      {
+        heightValue.y = 1;
+      }
     }
-    else
-    {
-      heightGrid[location.floorLayer][GridManager.Instance.CoordsToKey(location.tilemapCoordinates)] = heightValue;
-    }
+    heightGrid[location.floorLayer][GridManager.Instance.CoordsToKey(location.tilemapCoordinates)] = heightValue;
+
   }
   public void AdjustWallObject(TileLocation tileLocation, Vector2 heightValue, EnvironmentTile groundTile, EnvironmentTile objectTile)
   {
-    if (heightValue != Vector2.zero)
+    if (heightValue != Vector2.up)
     {
       SetHeightValue(tileLocation, heightValue);
     }
@@ -236,7 +242,6 @@ public class WorldGridData : ScriptableObject
   {
     Vector2 heightInfo;
     return heightGrid[loc.floorLayer].TryGetValue(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates), out heightInfo) ? heightInfo : new Vector2(0, 1);
-    // return heightGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates));
   }
 
 
@@ -251,6 +256,63 @@ public class WorldGridData : ScriptableObject
     return 0;
   }
 
+  // Height Grid should contain a value if the expected height isn't (0,1) - that is, floor at 0 and ceiling at 1.
+  // Thus, any full-wall tile should contain a (0,0) entry.
+  public void CleanAllHeightGridValues()
+  {
+    FloorLayerToTileHeightInfosDictionary newHeightGrid = new FloorLayerToTileHeightInfosDictionary();
+    foreach (FloorLayer fl in heightGrid.Keys)
+    {
+      newHeightGrid[fl] = new IntToVector2Dictionary();
+      for (int x = minXAcrossAllFloors; x < maxXAcrossAllFloors; x++)
+      {
+        for (int y = maxYAcrossAllFloors; y > minYAcrossAllFloors; y--)
+        {
+          TileLocation loc = new TileLocation(new Vector2Int(x, y), fl);
+          Vector2 heightValue = Vector2.up;
+          EnvironmentTileInfo info = GridManager.Instance.GetTileAtLocation(loc);
+          if (info.objectTileType != null)
+          {
+            Debug.Log("has object!");
+            heightValue = Vector2.zero;
+          }
+          if (heightGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)) && heightValue != Vector2.up)
+          {
+            heightValue = heightGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)];
+            if (heightValue == Vector2.zero)
+            {
+              Debug.Log("already has height value of 0,0?");
+            }
+            if (heightValue.x < 0)
+            {
+              heightValue.x = 0;
+            }
+            if (heightValue.x > 1)
+            {
+              heightValue.x = 1;
+            }
+            if (heightValue.y < 0)
+            {
+              heightValue.y = 0;
+            }
+            if (heightValue.y > 1)
+            {
+              heightValue.y = 1;
+            }
+          }
+          if (heightValue != Vector2.up)
+          {
+            if (heightValue == Vector2.zero)
+            {
+              Debug.Log("setting heightValue to zero!!");
+            }
+            newHeightGrid[fl][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)] = heightValue;
+          }
+        }
+      }
+    }
+    heightGrid = newHeightGrid;
+  }
   public void RebuildPlacedObjects()
   {
     // CreateNewWorldGrid();

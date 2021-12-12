@@ -1470,7 +1470,7 @@ public class Character : WorldObject
     return defaultCharacterData.GetDarkVisionAttributeData().GetDarkVisionInfos(this);
   }
 
-  public float GetAwarenessRange()
+  public virtual float GetAwarenessRange()
   {
     return defaultCharacterData.GetAntennaeSensitivityAttributeData().GetAwarenessRange(this);
   }
@@ -1969,18 +1969,18 @@ public class Character : WorldObject
   }
 
   // accepts ownPosition so pathfinding can consider places we aren't currently
-  public bool CanHopUpAtLocation(Vector3 ownPosition, Vector3 wallPosition)
+  public bool CanHopUpAtLocation(float ownZPosition, Vector3 wallPosition)
   {
-    Vector3 hopCheckLocation = new Vector3(wallPosition.x, wallPosition.y, ownPosition.z - .25f); // the spot whose wallObject we want to compare // TODO: CLEAR MAGIC NUMBER
+    Vector3 hopCheckLocation = new Vector3(wallPosition.x, wallPosition.y, ownZPosition - .25f); // the spot whose wallObject we want to compare // TODO: CLEAR MAGIC NUMBER
     EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(new TileLocation(hopCheckLocation));
     WallObject wallObject = GridManager.Instance.GetWallObjectAtLocation(new TileLocation(hopCheckLocation));
     float groundHeightOffset = eti.GroundHeight();
-    return CanUseSkill(hopSkill) && (wallObject == null || !GridManager.Instance.ShouldHaveCollisionWith(eti, ownPosition.z - .25f)); // TODO: CLEAR MAGIC NUMBER
+    return wallObject == null || !GridManager.Instance.ShouldHaveCollisionWith(eti, ownZPosition - .25f); // TODO: CLEAR MAGIC NUMBER
   }
 
   public void OnWallObjectCollisionStay(Vector3 wallPosition)
   {
-    if (CanHopUpAtLocation(transform.position, wallPosition)) // TODO: CLEAR MAGIC NUMBER
+    if (CanUseSkill(hopSkill) && CanHopUpAtLocation(transform.position.z, wallPosition)) // TODO: CLEAR MAGIC NUMBER
     {
       BeginSkill(hopSkill);
     }
