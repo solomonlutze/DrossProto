@@ -157,12 +157,6 @@ public class GridManager : Singleton<GridManager>
     return false;
   }
 
-  // public bool ShouldCollideAtLocation(TileLocation location, Character c)
-  // {
-  //   EnvironmentTileInfo info = GetTileAtLocation(location);
-  //   if (ShouldHaveCollisionWith)
-  // }
-
   public bool ShouldHaveCollisionWith(EnvironmentTileInfo eti, Transform colliderTransform)
   {
     return ShouldHaveCollisionWith(eti, colliderTransform.position.z);

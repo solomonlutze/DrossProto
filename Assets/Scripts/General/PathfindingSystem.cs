@@ -166,7 +166,8 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   {
     for (int i = 0; i < path.Count - 1; i++)
     {
-      UnityEngine.Debug.DrawLine(path[i].loc.worldPosition, path[i + 1].loc.worldPosition, Color.blue, t);
+      Color color = path[i].activateSkill ? Color.blue : path[i].activateSkill ? Color.cyan : Color.red;
+      UnityEngine.Debug.DrawLine(path[i].loc.worldPosition, path[i + 1].loc.worldPosition, color, t);
     }
   }
 
@@ -657,69 +658,8 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         difference += dy;
       }
     }
-    // int w = Mathf.FloorToInt(target.x) - Mathf.FloorToInt(origin.x);
-    // int h = Mathf.FloorToInt(target.y) - Mathf.FloorToInt(origin.y);
-    // int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
-    // if (w < 0) dx1 = -1; else if (w > 0) dx1 = 1;
-    // if (h < 0) dy1 = -1; else if (h > 0) dy1 = 1;
-    // if (w < 0) dx2 = -1; else if (w > 0) dx2 = 1;
-    // int longest = Mathf.Abs(w);
-    // int shortest = Mathf.Abs(h);
-    // if (!(longest > shortest))
-    // {
-    //   longest = Mathf.Abs(h);
-    //   shortest = Mathf.Abs(w);
-    //   if (h < 0) dy2 = -1; else if (h > 0) dy2 = 1;
-    //   dx2 = 0;
-    // }
-    // int numerator = longest >> 1;
-    // HashSet<EnvironmentTileInfo> res = new HashSet<EnvironmentTileInfo>();
-    // // UnityEngine.Debug.DrawLine(origin, new Vector3(target.x, target.y, 0), Color.green, .5f);
-    // res.Add(GridManager.Instance.GetTileAtLocation(origin, floor));
-    // int currentX = Mathf.FloorToInt(origin.x);
-    // int currentY = Mathf.FloorToInt(origin.y);
-    // for (int i = 0; i <= longest; i++)
-    // {
-    //   Vector3Int pos = new Vector3Int(currentX, currentY, 0);
-    //   res.Add(GridManager.Instance.GetTileAtLocation(currentX, currentY, floor));
-    //   numerator += shortest;
-    //   if (!(numerator < longest))
-    //   {
-    //     numerator -= longest;
-    //     currentX += dx1;
-    //     currentY += dy1;
-    //   }
-    //   else
-    //   {
-    //     currentX += dx2;
-    //     currentY += dy2;
-    //   }
-    // }
     return res;
   }
-
-  // bool ConnectionBetweenNodesOnDifferentFloorsExists(Node currentNode, FloorLayer newFloor)
-  // {
-  //   LayerFloor layer = gridManager.layerFloors[currentNode.loc.floorLayer];
-  //   if (layer == null || layer.groundTilemap == null || layer.objectTilemap == null)
-  //   {
-  //     // this should not happen
-  //     UnityEngine.Debug.LogError("missing layer information for " + currentNode.loc.floorLayer);
-  //     return false;
-  //   }
-  //   EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(currentNode.loc);
-  //   if (tileInfo.IsEmpty() && currentNode.loc.floorLayer - 1 == newFloor)
-  //   {
-  //     return true;
-  //   }
-  //   if (tileInfo == null) { return false; }
-  //   FloorLayer? targetLayer = null;
-  //   if (tileInfo.ChangesFloorLayer())
-  //   {
-  //     targetLayer = tileInfo.GetTargetFloorLayer(currentNode.loc.floorLayer);
-  //   }
-  //   return (targetLayer != null && targetLayer == newFloor);
-  // }
 
   void MaybeAddNode(List<Node> nodeList, TilemapDirection direction, TileLocation possibleNodeLocation, Node originNode, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction)
   {
@@ -823,7 +763,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     }
     while (tileInfo.IsEmpty())
     {
-      return null;
+      return null; // todo: delet this
       location = GridManager.Instance.GetAdjacentTileLocation(location, TilemapDirection.Below);
       tileInfo = GridManager.Instance.GetTileAtLocation(location);
     }
@@ -867,10 +807,6 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       {
         newNode.activateSkill = skill;
       }
-      // else
-      // {
-      //   newNode.continueSkill = skill;
-      // }
       newNode.distanceTraveledViaSkill += GridConstants.X_SPACING;
       EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(nodeLocation);
       EnvironmentTileInfo previousEti = GridManager.Instance.GetTileAtLocation(parent.loc);
