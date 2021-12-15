@@ -42,28 +42,12 @@ public class PathfindAiAction : AiAction
       targetWorldLocation.GetFloorLayer(),
       controller
     );
-    // if (controller.lineToTargetIsClear)
-    // {
-    //   float distanceFromTarget = CustomPhysicsController.GetMinimumDistanceBetweenObjects(targetWorldLocation.gameObject, controller.gameObject);
-
-    //   if ((distanceFromTarget + .3f) > controller.minDistanceFromTarget)
-    //   {
-    //     movementInput = (targetWorldLocation.transform.position - controller.transform.position).normalized;
-    //     // MaybeDash(controller, targetWorldLocation);
-    //   }
-    // }
-    // else
-    // {
     controller.StartCalculatingPath(targetWorldLocation.GetTileLocation(), this);
-    if (controller.pathToTarget != null)
-    {
-      Debug.Log("pathToTarget count: " + controller.pathToTarget.Count);
-    }
     if (controller.pathToTarget != null && controller.pathToTarget.Count > 0)
     {
       Node nextNode = controller.pathToTarget[0];
       Vector3 targetDirection = nextNode.loc.cellCenterWorldPosition - controller.transform.position;
-      if (nextNode.continueSkill != null && Mathf.Abs(controller.GetAngleToDirection(targetDirection)) < 5)
+      if (nextNode.activateSkill != null && Mathf.Abs(controller.GetAngleToDirection(targetDirection)) < 5)
       {
         controller.HandleSkillInput(nextNode.continueSkill);
       }
