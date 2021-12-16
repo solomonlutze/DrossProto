@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEditor;
 using ScriptableObjectArchitecture;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class LayerRendererController : MonoBehaviour
 {
   public IntVariable currentTargetedFloorLayer;
@@ -18,7 +18,6 @@ public class LayerRendererController : MonoBehaviour
   {
     if (!Application.IsPlaying(gameObject))
     {
-
       GameObject selectedObject = Selection.objects.Length > 0 ? Selection.objects[0] as GameObject : null;
       if (selectedObject && (int)WorldObject.GetFloorLayerOfGameObject(selectedObject) != currentTargetedFloorLayer)
       {

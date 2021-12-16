@@ -85,7 +85,7 @@ public class GridManager : Singleton<GridManager>
       (EnvironmentTile)layerFloors[loc.floorLayer].groundTilemap.GetTile(loc.tilemapCoordinatesVector3),
       (EnvironmentTile)layerFloors[loc.floorLayer].objectTilemap.GetTile(loc.tilemapCoordinatesVector3),
       it,
-      worldGridData.GetFloorHeightInfo(loc));
+      worldGridData.GetEnvironmentTileData(loc));
     return i;
   }
 
@@ -156,12 +156,6 @@ public class GridManager : Singleton<GridManager>
     }
     return false;
   }
-
-  // public bool ShouldCollideAtLocation(TileLocation location, Character c)
-  // {
-  //   EnvironmentTileInfo info = GetTileAtLocation(location);
-  //   if (ShouldHaveCollisionWith)
-  // }
 
   public bool ShouldHaveCollisionWith(EnvironmentTileInfo eti, Transform colliderTransform)
   {
@@ -442,6 +436,22 @@ public class GridManager : Singleton<GridManager>
   {
     switch (d)
     {
+      case TilemapDirection.UpperRight:
+        return TilemapDirection.LowerLeft;
+      case TilemapDirection.Right:
+        return TilemapDirection.Left;
+      case TilemapDirection.LowerRight:
+        return TilemapDirection.UpperLeft;
+      case TilemapDirection.LowerLeft:
+        return TilemapDirection.UpperRight;
+      case TilemapDirection.Left:
+        return TilemapDirection.Right;
+      case TilemapDirection.UpperLeft:
+        return TilemapDirection.LowerRight;
+      case TilemapDirection.Above:
+        return TilemapDirection.Below;
+      case TilemapDirection.Below:
+        return TilemapDirection.Above;
       default:
         return d;
     }
@@ -510,8 +520,9 @@ public class GridManager : Singleton<GridManager>
   public void StartLoadAndUnloadChunks(TileLocation centeredOnLocation)
   {
     HashSet<Vector2Int> chunksToLoad = new HashSet<Vector2Int>();
-    if (loadedChunks == null)
+    if (loadedChunks == null || loadedChunks.Count == 0)
     {
+      worldGridData.ClearExistingPlacedObjects();
       loadedChunks = new HashSet<Vector2Int>();
     }
     if (placedGameObjects == null)

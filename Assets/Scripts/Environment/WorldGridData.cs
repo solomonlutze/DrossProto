@@ -14,8 +14,9 @@ public class WorldGridData : ScriptableObject
   public Vector2IntToStringDictionary chunkScenes;
   [HideInInspector]
   public FloorLayerToTileInfosDictionary worldGrid;
-  [HideInInspector]
-  public FloorLayerToTileHeightInfosDictionary heightGrid; // x is floor height; y is ceiling height
+
+  public FloorLayerToEnvironmentTileDataDictionary environmentTileDataGrid;
+
   public int minXAcrossAllFloors = -5000;
   public int maxXAcrossAllFloors = 5000;
   public int minYAcrossAllFloors = -5000;
@@ -53,12 +54,12 @@ public class WorldGridData : ScriptableObject
       return;
     WorldGridData data = ScriptableObject.CreateInstance<WorldGridData>();
     data.worldGrid = new FloorLayerToTileInfosDictionary();
-    data.heightGrid = new FloorLayerToTileHeightInfosDictionary();
+    data.environmentTileDataGrid = new FloorLayerToEnvironmentTileDataDictionary();
     for (int i = Enum.GetValues(typeof(FloorLayer)).Length - 1; i >= 0; i--)
     {
       FloorLayer layer = (FloorLayer)i;
       data.worldGrid[layer] = new IntToEnvironmentTileInfoDictionary();
-      data.heightGrid[layer] = new IntToVector2Dictionary();
+      data.environmentTileDataGrid[layer] = new IntToEnvironmentTileDataDictionary();
     }
     AssetDatabase.CreateAsset(data, path);
   }
@@ -113,29 +114,34 @@ public class WorldGridData : ScriptableObject
   {
     TileLocation loc = new TileLocation(location.x, location.y, layer);
     bool ceiling = tile && tile.floorTilemapType == FloorTilemapType.Object;
-    Vector2 heightValue;
-    if (heightGrid[layer].ContainsKey(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))))
+    EnvironmentTileData tileData;
+    if (environmentTileDataGrid[layer].TryGetValue(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)), out tileData))
     {
-      heightValue = heightGrid[layer][GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))];
-      if (float.IsNaN(heightValue.x) || float.IsNaN(heightValue.y))
+      if (float.IsNaN(tileData.groundHeight))
       {
-        Debug.Log("trying to set NAN while modifying floor height, value " + heightValue);
-        heightValue = new Vector2(0, 1);
+        Debug.Log("trying to set NAN while modifying ground height, value " + tileData.groundHeight);
+        tileData.groundHeight = 0;
+      }
+      if (float.IsNaN(tileData.ceilingHeight))
+      {
+        Debug.Log("trying to set NAN while modifying ceiling height, value " + tileData.ceilingHeight);
+        tileData.ceilingHeight = 0;
       }
     }
     else
     {
-      heightValue = new Vector2(0, 1);
+      tileData = new EnvironmentTileData();
     }
     if (ceiling)
     {
-      heightValue = new Vector2(heightValue.x, height);
+      tileData.ceilingHeight = height;
     }
     else
     {
-      heightValue = new Vector2(height, heightValue.y);
+      tileData.groundHeight = height;
     }
-    AdjustWallObject(loc, heightValue, ceiling ? null : tile, ceiling ? tile : null);
+    SetEnvironmentTileData(loc, tileData);
+    AdjustWallObject(loc);
   }
 
   // 0,0 is the default - floors extend nowhere, and wall objects take up the whole height. 
@@ -143,35 +149,38 @@ public class WorldGridData : ScriptableObject
   // 0,1 is "empty" - floors do not extend, ceilings do not extend. 
   // --this is not the default, but it's also not a wallObject. We SHOULD track it, and should NOT have a wallObject. 
 
-  public void SetHeightValue(TileLocation location, Vector2 heightValue)
+  public void SetEnvironmentTileData(TileLocation location, EnvironmentTileData tileData)
   {
-    if (float.IsNaN(heightValue.x) || float.IsNaN(heightValue.y))
+    if (tileData.groundHeight != 0 || tileData.ceilingHeight != 1)
     {
-      Debug.Log("trying to set NAN at " + location.cellCenterPosition + ", value " + heightValue);
-      if (float.IsNaN(heightValue.x))
+      if (float.IsNaN(tileData.groundHeight) || float.IsNaN(tileData.ceilingHeight))
       {
-        heightValue.x = 0;
+        if (float.IsNaN(tileData.groundHeight))
+        {
+          Debug.Log("trying to set ground height to NAN at " + location.cellCenterPosition + ", value " + tileData.groundHeight);
+          tileData.groundHeight = 0;
+        }
+        if (float.IsNaN(tileData.ceilingHeight))
+        {
+          Debug.Log("trying to set ceiling height to NAN at " + location.cellCenterPosition + ", value " + tileData.ceilingHeight);
+          tileData.ceilingHeight = 1;
+        }
       }
-      if (float.IsNaN(heightValue.y))
-      {
-        heightValue.y = 1;
-      }
-    }
-    heightGrid[location.floorLayer][GridManager.Instance.CoordsToKey(location.tilemapCoordinates)] = heightValue;
-
-  }
-  public void AdjustWallObject(TileLocation tileLocation, Vector2 heightValue, EnvironmentTile groundTile, EnvironmentTile objectTile)
-  {
-    if (heightValue != Vector2.up)
-    {
-      SetHeightValue(tileLocation, heightValue);
+      environmentTileDataGrid[location.floorLayer][GridManager.Instance.CoordsToKey(location.tilemapCoordinates)] = tileData;
     }
     else
     {
-      RemoveHeightDataAtLocation(tileLocation.floorLayer, tileLocation.tilemapCoordinates);
-      // no return!! gotta make a wall tile still maybe!!
+      RemoveEnvironmentTileDataAtLocation(location.floorLayer, location.tilemapCoordinates);
     }
-    if ((heightValue.x == 0 && heightValue.y == 1) || (heightValue == Vector2.zero && objectTile == null))
+    EditorUtility.SetDirty(this);
+    // AssetDatabase.SaveAssets();
+  }
+
+  public void AdjustWallObject(TileLocation tileLocation)
+  {
+    EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(tileLocation);
+    EnvironmentTileData tileData = GetEnvironmentTileData(tileLocation);
+    if (tileData.IsEmpty() && eti.objectTileType == null)
     {
       DestroyWallObjectAtLocation(tileLocation.floorLayer, tileLocation.tilemapCoordinates);
       return;
@@ -188,22 +197,23 @@ public class WorldGridData : ScriptableObject
       wallObject.transform.SetParent(GridManager.Instance.wallObjectContainer, true);
     }
     GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)] = wallObject.gameObject;
-    if (groundTile != null)
+    if (eti.groundTileType != null)
     {
-      wallObject.SetGroundInfo(groundTile, heightValue.x);
+      wallObject.SetGroundInfo(eti.groundTileType, tileData.groundHeight);
     }
-    if (objectTile != null)
+    if (eti.objectTileType != null)
     {
-      wallObject.SetCeilingInfo(objectTile, heightValue.y);
+      wallObject.SetCeilingInfo(eti.objectTileType, tileData.ceilingHeight);
     }
+    Debug.Log("should be init'ing wall object");
     wallObject.Init(tileLocation);
   }
 
-  public void RemoveHeightDataAtLocation(FloorLayer layer, Vector2Int location)
+  public void RemoveEnvironmentTileDataAtLocation(FloorLayer layer, Vector2Int location)
   {
-    if (heightGrid[layer].ContainsKey(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))))
+    if (environmentTileDataGrid[layer].ContainsKey(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y))))
     {
-      heightGrid[layer].Remove(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)));
+      environmentTileDataGrid[layer].Remove(GridManager.Instance.CoordsToKey(new Vector2Int(location.x, location.y)));
     }
   }
 
@@ -235,13 +245,13 @@ public class WorldGridData : ScriptableObject
 
   public bool HasFloorHeightInfo(TileLocation loc)
   {
-    return heightGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates));
+    return environmentTileDataGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates));
   }
 
-  public Vector2 GetFloorHeightInfo(TileLocation loc)
+  public EnvironmentTileData GetEnvironmentTileData(TileLocation loc)
   {
-    Vector2 heightInfo;
-    return heightGrid[loc.floorLayer].TryGetValue(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates), out heightInfo) ? heightInfo : new Vector2(0, 1);
+    EnvironmentTileData tileData;
+    return environmentTileDataGrid[loc.floorLayer].TryGetValue(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates), out tileData) ? tileData : new EnvironmentTileData();
   }
 
 
@@ -249,69 +259,65 @@ public class WorldGridData : ScriptableObject
   public float GetFloorHeight(FloorLayer layer, Vector2Int location)
   {
     int locKey = GridManager.Instance.CoordsToKey(location);
-    if (heightGrid[layer].ContainsKey(locKey) && heightGrid[layer][locKey] != null)
+    if (environmentTileDataGrid[layer].ContainsKey(locKey) && environmentTileDataGrid[layer][locKey] != null)
     {
-      return heightGrid[layer][locKey].x;
+      return environmentTileDataGrid[layer][locKey].groundHeight;
     }
     return 0;
   }
 
   // Height Grid should contain a value if the expected height isn't (0,1) - that is, floor at 0 and ceiling at 1.
   // Thus, any full-wall tile should contain a (0,0) entry.
-  public void CleanAllHeightGridValues()
+  public void CleanAllEnvironmentTileDataValues()
   {
-    FloorLayerToTileHeightInfosDictionary newHeightGrid = new FloorLayerToTileHeightInfosDictionary();
-    foreach (FloorLayer fl in heightGrid.Keys)
+    FloorLayerToEnvironmentTileDataDictionary newEnvironmentTileDataGrid = new FloorLayerToEnvironmentTileDataDictionary();
+    Debug.Log("cleaning");
+    foreach (FloorLayer fl in (FloorLayer[])Enum.GetValues(typeof(FloorLayer)))
     {
-      newHeightGrid[fl] = new IntToVector2Dictionary();
+      Debug.Log("cleaning layer " + fl);
+      newEnvironmentTileDataGrid[fl] = new IntToEnvironmentTileDataDictionary();
       for (int x = minXAcrossAllFloors; x < maxXAcrossAllFloors; x++)
       {
         for (int y = maxYAcrossAllFloors; y > minYAcrossAllFloors; y--)
         {
           TileLocation loc = new TileLocation(new Vector2Int(x, y), fl);
-          Vector2 heightValue = Vector2.up;
+          EnvironmentTileData tileData = new EnvironmentTileData();
           EnvironmentTileInfo info = GridManager.Instance.GetTileAtLocation(loc);
           if (info.objectTileType != null)
           {
             Debug.Log("has object!");
-            heightValue = Vector2.zero;
+            tileData.ceilingHeight = 0;
           }
-          if (heightGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)) && heightValue != Vector2.up)
+          if (environmentTileDataGrid.ContainsKey(loc.floorLayer) && environmentTileDataGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)))
           {
-            heightValue = heightGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)];
-            if (heightValue == Vector2.zero)
+            tileData = environmentTileDataGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)];
+            if (tileData.groundHeight < 0)
             {
-              Debug.Log("already has height value of 0,0?");
+              tileData.groundHeight = 0;
             }
-            if (heightValue.x < 0)
+            if (tileData.groundHeight > 1)
             {
-              heightValue.x = 0;
+              tileData.groundHeight = 1;
             }
-            if (heightValue.x > 1)
+            if (tileData.ceilingHeight < 0)
             {
-              heightValue.x = 1;
+              tileData.ceilingHeight = 0;
             }
-            if (heightValue.y < 0)
+            if (tileData.ceilingHeight > 1)
             {
-              heightValue.y = 0;
-            }
-            if (heightValue.y > 1)
-            {
-              heightValue.y = 1;
+              tileData.ceilingHeight = 1;
             }
           }
-          if (heightValue != Vector2.up)
+          if (!tileData.IsEmpty())
           {
-            if (heightValue == Vector2.zero)
-            {
-              Debug.Log("setting heightValue to zero!!");
-            }
-            newHeightGrid[fl][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)] = heightValue;
+            newEnvironmentTileDataGrid[fl][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)] = tileData;
           }
         }
       }
     }
-    heightGrid = newHeightGrid;
+
+    Debug.Log("assigning new grid");
+    environmentTileDataGrid = newEnvironmentTileDataGrid;
   }
   public void RebuildPlacedObjects()
   {
@@ -366,6 +372,48 @@ public class WorldGridData : ScriptableObject
     Debug.Log("placed game objects count: " + GridManager.Instance.placedGameObjects.Count);
   }
 
+  public void CountEnvironmentTileDatas()
+  {
+    foreach (FloorLayer fl in environmentTileDataGrid.Keys)
+    {
+      Debug.Log("count for " + fl + ": " + environmentTileDataGrid[fl].Count);
+    }
+  }
+
+  public void AddWallsToEnvironmentTileData()
+  {
+
+    for (int i = Enum.GetValues(typeof(FloorLayer)).Length - 1; i >= 0; i--)
+    {
+      FloorLayer layer = (FloorLayer)i;
+      if (!GridManager.Instance.layerFloors.ContainsKey(layer))
+      {
+        continue;
+      }
+      LayerFloor layerFloor = GridManager.Instance.layerFloors[layer];
+      Tilemap objectTilemap = layerFloor.objectTilemap;
+      for (int x = minXAcrossAllFloors; x < maxXAcrossAllFloors; x++)
+      {
+        for (int y = maxYAcrossAllFloors; y > minYAcrossAllFloors; y--)
+        {
+          TileLocation loc = new TileLocation(new Vector2Int(x, y), layer);
+          EnvironmentTileData tileData = new EnvironmentTileData();
+          if ((EnvironmentTile)objectTilemap.GetTile(loc.tilemapCoordinatesVector3) != null)
+          {
+            tileData.ceilingHeight = 0;
+          }
+          if (environmentTileDataGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)))
+          {
+            tileData = environmentTileDataGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)];
+          }
+          if (!tileData.IsEmpty())
+          {
+
+          }
+        }
+      }
+    }
+  }
   public void CreateAndPopulatePlacedObjects()
   {
     for (int i = Enum.GetValues(typeof(FloorLayer)).Length - 1; i >= 0; i--)
@@ -386,22 +434,19 @@ public class WorldGridData : ScriptableObject
         for (int y = maxYAcrossAllFloors; y > minYAcrossAllFloors; y--)
         {
           TileLocation loc = new TileLocation(new Vector2Int(x, y), layer);
-          Vector2 heightValue = Vector2.up;
+          EnvironmentTileData tileData = new EnvironmentTileData();
           if ((EnvironmentTile)objectTilemap.GetTile(loc.tilemapCoordinatesVector3) != null)
           {
-            heightValue = Vector2.zero;
+            tileData.ceilingHeight = 0;
           }
-          if (heightGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)))
+          if (environmentTileDataGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)))
           {
-            heightValue = heightGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)];
+            tileData = environmentTileDataGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)];
           }
-          if (heightValue != Vector2.up)
+          if (!tileData.IsEmpty())
           {
             AdjustWallObject(
-              loc,
-              heightValue,
-              (EnvironmentTile)groundTilemap.GetTile(loc.tilemapCoordinatesVector3),
-              (EnvironmentTile)objectTilemap.GetTile(loc.tilemapCoordinatesVector3)
+              loc
             );
           }
         }
@@ -436,7 +481,6 @@ public class WorldGridData : ScriptableObject
 
   public void CreateAndPopulatePlacedObjectsForChunk(int xMin, int yMin)
   {
-    int count = 0;
     for (int i = Enum.GetValues(typeof(FloorLayer)).Length - 1; i >= 0; i--)
     {
       FloorLayer layer = (FloorLayer)i;
@@ -450,29 +494,26 @@ public class WorldGridData : ScriptableObject
         for (int y = yMin; y < yMin + chunkSize; y++)
         {
           TileLocation loc = new TileLocation(new Vector2Int(x, y), layer);
-          Vector2 heightValue = Vector2.up;
+          EnvironmentTileData tileData = new EnvironmentTileData();
           if ((EnvironmentTile)objectTilemap.GetTile(loc.tilemapCoordinatesVector3) != null)
           {
-            heightValue = Vector2.zero;
+            tileData.ceilingHeight = 0;
           }
-          if (heightGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)))
+          if (environmentTileDataGrid[loc.floorLayer].ContainsKey(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)))
           {
-            heightValue = heightGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)];
+            tileData = environmentTileDataGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)];
           }
-          if (heightValue != Vector2.up)
+          EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(loc);
+          if (!tileData.IsEmpty() || tileInfo.objectTileType != null)
           {
-            count++;
+            Debug.Log("should be adjusting");
             AdjustWallObject(
-              loc,
-              heightValue,
-              (EnvironmentTile)groundTilemap.GetTile(loc.tilemapCoordinatesVector3),
-              (EnvironmentTile)objectTilemap.GetTile(loc.tilemapCoordinatesVector3)
+              loc
             );
           }
         }
       }
     }
-    // Debug.Log("object count at " + xMin + "," + yMin + ": " + count);
   }
 
   public void CreateAndPopulateNewWorldGrid()

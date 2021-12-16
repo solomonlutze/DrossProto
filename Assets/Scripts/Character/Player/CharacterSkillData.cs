@@ -69,6 +69,16 @@ public class CharacterSkillData : ScriptableObject
     return GetActiveSkillEffectSet(owner).skillEffects[owner.currentSkillEffectIndex];
   }
 
+  public SkillEffect GetLastSkillEffect()
+  {
+    SkillEffectSet lastSet = GetLastSkillEffectSet();
+    return lastSet.skillEffects[lastSet.skillEffects.Length - 1];
+  }
+
+  public SkillEffectSet GetLastSkillEffectSet()
+  {
+    return skillEffectSets[skillEffectSets.Length - 1];
+  }
   public virtual void UseSkill(Character owner)
   {
     SkillEffect currentSkillEffect = GetActiveSkillEffect(owner);
@@ -136,6 +146,27 @@ public class CharacterSkillData : ScriptableObject
     return GetActiveSkillEffect(owner).interruptable.get(owner);
   }
 
+  // Used only for pathfinding! Tells us that we can pivot from one use of the skill into the next.
+  public bool SkillIsRepeatable()
+  {
+    return GetLastSkillEffect().cancelable.defaultValue;
+  }
+
+  // Used only for pathfinding! Tells us we should expect to be able to turn during this skill.
+  public bool CanTurnDuringSkill()
+  {
+    foreach (SkillEffectSet set in skillEffectSets)
+    {
+      foreach (SkillEffect effect in set.skillEffects)
+      {
+        if (effect.movement.ContainsKey(SkillEffectMovementProperty.MoveForward) && effect.properties.ContainsKey(SkillEffectFloatProperty.RotationSpeed) && effect.properties[SkillEffectFloatProperty.RotationSpeed].defaultValue < 1f)
+        {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
   // a skill _EFFECT_ is cancelable, but the ENTIRE SKILL gets interrupted.
   public bool SkillIsCancelable(Character owner)
   {
@@ -153,6 +184,36 @@ public class CharacterSkillData : ScriptableObject
   {
     return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectMovementProperty.MoveUp)
     && (GetActiveSkillEffect(owner).movement[SkillEffectMovementProperty.MoveUp].magnitude.Resolve(owner) > 0);
+  }
+
+  public bool SkillProvidesMovementAbility(CharacterMovementAbility movementAbility)
+  {
+    foreach (SkillEffectSet set in skillEffectSets)
+    {
+      foreach (SkillEffect effect in set.skillEffects)
+      {
+        if (effect.movementAbilities.Contains(movementAbility))
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  public float GetForwardMovementMagnitudeForPathfinding(EnvironmentTileInfo info)
+  {
+    float maxMagnitude = 0;
+    foreach (SkillEffectSet effectSet in skillEffectSets)
+    {
+      foreach (SkillEffect effect in effectSet.skillEffects)
+      {
+        if (effect.movement.ContainsKey(SkillEffectMovementProperty.MoveForward))
+        {
+          maxMagnitude = Mathf.Max(maxMagnitude, effect.movement[SkillEffectMovementProperty.MoveForward].magnitude.Resolve(info));
+        }
+      }
+    }
+    return maxMagnitude;
   }
 
   public bool SkillCanMoveCharacterVertically()

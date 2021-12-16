@@ -103,17 +103,17 @@ public class EnvironmentTileInfo
     || (objectTileType != null && objectTileType.dealsDamage);
     }
   }
-  public Vector2 heightInfo;
+  public EnvironmentTileData tileData;
 
   public IlluminationInfo illuminationInfo;
 
-  public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile, InfoTile infoTile, Vector2 height)
+  public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile, InfoTile infoTile, EnvironmentTileData etd)
   {
     tileLocation = location;
     groundTileType = groundTile;
     objectTileType = objectTile;
     infoTileType = infoTile;
-    heightInfo = height;
+    tileData = etd;
     environmentalDamageSources = new List<EnvironmentalDamage>();
     foreach (EnvironmentTile t in new EnvironmentTile[] { groundTile, objectTile })
       if (t != null && t.dealsDamage)
@@ -178,6 +178,10 @@ public class EnvironmentTileInfo
     return (groundTileTags.Contains(tag) || objectTileTags.Contains(tag));
   }
 
+  public List<CharacterMovementAbility> GetMovementAbilitiesWhichBypassRespawn()
+  {
+    return groundTileType.movementAbilitiesWhichBypassRespawn;
+  }
   public bool CharacterCanCrossTile(Character character)
   {
     if (!CanRespawnPlayer())
@@ -188,7 +192,7 @@ public class EnvironmentTileInfo
     {
       return true;
     }
-    foreach (CharacterMovementAbility movementAbility in groundTileType.movementAbilitiesWhichBypassRespawn)
+    foreach (CharacterMovementAbility movementAbility in GetMovementAbilitiesWhichBypassRespawn())
     {
       if (character.HasMovementAbility(movementAbility))
       {
@@ -251,17 +255,12 @@ public class EnvironmentTileInfo
 
   public float GroundHeight()
   {
-    return heightInfo.x;
+    return tileData.groundHeight;
   }
 
   public float CeilingHeight()
   {
-    return heightInfo.y;
-    // if (objectTileType != null)
-    // {
-    //   return objectTileType.ceilingHeight;
-    // }
-    // return 1;
+    return tileData.ceilingHeight;
   }
 
   // TODO: this should eventually be based on whether it _will_ respawn player/deal damage

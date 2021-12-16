@@ -2003,4 +2003,19 @@ public class Character : WorldObject
     }
     return skills;
   }
+
+  public List<CharacterSkillData> GetSkillsThatCanCrossTileWithoutRespawning(EnvironmentTileInfo tileInfo)
+  {
+    List<CharacterSkillData> skills = new List<CharacterSkillData>();
+    foreach (CharacterSkillData skill in characterSkills.Values)
+    {
+      if (characterSkills[TraitSlot.Thorax] == skill) { continue; }
+      foreach (CharacterMovementAbility movementAbility in tileInfo.GetMovementAbilitiesWhichBypassRespawn())
+        if (skill.SkillProvidesMovementAbility(movementAbility))
+        {
+          skills.Add(skill);
+        }
+    }
+    return skills;
+  }
 }

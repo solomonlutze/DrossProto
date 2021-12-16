@@ -56,6 +56,40 @@ public class Conditional<T>
     return true;
   }
 
+  // Mostly for pathfinding. Accepts a tile the character will be on when using the skill.
+  public bool ConditionsMet(EnvironmentTileInfo eti)
+  {
+    foreach (Condition condition in conditions)
+    {
+      switch (condition.conditionType)
+      {
+        case ConditionType.TileType:
+          if (eti.groundTileTags.Contains(condition._tileType))
+          {
+            return false;
+          }
+          break;
+        case ConditionType.TouchingTileWithTag:
+          // TODO: evaluate adjacent tiles
+          return false;
+        // if (!c.TouchingTileWithTag(condition._touchingTileType))
+        // {
+        //   return false;
+        // }
+        // break;
+        case ConditionType.ChargeLevel:
+        // TODO: uhhhhhh
+        // if (!DoComparison(c.chargeLevel, condition._chargeLevel, condition.comparator))
+        // {
+        //   return false;
+        // }
+        // break;
+        default:
+          return false;
+      }
+    }
+    return true;
+  }
   public bool DoComparison(float value, float target, Comparator comparator)
   {
     switch (comparator)

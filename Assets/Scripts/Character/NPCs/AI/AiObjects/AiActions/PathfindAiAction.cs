@@ -42,29 +42,14 @@ public class PathfindAiAction : AiAction
       targetWorldLocation.GetFloorLayer(),
       controller
     );
-    // if (controller.lineToTargetIsClear)
-    // {
-    //   float distanceFromTarget = CustomPhysicsController.GetMinimumDistanceBetweenObjects(targetWorldLocation.gameObject, controller.gameObject);
-
-    //   if ((distanceFromTarget + .3f) > controller.minDistanceFromTarget)
-    //   {
-    //     movementInput = (targetWorldLocation.transform.position - controller.transform.position).normalized;
-    //     // MaybeDash(controller, targetWorldLocation);
-    //   }
-    // }
-    // else
-    // {
     controller.StartCalculatingPath(targetWorldLocation.GetTileLocation(), this);
-    if (controller.pathToTarget != null)
-    {
-      Debug.Log("pathToTarget count: " + controller.pathToTarget.Count);
-    }
     if (controller.pathToTarget != null && controller.pathToTarget.Count > 0)
     {
       Node nextNode = controller.pathToTarget[0];
-      if (nextNode.usingSkill != null)
+      Vector3 targetDirection = nextNode.loc.cellCenterWorldPosition - controller.transform.position;
+      if (nextNode.activateSkill != null && Mathf.Abs(controller.GetAngleToDirection(targetDirection)) < 5)
       {
-        controller.HandleSkillInput(nextNode.usingSkill);
+        controller.HandleSkillInput(nextNode.continueSkill);
       }
       Vector3 nextNodeLocation = new Vector3(nextNode.loc.cellCenterWorldPosition.x, nextNode.loc.cellCenterWorldPosition.y, nextNode.loc.z);
       Vector3 colliderCenterWorldSpace = controller.transform.TransformPoint(controller.physicsCollider.offset);
@@ -83,7 +68,6 @@ public class PathfindAiAction : AiAction
         }
       }
     }
-    // }
     controller.SetMoveInput(movementInput);
   }
 

@@ -10,7 +10,7 @@
 public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 {
   // Check to see if we're about to be destroyed.
-  private static bool m_ShuttingDown = false;
+  public static bool m_ShuttingDown = false;
   private static object m_Lock = new object();
   private static T m_Instance;
 
@@ -21,6 +21,7 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
   {
     get
     {
+      // m_ShuttingDown = false;
       if (m_ShuttingDown)
       {
         Debug.LogWarning("[Singleton] Instance '" + typeof(T) +
@@ -30,7 +31,6 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 
       lock (m_Lock)
       {
-        // Debug.Log("singleton  - wat");
         if (m_Instance == null)
         {
           // Search for existing inst
@@ -49,12 +49,11 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
             singletonObject.name = typeof(T).ToString() + " (Singleton)";
 
             // Make instance persistent.
-            Debug.Log("making instance persistent " + singletonObject);
             DontDestroyOnLoad(singletonObject);
           }
           // else
           // {
-          //   // Debug.Log("making instance persistent " + m_Instance);
+          //   Debug.Log("there was an instance I guess??");
           //   DontDestroyOnLoad(m_Instance.gameObject);
           // }
         }
@@ -65,14 +64,15 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
   }
 
 
-  private void OnApplicationQuit()
-  {
-    m_ShuttingDown = true;
-  }
+  // private void OnApplicationQuit()
+  // {
+  //   m_ShuttingDown = true;
+  // }
 
 
   private void OnDestroy()
   {
+    Debug.Log("destroying " + gameObject.name + " because ????");
     m_ShuttingDown = true;
   }
 }

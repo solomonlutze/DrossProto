@@ -12,8 +12,40 @@ public class Node
   public int g;
   public int h;
   public TileLocation loc;
-  public CharacterSkillData usingSkill;
+  public TilemapDirection enteredFromDirection;
+  // begin using skill *to reach* this node
+  public CharacterSkillData activateSkill;
+  // skill expected to be in use *when this node is reached*
+  public CharacterSkillData continueSkill;
+  public float distanceTraveledViaSkill = 0;
+  // skill progress resets to 0 each time a skill is used
+  // each node increases skill progress by the 
+  // (technically, it should do (x constant / 2 / skill distance magintude for tile 1) + (x constant / 2 / skill distance magintude for tile 2))
+  // if it's greater than 1, usingSkill = false!
+  public float skillProgress = 0;
   public Node parent;
+}
+
+public class TileNodes
+{
+  public List<Node> nodes;
+  public Node previousNode;
+  public EnvironmentTileInfo tileToConsider;
+  public AiStateController ai;
+  public TileLocation destination;
+  public PathfindAiAction initiatingAction;
+  public TilemapDirection enteredFromDirection;
+
+  public TileNodes(List<Node> n, TilemapDirection dir, Node p, EnvironmentTileInfo tileInfo, AiStateController aiStateController, TileLocation d, PathfindAiAction a)
+  {
+    nodes = n;
+    previousNode = p;
+    tileToConsider = tileInfo;
+    ai = aiStateController;
+    destination = d;
+    initiatingAction = a;
+    enteredFromDirection = dir;
+  }
 }
 
 // data structures we need backing this:
@@ -39,7 +71,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     List<Node> finalPath = new List<Node>();
     if (!GridManager.Instance.GetTileAtLocation(targetLocation).HasSolidObject()) // if false there won't be a path. I think?
     {
-      Node startNode = InitNewNode(new TileLocation(startPosition), 0, null, targetLocation);
+      Node startNode = InitNewNode(new TileLocation(startPosition), TilemapDirection.None, 0, null, targetLocation);
       openNodes.Enqueue(startNode.loc, startNode.f);
       nodeLocationsToNodes[startNode.loc] = startNode;
     }
@@ -47,9 +79,10 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     while (openNodes.Count > 0)
     {
 
-      if (openNodes.Count > 120 || closedNodes.Count > 120)
+      if (openNodes.Count > 220 || closedNodes.Count > 220)
       {
         // We should give up on finding a path
+        UnityEngine.Debug.Log("Giving up on finding a path!!");
         ai.SetIsCalculatingPath(false);
         ai.SetPathToTarget(null);
         yield break;
@@ -65,6 +98,11 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
           n = n.parent;
         }
         finalPath.Reverse();
+        UnityEngine.Debug.Log("found a path!!");
+        for (int i = 0; i < finalPath.Count - 1; i++)
+        {
+          UnityEngine.Debug.DrawLine(finalPath[i].loc.cellCenterWorldPosition, finalPath[i + 1].loc.cellCenterWorldPosition, Color.cyan, .5f);
+        }
         foundPath = true;
         break;
       }
@@ -128,19 +166,26 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   {
     for (int i = 0; i < path.Count - 1; i++)
     {
-      UnityEngine.Debug.DrawLine(path[i].loc.worldPosition, path[i + 1].loc.worldPosition, Color.blue, t);
+      Color color = path[i].activateSkill ? Color.blue : path[i].activateSkill ? Color.cyan : Color.red;
+      UnityEngine.Debug.DrawLine(path[i].loc.worldPosition, path[i + 1].loc.worldPosition, color, t);
     }
   }
 
   List<Node> GetAdjacentNodes(Node originNode, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction)
   {
     List<Node> nodes = new List<Node>();
-    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.UpperRight), originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Right), originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.LowerRight), originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.LowerLeft), originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Left), originNode, targetLocation, ai, initiatingAction);
-    MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.UpperLeft), originNode, targetLocation, ai, initiatingAction);
+    if (originNode.continueSkill && !originNode.continueSkill.CanTurnDuringSkill())
+    {
+      TilemapDirection facingDirection = GridManager.GetOppositeTilemapDirection(originNode.enteredFromDirection);
+      MaybeAddNode(nodes, facingDirection, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, facingDirection), originNode, targetLocation, ai, initiatingAction);
+      return nodes;
+    }
+    MaybeAddNode(nodes, TilemapDirection.UpperRight, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.UpperRight), originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, TilemapDirection.Right, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Right), originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, TilemapDirection.LowerRight, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.LowerRight), originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, TilemapDirection.LowerLeft, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.LowerLeft), originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, TilemapDirection.Left, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Left), originNode, targetLocation, ai, initiatingAction);
+    MaybeAddNode(nodes, TilemapDirection.UpperLeft, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.UpperLeft), originNode, targetLocation, ai, initiatingAction);
     // MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Above), originNode, targetLocation, ai, initiatingAction);
     // MaybeAddNode(nodes, GridManager.Instance.GetAdjacentTileLocation(originNode.loc, TilemapDirection.Below), originNode, targetLocation, ai, initiatingAction);
     return nodes;
@@ -202,42 +247,43 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
 
   public bool IsPathClearOfHazards_SquareGrid(Vector3 targetPosition, FloorLayer targetFloor, AiStateController ai)
   {
-    return false; // eat shiiiiit
-    if (targetFloor != ai.currentFloor)
-    {
-      return false;
-    }
-    Vector3[] colliderCorners = new Vector3[]{
-      new Vector3 (ai.circleCollider.radius, 0, 0),
-      new Vector3 (-ai.circleCollider.radius, 0, 0),
-      new Vector3 (0, ai.circleCollider.radius, 0),
-      new Vector3 (0, -ai.circleCollider.radius, 0),
-			// new Vector3 (col.bounds.extents.x, col.bounds.extents.y, 0),
-			// new Vector3 (-col.bounds.extents.x, col.bounds.extents.y, 0),
-			// new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),
-			// new Vector3 (-col.bounds.extents.x, -col.bounds.extents.y, 0),
-		};
-    HashSet<EnvironmentTileInfo> tilesAlongPath = new HashSet<EnvironmentTileInfo>();
-    foreach (Vector3 pt in colliderCorners)
-    {
-      tilesAlongPath.UnionWith(GetAllTilesBetweenPoints(ai.transform.TransformPoint(pt), targetPosition + pt, targetFloor));
-    }
+    // return false; // eat shiiiiit
+    // if (targetFloor != ai.currentFloor)
+    // {
+    //   return false;
+    // }
+    // Vector3[] colliderCorners = new Vector3[]{
+    //   new Vector3 (ai.circleCollider.radius, 0, 0),
+    //   new Vector3 (-ai.circleCollider.radius, 0, 0),
+    //   new Vector3 (0, ai.circleCollider.radius, 0),
+    //   new Vector3 (0, -ai.circleCollider.radius, 0),
+    // 	// new Vector3 (col.bounds.extents.x, col.bounds.extents.y, 0),
+    // 	// new Vector3 (-col.bounds.extents.x, col.bounds.extents.y, 0),
+    // 	// new Vector3 (col.bounds.extents.x, -col.bounds.extents.y, 0),
+    // 	// new Vector3 (-col.bounds.extents.x, -col.bounds.extents.y, 0),
+    // };
+    // HashSet<EnvironmentTileInfo> tilesAlongPath = new HashSet<EnvironmentTileInfo>();
+    // foreach (Vector3 pt in colliderCorners)
+    // {
+    //   tilesAlongPath.UnionWith(GetAllTilesBetweenPoints(ai.transform.TransformPoint(pt), targetPosition + pt, targetFloor));
+    // }
+    // // foreach (EnvironmentTileInfo eti in tilesAlongPath)
+    // // {
+    // // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
+    // // }
     // foreach (EnvironmentTileInfo eti in tilesAlongPath)
     // {
-    // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
+    //   if (eti == null || eti.dealsDamage)
+    //   {
+    //     return false;
+    //   }
+    //   if (!CanPassOverTile(eti.tileLocation.z,))
+    //   {
+    //     return false;
+    //   }
     // }
-    foreach (EnvironmentTileInfo eti in tilesAlongPath)
-    {
-      if (eti == null || eti.dealsDamage)
-      {
-        return false;
-      }
-      if (!CanPassOverTile(eti, ai, eti.tileLocation.z))
-      {
-        return false;
-      }
-    }
-    return true;
+    UnityEngine.Debug.LogError("Warning: something's trying to use the squareGrid clear path check");
+    return false;
   }
 
   public bool IsPathClearOfHazards(Vector3 targetPosition, FloorLayer targetFloor, Character character)
@@ -259,7 +305,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         return false;
       }
 
-      if (!CanPassOverTile(eti, character, eti.tileLocation.z))
+      if (!CanPassOverTile(eti.tileLocation.z, eti, (AiStateController)character))
       {
         return false;
       }
@@ -476,10 +522,10 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   // MAY return a higher value if the tile deals damage; edit this function to adjust how hard that's weighed
   private int GetNodeTravelCost(EnvironmentTileInfo tileInfo, AiStateController ai, PathfindAiAction initiatingAction)
   {
-    if (!tileInfo.CharacterCanOccupyTile(ai) || !tileInfo.CharacterCanCrossTile(ai))
-    {
-      return -1;
-    }
+    // if (!tileInfo.CharacterCanOccupyTile(ai) || !tileInfo.CharacterCanCrossTile(ai))
+    // {
+    //   return -1;
+    // }
     int cost = 1;
     if (tileInfo.dealsDamage)
     {
@@ -495,16 +541,42 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     }
     return cost;
   }
-  public bool CanPassOverTile(EnvironmentTileInfo tileInfo, Character ai, float zPosition)
+
+  public bool CanPassOverTile(float zPosition, EnvironmentTileInfo eti, AiStateController character)
   {
-    return
-        tileInfo != null
-        && ((CanTraverse(tileInfo, ai, zPosition) && !tileInfo.dealsDamage) && !tileInfo.CanRespawnPlayer())
-    ;
+    return CanPassOverTile(zPosition, new TileNodes(null, TilemapDirection.None, null, eti, (AiStateController)character, null, null));
+  }
+  public bool CanPassOverTile(float zPosition, TileNodes tileNodesInfo)
+  {
+    if (tileNodesInfo.tileToConsider == null) { return false; }
+    if (!CanTraverse(tileNodesInfo.tileToConsider, tileNodesInfo.ai, zPosition)) { return false; }
+    if (tileNodesInfo.tileToConsider.dealsDamage) { return false; }
+    if (tileNodesInfo.tileToConsider.CanRespawnPlayer())
+    {
+      // if a skill would let us NOT respawn, add a path with that skill!
+      if (tileNodesInfo.nodes != null)
+      {
+        EnvironmentTileInfo previousTile = GridManager.Instance.GetTileAtLocation(tileNodesInfo.previousNode.loc);
+        foreach (CharacterSkillData skill in tileNodesInfo.ai.GetSkillsThatCanCrossTileWithoutRespawning(tileNodesInfo.tileToConsider))
+        {
+          if ((tileNodesInfo.previousNode.skillProgress + GetSkillProgressCostToTraverseHalfTile(skill, previousTile) < 1) || skill.SkillIsRepeatable())
+          {
+            AddNode(tileNodesInfo, skill);
+          }
+        }
+      }
+      return false;
+    }
+    return true;
   }
 
+  public float GetSkillProgressCostToTraverseHalfTile(CharacterSkillData skillData, EnvironmentTileInfo eti)
+  {
+    return GridConstants.X_SPACING / (2 * skillData.GetForwardMovementMagnitudeForPathfinding(eti));
+  }
   public bool CanTraverse(EnvironmentTileInfo tileInfo, Character ai, float zPosition)
   {
+    if (GridManager.Instance.ShouldHaveCollisionWith(tileInfo, zPosition)) { }
     return !GridManager.Instance.ShouldHaveCollisionWith(tileInfo, zPosition) || ai.CanHopUpAtLocation(zPosition, tileInfo.tileLocation.cellCenterPosition);
   }
 
@@ -585,77 +657,18 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         difference += dy;
       }
     }
-    // int w = Mathf.FloorToInt(target.x) - Mathf.FloorToInt(origin.x);
-    // int h = Mathf.FloorToInt(target.y) - Mathf.FloorToInt(origin.y);
-    // int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
-    // if (w < 0) dx1 = -1; else if (w > 0) dx1 = 1;
-    // if (h < 0) dy1 = -1; else if (h > 0) dy1 = 1;
-    // if (w < 0) dx2 = -1; else if (w > 0) dx2 = 1;
-    // int longest = Mathf.Abs(w);
-    // int shortest = Mathf.Abs(h);
-    // if (!(longest > shortest))
-    // {
-    //   longest = Mathf.Abs(h);
-    //   shortest = Mathf.Abs(w);
-    //   if (h < 0) dy2 = -1; else if (h > 0) dy2 = 1;
-    //   dx2 = 0;
-    // }
-    // int numerator = longest >> 1;
-    // HashSet<EnvironmentTileInfo> res = new HashSet<EnvironmentTileInfo>();
-    // // UnityEngine.Debug.DrawLine(origin, new Vector3(target.x, target.y, 0), Color.green, .5f);
-    // res.Add(GridManager.Instance.GetTileAtLocation(origin, floor));
-    // int currentX = Mathf.FloorToInt(origin.x);
-    // int currentY = Mathf.FloorToInt(origin.y);
-    // for (int i = 0; i <= longest; i++)
-    // {
-    //   Vector3Int pos = new Vector3Int(currentX, currentY, 0);
-    //   res.Add(GridManager.Instance.GetTileAtLocation(currentX, currentY, floor));
-    //   numerator += shortest;
-    //   if (!(numerator < longest))
-    //   {
-    //     numerator -= longest;
-    //     currentX += dx1;
-    //     currentY += dy1;
-    //   }
-    //   else
-    //   {
-    //     currentX += dx2;
-    //     currentY += dy2;
-    //   }
-    // }
     return res;
   }
 
-  // bool ConnectionBetweenNodesOnDifferentFloorsExists(Node currentNode, FloorLayer newFloor)
-  // {
-  //   LayerFloor layer = gridManager.layerFloors[currentNode.loc.floorLayer];
-  //   if (layer == null || layer.groundTilemap == null || layer.objectTilemap == null)
-  //   {
-  //     // this should not happen
-  //     UnityEngine.Debug.LogError("missing layer information for " + currentNode.loc.floorLayer);
-  //     return false;
-  //   }
-  //   EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(currentNode.loc);
-  //   if (tileInfo.IsEmpty() && currentNode.loc.floorLayer - 1 == newFloor)
-  //   {
-  //     return true;
-  //   }
-  //   if (tileInfo == null) { return false; }
-  //   FloorLayer? targetLayer = null;
-  //   if (tileInfo.ChangesFloorLayer())
-  //   {
-  //     targetLayer = tileInfo.GetTargetFloorLayer(currentNode.loc.floorLayer);
-  //   }
-  //   return (targetLayer != null && targetLayer == newFloor);
-  // }
-
-  void MaybeAddNode(List<Node> nodeList, TileLocation possibleNodeLocation, Node originNode, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction)
+  void MaybeAddNode(List<Node> nodeList, TilemapDirection direction, TileLocation possibleNodeLocation, Node originNode, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction)
   {
     // 0) if the tile in question (or its floor layer) is invalid, return
     // 1) if we can't cross the boundary, return
     // 2) identify ending tileLocation (do we fall? do we hop up a floor?)
     // 3) if the ending tileLocation is undesirable, return
     // else, add
+    EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(possibleNodeLocation);
+    TileNodes tileNodes = new TileNodes(nodeList, GridManager.GetOppositeTilemapDirection(direction), originNode, eti, ai, targetLocation, initiatingAction);
     if (!gridManager.layerFloors.ContainsKey(possibleNodeLocation.floorLayer)) { return; } // 0
     LayerFloor layer = gridManager.layerFloors[possibleNodeLocation.floorLayer];
     if (layer == null || layer.groundTilemap == null || layer.objectTilemap == null)
@@ -663,27 +676,29 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       // this floor doesn't exist, so don't worry about it
       return;
     }
-    EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(possibleNodeLocation);
     float zPosition = GridManager.Instance.GetFloorPositionForTileLocation(originNode.loc);
-    UnityEngine.Debug.Log("destination zPosition: " + GridManager.Instance.GetFloorPositionForTileLocation(possibleNodeLocation) + ", origin node position: " + zPosition);
-    if (!CanPassOverTile(eti, ai, zPosition)) // 1 
+    if (!CanPassOverTile(zPosition, tileNodes)) // 1 
     {
       return;
     }
-    TileLocation endLocation = GetEndTileLocation(nodeList, ai, originNode, possibleNodeLocation, targetLocation, initiatingAction, zPosition);
-    if (endLocation != null)// why would it be
+    TileLocation endLocation = GetEndTileLocation(zPosition, tileNodes);
+    if (endLocation == null)// why would it be
     {
-      eti = GridManager.Instance.GetTileAtLocation(endLocation);
+      return;
     }
-    // if (possibleNodeLocation.floorLayer != originNode.loc.floorLayer && !ConnectionBetweenNodesOnDifferentFloorsExists(originNode, possibleNodeLocation.floorLayer))
-    // {
-    //   return;
-    // }
+    eti = GridManager.Instance.GetTileAtLocation(endLocation);
     if (!TileIsDesirable())
     {
       return;
     }
-    AddNode(nodeList, endLocation, originNode, targetLocation, ai, initiatingAction, eti);
+
+    // Reject this node if:
+    //   -there is a skill in progress
+    //   -it will still be in progress on this tile
+    //   -it doesn't allow turning
+    //   -this direction isn't opposite the entrance direction
+
+    AddNode(nodeList, direction, eti, originNode, targetLocation, ai, initiatingAction);
     // int costToTravelOverNode = GetNodeTravelCost(eti, ai, initiatingAction);
     // if (costToTravelOverNode < 0)
     // {
@@ -693,15 +708,19 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     // nodeList.Add(InitNewNode(endLocation, costToTravelOverNode, originNode, targetLocation));
   }
 
-  public void AddNode(List<Node> nodeList, TileLocation endLocation, Node originNode, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction, EnvironmentTileInfo eti, CharacterSkillData skill = null)
+  public void AddNode(TileNodes pathInfo, CharacterSkillData skill = null)
   {
-    int costToTravelOverNode = GetNodeTravelCost(eti, ai, initiatingAction);
+    AddNode(pathInfo.nodes, pathInfo.enteredFromDirection, pathInfo.tileToConsider, pathInfo.previousNode, pathInfo.destination, pathInfo.ai, pathInfo.initiatingAction, skill);
+  }
+  public void AddNode(List<Node> nodeList, TilemapDirection enteredFromDirection, EnvironmentTileInfo endTile, Node originNode, TileLocation targetLocation, AiStateController ai, PathfindAiAction initiatingAction, CharacterSkillData skill = null)
+  {
+    int costToTravelOverNode = GetNodeTravelCost(endTile, ai, initiatingAction);
     if (costToTravelOverNode < 0)
     {
       return;
     }
     // GridManager.Instance.DEBUGHighlightTile(eti.tileLocation);
-    nodeList.Add(InitNewNode(endLocation, costToTravelOverNode, originNode, targetLocation, skill));
+    nodeList.Add(InitNewNode(endTile.tileLocation, enteredFromDirection, costToTravelOverNode, originNode, targetLocation, skill));
   }
   // bool CharacterCanPassTile(Character c, EnvironmentTileInfo eti)
   // {
@@ -714,30 +733,33 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   //   return true;
   // }
 
-  TileLocation GetEndTileLocation(List<Node> nodeList, AiStateController ai, Node originNode, TileLocation possibleNodeLocation, TileLocation targetLocation, PathfindAiAction initiatingAction, float previousZPosition)
+  TileLocation GetEndTileLocation(float previousZPosition, TileNodes tileNodesInfo)
   {
     // if the location is empty, then this is the first nonempty tile below it
     // if the location has a hoppable wall that brings us to the floor above, this is the location directly above it
     // otherwise, return original location
-    TileLocation location = possibleNodeLocation;
+    TileLocation location = tileNodesInfo.tileToConsider.tileLocation;
     EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(location);
     // if it's empty and the AI can traverse empty tiles using a skill: add this tile using that skill!
     if (tileInfo.IsEmpty())
     {
-      foreach (CharacterSkillData skill in ai.GetSkillsThatCanCrossEmptyTiles())
+      foreach (CharacterSkillData skill in tileNodesInfo.ai.GetSkillsThatCanCrossEmptyTiles())
       {
-        UnityEngine.Debug.Log("adding skill " + skill);
-        AddNode(nodeList, possibleNodeLocation, originNode, targetLocation, ai, initiatingAction, tileInfo, skill);
+        if (tileNodesInfo.previousNode.distanceTraveledViaSkill + GridConstants.X_SPACING < skill.GetForwardMovementMagnitudeForPathfinding(tileInfo) || skill.SkillIsRepeatable())
+        {
+          AddNode(tileNodesInfo, skill);
+        }
       }
     }
     while (tileInfo.IsEmpty())
     {
+      return null; // todo: delet this
       location = GridManager.Instance.GetAdjacentTileLocation(location, TilemapDirection.Below);
       tileInfo = GridManager.Instance.GetTileAtLocation(location);
     }
-    if (ai.CanHopUpAtLocation(previousZPosition, possibleNodeLocation.cellCenterPosition))
+    if (tileNodesInfo.ai.CanHopUpAtLocation(previousZPosition, tileNodesInfo.tileToConsider.tileLocation.cellCenterPosition))
     {
-      Vector3 hopCheckPosition = new Vector3(possibleNodeLocation.cellCenterPosition.x, possibleNodeLocation.cellCenterPosition.y, previousZPosition - .25f); // the spot whose wallObject we want to compare // TODO: CLEAR MAGIC NUMBER
+      Vector3 hopCheckPosition = new Vector3(tileNodesInfo.tileToConsider.tileLocation.cellCenterPosition.x, tileNodesInfo.tileToConsider.tileLocation.cellCenterPosition.y, previousZPosition - .25f); // the spot whose wallObject we want to compare // TODO: CLEAR MAGIC NUMBER
       location = new TileLocation(hopCheckPosition);
     }
     return location;
@@ -747,13 +769,16 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   {
     return true;
   }
-  Node InitNewNode(TileLocation nodeLocation, int g, Node parent, TileLocation targetLocation, CharacterSkillData skill = null)
+  Node InitNewNode(TileLocation nodeLocation, TilemapDirection enteredFromDirection, int g, Node parent, TileLocation targetLocation, CharacterSkillData skill = null)
   {
     Node newNode = new Node();
     newNode.loc = nodeLocation;
     newNode.g = 0;
     newNode.h = 0;
     newNode.parent = null;
+    newNode.distanceTraveledViaSkill = 0;
+    newNode.skillProgress = 0;
+    newNode.enteredFromDirection = enteredFromDirection;
     if (parent != null)
     {
       newNode.parent = parent;
@@ -762,10 +787,26 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         + Mathf.Abs(targetLocation.tilemapCoordinates.y - nodeLocation.worldPosition.y)
         + Mathf.Abs(targetLocation.floorLayer - nodeLocation.floorLayer));
       newNode.f = newNode.g + newNode.h;
+      newNode.distanceTraveledViaSkill = parent.distanceTraveledViaSkill;
+      newNode.skillProgress = parent.skillProgress;
     }
     if (skill != null)
     {
-      newNode.usingSkill = skill;
+      // if previous skill progress was 0 OR >=1, that means we are newly using the skill.
+      if (parent.skillProgress <= .001 || parent.skillProgress >= 1)
+      {
+        newNode.activateSkill = skill;
+        newNode.skillProgress = 0;
+      }
+      newNode.distanceTraveledViaSkill += GridConstants.X_SPACING;
+      EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(nodeLocation);
+      EnvironmentTileInfo previousEti = GridManager.Instance.GetTileAtLocation(parent.loc);
+      newNode.skillProgress += GetSkillProgressCostToTraverseHalfTile(skill, previousEti);
+      newNode.skillProgress += GetSkillProgressCostToTraverseHalfTile(skill, eti);
+      if (newNode.skillProgress < 1)
+      {
+        newNode.continueSkill = skill; // means we cannot cancel the skill when this node is reached
+      }
     }
     return newNode;
   }

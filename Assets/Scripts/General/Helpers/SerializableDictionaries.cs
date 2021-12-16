@@ -323,11 +323,11 @@ public class IntToEnvironmentTileInfoDictionary : SerializableDictionaryBase<int
 [System.Serializable]
 public class FloorLayerToTileInfosDictionary : SerializableDictionaryBase<FloorLayer, IntToEnvironmentTileInfoDictionary> { }
 [System.Serializable]
-public class FloorLayerToTileHeightInfosDictionary : SerializableDictionaryBase<FloorLayer, IntToVector2Dictionary> { }
+public class FloorLayerToEnvironmentTileDataDictionary : SerializableDictionaryBase<FloorLayer, IntToEnvironmentTileDataDictionary> { }
 
 [System.Serializable]
 public class IntToFloatDictionary : SerializableDictionaryBase<int, float> { }
 [System.Serializable]
-public class IntToVector2Dictionary : SerializableDictionaryBase<int, Vector2> { }
+public class IntToEnvironmentTileDataDictionary : SerializableDictionaryBase<int, EnvironmentTileData> { }
 [System.Serializable]
 public class Vector2IntToStringDictionary : SerializableDictionaryBase<Vector2Int, string> { }
