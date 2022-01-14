@@ -22,6 +22,34 @@ namespace UnityEditor.Tilemaps
       }
       if (tile != null)
       {
+        // get tile type
+        // validate that we're painting on the appropriate floor tilemap; switch to the appropriate one otherwise
+        Transform brushTargetParent = brushTarget.transform.parent;
+        string brushTargetName = "";
+        switch (tile.floorTilemapType)
+        {
+          case (FloorTilemapType.Ground):
+            brushTargetName = brushTargetParent.gameObject.name + "_Ground";
+            break;
+          case (FloorTilemapType.Object):
+            brushTargetName = brushTargetParent.gameObject.name + "_Object";
+            break;
+          case (FloorTilemapType.Water):
+            brushTargetName = brushTargetParent.gameObject.name + "_Water";
+            break;
+          case (FloorTilemapType.Info):
+            brushTargetName = brushTargetParent.gameObject.name + "_Info";
+            break;
+          default:
+            Debug.LogError("tilemap type not one of ground, object, water, info??");
+            break;
+        }
+        Debug.Log("brushTargetName: " + brushTargetName + ", brushTarget.name " + brushTarget.name);
+        if (brushTargetName != brushTarget.name)
+        {
+          brushTarget = brushTargetParent.Find(brushTargetName).gameObject;
+          SelectAppropriateTilemapForBrushTileType();
+        }
         if (tile.autoPlaceTileOnPaint_Above != null)
         {
           LayerFloor layerFloorAbove = GridManager.Instance.GetFloorLayerAbove(WorldObject.GetFloorLayerOfGameObject(brushTarget));
@@ -154,6 +182,10 @@ namespace UnityEditor.Tilemaps
         else if (floorTilemapType == FloorTilemapType.Info)
         {
           desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().infoTilemap;
+        }
+        else if (floorTilemapType == FloorTilemapType.Water)
+        {
+          desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().waterTilemap;
         }
         else
         {

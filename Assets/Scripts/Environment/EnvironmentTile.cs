@@ -11,7 +11,7 @@ using UnityEditor;
 public enum FloorLayer { B6, B5, B4, B3, B2, B1, F1, F2, F3, F4, F5, F6 }
 public enum TileDurability { Delicate, Soft, Medium, Hard, Indestructable }
 public enum TileTag { Ground, Water, Climbable }
-public enum FloorTilemapType { Ground, Object, Visibility, Info }
+public enum FloorTilemapType { Ground = 0, Object = 1, Visibility = 2, Info = 3, Water = 4 }
 public enum LightPattern { Constant, Flicker }
 
 [System.Serializable]

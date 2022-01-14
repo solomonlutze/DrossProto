@@ -107,11 +107,15 @@ public class EnvironmentTileInfo
 
   public IlluminationInfo illuminationInfo;
 
-  public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile, InfoTile infoTile, EnvironmentTileData etd)
+  public void Init(TileLocation location, EnvironmentTile groundTile, EnvironmentTile objectTile, EnvironmentTile waterTile, InfoTile infoTile, EnvironmentTileData etd)
   {
     tileLocation = location;
     groundTileType = groundTile;
     objectTileType = objectTile;
+    if (waterTile != null)
+    {
+      groundTileType = waterTile;
+    }
     infoTileType = infoTile;
     tileData = etd;
     environmentalDamageSources = new List<EnvironmentalDamage>();
