@@ -99,11 +99,11 @@ public class WorldGridData : ScriptableObject
           foreach (FloorTilemapType type in tilemapDict.Keys)
           {
             EnvironmentTile tile = (EnvironmentTile)tilemapDict[type].GetTile(pos);
-            if (tile.floorTilemapType != type)
+            if (tile != null && tile.floorTilemapType != type)
             {
               count++;
-              // tilemapDict[type].SetTile(pos, null);
-              // tilemapDict[tile.floorTilemapType].SetTile(pos, tile);
+              tilemapDict[type].SetTile(pos, null);
+              tilemapDict[tile.floorTilemapType].SetTile(pos, tile);
             }
           }
           // check each tilemap, move a tile of the wrong type to the appropriate tilemap
@@ -276,6 +276,7 @@ public class WorldGridData : ScriptableObject
     GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)] = wallObject.gameObject;
     if (eti.groundTileType != null)
     {
+      Debug.Log("setting ground info to " + eti.groundTileType);
       wallObject.SetGroundInfo(eti.groundTileType, tileData.groundHeight);
     }
     if (eti.objectTileType != null)

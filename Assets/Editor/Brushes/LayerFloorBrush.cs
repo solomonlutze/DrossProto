@@ -134,12 +134,13 @@ namespace UnityEditor.Tilemaps
         {
           Tilemap groundTilemap = parentLayerFloor.groundTilemap;
           Tilemap objectTilemap = parentLayerFloor.objectTilemap;
+          Tilemap waterTilemap = parentLayerFloor.waterTilemap;
           Tilemap infoTilemap = parentLayerFloor.infoTilemap;
           Tilemap tilemap;
           foreach (Vector3Int pos in position.allPositionsWithin)
           {
             Vector3Int brushPosition = new Vector3Int(pos.x - position.x, pos.y - position.y, 0);
-            tilemap = groundTilemap;
+            tilemap = waterTilemap;
             if (infoTilemap.gameObject.activeSelf && infoTilemap.GetTile(pos) != null)
             {
               tilemap = infoTilemap;
@@ -147,6 +148,10 @@ namespace UnityEditor.Tilemaps
             else if (objectTilemap.GetTile(pos) != null)
             {
               tilemap = objectTilemap;
+            }
+            else if (groundTilemap.GetTile(pos) != null)
+            {
+              tilemap = groundTilemap;
             }
             PickCell(pos, brushPosition, tilemap);
           }
