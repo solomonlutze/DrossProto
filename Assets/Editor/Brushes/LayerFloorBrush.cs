@@ -67,12 +67,12 @@ namespace UnityEditor.Tilemaps
           }
         }
         // set height
+        base.BoxFill(gridLayout, brushTarget, position);
         foreach (Vector3Int location in position.allPositionsWithin)
         {
           GridManager.Instance.worldGridData.PaintFloorHeight(WorldObject.GetFloorLayerOfGameObject(brushTarget), location, tile);
         }
       }
-      base.BoxFill(gridLayout, brushTarget, position);
     }
 
     public override void BoxErase(GridLayout gridLayout, GameObject brushTarget, BoundsInt position)
