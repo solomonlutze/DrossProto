@@ -68,6 +68,20 @@ namespace UnityEditor.Tilemaps
         }
         // set height
         base.BoxFill(gridLayout, brushTarget, position);
+        // this section insures a given tile ONLY has water OR ground, not both
+        GameObject tilemapToEraseOn = null;
+        if (tile.floorTilemapType == FloorTilemapType.Ground)
+        {
+          tilemapToEraseOn = brushTargetParent.Find(brushTargetParent.gameObject.name + "_Water").gameObject;
+        }
+        else if (tile.floorTilemapType == FloorTilemapType.Water)
+        {
+          tilemapToEraseOn = brushTargetParent.Find(brushTargetParent.gameObject.name + "_Ground").gameObject;
+        }
+        if (tilemapToEraseOn != null)
+        {
+          base.BoxErase(gridLayout, tilemapToEraseOn, position);
+        }
         foreach (Vector3Int location in position.allPositionsWithin)
         {
           GridManager.Instance.worldGridData.PaintFloorHeight(WorldObject.GetFloorLayerOfGameObject(brushTarget), location, tile);
