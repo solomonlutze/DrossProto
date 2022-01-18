@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEditor;
-using UnityEditor.SceneTemplate;
 
 
 
@@ -39,7 +38,6 @@ public class WorldGridData : ScriptableObject
   public Vector2Int chunksToLoad_editor;
   [Tooltip("how many chunks to load at once *during runtime* on either side of current chunk. EG 1,1 = 3x3 grid")]
   public Vector2Int chunksToLoad_runtime;
-  public SceneTemplateAsset chunkSceneTemplate;
   public Tilemap waterTilemapPrefab;
   public WallObject defaultWallObjectPrefab;
   public static float heightToPaint = 0.0f;
@@ -77,8 +75,61 @@ public class WorldGridData : ScriptableObject
   {
     WorldGridData worldGridData = Resources.Load("Data/EnvironmentData/WorldGridData") as WorldGridData;
     Debug.Log("loading world grid data: " + worldGridData);
-    // worldGridData.ClearExistingGridInfo();
   }
+
+
+  [MenuItem("CustomTools/SortTilesToCorrectTilemaps")]
+  private static void SortTilesToCorrectTilemaps()
+  {
+    WorldGridData worldGridData = Resources.Load("Data/EnvironmentData/WorldGridData") as WorldGridData;
+    Debug.Log("loading world grid data: " + worldGridData);
+    int count = 0;
+    foreach (LayerFloor layerFloor in GridManager.Instance.layerFloors.Values)
+    {
+      Dictionary<FloorTilemapType, Tilemap> tilemapDict = new Dictionary<FloorTilemapType, Tilemap>() {
+        {FloorTilemapType.Ground, layerFloor.groundTilemap },
+        {FloorTilemapType.Object, layerFloor.objectTilemap },
+        {FloorTilemapType.Water, layerFloor.waterTilemap }
+      };
+      for (int x = worldGridData.minXAcrossAllFloors; x < worldGridData.maxXAcrossAllFloors; x++)
+      {
+        for (int y = worldGridData.maxYAcrossAllFloors; y > worldGridData.minYAcrossAllFloors; y--)
+        {
+          Vector3Int pos = new Vector3Int(x, y, 0);
+          foreach (FloorTilemapType type in tilemapDict.Keys)
+          {
+            EnvironmentTile tile = (EnvironmentTile)tilemapDict[type].GetTile(pos);
+            if (tile != null && tile.floorTilemapType != type)
+            {
+              count++;
+              tilemapDict[type].SetTile(pos, null);
+              tilemapDict[tile.floorTilemapType].SetTile(pos, tile);
+            }
+          }
+          // check each tilemap, move a tile of the wrong type to the appropriate tilemap
+        }
+      }
+    }
+    Debug.Log("total misplaced tiles: " + count);
+  }
+  // [MenuItem("CustomTools/RepopulateWaterTilemaps")]
+  // public static void RepopulateWaterTilemaps()
+  // {
+  //   foreach (LayerFloor layerFloor in GridManager.Instance.layerFloors.Values)
+  //   {
+  //     if (layerFloor.waterTilemap == null)
+  //     {
+  //       layerFloor.waterTilemap = Instantiate(GridManager.Instance.worldGridData.waterTilemapPrefab);
+  //       layerFloor.waterTilemap.gameObject.transform.parent = layerFloor.groundTilemap.transform.parent;
+  //       layerFloor.waterTilemap.name = LayerMask.LayerToName(layerFloor.gameObject.layer) + "_Water";
+  //     }
+  //     else
+  //     {
+  //       layerFloor.waterTilemap.transform.localPosition = Vector3.zero;
+  //     }
+  //   }
+  // }
+
   public void SetFloorHeightToPaint(float height)
   {
     heightToPaint = height;
@@ -91,23 +142,59 @@ public class WorldGridData : ScriptableObject
       heightToPaint = 1;
     }
   }
-
-  public void ClearWallObject(FloorLayer layer, Vector3Int location, EnvironmentTile tile)
+  [MenuItem("CustomTools/World Grid/Painting/Increase Floor Height %#UP")]
+  public static void IncreaseFloorHeightToPaint()
   {
-    Debug.Log("clear wall object");
-    if (tile != null && tile.floorTilemapType == FloorTilemapType.Object)
+    heightToPaint += .2f;
+    if (heightToPaint > 1)
     {
-      ModifyFloorHeight(layer, location, tile, 1);
+      heightToPaint = 1;
+    }
+    Debug.Log("new FloorHeightToPaint is " + heightToPaint);
+  }
+
+
+  [MenuItem("CustomTools/World Grid/Painting/Decrease floor height %#DOWN")]
+  public static void DecreaseFloorHeightToPaint()
+  {
+    heightToPaint -= .2f;
+    if (heightToPaint < 0)
+    {
+      heightToPaint = 0;
+    }
+    Debug.Log("new FloorHeightToPaint is " + heightToPaint);
+  }
+
+  // 0,0 is the default - floors extend nowhere, and wall objects take up the whole height. 
+  // --we do not need to track this as height data, but we do need a wallObject if there's an objectTile at that location.
+  // 0,1 is "empty" - floors do not extend, ceilings do not extend. 
+  // --this is not the default, but it's also not a wallObject. We SHOULD track it, and should NOT have a wallObject. 
+
+  public void SetEnvironmentTileData(TileLocation location, EnvironmentTileData tileData)
+  {
+    if (tileData.groundHeight != 0 || tileData.ceilingHeight != 1)
+    {
+      if (float.IsNaN(tileData.groundHeight) || float.IsNaN(tileData.ceilingHeight))
+      {
+        if (float.IsNaN(tileData.groundHeight))
+        {
+          Debug.Log("trying to set ground height to NAN at " + location.cellCenterPosition + ", value " + tileData.groundHeight);
+          tileData.groundHeight = 0;
+        }
+        if (float.IsNaN(tileData.ceilingHeight))
+        {
+          Debug.Log("trying to set ceiling height to NAN at " + location.cellCenterPosition + ", value " + tileData.ceilingHeight);
+          tileData.ceilingHeight = 1;
+        }
+      }
+      environmentTileDataGrid[location.floorLayer][GridManager.Instance.CoordsToKey(location.tilemapCoordinates)] = tileData;
     }
     else
     {
-      ModifyFloorHeight(layer, location, tile, 0);
+      RemoveEnvironmentTileDataAtLocation(location.floorLayer, location.tilemapCoordinates);
     }
-  }
-
-  public void PaintFloorHeight(FloorLayer layer, Vector3Int location, EnvironmentTile tile)
-  {
-    ModifyFloorHeight(layer, location, tile, heightToPaint);
+    EditorUtility.SetDirty(this);
+    // AssetDatabase.SaveAssets();
   }
 
   public void ModifyFloorHeight(FloorLayer layer, Vector3Int location, EnvironmentTile tile, float height)
@@ -143,38 +230,28 @@ public class WorldGridData : ScriptableObject
     SetEnvironmentTileData(loc, tileData);
     AdjustWallObject(loc);
   }
-
-  // 0,0 is the default - floors extend nowhere, and wall objects take up the whole height. 
-  // --we do not need to track this as height data, but we do need a wallObject if there's an objectTile at that location.
-  // 0,1 is "empty" - floors do not extend, ceilings do not extend. 
-  // --this is not the default, but it's also not a wallObject. We SHOULD track it, and should NOT have a wallObject. 
-
-  public void SetEnvironmentTileData(TileLocation location, EnvironmentTileData tileData)
+  public void ClearWallObject(FloorLayer layer, Vector3Int location, EnvironmentTile tile)
   {
-    if (tileData.groundHeight != 0 || tileData.ceilingHeight != 1)
+    Debug.Log("clear wall object");
+    if (tile != null && tile.floorTilemapType == FloorTilemapType.Object)
     {
-      if (float.IsNaN(tileData.groundHeight) || float.IsNaN(tileData.ceilingHeight))
-      {
-        if (float.IsNaN(tileData.groundHeight))
-        {
-          Debug.Log("trying to set ground height to NAN at " + location.cellCenterPosition + ", value " + tileData.groundHeight);
-          tileData.groundHeight = 0;
-        }
-        if (float.IsNaN(tileData.ceilingHeight))
-        {
-          Debug.Log("trying to set ceiling height to NAN at " + location.cellCenterPosition + ", value " + tileData.ceilingHeight);
-          tileData.ceilingHeight = 1;
-        }
-      }
-      environmentTileDataGrid[location.floorLayer][GridManager.Instance.CoordsToKey(location.tilemapCoordinates)] = tileData;
+      ModifyFloorHeight(layer, location, tile, 1);
     }
     else
     {
-      RemoveEnvironmentTileDataAtLocation(location.floorLayer, location.tilemapCoordinates);
+      ModifyFloorHeight(layer, location, tile, 0);
     }
-    EditorUtility.SetDirty(this);
-    // AssetDatabase.SaveAssets();
   }
+  public void PaintFloorHeight(FloorLayer layer, Vector3Int location, EnvironmentTile tile)
+  {
+    ModifyFloorHeight(layer, location, tile, heightToPaint);
+  }
+
+#endif
+
+
+
+
 
   public void AdjustWallObject(TileLocation tileLocation)
   {
@@ -199,6 +276,7 @@ public class WorldGridData : ScriptableObject
     GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)] = wallObject.gameObject;
     if (eti.groundTileType != null)
     {
+      Debug.Log("setting ground info to " + eti.groundTileType);
       wallObject.SetGroundInfo(eti.groundTileType, tileData.groundHeight);
     }
     if (eti.objectTileType != null)
@@ -638,27 +716,4 @@ public class WorldGridData : ScriptableObject
     UnloadPlacedObjectsForChunk(chunkCoords);
   }
 
-  [MenuItem("CustomTools/World Grid/Painting/Increase Floor Height %#UP")]
-  public static void IncreaseFloorHeightToPaint()
-  {
-    heightToPaint += .2f;
-    if (heightToPaint > 1)
-    {
-      heightToPaint = 1;
-    }
-    Debug.Log("new FloorHeightToPaint is " + heightToPaint);
-  }
-
-
-  [MenuItem("CustomTools/World Grid/Painting/Decrease floor height %#DOWN")]
-  public static void DecreaseFloorHeightToPaint()
-  {
-    heightToPaint -= .2f;
-    if (heightToPaint < 0)
-    {
-      heightToPaint = 0;
-    }
-    Debug.Log("new FloorHeightToPaint is " + heightToPaint);
-  }
-#endif
 }

@@ -84,6 +84,7 @@ public class GridManager : Singleton<GridManager>
       loc,
       (EnvironmentTile)layerFloors[loc.floorLayer].groundTilemap.GetTile(loc.tilemapCoordinatesVector3),
       (EnvironmentTile)layerFloors[loc.floorLayer].objectTilemap.GetTile(loc.tilemapCoordinatesVector3),
+      (EnvironmentTile)layerFloors[loc.floorLayer].waterTilemap.GetTile(loc.tilemapCoordinatesVector3),
       it,
       worldGridData.GetEnvironmentTileData(loc));
     return i;
@@ -673,5 +674,6 @@ public class GridManager : Singleton<GridManager>
       }
     }
   }
+
 #endif
 }

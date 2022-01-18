@@ -24,8 +24,6 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
       // m_ShuttingDown = false;
       if (m_ShuttingDown)
       {
-        Debug.LogWarning("[Singleton] Instance '" + typeof(T) +
-            "' already destroyed. Returning null.");
         // return null; // yolo
       }
 
@@ -57,7 +55,6 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
           //   DontDestroyOnLoad(m_Instance.gameObject);
           // }
         }
-
         return m_Instance;
       }
     }

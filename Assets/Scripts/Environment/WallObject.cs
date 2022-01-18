@@ -44,6 +44,7 @@ public class WallObject : MonoBehaviour, IPoolable
       }
       if (progress > 1 - heightInfo.x && groundTile != null)
       {
+        Debug.Log("creating wall piece " + groundTile);
         CreateWallPiece(groundTile, i);
       }
       else if (progress < 1 - heightInfo.y && ceilingTile != null)
@@ -80,6 +81,7 @@ public class WallObject : MonoBehaviour, IPoolable
   void CreateWallPiece(EnvironmentTile tile, int i)
   {
     GameObject wallPiece = wallPieces[i];
+    wallPiece.name = "WallPiece_" + tile.name;
     wallPiece.SetActive(true);
     SpriteRenderer sr = wallPiece.GetComponent<SpriteRenderer>();
     sr.sprite = tile.sprite;
