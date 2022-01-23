@@ -1831,7 +1831,11 @@ public class Character : WorldObject
     {
       foreach (EnvironmentalDamage envDamage in tile.environmentalDamageSources)
       {
-        TakeDamage(envDamage);
+        Debug.Log("env damage source status: " + envDamage.GetEnvironmentalDamageSourceStatus());
+        if (envDamage.IsEnvironmentalDamageSourceActive())
+        {
+          TakeDamage(envDamage);
+        }
       }
     }
     if (footstepCooldown <= 0 && timeMoving > 0 && !IsMidair())

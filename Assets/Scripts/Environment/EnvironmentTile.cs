@@ -30,9 +30,26 @@ public class EnvironmentTile : RandomTile
 
   // Annoying workaround for non-nullable environmentalDamage. Mark True to have tile deal damage.
   public bool dealsDamage = false;
+  [Tooltip("Mark true if tile alternates between dealing and not dealing damage.")]
+  public bool isDamagePeriodic = false;
+  // [HideInInspector]
+  public float periodicInactiveTime = 3f;
+  // [HideInInspector]
+  public float periodicWarmupTime = 2f;
+  // [HideInInspector]
+  public float periodicActiveTime = 4f;
+  [HideInInspector]
+  public float totalPeriodicTime
+  {
+    get
+    {
+      return periodicInactiveTime + periodicWarmupTime + periodicActiveTime;
+    }
+  }
+
   public List<TileTag> tileTags;
-  public DamageData_OLD environmentalDamage_OLD;
   public EnvironmentalDamageInfo environmentalDamageInfo;
+
   public bool corrodable;
   public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage;
   public List<CharacterMovementAbility> movementAbilitiesWhichBypassRespawn;
@@ -64,6 +81,7 @@ public class EnvironmentTile : RandomTile
   public CharacterAttributeToIntDictionary attributesWhichAllowClimbing;
   public CharacterAttributeToIntDictionary attributesWhichAllowBurrowing;
   public CharacterAttributeToIntDictionary attributesWhichAllowPassingThrough;
+  public TileParticleSystem tileParticleSystem;
   public EnvironmentTileParticleSystemInfo footstepParticleSystemInfo;
   // public ParticleSystem footstepParticleSystem; // used for particles created when something walks on this
   public ParticleSystem.EmitParams footstepSystemParams;

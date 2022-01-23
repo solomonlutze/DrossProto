@@ -103,6 +103,36 @@ public class EnvironmentTileInfo
     || (objectTileType != null && objectTileType.dealsDamage);
     }
   }
+
+  public bool IsEnvironmentalDamageSourceWarmup
+  {
+    get
+    {
+      foreach (EnvironmentalDamage damage in environmentalDamageSources)
+      {
+        if (damage.IsEnvironmentalDamageSourceWarmup())
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+
+  public bool IsEnvironmentalDamageSourceActive
+  {
+    get
+    {
+      foreach (EnvironmentalDamage damage in environmentalDamageSources)
+      {
+        if (damage.IsEnvironmentalDamageSourceActive())
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
   public EnvironmentTileData tileData;
 
   public IlluminationInfo illuminationInfo;
@@ -267,6 +297,18 @@ public class EnvironmentTileInfo
     return tileData.ceilingHeight;
   }
 
+  public TileParticleSystem GetTileParticleSystem()
+  {
+    if (objectTileType != null && objectTileType.tileParticleSystem != null)
+    {
+      return objectTileType.tileParticleSystem;
+    }
+    if (groundTileType != null && groundTileType.tileParticleSystem != null)
+    {
+      return groundTileType.tileParticleSystem;
+    }
+    return null;
+  }
   // TODO: this should eventually be based on whether it _will_ respawn player/deal damage
   public bool IsClimbable()
   {

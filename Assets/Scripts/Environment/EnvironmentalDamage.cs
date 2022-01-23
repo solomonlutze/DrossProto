@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum EnvironmentalDamageSourceStatus { Active, Warmup, Inactive }
 public class EnvironmentalDamage : IDamageSource
 {
   public EnvironmentTile tileType;
@@ -28,6 +29,24 @@ public class EnvironmentalDamage : IDamageSource
     return false;
   }
 
+  public bool IsEnvironmentalDamageSourceWarmup()
+  {
+    return GetEnvironmentalDamageSourceStatus() == EnvironmentalDamageSourceStatus.Warmup;
+  }
+
+  public bool IsEnvironmentalDamageSourceActive()
+  {
+    return GetEnvironmentalDamageSourceStatus() == EnvironmentalDamageSourceStatus.Active;
+  }
+
+  public EnvironmentalDamageSourceStatus GetEnvironmentalDamageSourceStatus()
+  {
+    if (!tileType.isDamagePeriodic) { return EnvironmentalDamageSourceStatus.Active; }
+    float modTimeSinceStartup = GameMaster.Instance.timeSinceStartup.Elapsed.Seconds % tileType.totalPeriodicTime;
+    if (modTimeSinceStartup < tileType.periodicInactiveTime) { return EnvironmentalDamageSourceStatus.Inactive; }
+    if (modTimeSinceStartup < tileType.periodicInactiveTime + tileType.periodicWarmupTime) { return EnvironmentalDamageSourceStatus.Warmup; }
+    return EnvironmentalDamageSourceStatus.Active;
+  }
   // No partial damage from environmental hazards; resistances can ignore altogether
   public float CalculateDamageAfterResistances(Character c)
   {

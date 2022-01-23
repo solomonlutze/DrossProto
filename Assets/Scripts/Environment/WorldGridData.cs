@@ -249,9 +249,19 @@ public class WorldGridData : ScriptableObject
 
 #endif
 
-
-
-
+  public void CreateTileParticleSystem(TileLocation tileLocation)
+  {
+    EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(tileLocation);
+    TilePlacedObjects tilePlacedObjects = GetPlacedObjectsAtLocation(tileLocation, true);
+    TileParticleSystem system = eti.GetTileParticleSystem();
+    if (system != null)
+    {
+      tilePlacedObjects.tileParticleSystem = Instantiate(eti.groundTileType.tileParticleSystem);
+      tilePlacedObjects.tileParticleSystem.Init(tileLocation, eti);
+      tilePlacedObjects.tileParticleSystem.transform.position = tileLocation.cellCenterWorldPosition;
+      tilePlacedObjects.tileParticleSystem.transform.SetParent(GridManager.Instance.wallObjectContainer, true);
+    }
+  }
 
   public void AdjustWallObject(TileLocation tileLocation)
   {
@@ -259,32 +269,31 @@ public class WorldGridData : ScriptableObject
     EnvironmentTileData tileData = GetEnvironmentTileData(tileLocation);
     if (tileData.IsEmpty() && eti.objectTileType == null)
     {
-      DestroyWallObjectAtLocation(tileLocation.floorLayer, tileLocation.tilemapCoordinates);
+      DestroyPlacedObjectsAtLocation(tileLocation.floorLayer, tileLocation.tilemapCoordinates);
       return;
     }
-    WallObject wallObject;
-    if (GridManager.Instance.placedGameObjects.ContainsKey(CoordsToKey(tileLocation)) && GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)] != null)
+    TilePlacedObjects tilePlacedObjects = GetPlacedObjectsAtLocation(tileLocation, true);
+    // if (GridManager.Instance.placedGameObjects.ContainsKey(CoordsToKey(tileLocation)) && GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)] != null)
+    // {
+    //   wallObject = GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)].wallObject;
+    // }
+    if (tilePlacedObjects.wallObject == null)
     {
-      wallObject = GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)].GetComponent<WallObject>();
+      tilePlacedObjects.wallObject = ObjectPoolManager.Instance.GetWallObjectPool().GetObject();
+      tilePlacedObjects.wallObject.transform.position = tileLocation.cellCenterWorldPosition;
+      tilePlacedObjects.wallObject.transform.SetParent(GridManager.Instance.wallObjectContainer, true);
     }
-    else
-    {
-      wallObject = ObjectPoolManager.Instance.GetWallObjectPool().GetObject();
-      wallObject.transform.position = tileLocation.cellCenterWorldPosition;
-      wallObject.transform.SetParent(GridManager.Instance.wallObjectContainer, true);
-    }
-    GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)] = wallObject.gameObject;
     if (eti.groundTileType != null)
     {
       Debug.Log("setting ground info to " + eti.groundTileType);
-      wallObject.SetGroundInfo(eti.groundTileType, tileData.groundHeight);
+      tilePlacedObjects.wallObject.SetGroundInfo(eti.groundTileType, tileData.groundHeight);
     }
     if (eti.objectTileType != null)
     {
-      wallObject.SetCeilingInfo(eti.objectTileType, tileData.ceilingHeight);
+      tilePlacedObjects.wallObject.SetCeilingInfo(eti.objectTileType, tileData.ceilingHeight);
     }
     Debug.Log("should be init'ing wall object");
-    wallObject.Init(tileLocation);
+    tilePlacedObjects.wallObject.Init(tileLocation);
   }
 
   public void RemoveEnvironmentTileDataAtLocation(FloorLayer layer, Vector2Int location)
@@ -295,23 +304,36 @@ public class WorldGridData : ScriptableObject
     }
   }
 
-  public GameObject GetPlacedObjectAtLocation(TileLocation loc)
+  public TilePlacedObjects GetPlacedObjectsAtLocation(TileLocation loc, bool newIfEmpty = false)
   {
     if (GridManager.Instance.placedGameObjects.ContainsKey(CoordsToKey(loc)) && GridManager.Instance.placedGameObjects[CoordsToKey(loc)] != null)
     {
       return GridManager.Instance.placedGameObjects[CoordsToKey(loc)];
     }
+    if (newIfEmpty)
+    {
+      TilePlacedObjects newPlacedObjects = new TilePlacedObjects();
+      GridManager.Instance.placedGameObjects[CoordsToKey(loc)] = newPlacedObjects;
+      return newPlacedObjects;
+    }
     return null;
   }
-  public void DestroyWallObjectAtLocation(FloorLayer layer, Vector2Int location)
+
+  public void DestroyPlacedObjectsAtLocation(FloorLayer layer, Vector2Int location)
   {
     TileLocation loc = new TileLocation(location.x, location.y, layer);
-    GameObject placedObject;
+    TilePlacedObjects placedObject;
     int key = CoordsToKey(loc);
     if (GridManager.Instance.placedGameObjects.TryGetValue(key, out placedObject) && placedObject != null)
     {
-      WallObject wallObject = placedObject.GetComponent<WallObject>();
-      ObjectPoolManager.Instance.wallObjectPool.Release(wallObject);
+      if (placedObject.wallObject != null)
+      {
+        ObjectPoolManager.Instance.wallObjectPool.Release(placedObject.wallObject);
+      }
+      if (placedObject.tileParticleSystem != null)
+      {
+        Destroy(placedObject.tileParticleSystem.gameObject);
+      }
       GridManager.Instance.placedGameObjects.Remove(key);
     }
   }
@@ -331,8 +353,6 @@ public class WorldGridData : ScriptableObject
     EnvironmentTileData tileData;
     return environmentTileDataGrid[loc.floorLayer].TryGetValue(GridManager.Instance.CoordsToKey(loc.tilemapCoordinates), out tileData) ? tileData : new EnvironmentTileData();
   }
-
-
 
   public float GetFloorHeight(FloorLayer layer, Vector2Int location)
   {
@@ -422,13 +442,13 @@ public class WorldGridData : ScriptableObject
   {
     if (GridManager.Instance.placedGameObjects == null)
     {
-      GridManager.Instance.placedGameObjects = new Dictionary<int, GameObject>();
+      GridManager.Instance.placedGameObjects = new Dictionary<int, TilePlacedObjects>();
     }
-    foreach (GameObject obj in GridManager.Instance.placedGameObjects.Values)
+    foreach (TilePlacedObjects obj in GridManager.Instance.placedGameObjects.Values)
     {
-      if (obj != null && obj.GetComponent<WallObject>() != null)
+      if (obj != null && obj.wallObject != null)
       {
-        ObjectPoolManager.Instance.GetWallObjectPool().Release(obj.GetComponent<WallObject>());
+        ObjectPoolManager.Instance.GetWallObjectPool().Release(obj.wallObject);
       }
     }
     GridManager.Instance.ClearLoadedChunks();
@@ -545,14 +565,15 @@ public class WorldGridData : ScriptableObject
 
   public void UnloadPlacedObjectsForChunk(int xMin, int yMin)
   {
-
     for (int i = Enum.GetValues(typeof(FloorLayer)).Length - 1; i >= 0; i--)
     {
       FloorLayer layer = (FloorLayer)i;
       for (int x = xMin; x < xMin + chunkSize; x++)
       {
         for (int y = yMin; y < yMin + chunkSize; y++)
-        { DestroyWallObjectAtLocation(layer, new Vector2Int(x, y)); }
+        {
+          DestroyPlacedObjectsAtLocation(layer, new Vector2Int(x, y));
+        }
       }
     }
   }
@@ -582,9 +603,9 @@ public class WorldGridData : ScriptableObject
             tileData = environmentTileDataGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)];
           }
           EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(loc);
-          if (!tileData.IsEmpty() || tileInfo.objectTileType != null)
+          CreateTileParticleSystem(loc);
+          if (!tileData.IsEmpty() && tileInfo.objectTileType != null)
           {
-            Debug.Log("should be adjusting");
             AdjustWallObject(
               loc
             );

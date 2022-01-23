@@ -15,6 +15,11 @@ public static class GridConstants
 }
 public enum TilemapDirection { None, UpperLeft, UpperRight, Left, Right, LowerLeft, LowerRight, Above, Below }
 
+public class TilePlacedObjects
+{
+  public WallObject wallObject;
+  public TileParticleSystem tileParticleSystem;
+}
 // Supports TRANSIENT grid/level info
 // See WorldGridData for persistent/serialized grid info
 public class GridManager : Singleton<GridManager>
@@ -24,7 +29,7 @@ public class GridManager : Singleton<GridManager>
   public int initialWallObjectPoolSize;
   public HashSet<Vector2Int> loadedChunks;
   public HashSet<Vector2Int> desiredChunks;
-  public Dictionary<int, GameObject> placedGameObjects;
+  public Dictionary<int, TilePlacedObjects> placedGameObjects;
   public Transform wallObjectContainer;
   Coroutine chunkLoadCoroutine;
   public WorldGridData worldGridData;
@@ -48,7 +53,7 @@ public class GridManager : Singleton<GridManager>
     worldGrid = worldGridData.worldGrid;
     tilesToDestroyOnPlayerRespawn = new List<EnvironmentTileInfo>();
     tilesToRestoreOnPlayerRespawn = new List<EnvironmentTileInfo>();
-    placedGameObjects = new Dictionary<int, GameObject>();
+    placedGameObjects = new Dictionary<int, TilePlacedObjects>();
     loadedChunks = new HashSet<Vector2Int>();
     worldGridData.ClearExistingPlacedObjects();
     StartCoroutine(ObjectPoolManager.Instance.GetWallObjectPool().Populate(initialWallObjectPoolSize));
@@ -92,8 +97,8 @@ public class GridManager : Singleton<GridManager>
 
   public WallObject GetWallObjectAtLocation(TileLocation loc)
   {
-    GameObject go = worldGridData.GetPlacedObjectAtLocation(loc);
-    return go == null ? null : go.GetComponent<WallObject>();
+    TilePlacedObjects placedObjects = worldGridData.GetPlacedObjectsAtLocation(loc);
+    return placedObjects == null ? null : placedObjects.wallObject;
   }
   public LayerFloor GetFloorLayerAbove(FloorLayer floorLayer)
   {
@@ -529,7 +534,7 @@ public class GridManager : Singleton<GridManager>
     if (placedGameObjects == null)
     {
       Debug.LogWarning("making new placedGameObjects!!");
-      placedGameObjects = new Dictionary<int, GameObject>();
+      placedGameObjects = new Dictionary<int, TilePlacedObjects>();
     }
     for (int x = -worldGridData.chunksToLoad.x; x <= worldGridData.chunksToLoad.x; x++)
     {
@@ -637,11 +642,11 @@ public class GridManager : Singleton<GridManager>
       for (int y = -2; y <= 2; y++)
       {
         location = characterLocation.WithOffset(new Vector2Int(x, y));
-        GameObject placedObject;
-        placedGameObjects.TryGetValue(worldGridData.CoordsToKey(location), out placedObject);
-        if (placedObject != null && placedObject.GetComponent<WallObject>() != null)
+        TilePlacedObjects placedObjects;
+        placedGameObjects.TryGetValue(worldGridData.CoordsToKey(location), out placedObjects);
+        if (placedObjects != null && placedObjects.wallObject != null)
         {
-          placedObject.GetComponent<WallObject>().UpdateCollisions(c.physicsCollider);
+          placedObjects.wallObject.UpdateCollisions(c.physicsCollider);
         }
       }
     }

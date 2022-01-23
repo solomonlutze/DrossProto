@@ -7,12 +7,14 @@ using Yarn.Unity;
 using Rewired;
 using ScriptableObjectArchitecture;
 using UnityEngine.SceneManagement;
+using System.Diagnostics;
 
 public class GameMaster : Singleton<GameMaster>
 {
   public bool DebugEnabled = false;
   public bool DEBUG_dontDropItems = false;
   public int rewiredPlayerId = 0;
+
   private Rewired.Player rewiredPlayer;
   public IntVariable trophyGrubCount;
   public DrossConstants.GameState startingGameStatus;
@@ -36,6 +38,7 @@ public class GameMaster : Singleton<GameMaster>
   private int previousSpawnPoint = 0;
 
   public LymphTypeToSpriteDictionary lymphTypeToSpriteMapping;
+  public Stopwatch timeSinceStartup;
   public Camera mainCamera;
   public Camera camera2D; // god save me
   public bool isPaused = false;
@@ -46,6 +49,7 @@ public class GameMaster : Singleton<GameMaster>
   void Start()
   {
     rewiredPlayer = ReInput.players.GetPlayer(rewiredPlayerId);
+    timeSinceStartup = new Stopwatch();
     trophyGrubCount.Value = 0;
     Time.fixedDeltaTime = 1 / 60f;
     pathfinding = GetComponent<PathfindingSystem>();
@@ -136,11 +140,13 @@ public class GameMaster : Singleton<GameMaster>
   public void PauseGame()
   {
     Time.timeScale = 0;
+    timeSinceStartup.Stop();
   }
 
   public void UnpauseGame()
   {
     Time.timeScale = 1;
+    timeSinceStartup.Start();
   }
 
   public void Die()
@@ -159,6 +165,7 @@ public class GameMaster : Singleton<GameMaster>
   }
   private void Respawn(TraitSlotToTraitDictionary overrideTraits = null)
   {
+    timeSinceStartup.Restart();
     ClearVariables(variablesToClearOnRespawn, eventsToRaiseOnRespawn);
     GridManager.Instance.DestroyTilesOnPlayerRespawn();
     GridManager.Instance.RestoreTilesOnPlayerRespawn();
