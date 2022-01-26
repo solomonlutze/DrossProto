@@ -320,6 +320,7 @@ public class Character : WorldObject
   protected float timeMoving = 0;
   protected Dictionary<string, GameObject> traitSpawnedGameObjects;
   public AscendingDescendingState ascendingDescendingState = AscendingDescendingState.None;
+  public Dictionary<DamageType, ElementalDamageBuildup> elementalDamageBuildups;
   public bool ascending
   {
     get { return ascendingDescendingState == AscendingDescendingState.Ascending; }
@@ -376,6 +377,7 @@ public class Character : WorldObject
   {
     sourceInvulnerabilities = new List<string>();
     conditionallyActivatedTraitEffects = new List<TraitEffect>();
+    elementalDamageBuildups = new Dictionary<DamageType, ElementalDamageBuildup>();
     ascendingDescendingState = AscendingDescendingState.None;
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
     characterSkills = CalculateSkills(traits);
@@ -1334,8 +1336,15 @@ public class Character : WorldObject
       EndSkill();
     }
     InterruptAnimation();
-    AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
-    PlayDamageSounds();
+    if (damageSource.damageType != DamageType.Physical)
+    {
+      ApplyElementalDamageBuildup(damageSource.damageType, damageAfterResistances);
+    }
+    else
+    {
+      AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
+      PlayDamageSounds();
+    }
     StartCoroutine(ApplyInvulnerability(damageSource));
     Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
     if (knockback != Vector3.zero)
@@ -1626,6 +1635,18 @@ public class Character : WorldObject
   public void AdjustCurrentStamina(float amount)
   {
     vitals[CharacterVital.CurrentStamina] = Mathf.Min(vitals[CharacterVital.CurrentStamina] + amount, GetMaxStamina()); // no lower bound on current stamina! DFIU!!
+  }
+
+  public void ApplyElementalDamageBuildup(DamageType type, float amount)
+  {
+    if (!elementalDamageBuildups.TryGetValue(type, out ElementalDamageBuildup buildup))
+    {
+      buildup = new ElementalDamageBuildup();
+      buildup.remainingMagnitude = 0;
+      buildup.timeElapsed = 0;
+      elementalDamageBuildups[type] = buildup;
+    }
+    buildup.remainingMagnitude += amount;
   }
 
   public float GetCharacterVital(CharacterVital vital)
@@ -1932,6 +1953,11 @@ public class Character : WorldObject
     }
   }
 
+  public ElementalDamageBuildup GetElementalDamageBuildup(DamageType damageType)
+  {
+    elementalDamageBuildups.TryGetValue(damageType, out ElementalDamageBuildup buildup);
+    return buildup;
+  }
   protected void HandleCooldowns()
   {
     if (!UsingSkill())
@@ -1943,6 +1969,29 @@ public class Character : WorldObject
     if (footstepCooldown > 0)
     {
       footstepCooldown -= Time.deltaTime;
+    }
+    foreach (DamageType type in (DamageType[])Enum.GetValues(typeof(DamageType)))
+    {
+      elementalDamageBuildups.TryGetValue(type, out ElementalDamageBuildup buildup);
+      if (buildup != null)
+      {
+        buildup.timeElapsed += Time.deltaTime;
+        ElementalBuildupConstant elementConstant = GameMaster.Instance.elementalBuildupConstants[type];
+        if (buildup.timeElapsed >= elementConstant.delay)
+        {
+          float damage = Time.deltaTime * elementConstant.dps;
+          if (damage > buildup.remainingMagnitude)
+          {
+            damage = buildup.remainingMagnitude;
+            elementalDamageBuildups.Remove(type);
+          }
+          else
+          {
+            buildup.remainingMagnitude -= damage;
+          }
+          AdjustCurrentHealth(-damage, false);
+        }
+      }
     }
   }
 

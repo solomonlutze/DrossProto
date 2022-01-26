@@ -10,7 +10,10 @@ public class PlayerHUD : MonoBehaviour
   public IntVariable grubCount;
   public StringVariable areaName;
   public HealthBar healthBar;
-  public StaminaBar staminaBar;
+  public ElementalBuildupBar heatBuildupBar;
+  public ElementalBuildupBar acidBuildupBar;
+  public ElementalBuildupBar fungalBuildupBar;
+  // public StaminaBar staminaBar;
   public SuperTextMesh grubCountText;
   // private SuperTextMesh healthFieldText;
   // private SuperTextMesh healthValueText;
@@ -59,6 +62,9 @@ public class PlayerHUD : MonoBehaviour
       {
         playerExists = true;
         healthBar.character = playerController;
+        heatBuildupBar.character = playerController;
+        acidBuildupBar.character = playerController;
+        fungalBuildupBar.character = playerController;
         moltDescriptionText.text = "Hold button to shed max health. After several seconds, health is fully restored to new maximum.\n" + playerController.characterSkills[TraitSlot.Thorax].description;
         diedText.text = " ";
         for (int i = 0; i < selectedSkillTexts.Length; i++)

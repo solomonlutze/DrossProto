@@ -18,6 +18,7 @@ public class GameMaster : Singleton<GameMaster>
   private Rewired.Player rewiredPlayer;
   public IntVariable trophyGrubCount;
   public DrossConstants.GameState startingGameStatus;
+  public DamageTypeToElementalBuildupConstantDictionary elementalBuildupConstants;
   public CanvasHandler canvasHandler;
   public ParticleSystemMaster particleSystemMaster;
   public InputGlyphHelper inputGlyphHelper;
@@ -25,6 +26,7 @@ public class GameMaster : Singleton<GameMaster>
   public DialogueRunner dialogueRunner;
   public VariableStorage dialogueVariableStorage;
   private PlayerController playerController;
+
   private PathfindingSystem pathfinding;
   public DrossConstants.GameState gameStatus;
 

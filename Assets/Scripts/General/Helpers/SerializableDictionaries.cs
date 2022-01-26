@@ -331,3 +331,14 @@ public class IntToFloatDictionary : SerializableDictionaryBase<int, float> { }
 public class IntToEnvironmentTileDataDictionary : SerializableDictionaryBase<int, EnvironmentTileData> { }
 [System.Serializable]
 public class Vector2IntToStringDictionary : SerializableDictionaryBase<Vector2Int, string> { }
+[System.Serializable]
+public class DamageTypeToElementalBuildupConstantDictionary : SerializableDictionaryBase<DamageType, ElementalBuildupConstant>
+{
+  public DamageTypeToElementalBuildupConstantDictionary()
+  {
+    foreach (DamageType type in (DamageType[])Enum.GetValues(typeof(DamageType)))
+    {
+      Add(type, null);
+    }
+  }
+}
