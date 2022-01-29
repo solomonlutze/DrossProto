@@ -83,14 +83,14 @@ public class EnvironmentTileInfo
   {
     get
     {
-      return groundTileType.tileTags;
+      return groundTileType ? groundTileType.tileTags : new List<TileTag>();
     }
   }
   public List<TileTag> objectTileTags
   {
     get
     {
-      return objectTileType.tileTags;
+      return objectTileType ? objectTileType.tileTags : new List<TileTag>();
     }
   }
 

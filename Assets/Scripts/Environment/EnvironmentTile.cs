@@ -88,6 +88,7 @@ public class EnvironmentTile : RandomTile
   // private string tileType;
   private Renderer _renderer;
   public AnimationCurve wallSizeCurve;
+  public bool placeWall = true; // only applies to object tiles!
   public float ceilingHeight = 1;
   public float groundHeight = 0;
   public int interestObjectPriority = 0; // whichever tile has the higher priority will place its border

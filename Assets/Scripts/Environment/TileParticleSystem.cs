@@ -7,6 +7,7 @@ public class TileParticleSystem : MonoBehaviour
 {
   EnvironmentTileInfo owningTileInfo; // Assumes a single env tile for now, can rework to handle multiple tiles if needed
   FloorLayer floorLayer;
+  public VisualEffect hazardConstantSystem;
   public VisualEffect hazardWarmupSystem;
   bool warmupPlaying = false;
   public VisualEffect hazardActiveSystem;

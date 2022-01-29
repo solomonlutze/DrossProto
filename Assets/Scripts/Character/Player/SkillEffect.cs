@@ -71,6 +71,7 @@ public class SkillEffect
   public SkillEffectDamageMultiplierToFloat damageMultipliers;
   public SkillEffectMovementPropertyToCurve movement;
   public CharacterVitalToCurveDictionary vitalChanges;
+  public DamageTypeToCurveDictionary buildupChanges;
   public List<CharacterMovementAbility> movementAbilities;
 
   [Tooltip("Charge level increases by 1 if we've spent more time in the effect than the charge level requires")]
@@ -106,6 +107,10 @@ public class SkillEffect
           owner.AdjustCurrentMaxHealth(owner.CalculateCurveProgressIncrement(vitalChange.Value, false, useType == SkillEffectType.Continuous));
           break;
       }
+    }
+    foreach (KeyValuePair<DamageType, NormalizedCurve> buildupChange in buildupChanges)
+    {
+      owner.AdjustElementalDamageBuildup(buildupChange.Key, owner.CalculateCurveProgressIncrement(buildupChange.Value, false, useType == SkillEffectType.Continuous));
     }
     if (chargeLevels.Length > 0 && owner.chargeLevel < chargeLevels.Length)
     {

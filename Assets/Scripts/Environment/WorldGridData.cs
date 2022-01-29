@@ -199,6 +199,7 @@ public class WorldGridData : ScriptableObject
 
   public void ModifyFloorHeight(FloorLayer layer, Vector3Int location, EnvironmentTile tile, float height)
   {
+    if (!environmentTileDataGrid.ContainsKey(layer)) { return; }
     TileLocation loc = new TileLocation(location.x, location.y, layer);
     bool ceiling = tile && tile.floorTilemapType == FloorTilemapType.Object;
     EnvironmentTileData tileData;
@@ -256,7 +257,7 @@ public class WorldGridData : ScriptableObject
     TileParticleSystem system = eti.GetTileParticleSystem();
     if (system != null)
     {
-      tilePlacedObjects.tileParticleSystem = Instantiate(eti.groundTileType.tileParticleSystem);
+      tilePlacedObjects.tileParticleSystem = Instantiate(system);
       tilePlacedObjects.tileParticleSystem.Init(tileLocation, eti);
       tilePlacedObjects.tileParticleSystem.transform.position = tileLocation.cellCenterWorldPosition;
       tilePlacedObjects.tileParticleSystem.transform.SetParent(GridManager.Instance.wallObjectContainer, true);

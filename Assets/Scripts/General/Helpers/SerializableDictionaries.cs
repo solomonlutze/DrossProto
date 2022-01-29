@@ -318,6 +318,8 @@ public class SkillEffectMovementPropertyToCurve : SerializableDictionaryBase<Ski
 [System.Serializable]
 public class CharacterVitalToCurveDictionary : SerializableDictionaryBase<CharacterVital, NormalizedCurve> { }
 [System.Serializable]
+public class DamageTypeToCurveDictionary : SerializableDictionaryBase<DamageType, NormalizedCurve> { }
+[System.Serializable]
 public class IntToEnvironmentTileInfoDictionary : SerializableDictionaryBase<int, EnvironmentTileInfo> { }
 
 [System.Serializable]

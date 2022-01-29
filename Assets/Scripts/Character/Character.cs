@@ -285,6 +285,8 @@ public class Character : WorldObject
   public VisualEffect fullyChargedParticleSystem;
 
   [Header("Game State Info")]
+  public Vector3 previousPosition = Vector3.zero;
+  public float distanceFromPreviousPosition = 0;
   public Color damageFlashColor = Color.red;
   public Character critTarget = null;
   public Character critVictimOf = null; // true while subject to crit attack
@@ -474,6 +476,8 @@ public class Character : WorldObject
   // non-physics biz
   protected virtual void Update()
   {
+    distanceFromPreviousPosition = Vector3.Distance(transform.position, previousPosition);
+    previousPosition = transform.position;
     HandleHealth();
     if (timeMoving > 0) // better way to do this??
     {
@@ -1299,15 +1303,23 @@ public class Character : WorldObject
     return true;
   }
 
+  bool WithinDamageHeight(IDamageSource damageSource)
+  {
+    if (damageSource as EnvironmentalDamage != null)
+    {
+      return true;
+    }
+    // !!!FIXME FIXME FIXME!!!!
+    return !IsMidair();
+    // !!!FIXME FIXME FIXME!!!!
+
+  }
   // DAMAGE FUNCTIONS
   protected virtual void TakeDamage(IDamageSource damageSource)
   {
     if (damageSource.IsOwnedBy(this)) { return; }
     if (damageSource.IsSameOwnerType(this)) { return; }
-
-    // !!!FIXME FIXME FIXME!!!!
-    if (IsMidair()) { return; }
-    // !!!FIXME FIXME FIXME!!!!
+    if (!WithinDamageHeight(damageSource)) { return; }
 
     // Crit damage:
     // -If you're using a crit, you don't take damage
@@ -1338,7 +1350,7 @@ public class Character : WorldObject
     InterruptAnimation();
     if (damageSource.damageType != DamageType.Physical)
     {
-      ApplyElementalDamageBuildup(damageSource.damageType, damageAfterResistances);
+      AdjustElementalDamageBuildup(damageSource.damageType, damageAfterResistances);
     }
     else
     {
@@ -1637,7 +1649,7 @@ public class Character : WorldObject
     vitals[CharacterVital.CurrentStamina] = Mathf.Min(vitals[CharacterVital.CurrentStamina] + amount, GetMaxStamina()); // no lower bound on current stamina! DFIU!!
   }
 
-  public void ApplyElementalDamageBuildup(DamageType type, float amount)
+  public void AdjustElementalDamageBuildup(DamageType type, float amount)
   {
     if (!elementalDamageBuildups.TryGetValue(type, out ElementalDamageBuildup buildup))
     {
@@ -1647,6 +1659,7 @@ public class Character : WorldObject
       elementalDamageBuildups[type] = buildup;
     }
     buildup.remainingMagnitude += amount;
+    buildup.remainingMagnitude = Mathf.Clamp(buildup.remainingMagnitude, 0, 100);
   }
 
   public float GetCharacterVital(CharacterVital vital)
@@ -1863,10 +1876,15 @@ public class Character : WorldObject
     {
       footstepCooldown = tile.HandleFootstep(this);
     }
+    if (tile.HasTileTag(TileTag.Water))
+    {
+      AdjustElementalDamageBuildup(DamageType.Heat, -10 * Time.deltaTime);
+    }
     if (tile.CanRespawnPlayer())
     {
       if (!tile.CharacterCanCrossTile(this))
       {
+        AdjustElementalDamageBuildup(DamageType.Heat, -100);
         RespawnCharacterAtLastSafeLocation();
       }
     }
@@ -1977,19 +1995,33 @@ public class Character : WorldObject
       {
         buildup.timeElapsed += Time.deltaTime;
         ElementalBuildupConstant elementConstant = GameMaster.Instance.elementalBuildupConstants[type];
+        if (type == DamageType.Heat)
+        {
+          AdjustElementalDamageBuildup(DamageType.Heat, -distanceFromPreviousPosition * .5f);
+        }
         if (buildup.timeElapsed >= elementConstant.delay)
         {
           float damage = Time.deltaTime * elementConstant.dps;
           if (damage > buildup.remainingMagnitude)
           {
-            damage = buildup.remainingMagnitude;
+            damage = Mathf.Max(buildup.remainingMagnitude, 0);
             elementalDamageBuildups.Remove(type);
           }
           else
           {
             buildup.remainingMagnitude -= damage;
           }
-          AdjustCurrentHealth(-damage, false);
+          if (type == DamageType.Acid)
+          {
+            if (!IsMidair())
+            {
+              AdjustCurrentMaxHealth(-damage);
+            }
+          }
+          else
+          {
+            AdjustCurrentHealth(-damage, false);
+          }
         }
       }
     }
