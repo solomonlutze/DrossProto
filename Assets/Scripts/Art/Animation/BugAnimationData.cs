@@ -7,7 +7,7 @@ public enum AnimationName
   Walk,
   Dash,
   Attack,
-  Block,
+  Guard,
   Fly
 }
 public class BugAnimationData : ScriptableObject

@@ -59,6 +59,8 @@ public class SkillEffect
   public Overrideable<bool> advanceable = new Overrideable<bool>(false);
   [Tooltip("This effect is bypassed if the skillEffect is queued when this effect is reached. Good for eg pauses between attacks")]
   public Overrideable<bool> skipIfQueued = new Overrideable<bool>(false);
+  [Tooltip("Animation only. Sets the 'IsGuarding' flag on the animator.")]
+  public bool isGuarding;
 
   [FormerlySerializedAs("duration")]
   [Tooltip("Min time to spend in skill effect. Always define this!")]
@@ -84,6 +86,7 @@ public class SkillEffect
 
   public virtual void BeginSkillEffect(Character owner)
   {
+    owner.animator.SetBool("IsGuarding", isGuarding);
     List<Weapon> weaponInstances = new List<Weapon>();
     foreach (AttackSpawn weaponSpawn in weaponSpawns)
     {
@@ -131,6 +134,7 @@ public class SkillEffect
 
   public virtual void EndSkillEffect(Character owner)
   {
+    owner.animator.SetBool("IsGuarding", false);
     owner.chargingUpParticleSystem.Stop();
     owner.fullyChargedParticleSystem.Stop();
   }

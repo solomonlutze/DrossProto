@@ -62,20 +62,20 @@ public class WorldGridData : ScriptableObject
     AssetDatabase.CreateAsset(data, path);
   }
 
-  [MenuItem("CustomTools/RebuildWorldGrid")]
-  private static void RebuildWorldGrid()
-  {
-    WorldGridData worldGridData = Resources.Load("Data/EnvironmentData/WorldGridData") as WorldGridData;
-    Debug.Log("loading world grid data: " + worldGridData);
-    worldGridData.RebuildPlacedObjects();
-  }
+  // [MenuItem("CustomTools/RebuildWorldGrid")]
+  // private static void RebuildWorldGrid()
+  // {
+  //   WorldGridData worldGridData = Resources.Load("Data/EnvironmentData/WorldGridData") as WorldGridData;
+  //   Debug.Log("loading world grid data: " + worldGridData);
+  //   worldGridData.RebuildPlacedObjects();
+  // }
 
-  [MenuItem("CustomTools/ClearWorldGrid")]
-  private static void ClearWorldGrid()
-  {
-    WorldGridData worldGridData = Resources.Load("Data/EnvironmentData/WorldGridData") as WorldGridData;
-    Debug.Log("loading world grid data: " + worldGridData);
-  }
+  // [MenuItem("CustomTools/ClearWorldGrid")]
+  // private static void ClearWorldGrid()
+  // {
+  //   WorldGridData worldGridData = Resources.Load("Data/EnvironmentData/WorldGridData") as WorldGridData;
+  //   Debug.Log("loading world grid data: " + worldGridData);
+  // }
 
 
   [MenuItem("CustomTools/SortTilesToCorrectTilemaps")]

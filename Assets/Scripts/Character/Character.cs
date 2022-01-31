@@ -105,6 +105,7 @@ public enum BugSpecies
   WaterBoatman = 26,
   WaterBug = 27,
   WaterStrider = 28,
+  Default = 1000,
 
 }
 public enum CharacterAttackValue

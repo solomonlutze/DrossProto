@@ -83,7 +83,6 @@ public class CharacterSkillData : ScriptableObject
   {
     SkillEffect currentSkillEffect = GetActiveSkillEffect(owner);
     currentSkillEffect.DoSkillEffect(owner);
-
     if (currentSkillEffect.useType == SkillEffectType.Continuous)
     {
       if (

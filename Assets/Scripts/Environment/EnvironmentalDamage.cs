@@ -47,19 +47,25 @@ public class EnvironmentalDamage : IDamageSource
     if (modTimeSinceStartup < tileType.periodicInactiveTime + tileType.periodicWarmupTime) { return EnvironmentalDamageSourceStatus.Warmup; }
     return EnvironmentalDamageSourceStatus.Active;
   }
-  // No partial damage from environmental hazards; resistances can ignore altogether
+
   public float CalculateDamageAfterResistances(Character c)
   {
-    if (
-      c.GetDamageTypeResistanceLevel(damageType) >= GetResistanceRequiredForImmunity() // high enough resistance to ignore altogether
-      )
+    if (c != null)
     {
-      return 0;
+      Debug.Log("damage amount " + damageAmount + " adjusted to " + damageAmount * c.GetDamageMultiplier(damageType));
+      return damageAmount * c.GetDamageMultiplier(damageType);
     }
-    else
-    {
-      return damageAmount;
-    }
+    return damageAmount;
+    // if (
+    //   c.GetDamageTypeResistanceLevel(damageType) >= GetResistanceRequiredForImmunity() // high enough resistance to ignore altogether
+    //   )
+    // {
+    //   return 0;
+    // }
+    // else
+    // {
+    //   return damageAmount;
+    // }
   }
   public int damageAmount
   {
