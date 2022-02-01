@@ -315,8 +315,6 @@ namespace RotaryHeart.Lib.SerializableDictionary
       nextRect = GetNextRect(ref position);
 
       //Fix values size based on the keys size
-      Debug.Log("valuesprop " + ValuesProp);
-      Debug.Log("KeysProp " + KeysProp);
       if (ValuesProp.arraySize != KeysProp.arraySize)
         ValuesProp.arraySize = KeysProp.arraySize;
       if (KeysValues.arraySize != KeysProp.arraySize)

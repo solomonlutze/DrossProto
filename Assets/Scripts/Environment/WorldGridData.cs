@@ -605,7 +605,7 @@ public class WorldGridData : ScriptableObject
           }
           EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(loc);
           CreateTileParticleSystem(loc);
-          if (!tileData.IsEmpty() && tileInfo.objectTileType != null)
+          if (!tileData.IsEmpty() || tileInfo.objectTileType != null) // || not && to allow ground to come up!
           {
             AdjustWallObject(
               loc
