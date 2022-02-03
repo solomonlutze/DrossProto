@@ -18,7 +18,6 @@ public class CameraSettings
     // settings.farClip = 1000f;
     // settings.occlusionCulling = true;
     SceneView sceneView = SceneView.lastActiveSceneView;
-    Debug.Log("updating camera settings");
     sceneView.cameraSettings = settings;
   }
 }
