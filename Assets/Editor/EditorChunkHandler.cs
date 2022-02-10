@@ -22,10 +22,10 @@ public static class EditorChunkHandler
       if (cameraCurrentChunk != cameraLocation.chunkCoordinates)
       {
         cameraCurrentChunk = cameraLocation.chunkCoordinates;
-        if (GridManager.Instance.loadedChunks != null)
-        {
-          Debug.Log("number of currently-loaded chunks: " + GridManager.Instance.loadedChunks.Count);
-        }
+        // if (GridManager.Instance.loadedChunks != null)
+        // {
+        //   Debug.Log("number of currently-loaded chunks: " + GridManager.Instance.loadedChunks.Count);
+        // }
         GridManager.Instance.StartLoadAndUnloadChunks(cameraLocation);
       }
     }

@@ -60,6 +60,7 @@ public class LayerRenderer : MonoBehaviour
 
   public float GetTargetOpacity()
   {
+    return 1;
     int floorOffsetFromCurrentLayer = (int)WorldObject.GetFloorLayerFromGameObjectLayer(gameObject.layer) - currentFloorLayer.Value;
     if (floorOffsetFromCurrentLayer > 1 || floorOffsetFromCurrentLayer < -3)
     {
