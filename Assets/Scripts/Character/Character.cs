@@ -284,6 +284,7 @@ public class Character : WorldObject
   public VisualEffect chargingUpParticleSystem;
   public VisualEffect chargeLevelIncreaseParticleSystem;
   public VisualEffect fullyChargedParticleSystem;
+  public VisualEffect bloodSplashParticleSystem;
 
   [Header("Game State Info")]
   public Vector3 previousPosition = Vector3.zero;
@@ -349,6 +350,7 @@ public class Character : WorldObject
 
   [Header("Prefabs")]
   public MoltCasting moltCasingPrefab;
+  public GameObject bloodSplatterPrefab;
 
   protected virtual void Awake()
   {
@@ -1349,17 +1351,27 @@ public class Character : WorldObject
       EndSkill();
     }
     InterruptAnimation();
+    Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
     if (damageSource.damageType != DamageType.Physical)
     {
       AdjustElementalDamageBuildup(damageSource.damageType, damageAfterResistances);
     }
-    else
+    else if (damageAfterResistances > 0)
     {
-      AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
+
+      float knockbackDistance = knockback.magnitude;
+      GameObject splatter = Instantiate(bloodSplatterPrefab, transform.position + knockback * knockbackDistance * .1f, transform.rotation);
+      splatter.transform.localScale = new Vector3(.25f + knockbackDistance, .25f + knockbackDistance * .5f, 0);
+
+      // GameObject splatter = Instantiate(bloodSplatterPrefab, transform.position + knockback * knockbackDistance * .75f, transform.rotation);
+      // splatter.transform.localScale = new Vector3(.25f + (damageAfterResistances / 10), .25f + (damageAfterResistances / 25), 0);
+      splatter.transform.rotation = GetDirectionAngle(knockback);
+      bloodSplashParticleSystem.gameObject.transform.rotation = GetDirectionAngle(knockback);
+      bloodSplashParticleSystem.Play();
       PlayDamageSounds();
+      AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
     }
     StartCoroutine(ApplyInvulnerability(damageSource));
-    Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
     if (knockback != Vector3.zero)
     {
       BeginKnockback(knockback);

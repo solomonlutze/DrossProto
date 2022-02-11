@@ -16,7 +16,7 @@ public static class EditorChunkHandler
 
   private static void OnSceneGUI(SceneView sceneView)
   {
-    if (sceneView != null && sceneView.camera != null)
+    if (sceneView != null && sceneView.camera != null && GridManager.Instance != null)
     {
       TileLocation cameraLocation = new TileLocation(sceneView.camera.transform.position);
       if (cameraCurrentChunk != cameraLocation.chunkCoordinates)
