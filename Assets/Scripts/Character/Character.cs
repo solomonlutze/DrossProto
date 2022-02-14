@@ -285,6 +285,7 @@ public class Character : WorldObject
   public VisualEffect chargeLevelIncreaseParticleSystem;
   public VisualEffect fullyChargedParticleSystem;
   public VisualEffect bloodSplashParticleSystem;
+  public GameObject attackReadyIndicatorObject;
 
   [Header("Game State Info")]
   public Vector3 previousPosition = Vector3.zero;
@@ -1697,7 +1698,11 @@ public class Character : WorldObject
     po.OnLayerChange();
   }
 
-
+  public void EnableAttackReadyIndicator()
+  {
+    Debug.Log("enable!");
+    attackReadyIndicatorObject.SetActive(true);
+  }
   public void UseTile()
   {
     // Debug.Log("using tile");

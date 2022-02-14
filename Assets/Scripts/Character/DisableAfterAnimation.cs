@@ -4,8 +4,8 @@ using System.Collections;
 
 public class DisableAfterAnimation : MonoBehaviour
 {
-  AnimationClip clip;
-  public void Start()
+  public AnimationClip clip;
+  public void OnEnable()
   {
     StartCoroutine(WaitThenDisable());
     // existing components on the GameObject
@@ -33,6 +33,7 @@ public class DisableAfterAnimation : MonoBehaviour
   IEnumerator WaitThenDisable()
   {
     yield return new WaitForSeconds(clip.averageDuration);
+    Debug.Log("disable!");
     gameObject.SetActive(false);
   }
 }
