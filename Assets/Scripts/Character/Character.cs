@@ -396,11 +396,13 @@ public class Character : WorldObject
       awareness.Init(this);
       awareness.transform.localScale = new Vector3(awarenessRange, 1, 1);
     }
-    characterVisuals.SetCharacterVisuals(traits);
     InitializeFromCharacterData();
     InitializeAnimationParameters();
   }
-
+  public void InitializeVisuals()
+  {
+    characterVisuals.SetCharacterVisuals(traits);
+  }
   private void InitializeFromCharacterData()
   {
     if (defaultCharacterData != null)
@@ -1363,12 +1365,16 @@ public class Character : WorldObject
       float knockbackDistance = knockback.magnitude;
       GameObject splatter = Instantiate(bloodSplatterPrefab, transform.position + knockback * knockbackDistance * .1f, transform.rotation);
       splatter.transform.localScale = new Vector3(.25f + knockbackDistance, .25f + knockbackDistance * .5f, 0);
-
-      // GameObject splatter = Instantiate(bloodSplatterPrefab, transform.position + knockback * knockbackDistance * .75f, transform.rotation);
-      // splatter.transform.localScale = new Vector3(.25f + (damageAfterResistances / 10), .25f + (damageAfterResistances / 25), 0);
       splatter.transform.rotation = GetDirectionAngle(knockback);
       bloodSplashParticleSystem.gameObject.transform.rotation = GetDirectionAngle(knockback);
       bloodSplashParticleSystem.Play();
+      // float damageForBreak = damageAfterResistances;
+      // while  (damageForBreak > 0) {
+      //   characterVisuals.BreakOffRandomBodyPart();
+      // }
+      // if (damageAfterResistances % twentyPercentOfMaxHealth)
+      // if (GetCharacterVital(CharacterVital.CurrentHealth) %  )
+      BreakBodyParts(damageAfterResistances, knockback);
       PlayDamageSounds();
       AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
     }
@@ -1379,6 +1385,26 @@ public class Character : WorldObject
     }
   }
 
+  void BreakBodyParts(float damageAfterResistances, Vector2 knockback)
+  {
+    int twentyPercentOfMaxHealth = Mathf.FloorToInt(GetCurrentMaxHealth() / 5f);
+    Debug.Log("current health: " + GetCharacterVital(CharacterVital.CurrentHealth));
+    Debug.Log("damageAfterResistances: " + damageAfterResistances);
+    Debug.Log("twentyPercent: " + twentyPercentOfMaxHealth);
+    Debug.Log("num parts to break: " + Mathf.FloorToInt(damageAfterResistances / twentyPercentOfMaxHealth));
+    Debug.Log("damage above threshhold: " + damageAfterResistances % twentyPercentOfMaxHealth + ", current health above threshold: " + GetCharacterVital(CharacterVital.CurrentHealth) % twentyPercentOfMaxHealth);
+    for (int i = 0; i < Mathf.FloorToInt(damageAfterResistances / twentyPercentOfMaxHealth); i++)
+    {
+      characterVisuals.BreakOffRandomBodyPart(knockback);
+    }
+    if (
+      GetCharacterVital(CharacterVital.CurrentHealth) < GetCurrentMaxHealth() // don't break on initial hit
+      && damageAfterResistances % twentyPercentOfMaxHealth > GetCharacterVital(CharacterVital.CurrentHealth) % twentyPercentOfMaxHealth
+    )
+    {
+      characterVisuals.BreakOffRandomBodyPart(knockback);
+    }
+  }
   public virtual void PlayDamageSounds()
   {
   }
@@ -1700,9 +1726,9 @@ public class Character : WorldObject
 
   public void EnableAttackReadyIndicator()
   {
-    Debug.Log("enable!");
     attackReadyIndicatorObject.SetActive(true);
   }
+
   public void UseTile()
   {
     // Debug.Log("using tile");

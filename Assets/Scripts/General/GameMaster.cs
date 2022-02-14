@@ -36,6 +36,7 @@ public class GameMaster : Singleton<GameMaster>
 
   public BaseVariable[] variablesToClearOnRespawn;
   public GameEvent[] eventsToRaiseOnRespawn;
+  public List<GameObject> objectsToDestroyOnRespawn;
   public GameObject nextSpawnPoint;
   private int previousSpawnPoint = 0;
 
@@ -54,6 +55,7 @@ public class GameMaster : Singleton<GameMaster>
     timeSinceStartup = new Stopwatch();
     trophyGrubCount.Value = 0;
     Time.fixedDeltaTime = 1 / 60f;
+    objectsToDestroyOnRespawn = new List<GameObject>();
     pathfinding = GetComponent<PathfindingSystem>();
     SetGameStatus(startingGameStatus);
     switch (GetGameStatus())
@@ -165,6 +167,11 @@ public class GameMaster : Singleton<GameMaster>
     SetGameStatus(DrossConstants.GameState.ChooseBug);
     canvasHandler.DisplaySelectBugScreen();
   }
+
+  public void RegisterObjectToDestroyOnRespawn(GameObject gameObject)
+  {
+    objectsToDestroyOnRespawn.Add(gameObject);
+  }
   private void Respawn(TraitSlotToTraitDictionary overrideTraits = null)
   {
     timeSinceStartup.Restart();
@@ -225,6 +232,11 @@ public class GameMaster : Singleton<GameMaster>
     {
       Destroy(obj);
     }
+    for (int i = objectsToDestroyOnRespawn.Count - 1; i >= 0; i--)
+    {
+      Destroy(objectsToDestroyOnRespawn[i]);
+    }
+    objectsToDestroyOnRespawn.Clear();
   }
 
   private GameObject ChooseSpawnPoint()

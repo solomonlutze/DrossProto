@@ -61,6 +61,8 @@ public class SkillEffect
   public Overrideable<bool> skipIfQueued = new Overrideable<bool>(false);
   [Tooltip("Animation only. Sets the 'IsGuarding' flag on the animator.")]
   public bool isGuarding;
+  [Tooltip("This skill resets the character's visuals.")]
+  public bool restoreCharacterVisuals;
 
   [FormerlySerializedAs("duration")]
   [Tooltip("Min time to spend in skill effect. Always define this!")]
@@ -86,7 +88,10 @@ public class SkillEffect
 
   public virtual void BeginSkillEffect(Character owner)
   {
-    owner.animator.SetBool("IsGuarding", isGuarding);
+    if (restoreCharacterVisuals)
+    {
+      owner.InitializeVisuals();
+    }
     List<Weapon> weaponInstances = new List<Weapon>();
     foreach (AttackSpawn weaponSpawn in weaponSpawns)
     {
@@ -126,7 +131,6 @@ public class SkillEffect
           owner.chargingUpParticleSystem.Stop();
           owner.fullyChargedParticleSystem.Play();
         }
-        Debug.Log("increasing charge level to " + owner.chargeLevel);
       }
     }
     return;

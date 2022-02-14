@@ -25,6 +25,23 @@ public enum BugSkeletonPart
 
 }
 
+public enum BreakableBugSkeletonPart
+{
+  HindlegRight = BugSkeletonPart.HindlegRight,
+  HindlegLeft = BugSkeletonPart.HindlegLeft,
+  MidlegRight = BugSkeletonPart.MidlegRight,
+  MidlegLeft = BugSkeletonPart.MidlegLeft,
+  ForelegRight = BugSkeletonPart.ForelegRight,
+  ForelegLeft = BugSkeletonPart.ForelegLeft,
+  AntennaRight = BugSkeletonPart.AntennaRight,
+  AntennaLeft = BugSkeletonPart.AntennaLeft,
+  HindwingRight = BugSkeletonPart.HindwingRight,
+  HindwingLeft = BugSkeletonPart.HindwingLeft,
+  ForewingRight = BugSkeletonPart.ForewingRight,
+  ForewingLeft = BugSkeletonPart.ForewingLeft
+
+}
+
 public class BugSkeletonImagesData : ScriptableObject
 {
   public static BugSkeletonPart[] bugSkeletonPartOrder = new BugSkeletonPart[]{
