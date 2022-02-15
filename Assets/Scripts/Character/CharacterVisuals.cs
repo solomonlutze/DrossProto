@@ -104,21 +104,42 @@ public class CharacterVisuals : MonoBehaviour
   public float knockbackMult = 3.5f;
   public float knockbackMultJitter = .5f;
   public float knockbackAngleJitter = 25f;
+  public float linearDragJitter = .5f;
+  public float angularVelocity = 3000;
+  public float angularDrag = 3;
+  public float angularDragJitter = .5f;
+  public float angularVelocityJitter = 500;
   public void BreakOffRandomBodyPart(Vector2 knockback)
   {
     int partToBreakIndex = UnityEngine.Random.Range(0, unbrokenBugParts.Count);
-    GameObject partToBreakSprite = skeletonPartToCharacterBodyPartVisual[unbrokenBugParts[partToBreakIndex]].gameObject;
-    GameObject brokenPart = Instantiate(partToBreakSprite, partToBreakSprite.transform.position, partToBreakSprite.transform.rotation);
+    CharacterBodyPartVisual partToBreakVisual = skeletonPartToCharacterBodyPartVisual[unbrokenBugParts[partToBreakIndex]];
+    BreakOffBodyPart(knockback, partToBreakVisual);
+    unbrokenBugParts.RemoveAt(partToBreakIndex);
+  }
+
+  public void BreakOffBodyPart(Vector2 knockback, CharacterBodyPartVisual partToBreakVisual)
+  {
+    GameObject brokenPart = Instantiate(partToBreakVisual.gameObject, partToBreakVisual.transform.position, partToBreakVisual.transform.rotation);
     brokenPart.transform.parent = null;
     brokenPart.AddComponent<DestroyOnPlayerRespawn>();
     Rigidbody2D rb = brokenPart.AddComponent<Rigidbody2D>();
     float randomAngleMod = UnityEngine.Random.Range(-knockbackAngleJitter, knockbackAngleJitter);
     Vector2 modifiedKnockback = Quaternion.Euler(0, 0, randomAngleMod) * knockback;
     rb.velocity = modifiedKnockback * (knockbackMult + UnityEngine.Random.Range(-knockbackMultJitter, knockbackMultJitter));
-    rb.drag = linearDrag;
-    rb.angularVelocity = 3000;
-    rb.angularDrag = 3;
-    skeletonPartToCharacterBodyPartVisual[unbrokenBugParts[partToBreakIndex]].spriteRenderer1.sprite = null;
-    unbrokenBugParts.RemoveAt(partToBreakIndex);
+    rb.drag = linearDrag + UnityEngine.Random.Range(-linearDragJitter, linearDragJitter);
+    rb.angularVelocity = angularVelocity + UnityEngine.Random.Range(-angularVelocityJitter, angularVelocityJitter);
+    rb.angularDrag = angularDrag + UnityEngine.Random.Range(-angularDragJitter, angularDragJitter);
+    partToBreakVisual.spriteRenderer1.sprite = null;
+  }
+
+  public void BreakOffRemainingBodyParts(Vector2 knockback)
+  {
+    foreach (CharacterBodyPartVisual visual in skeletonPartToCharacterBodyPartVisual.Values)
+    {
+      if (visual.spriteRenderer1.sprite != null) // part isn't broken
+      {
+        BreakOffBodyPart(knockback, visual);
+      }
+    }
   }
 }

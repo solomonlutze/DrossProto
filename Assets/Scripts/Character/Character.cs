@@ -1387,12 +1387,12 @@ public class Character : WorldObject
 
   void BreakBodyParts(float damageAfterResistances, Vector2 knockback)
   {
+    if (damageAfterResistances >= GetCharacterVital(CharacterVital.CurrentHealth))
+    {
+      characterVisuals.BreakOffRemainingBodyParts(knockback);
+      return;
+    }
     int twentyPercentOfMaxHealth = Mathf.FloorToInt(GetCurrentMaxHealth() / 5f);
-    Debug.Log("current health: " + GetCharacterVital(CharacterVital.CurrentHealth));
-    Debug.Log("damageAfterResistances: " + damageAfterResistances);
-    Debug.Log("twentyPercent: " + twentyPercentOfMaxHealth);
-    Debug.Log("num parts to break: " + Mathf.FloorToInt(damageAfterResistances / twentyPercentOfMaxHealth));
-    Debug.Log("damage above threshhold: " + damageAfterResistances % twentyPercentOfMaxHealth + ", current health above threshold: " + GetCharacterVital(CharacterVital.CurrentHealth) % twentyPercentOfMaxHealth);
     for (int i = 0; i < Mathf.FloorToInt(damageAfterResistances / twentyPercentOfMaxHealth); i++)
     {
       characterVisuals.BreakOffRandomBodyPart(knockback);
