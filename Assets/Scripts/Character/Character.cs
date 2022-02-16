@@ -1376,6 +1376,7 @@ public class Character : WorldObject
       // if (GetCharacterVital(CharacterVital.CurrentHealth) %  )
       BreakBodyParts(damageAfterResistances, knockback);
       PlayDamageSounds();
+      DoCameraShake(damageAfterResistances, knockbackDistance);
       AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
     }
     StartCoroutine(ApplyInvulnerability(damageSource));
@@ -1409,6 +1410,10 @@ public class Character : WorldObject
   {
   }
 
+  public virtual void DoCameraShake(float damageAfterResistances, float knockbackAmount)
+  {
+
+  }
   public int GetDamageTypeResistanceLevel(DamageType type) // we could also just return the 
   {
     return GetAttribute((CharacterAttribute)ProtectionAttributeData.DamageTypeToProtectionAttribute[type]);

@@ -216,6 +216,10 @@ public class GameMaster : Singleton<GameMaster>
     SetGameStatus(DrossConstants.GameState.Play);
   }
 
+  public void DoCameraShake(float duration, float magnitude)
+  {
+    mainCamera.GetComponent<SmoothFollow>().DoCameraShake(duration, magnitude);
+  }
   private void DoActivateOnPlayerRespawn()
   {
     GameObject[] objectsToActivate = GameObject.FindGameObjectsWithTag("ActivateOnPlayerRespawn");

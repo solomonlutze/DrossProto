@@ -505,6 +505,15 @@ public class PlayerController : Character
     base.PlayDamageSounds();
     AkSoundEngine.PostEvent("TriggerClergySmallEnemyHit", GameMaster.Instance.gameObject);
   }
+
+  public override void DoCameraShake(float damageAfterResistances, float knockbackDistance)
+  {
+
+    float duration = .06f * knockbackDistance;
+    float magnitude = .04f * knockbackDistance;
+    GameMaster.Instance.DoCameraShake(duration, magnitude);
+    Debug.Log("camera shake?" + duration + ", " + magnitude);
+  }
   override public void Die()
   {
     GameMaster.Instance.KillPlayer(pupa);
