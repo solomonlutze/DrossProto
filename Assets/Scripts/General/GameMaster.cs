@@ -56,6 +56,7 @@ public class GameMaster : Singleton<GameMaster>
     timeSinceStartup = new Stopwatch();
     trophyGrubCount.Value = 0;
     Time.fixedDeltaTime = 1 / 60f;
+    fixedDeltaTime = Time.fixedDeltaTime;
     objectsToDestroyOnRespawn = new List<GameObject>();
     pathfinding = GetComponent<PathfindingSystem>();
     SetGameStatus(startingGameStatus);
@@ -152,6 +153,7 @@ public class GameMaster : Singleton<GameMaster>
   public void UnpauseGame()
   {
     Time.timeScale = 1;
+    Time.fixedDeltaTime = fixedDeltaTime * Time.timeScale;
     timeSinceStartup.Start();
   }
 
@@ -223,6 +225,7 @@ public class GameMaster : Singleton<GameMaster>
     mainCamera.GetComponent<SmoothFollow>().DoCameraShake(duration, magnitude);
   }
 
+  private float fixedDeltaTime;
   public void DoSlowdown(float baseSlowdownDuration)
   {
     StartCoroutine(Slowdown(combatJuiceConstants.slowdownTimescale, baseSlowdownDuration * combatJuiceConstants.slowdownDurationMult));
@@ -231,10 +234,12 @@ public class GameMaster : Singleton<GameMaster>
   public IEnumerator Slowdown(float mult, float duration)
   {
     Time.timeScale = 1 * mult;
+    Time.fixedDeltaTime = fixedDeltaTime * Time.timeScale;
     yield return WaitForRealSeconds(duration);
     if (!isPaused)
     {
       Time.timeScale = 1;
+      Time.fixedDeltaTime = fixedDeltaTime * Time.timeScale;
     }
   }
   private void DoActivateOnPlayerRespawn()
