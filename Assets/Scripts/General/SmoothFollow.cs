@@ -36,8 +36,6 @@ public class SmoothFollow : MonoBehaviour
     }
   }
 
-  // public float debug_shakedurationmult;
-  // public float debug_shakemagnitudemult;
   public void DoCameraShake(float duration, float magnitude)
   {
     cameraShakeTime = duration;

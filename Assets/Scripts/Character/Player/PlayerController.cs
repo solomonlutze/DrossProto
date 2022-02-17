@@ -509,10 +509,9 @@ public class PlayerController : Character
   public override void DoCameraShake(float damageAfterResistances, float knockbackDistance)
   {
 
-    float duration = .06f * knockbackDistance;
-    float magnitude = .04f * knockbackDistance;
+    float duration = combatJuiceConstants.cameraShakeDurationMult_Player * knockbackDistance;
+    float magnitude = combatJuiceConstants.cameraShakeMagnitudeMult_Player * knockbackDistance;
     GameMaster.Instance.DoCameraShake(duration, magnitude);
-    Debug.Log("camera shake?" + duration + ", " + magnitude);
   }
   override public void Die()
   {

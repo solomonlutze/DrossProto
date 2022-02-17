@@ -41,6 +41,7 @@ public class GameMaster : Singleton<GameMaster>
   private int previousSpawnPoint = 0;
 
   public LymphTypeToSpriteDictionary lymphTypeToSpriteMapping;
+  public CombatJuiceData combatJuiceConstants;
   public Stopwatch timeSinceStartup;
   public Camera mainCamera;
   public Camera camera2D; // god save me
@@ -127,6 +128,7 @@ public class GameMaster : Singleton<GameMaster>
     PauseGame();
     SetGameStatus(DrossConstants.GameState.Menu);
   }
+
   public void SetGamePaused()
   {
     PauseGame();
@@ -220,6 +222,21 @@ public class GameMaster : Singleton<GameMaster>
   {
     mainCamera.GetComponent<SmoothFollow>().DoCameraShake(duration, magnitude);
   }
+
+  public void DoSlowdown(float baseSlowdownDuration)
+  {
+    StartCoroutine(Slowdown(combatJuiceConstants.slowdownTimescale, baseSlowdownDuration * combatJuiceConstants.slowdownDurationMult));
+  }
+
+  public IEnumerator Slowdown(float mult, float duration)
+  {
+    Time.timeScale = 1 * mult;
+    yield return WaitForRealSeconds(duration);
+    if (!isPaused)
+    {
+      Time.timeScale = 1;
+    }
+  }
   private void DoActivateOnPlayerRespawn()
   {
     GameObject[] objectsToActivate = GameObject.FindGameObjectsWithTag("ActivateOnPlayerRespawn");
@@ -308,6 +325,17 @@ public class GameMaster : Singleton<GameMaster>
     foreach (GameEvent eventToRaise in eventsToRaise)
     {
       eventToRaise.Raise();
+    }
+  }
+
+  //continues running while paused, jsyk
+  public static IEnumerator WaitForRealSeconds(float time)
+  {
+    while (time > 0)
+    {
+      time -= Mathf.Clamp(Time.unscaledDeltaTime, 0, .02f);
+      UnityEngine.Debug.Log("time remaining: " + time);
+      yield return null;
     }
   }
 }

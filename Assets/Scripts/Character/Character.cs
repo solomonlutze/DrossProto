@@ -349,6 +349,7 @@ public class Character : WorldObject
 
   public Color damagedColor;
 
+  public CombatJuiceData combatJuiceConstants;
   [Header("Prefabs")]
   public MoltCasting moltCasingPrefab;
   public GameObject bloodSplatterPrefab;
@@ -1362,21 +1363,7 @@ public class Character : WorldObject
     else if (damageAfterResistances > 0)
     {
 
-      float knockbackDistance = knockback.magnitude;
-      GameObject splatter = Instantiate(bloodSplatterPrefab, transform.position + knockback * knockbackDistance * .1f, transform.rotation);
-      splatter.transform.localScale = new Vector3(.25f + knockbackDistance, .25f + knockbackDistance * .5f, 0);
-      splatter.transform.rotation = GetDirectionAngle(knockback);
-      bloodSplashParticleSystem.gameObject.transform.rotation = GetDirectionAngle(knockback);
-      bloodSplashParticleSystem.Play();
-      // float damageForBreak = damageAfterResistances;
-      // while  (damageForBreak > 0) {
-      //   characterVisuals.BreakOffRandomBodyPart();
-      // }
-      // if (damageAfterResistances % twentyPercentOfMaxHealth)
-      // if (GetCharacterVital(CharacterVital.CurrentHealth) %  )
-      BreakBodyParts(damageAfterResistances, knockback);
-      PlayDamageSounds();
-      DoCameraShake(damageAfterResistances, knockbackDistance);
+      DoDamageFx(damageAfterResistances, knockback);
       AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
     }
     StartCoroutine(ApplyInvulnerability(damageSource));
@@ -1386,6 +1373,32 @@ public class Character : WorldObject
     }
   }
 
+  void DoDamageFx(float damageAfterResistances, Vector3 knockback)
+  {
+    float knockbackDistance = knockback.magnitude;
+    GameObject splatter = Instantiate(
+      bloodSplatterPrefab,
+      transform.position + knockback * knockbackDistance * combatJuiceConstants.splatterSpawnDistanceMult,
+      transform.rotation
+    );
+    splatter.transform.localScale = new Vector3(
+      combatJuiceConstants.splatterBaseLength + (knockbackDistance * combatJuiceConstants.splatterLengthMult),
+      combatJuiceConstants.splatterBaseWidth + (knockbackDistance * combatJuiceConstants.splatterWidthMult),
+      0
+    );
+    splatter.transform.rotation = GetDirectionAngle(knockback);
+    bloodSplashParticleSystem.gameObject.transform.rotation = GetDirectionAngle(knockback);
+    bloodSplashParticleSystem.Play();
+    float baseSlowdownDuration = knockbackDistance;
+    if (damageAfterResistances >= GetCharacterVital(CharacterVital.CurrentHealth))
+    {
+      baseSlowdownDuration = combatJuiceConstants.deathSlowdownBaseDuration;
+    }
+    GameMaster.Instance.DoSlowdown(baseSlowdownDuration);
+    BreakBodyParts(damageAfterResistances, knockback);
+    PlayDamageSounds();
+    DoCameraShake(damageAfterResistances, knockbackDistance);
+  }
   void BreakBodyParts(float damageAfterResistances, Vector2 knockback)
   {
     if (damageAfterResistances >= GetCharacterVital(CharacterVital.CurrentHealth))

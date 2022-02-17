@@ -513,8 +513,8 @@ public class AiStateController : Character
 
   public override void DoCameraShake(float damageAfterResistances, float knockbackDistance)
   {
-    float duration = .05f * knockbackDistance;
-    float magnitude = .03f * knockbackDistance;
+    float duration = combatJuiceConstants.cameraShakeDurationMult_Npc * knockbackDistance;
+    float magnitude = combatJuiceConstants.cameraShakeMagnitudeMult_Npc * knockbackDistance;
     GameMaster.Instance.DoCameraShake(duration, magnitude);
   }
   // public override CharacterSkillData GetSelectedCharacterSkill()
