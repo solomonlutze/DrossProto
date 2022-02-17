@@ -1381,6 +1381,7 @@ public class Character : WorldObject
       transform.position + knockback * knockbackDistance * combatJuiceConstants.splatterSpawnDistanceMult,
       transform.rotation
     );
+    splatter.GetComponentInChildren<SpriteRenderer>().color = traits[RandomTraitSlot()].primaryColor;
     splatter.transform.localScale = new Vector3(
       combatJuiceConstants.splatterBaseLength + (knockbackDistance * combatJuiceConstants.splatterLengthMult),
       combatJuiceConstants.splatterBaseWidth + (knockbackDistance * combatJuiceConstants.splatterWidthMult),
@@ -2165,4 +2166,11 @@ public class Character : WorldObject
     }
     return skills;
   }
+
+  public static TraitSlot RandomTraitSlot()
+  {
+    TraitSlot[] values = (TraitSlot[])Enum.GetValues(typeof(TraitSlot));
+    return values[UnityEngine.Random.Range(0, values.Length)];
+  }
+
 }

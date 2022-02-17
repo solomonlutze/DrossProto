@@ -242,6 +242,7 @@ public class GameMaster : Singleton<GameMaster>
       Time.fixedDeltaTime = fixedDeltaTime * Time.timeScale;
     }
   }
+
   private void DoActivateOnPlayerRespawn()
   {
     GameObject[] objectsToActivate = GameObject.FindGameObjectsWithTag("ActivateOnPlayerRespawn");
@@ -339,7 +340,6 @@ public class GameMaster : Singleton<GameMaster>
     while (time > 0)
     {
       time -= Mathf.Clamp(Time.unscaledDeltaTime, 0, .02f);
-      UnityEngine.Debug.Log("time remaining: " + time);
       yield return null;
     }
   }
