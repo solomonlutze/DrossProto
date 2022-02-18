@@ -1397,6 +1397,10 @@ public class Character : WorldObject
     GradientColorKey gck = new GradientColorKey(randomTraitColor, 0f);
     gradient.SetKeys(new GradientColorKey[] { gck }, gradient.alphaKeys);
     bloodSplashParticleSystem.SetGradient("ColorOverLife", gradient);
+    float velocityMin = combatJuiceConstants.bloodSplashParticleVelocityMin + combatJuiceConstants.bloodSplashParticleVelocityKnockbackMult * knockbackDistance;
+    Debug.Log("velocityMin " + velocityMin);
+    bloodSplashParticleSystem.SetFloat("VelocityMin", velocityMin);
+    bloodSplashParticleSystem.SetFloat("VelocityMax", velocityMin * combatJuiceConstants.bloodSplashParticleVelocityMaxMult);
     bloodSplashParticleSystem.Play();
     float baseSlowdownDuration = knockbackDistance;
     if (damageAfterResistances >= GetCharacterVital(CharacterVital.CurrentHealth))

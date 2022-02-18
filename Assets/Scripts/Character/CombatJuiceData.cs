@@ -32,5 +32,8 @@ public class CombatJuiceData : ScriptableObject
   public int extraBloodSplashParticlePerDamage = 10;
   [Tooltip("min count * bloodSplashParticleCountMaxMult = max that can spawn")]
   public float bloodSplashParticleCountMaxMult = 1.5f;
+  public float bloodSplashParticleVelocityMin = 5;
+  public float bloodSplashParticleVelocityMaxMult = 1.5f;
+  public float bloodSplashParticleVelocityKnockbackMult = .8f;
   public Gradient bloodSplashColorOverLife;
 }
