@@ -1381,7 +1381,8 @@ public class Character : WorldObject
       transform.position + knockback * knockbackDistance * combatJuiceConstants.splatterSpawnDistanceMult,
       transform.rotation
     );
-    splatter.GetComponentInChildren<SpriteRenderer>().color = traits[RandomTraitSlot()].primaryColor;
+    Color randomTraitColor = traits[RandomTraitSlot()].primaryColor;
+    splatter.GetComponentInChildren<SpriteRenderer>().color = randomTraitColor;
     splatter.transform.localScale = new Vector3(
       combatJuiceConstants.splatterBaseLength + (knockbackDistance * combatJuiceConstants.splatterLengthMult),
       combatJuiceConstants.splatterBaseWidth + (knockbackDistance * combatJuiceConstants.splatterWidthMult),
@@ -1389,6 +1390,13 @@ public class Character : WorldObject
     );
     splatter.transform.rotation = GetDirectionAngle(knockback);
     bloodSplashParticleSystem.gameObject.transform.rotation = GetDirectionAngle(knockback);
+    int splashParticleCountMin = Mathf.CeilToInt(combatJuiceConstants.bloodSplashParticleCountMin + damageAfterResistances / combatJuiceConstants.extraBloodSplashParticlePerDamage);
+    bloodSplashParticleSystem.SetInt("CountMin", splashParticleCountMin);
+    bloodSplashParticleSystem.SetInt("CountMax", Mathf.CeilToInt(splashParticleCountMin * combatJuiceConstants.bloodSplashParticleCountMaxMult));
+    Gradient gradient = combatJuiceConstants.bloodSplashColorOverLife;
+    GradientColorKey gck = new GradientColorKey(randomTraitColor, 0f);
+    gradient.SetKeys(new GradientColorKey[] { gck }, gradient.alphaKeys);
+    bloodSplashParticleSystem.SetGradient("ColorOverLife", gradient);
     bloodSplashParticleSystem.Play();
     float baseSlowdownDuration = knockbackDistance;
     if (damageAfterResistances >= GetCharacterVital(CharacterVital.CurrentHealth))
@@ -1399,6 +1407,7 @@ public class Character : WorldObject
     BreakBodyParts(damageAfterResistances, knockback);
     PlayDamageSounds();
     DoCameraShake(damageAfterResistances, knockbackDistance);
+
   }
   void BreakBodyParts(float damageAfterResistances, Vector2 knockback)
   {

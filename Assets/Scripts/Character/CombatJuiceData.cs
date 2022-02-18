@@ -26,22 +26,11 @@ public class CombatJuiceData : ScriptableObject
   public float cameraShakeDurationMult_Npc = .05f;
   [Tooltip("camera shake magnitude (* knockbackDistance) (npc only)")]
   public float cameraShakeMagnitudeMult_Npc = .03f;
-
-  /*
-  float knockbackDistance = knockback.magnitude;
-    GameObject splatter = Instantiate(bloodSplatterPrefab, transform.position + knockback * knockbackDistance * .1f, transform.rotation);
-    splatter.transform.localScale = new Vector3(.25f + knockbackDistance, .25f + knockbackDistance * .5f, 0);
-    splatter.transform.rotation = GetDirectionAngle(knockback);
-    bloodSplashParticleSystem.gameObject.transform.rotation = GetDirectionAngle(knockback);
-    bloodSplashParticleSystem.Play();
-    float slowdown = knockbackDistance;
-    if (damageAfterResistances >= GetCharacterVital(CharacterVital.CurrentHealth))
-    {
-      slowdown = 3;
-    }
-    GameMaster.Instance.DoSlowdown(.2f, slowdown);
-    BreakBodyParts(damageAfterResistances, knockback);
-    PlayDamageSounds();
-    DoCameraShake(damageAfterResistances, knockbackDistance);
-    */
+  [Tooltip("fewest particles that can spawn?")]
+  public int bloodSplashParticleCountMin = 3;
+  [Tooltip("how many damage points spawns an extra particle?")]
+  public int extraBloodSplashParticlePerDamage = 10;
+  [Tooltip("min count * bloodSplashParticleCountMaxMult = max that can spawn")]
+  public float bloodSplashParticleCountMaxMult = 1.5f;
+  public Gradient bloodSplashColorOverLife;
 }
