@@ -1405,6 +1405,8 @@ public class Character : WorldObject
     float baseSlowdownDuration = knockbackDistance;
     if (damageAfterResistances >= GetCharacterVital(CharacterVital.CurrentHealth))
     {
+      bloodSplashParticleSystem.transform.parent = null; // so that it plays when we die
+      bloodSplashParticleSystem.gameObject.AddComponent<DestroyOnPlayerRespawn>(); // so it doesn't stick around forever
       baseSlowdownDuration = combatJuiceConstants.deathSlowdownBaseDuration;
     }
     GameMaster.Instance.DoSlowdown(baseSlowdownDuration);
