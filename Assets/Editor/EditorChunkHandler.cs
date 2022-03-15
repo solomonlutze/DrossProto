@@ -16,16 +16,16 @@ public static class EditorChunkHandler
 
   private static void OnSceneGUI(SceneView sceneView)
   {
-    if (sceneView != null && sceneView.camera != null)
+    if (sceneView != null && sceneView.camera != null && GridManager.Instance != null)
     {
       TileLocation cameraLocation = new TileLocation(sceneView.camera.transform.position);
       if (cameraCurrentChunk != cameraLocation.chunkCoordinates)
       {
         cameraCurrentChunk = cameraLocation.chunkCoordinates;
-        if (GridManager.Instance.loadedChunks != null)
-        {
-          Debug.Log("number of currently-loaded chunks: " + GridManager.Instance.loadedChunks.Count);
-        }
+        // if (GridManager.Instance.loadedChunks != null)
+        // {
+        //   Debug.Log("number of currently-loaded chunks: " + GridManager.Instance.loadedChunks.Count);
+        // }
         GridManager.Instance.StartLoadAndUnloadChunks(cameraLocation);
       }
     }

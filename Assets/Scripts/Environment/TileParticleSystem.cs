@@ -28,34 +28,28 @@ public class TileParticleSystem : MonoBehaviour
   void Update()
   {
     if (owningTileInfo == null) { return; }
-    Debug.Log("particle system update");
     if (hazardWarmupSystem)
     {
-      Debug.Log("checking hazard warmup");
       if (owningTileInfo.IsEnvironmentalDamageSourceWarmup)
       {
         if (!warmupPlaying)
         {
-          Debug.Log("hazardWarmup play");
           warmupPlaying = true;
           hazardWarmupSystem.Play();
         }
       }
       else
       {
-        Debug.Log("hazardWarmup Stop");
         warmupPlaying = false;
         hazardWarmupSystem.Stop();
       }
     }
     if (hazardActiveSystem)
     {
-      Debug.Log("checking hazard active");
       if (owningTileInfo.IsEnvironmentalDamageSourceActive)
       {
         if (!activePlaying)
         {
-          Debug.Log("hazardActive play");
           activePlaying = true;
           hazardActiveSystem.Play();
         }
@@ -63,7 +57,6 @@ public class TileParticleSystem : MonoBehaviour
       else
       {
         activePlaying = false;
-        Debug.Log("hazardActive stop");
         hazardActiveSystem.Stop();
       }
     }

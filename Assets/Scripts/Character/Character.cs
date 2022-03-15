@@ -284,6 +284,8 @@ public class Character : WorldObject
   public VisualEffect chargingUpParticleSystem;
   public VisualEffect chargeLevelIncreaseParticleSystem;
   public VisualEffect fullyChargedParticleSystem;
+  public VisualEffect bloodSplashParticleSystem;
+  public GameObject attackReadyIndicatorObject;
 
   [Header("Game State Info")]
   public Vector3 previousPosition = Vector3.zero;
@@ -347,8 +349,10 @@ public class Character : WorldObject
 
   public Color damagedColor;
 
+  public CombatJuiceData combatJuiceConstants;
   [Header("Prefabs")]
   public MoltCasting moltCasingPrefab;
+  public GameObject bloodSplatterPrefab;
 
   protected virtual void Awake()
   {
@@ -393,11 +397,13 @@ public class Character : WorldObject
       awareness.Init(this);
       awareness.transform.localScale = new Vector3(awarenessRange, 1, 1);
     }
-    characterVisuals.SetCharacterVisuals(traits);
     InitializeFromCharacterData();
     InitializeAnimationParameters();
   }
-
+  public void InitializeVisuals()
+  {
+    characterVisuals.SetCharacterVisuals(traits);
+  }
   private void InitializeFromCharacterData()
   {
     if (defaultCharacterData != null)
@@ -1349,27 +1355,94 @@ public class Character : WorldObject
       EndSkill();
     }
     InterruptAnimation();
+    Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
     if (damageSource.damageType != DamageType.Physical)
     {
       AdjustElementalDamageBuildup(damageSource.damageType, damageAfterResistances);
     }
-    else
+    else if (damageAfterResistances > 0)
     {
+
+      DoDamageFx(damageAfterResistances, knockback);
       AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
-      PlayDamageSounds();
     }
     StartCoroutine(ApplyInvulnerability(damageSource));
-    Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
     if (knockback != Vector3.zero)
     {
       BeginKnockback(knockback);
     }
   }
 
+  void DoDamageFx(float damageAfterResistances, Vector3 knockback)
+  {
+    float knockbackDistance = knockback.magnitude;
+    GameObject splatter = Instantiate(
+      bloodSplatterPrefab,
+      transform.position + knockback * knockbackDistance * combatJuiceConstants.splatterSpawnDistanceMult,
+      transform.rotation
+    );
+    Color randomTraitColor = traits[RandomTraitSlot()].primaryColor;
+    splatter.GetComponentInChildren<SpriteRenderer>().color = randomTraitColor;
+    splatter.transform.localScale = new Vector3(
+      combatJuiceConstants.splatterBaseLength + (knockbackDistance * combatJuiceConstants.splatterLengthMult),
+      combatJuiceConstants.splatterBaseWidth + (knockbackDistance * combatJuiceConstants.splatterWidthMult),
+      0
+    );
+    splatter.transform.rotation = GetDirectionAngle(knockback);
+    bloodSplashParticleSystem.gameObject.transform.rotation = GetDirectionAngle(knockback);
+    int splashParticleCountMin = Mathf.CeilToInt(combatJuiceConstants.bloodSplashParticleCountMin + damageAfterResistances / combatJuiceConstants.extraBloodSplashParticlePerDamage);
+    bloodSplashParticleSystem.SetInt("CountMin", splashParticleCountMin);
+    bloodSplashParticleSystem.SetInt("CountMax", Mathf.CeilToInt(splashParticleCountMin * combatJuiceConstants.bloodSplashParticleCountMaxMult));
+    Gradient gradient = combatJuiceConstants.bloodSplashColorOverLife;
+    GradientColorKey gck = new GradientColorKey(randomTraitColor, 0f);
+    gradient.SetKeys(new GradientColorKey[] { gck }, gradient.alphaKeys);
+    bloodSplashParticleSystem.SetGradient("ColorOverLife", gradient);
+    float velocityMin = combatJuiceConstants.bloodSplashParticleVelocityMin + combatJuiceConstants.bloodSplashParticleVelocityKnockbackMult * knockbackDistance;
+    Debug.Log("velocityMin " + velocityMin);
+    bloodSplashParticleSystem.SetFloat("VelocityMin", velocityMin);
+    bloodSplashParticleSystem.SetFloat("VelocityMax", velocityMin * combatJuiceConstants.bloodSplashParticleVelocityMaxMult);
+    bloodSplashParticleSystem.Play();
+    float baseSlowdownDuration = knockbackDistance;
+    if (damageAfterResistances >= GetCharacterVital(CharacterVital.CurrentHealth))
+    {
+      bloodSplashParticleSystem.transform.parent = null; // so that it plays when we die
+      bloodSplashParticleSystem.gameObject.AddComponent<DestroyOnPlayerRespawn>(); // so it doesn't stick around forever
+      baseSlowdownDuration = combatJuiceConstants.deathSlowdownBaseDuration;
+    }
+    GameMaster.Instance.DoSlowdown(baseSlowdownDuration);
+    BreakBodyParts(damageAfterResistances, knockback);
+    PlayDamageSounds();
+    DoCameraShake(damageAfterResistances, knockbackDistance);
+
+  }
+  void BreakBodyParts(float damageAfterResistances, Vector2 knockback)
+  {
+    if (damageAfterResistances >= GetCharacterVital(CharacterVital.CurrentHealth))
+    {
+      characterVisuals.BreakOffRemainingBodyParts(knockback);
+      return;
+    }
+    int twentyPercentOfMaxHealth = Mathf.FloorToInt(GetCurrentMaxHealth() / 5f);
+    for (int i = 0; i < Mathf.FloorToInt(damageAfterResistances / twentyPercentOfMaxHealth); i++)
+    {
+      characterVisuals.BreakOffRandomBodyPart(knockback);
+    }
+    if (
+      GetCharacterVital(CharacterVital.CurrentHealth) < GetCurrentMaxHealth() // don't break on initial hit
+      && damageAfterResistances % twentyPercentOfMaxHealth > GetCharacterVital(CharacterVital.CurrentHealth) % twentyPercentOfMaxHealth
+    )
+    {
+      characterVisuals.BreakOffRandomBodyPart(knockback);
+    }
+  }
   public virtual void PlayDamageSounds()
   {
   }
 
+  public virtual void DoCameraShake(float damageAfterResistances, float knockbackAmount)
+  {
+
+  }
   public int GetDamageTypeResistanceLevel(DamageType type) // we could also just return the 
   {
     return GetAttribute((CharacterAttribute)ProtectionAttributeData.DamageTypeToProtectionAttribute[type]);
@@ -1685,6 +1758,10 @@ public class Character : WorldObject
     po.OnLayerChange();
   }
 
+  public void EnableAttackReadyIndicator()
+  {
+    attackReadyIndicatorObject.SetActive(true);
+  }
 
   public void UseTile()
   {
@@ -2104,4 +2181,11 @@ public class Character : WorldObject
     }
     return skills;
   }
+
+  public static TraitSlot RandomTraitSlot()
+  {
+    TraitSlot[] values = (TraitSlot[])Enum.GetValues(typeof(TraitSlot));
+    return values[UnityEngine.Random.Range(0, values.Length)];
+  }
+
 }

@@ -13,12 +13,11 @@ public class CameraSettings
     // settings.easingEnabled = true;
     // settings.easingDuration = 0.6f;
     // settings.dynamicClip = false;
-    settings.fieldOfView = 130f;
+    settings.fieldOfView = 140f;
     // settings.nearClip = 0.01f;
     // settings.farClip = 1000f;
     // settings.occlusionCulling = true;
     SceneView sceneView = SceneView.lastActiveSceneView;
-    Debug.Log("updating camera settings");
     sceneView.cameraSettings = settings;
   }
 }

@@ -36,10 +36,12 @@ public class GameMaster : Singleton<GameMaster>
 
   public BaseVariable[] variablesToClearOnRespawn;
   public GameEvent[] eventsToRaiseOnRespawn;
+  public List<GameObject> objectsToDestroyOnRespawn;
   public GameObject nextSpawnPoint;
   private int previousSpawnPoint = 0;
 
   public LymphTypeToSpriteDictionary lymphTypeToSpriteMapping;
+  public CombatJuiceData combatJuiceConstants;
   public Stopwatch timeSinceStartup;
   public Camera mainCamera;
   public Camera camera2D; // god save me
@@ -54,6 +56,8 @@ public class GameMaster : Singleton<GameMaster>
     timeSinceStartup = new Stopwatch();
     trophyGrubCount.Value = 0;
     Time.fixedDeltaTime = 1 / 60f;
+    fixedDeltaTime = Time.fixedDeltaTime;
+    objectsToDestroyOnRespawn = new List<GameObject>();
     pathfinding = GetComponent<PathfindingSystem>();
     SetGameStatus(startingGameStatus);
     switch (GetGameStatus())
@@ -125,6 +129,7 @@ public class GameMaster : Singleton<GameMaster>
     PauseGame();
     SetGameStatus(DrossConstants.GameState.Menu);
   }
+
   public void SetGamePaused()
   {
     PauseGame();
@@ -148,6 +153,7 @@ public class GameMaster : Singleton<GameMaster>
   public void UnpauseGame()
   {
     Time.timeScale = 1;
+    Time.fixedDeltaTime = fixedDeltaTime * Time.timeScale;
     timeSinceStartup.Start();
   }
 
@@ -164,6 +170,11 @@ public class GameMaster : Singleton<GameMaster>
     SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     SetGameStatus(DrossConstants.GameState.ChooseBug);
     canvasHandler.DisplaySelectBugScreen();
+  }
+
+  public void RegisterObjectToDestroyOnRespawn(GameObject gameObject)
+  {
+    objectsToDestroyOnRespawn.Add(gameObject);
   }
   private void Respawn(TraitSlotToTraitDictionary overrideTraits = null)
   {
@@ -209,6 +220,29 @@ public class GameMaster : Singleton<GameMaster>
     SetGameStatus(DrossConstants.GameState.Play);
   }
 
+  public void DoCameraShake(float duration, float magnitude)
+  {
+    mainCamera.GetComponent<SmoothFollow>().DoCameraShake(duration, magnitude);
+  }
+
+  private float fixedDeltaTime;
+  public void DoSlowdown(float baseSlowdownDuration)
+  {
+    StartCoroutine(Slowdown(combatJuiceConstants.slowdownTimescale, baseSlowdownDuration * combatJuiceConstants.slowdownDurationMult));
+  }
+
+  public IEnumerator Slowdown(float mult, float duration)
+  {
+    Time.timeScale = 1 * mult;
+    Time.fixedDeltaTime = fixedDeltaTime * Time.timeScale;
+    yield return WaitForRealSeconds(duration);
+    if (!isPaused)
+    {
+      Time.timeScale = 1;
+      Time.fixedDeltaTime = fixedDeltaTime * Time.timeScale;
+    }
+  }
+
   private void DoActivateOnPlayerRespawn()
   {
     GameObject[] objectsToActivate = GameObject.FindGameObjectsWithTag("ActivateOnPlayerRespawn");
@@ -225,6 +259,11 @@ public class GameMaster : Singleton<GameMaster>
     {
       Destroy(obj);
     }
+    for (int i = objectsToDestroyOnRespawn.Count - 1; i >= 0; i--)
+    {
+      Destroy(objectsToDestroyOnRespawn[i]);
+    }
+    objectsToDestroyOnRespawn.Clear();
   }
 
   private GameObject ChooseSpawnPoint()
@@ -292,6 +331,16 @@ public class GameMaster : Singleton<GameMaster>
     foreach (GameEvent eventToRaise in eventsToRaise)
     {
       eventToRaise.Raise();
+    }
+  }
+
+  //continues running while paused, jsyk
+  public static IEnumerator WaitForRealSeconds(float time)
+  {
+    while (time > 0)
+    {
+      time -= Mathf.Clamp(Time.unscaledDeltaTime, 0, .02f);
+      yield return null;
     }
   }
 }

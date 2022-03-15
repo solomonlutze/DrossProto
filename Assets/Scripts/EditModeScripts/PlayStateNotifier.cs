@@ -15,7 +15,7 @@ public class PlayStateNotifier
     if (playModeState == PlayModeStateChange.EnteredEditMode)
     {
       inEditMode = true;
-      // Shader.EnableKeyword("INEDITMODE");
+      Shader.EnableKeyword("INEDITMODE");
     }
     else if (playModeState == PlayModeStateChange.EnteredPlayMode)
     {

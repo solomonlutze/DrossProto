@@ -510,6 +510,13 @@ public class AiStateController : Character
     AkSoundEngine.PostEvent("TriggerClergySmallPlayerHit", GameMaster.Instance.gameObject);
 
   }
+
+  public override void DoCameraShake(float damageAfterResistances, float knockbackDistance)
+  {
+    float duration = combatJuiceConstants.cameraShakeDurationMult_Npc * knockbackDistance;
+    float magnitude = combatJuiceConstants.cameraShakeMagnitudeMult_Npc * knockbackDistance;
+    GameMaster.Instance.DoCameraShake(duration, magnitude);
+  }
   // public override CharacterSkillData GetSelectedCharacterSkill()
   // {
   //   return GetSkillDataForAttackType(selectedAttackType);

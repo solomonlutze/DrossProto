@@ -33,6 +33,7 @@ public class MoveLocalAiAction : AiAction
 
   void CalculateWeightedMovementOptions(AiStateController controller, Vector3 targetPosition)
   {
+    Debug.Log("calculate!");
     int angle = 0;
     Vector2 bestFitInput = Vector2.zero;
     float bestFitWeight = 0;
@@ -53,14 +54,10 @@ public class MoveLocalAiAction : AiAction
       Quaternion rot = Quaternion.AngleAxis(angle, Vector3.forward);
       angle += movementOptionsAngleInterval;
       Vector3 possibleMovementDirection = rot * towardsTarget;
-      if (
-        !PathfindingSystem.Instance.CanPassOverTile(
-           controller.transform.position.z,
-          GridManager.Instance.GetTileAtWorldPosition(
+      EnvironmentTileInfo tile = GridManager.Instance.GetTileAtWorldPosition(
             controller.transform.position + possibleMovementDirection.normalized * movementOptionProjectRange, controller.currentFloor
-          ), controller
-        )
-        )
+      );
+      if (tile.IsEmpty() || !PathfindingSystem.Instance.CanPassOverTile(controller.transform.position.z, tile, controller))
       {
         continue;
       }

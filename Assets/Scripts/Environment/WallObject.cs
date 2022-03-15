@@ -44,7 +44,6 @@ public class WallObject : MonoBehaviour, IPoolable
       }
       if (progress > 1 - heightInfo.x && groundTile != null)
       {
-        Debug.Log("creating wall piece " + groundTile);
         CreateWallPiece(groundTile, i);
       }
       else if (progress < 1 - heightInfo.y && ceilingTile != null)

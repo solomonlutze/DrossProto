@@ -286,14 +286,12 @@ public class WorldGridData : ScriptableObject
     }
     if (eti.groundTileType != null)
     {
-      Debug.Log("setting ground info to " + eti.groundTileType);
       tilePlacedObjects.wallObject.SetGroundInfo(eti.groundTileType, tileData.groundHeight);
     }
     if (eti.objectTileType != null)
     {
       tilePlacedObjects.wallObject.SetCeilingInfo(eti.objectTileType, tileData.ceilingHeight);
     }
-    Debug.Log("should be init'ing wall object");
     tilePlacedObjects.wallObject.Init(tileLocation);
   }
 
@@ -333,7 +331,11 @@ public class WorldGridData : ScriptableObject
       }
       if (placedObject.tileParticleSystem != null)
       {
+#if UNITY_EDITOR
+        DestroyImmediate(placedObject.tileParticleSystem.gameObject);
+#else
         Destroy(placedObject.tileParticleSystem.gameObject);
+#endif
       }
       GridManager.Instance.placedGameObjects.Remove(key);
     }
@@ -605,7 +607,7 @@ public class WorldGridData : ScriptableObject
           }
           EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(loc);
           CreateTileParticleSystem(loc);
-          if (!tileData.IsEmpty() && tileInfo.objectTileType != null)
+          if (!tileData.IsEmpty() || tileInfo.objectTileType != null) // || not && to allow ground to come up!
           {
             AdjustWallObject(
               loc

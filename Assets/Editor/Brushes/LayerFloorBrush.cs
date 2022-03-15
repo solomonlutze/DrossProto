@@ -135,13 +135,19 @@ namespace UnityEditor.Tilemaps
     public override void Pick(GridLayout gridLayout, GameObject brushTarget, BoundsInt position, Vector3Int pickStart)
     {
       LayerFloor parentLayerFloor = brushTarget.GetComponentInParent<LayerFloor>();
-
+      SceneView sceneView = SceneView.lastActiveSceneView;
+      int cameraZ = Mathf.RoundToInt(sceneView.camera.transform.position.z);
+      Debug.Log(gridLayout);
+      FloorLayer targetLayerFromCameraPosition = (FloorLayer)(-(cameraZ - 10)); // 12 - 2 = 10, to account for camera distance
+      Debug.Log("target layer: " + targetLayerFromCameraPosition);
       if (parentLayerFloor == null)
       {
         base.Pick(gridLayout, brushTarget, position, pickStart);
       }
       else
       {
+        // selecting from world grid, not tile palette;
+        parentLayerFloor = GridManager.Instance.layerFloors[targetLayerFromCameraPosition];
         Reset();
         UpdateSizeAndPivot(new Vector3Int(position.size.x, position.size.y, 1), new Vector3Int(pickStart.x, pickStart.y, 0));
         if (brushTarget != null)
@@ -171,10 +177,10 @@ namespace UnityEditor.Tilemaps
           }
         }
       }
-      SelectAppropriateTilemapForBrushTileType();
+      SelectAppropriateTilemapForBrushTileType(GridManager.Instance.layerFloors[targetLayerFromCameraPosition]);
     }
 
-    public void SelectAppropriateTilemapForBrushTileType()
+    public void SelectAppropriateTilemapForBrushTileType(LayerFloor targetLayerFloor = null)
     {
       if (UnityEditor.EditorTools.ToolManager.activeToolType == typeof(EraseTool))
       {
@@ -182,33 +188,41 @@ namespace UnityEditor.Tilemaps
       }
       GridBrush brush = GridPaintingState.gridBrush as GridBrush;
       GridBrush.BrushCell cell = brush.cells.Length > 0 ? brush.cells[0] : null;
+      Debug.Log("cell tile " + cell.tile);
       GameObject tilemapToPaint = GridPaintingState.scenePaintTarget;
       Tilemap selectedTilemap = tilemapToPaint ? tilemapToPaint.GetComponent<Tilemap>() : null;
-      if (cell != null && selectedTilemap != null)
+      LayerFloor desiredLayerFloor = targetLayerFloor;
+      if (desiredLayerFloor == null && selectedTilemap != null)
+      {
+        desiredLayerFloor = selectedTilemap.transform.parent.GetComponent<LayerFloor>();
+      }
+      if (cell != null)
       {
         FloorTilemapType floorTilemapType = (cell.tile as EnvironmentTile)?.floorTilemapType ?? (cell.tile as InfoTile)?.floorTilemapType ?? FloorTilemapType.Ground;
 
         // TilemapEditorTool.SetActiveEditorTool(typeof(EraseTool));
+        Debug.Log("floorTilemapType " + floorTilemapType);
         Tilemap desiredTilemap;
         if (floorTilemapType == FloorTilemapType.Ground)
         {
-          desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().groundTilemap;
+          desiredTilemap = desiredLayerFloor.groundTilemap;
         }
         else if (floorTilemapType == FloorTilemapType.Object)
         {
-          desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().objectTilemap;
+          desiredTilemap = desiredLayerFloor.objectTilemap;
         }
         else if (floorTilemapType == FloorTilemapType.Info)
         {
-          desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().infoTilemap;
+          desiredTilemap = desiredLayerFloor.infoTilemap;
         }
         else if (floorTilemapType == FloorTilemapType.Water)
         {
-          desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().waterTilemap;
+          Debug.Log("selecting water tilemap?");
+          desiredTilemap = desiredLayerFloor.waterTilemap;
         }
         else
         {
-          desiredTilemap = selectedTilemap.transform.parent.GetComponent<LayerFloor>().visibilityTilemap;
+          desiredTilemap = desiredLayerFloor.visibilityTilemap;
         }
         if (selectedTilemap != desiredTilemap)
         {

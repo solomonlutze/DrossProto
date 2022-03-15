@@ -82,7 +82,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
       if (openNodes.Count > 220 || closedNodes.Count > 220)
       {
         // We should give up on finding a path
-        UnityEngine.Debug.Log("Giving up on finding a path!!");
+        // UnityEngine.Debug.Log("Giving up on finding a path!!");
         ai.SetIsCalculatingPath(false);
         ai.SetPathToTarget(null);
         yield break;
@@ -98,7 +98,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
           n = n.parent;
         }
         finalPath.Reverse();
-        UnityEngine.Debug.Log("found a path!!");
+        // UnityEngine.Debug.Log("found a path!!");
         for (int i = 0; i < finalPath.Count - 1; i++)
         {
           UnityEngine.Debug.DrawLine(finalPath[i].loc.cellCenterWorldPosition, finalPath[i + 1].loc.cellCenterWorldPosition, Color.cyan, .5f);
@@ -550,7 +550,10 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   {
     if (tileNodesInfo.tileToConsider == null) { return false; }
     if (!CanTraverse(tileNodesInfo.tileToConsider, tileNodesInfo.ai, zPosition)) { return false; }
-    if (tileNodesInfo.tileToConsider.dealsDamage) { return false; }
+    if (tileNodesInfo.tileToConsider.dealsDamage)
+    {
+      UnityEngine.Debug.Log("skipping tile bc damage: " + tileNodesInfo.tileToConsider.groundTileType); return false;
+    }
     if (tileNodesInfo.tileToConsider.CanRespawnPlayer())
     {
       // if a skill would let us NOT respawn, add a path with that skill!

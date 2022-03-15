@@ -29,6 +29,7 @@ public enum ConditionallyActivatedTraitCondition { None, NotMoving, Moving, Dash
 [System.Serializable]
 public class TraitEffect
 {
+
   public TraitEffectType effectType;
   public int magnitude;
   public DamageType damageType;
@@ -180,6 +181,8 @@ public class Trait : ScriptableObject
   public Sprite visual1;
 
   public Sprite visual2;
+  public Color primaryColor;
+  public Color secondaryColor;
   public BugSkeletonImagesData imagesData;
 
 #if UNITY_EDITOR
