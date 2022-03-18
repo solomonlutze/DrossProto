@@ -49,6 +49,7 @@ public class SkillEffect
 {
 
   public Overrideable<bool> shouldExecute = new Overrideable<bool>(true);
+  public Overrideable<float> staminaCost;
   public SkillEffectType useType;
   [Tooltip("Defines whether taking damage should interrupt/end this effect and subsequent effects")]
   public Overrideable<bool> interruptable = new Overrideable<bool>(false);

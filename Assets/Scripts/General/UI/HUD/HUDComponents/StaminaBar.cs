@@ -7,7 +7,6 @@ using TMPro;
 public class StaminaBar : MonoBehaviour
 {
 
-  // CARAPACE
   public CanvasGroup staminaBarContainer;
   public RectTransform staminaBarController;
   public RectTransform staminaBarContentsFill;
@@ -19,25 +18,15 @@ public class StaminaBar : MonoBehaviour
     }
   }
 
-  // public RectTransform staminaBarEmpty;
-  // public Image staminaBarEmptySprite
-  // {
-  //   get
-  //   {
-  //     return staminaBarEmpty == null ? null : staminaBarEmpty.GetComponent<Image>();
-  //   }
-  // }
-
-  // public float staminaBarFadeTime = .5f;
   public Color lowStaminaColor;
   public Color defaultStaminaColor;
-  // private Coroutine staminaBrokenFlashCoroutine;
-
-  // END CARAPACE
   public Character character;
+  public StaminaInfo characterStaminaInfo;
+  public Vector3 defaultScale;
   void Start()
   {
     Init();
+    defaultScale = staminaBarContentsFill.localScale;
   }
   // Update is called once per frame
   void Update()
@@ -60,8 +49,8 @@ public class StaminaBar : MonoBehaviour
 
   void HandleStaminaBar()
   {
-    float currentStamina = Mathf.Max(character.GetCharacterVital(CharacterVital.CurrentStamina), 0);
-    float maxStamina = character.GetMaxStamina();
+    float currentStamina = Mathf.Max(characterStaminaInfo.currentStamina, 0);
+    float maxStamina = 100;
     // if (!character.blocking && !character.staminaBroken)
     // {
     //   staminaBarContainer.alpha -= Time.deltaTime / staminaBarFadeTime;
@@ -72,7 +61,7 @@ public class StaminaBar : MonoBehaviour
     //   staminaBarContainer.alpha += Time.deltaTime / staminaBarFadeTime;
     //   staminaBarContainer.alpha = Mathf.Min(1, staminaBarContainer.alpha);
     // }
-    staminaBarContentsFill.localScale = new Vector3(currentStamina / maxStamina, staminaBarContentsFill.localScale.y, 0);
+    staminaBarContentsFill.localScale = new Vector3(currentStamina / maxStamina * defaultScale.x, defaultScale.y, 0);
     // if (character.staminaBroken)
     // {
     //   if (staminaBrokenFlashCoroutine == null)

@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections;
+using System;
 using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -38,18 +38,36 @@ public class CharacterSkillData : ScriptableObject
   [SerializeField]
 
   bool isAttack = false;
+  [SerializeField]
+  [Tooltip("% of stamina recovered per second while not in use")]
+  public float staminaRecoveryRate;
+
+  [Tooltip("time a skill has to not be in use before it starts to recover")]
+  public float staminaRecoveryCooldown;
   public SkillEffectSet[] skillEffectSets;
-  // public SkillEffect[] skillEffects_old;
+
+  [SerializeField]
+  private string _id = "";
+  [HideInInspector]
+  public string id
+  {
+    get
+    {
+      if (_id == "")
+      {
+        _id = Guid.NewGuid().ToString("N").Substring(0, 15);
+      }
+      return _id;
+    }
+  }
 
   public virtual void Init(WeaponVariable weapon)
   {
-    // skillEffects_old = new SkillEffect[] {
-    //   new SkillEffect()
-    // };
   }
 
   public virtual void BeginSkillEffect(Character owner)
   {
+    owner.AdjustCurrentStaminaForSkill(id, -GetActiveSkillEffect(owner).staminaCost.Resolve(owner));
     GetActiveSkillEffect(owner).BeginSkillEffect(owner);
   }
 
