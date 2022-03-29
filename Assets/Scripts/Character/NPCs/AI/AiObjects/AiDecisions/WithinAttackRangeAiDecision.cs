@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections.Generic;
+
 [CreateAssetMenu(menuName = "PluggableAi/Decisions/WithinAttackRange")]
 public class WithinAttackRangeAiDecision : AiDecision
 {

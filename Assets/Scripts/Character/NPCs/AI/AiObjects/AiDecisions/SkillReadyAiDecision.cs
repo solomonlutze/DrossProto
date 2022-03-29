@@ -19,6 +19,7 @@ public class SkillReadyAiDecision : AiDecision
     {
       // choose skill
       controller.skillToUse = SelectAttack(controller, viableAttacks);
+      Debug.Log("selected skill " + controller.skillToUse);
       return true;
     }
     // set skill to null
