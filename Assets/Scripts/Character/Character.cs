@@ -221,15 +221,6 @@ public class Character : WorldObject
     }
   }
 
-  public virtual CharacterSkillData GetSelectedCharacterSkill()
-  {
-    if (characterSkills.Count > 0)
-    {
-      return characterSkills[0];
-    }
-    return null;
-  }
-
   public static TraitSlotToCharacterSkillDataDictionary CalculateSkills(TraitSlotToTraitDictionary traits)
   {
     TraitSlotToCharacterSkillDataDictionary ret = new TraitSlotToCharacterSkillDataDictionary();
@@ -1036,7 +1027,7 @@ public class Character : WorldObject
     return
       (skillData.skillEffectSets[idx].alwaysExecute || activeSkill == pressingSkill || activeSkill == queuedSkill);
   }
-  protected virtual bool CanUseSkill(CharacterSkillData skillData, int effectSetIndex = 0)
+  public virtual bool CanUseSkill(CharacterSkillData skillData, int effectSetIndex = 0)
   {
     if (
       (IsMidair() && !skillData.skillEffectSets[effectSetIndex].canUseInMidair)
@@ -1519,7 +1510,7 @@ public class Character : WorldObject
     return staminaInfos[traitSlotsForSkills[skill.id]].currentStamina;
   }
 
-  public bool HasStaminaForSkill(CharacterSkillData skill)
+  public virtual bool HasStaminaForSkill(CharacterSkillData skill)
   {
     return GetStaminaForSkill(skill) > 0;
   }
@@ -1839,7 +1830,7 @@ public class Character : WorldObject
     {
       if (characterSkills[slot] != activeSkill)
       {
-        AdjustCurrentStamina(slot, characterSkills[slot].staminaRecoveryRate * Time.deltaTime);
+        AdjustCurrentStamina(slot, 100 / characterSkills[slot].staminaRecoveryTime * Time.deltaTime);
       }
     }
 

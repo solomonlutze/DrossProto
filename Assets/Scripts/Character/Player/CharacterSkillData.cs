@@ -32,6 +32,7 @@ public class SkillRangeInfo
 public class CharacterSkillData : ScriptableObject
 {
 
+  public string name;
   public string displayName;
   [TextArea]
   public string description;
@@ -39,8 +40,8 @@ public class CharacterSkillData : ScriptableObject
 
   bool isAttack = false;
   [SerializeField]
-  [Tooltip("% of stamina recovered per second while not in use")]
-  public float staminaRecoveryRate;
+  [Tooltip("Time in seconds it takes to fully recover stamina for this skill")]
+  public float staminaRecoveryTime;
 
   [Tooltip("time a skill has to not be in use before it starts to recover")]
   public float staminaRecoveryCooldown;

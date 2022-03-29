@@ -36,11 +36,22 @@ public enum SkillEffectMovementProperty
 [System.Serializable]
 public class SkillEffectSet
 {
+
+  public string name;
   [Tooltip("Defines whether this effect set should always be executed every time the skill is used")]
   public bool alwaysExecute = true;
   public bool canUseInMidair = false;
 
   public SkillEffect[] skillEffects;
+  public float GetTotalStaminaCost(Character c)
+  {
+    float cost = 0;
+    foreach (SkillEffect effect in skillEffects)
+    {
+      cost += effect.staminaCost.Resolve(c);
+    }
+    return cost;
+  }
 
 }
 
@@ -48,6 +59,7 @@ public class SkillEffectSet
 public class SkillEffect
 {
 
+  public string name;
   public Overrideable<bool> shouldExecute = new Overrideable<bool>(true);
   public Overrideable<float> staminaCost;
   public SkillEffectType useType;
