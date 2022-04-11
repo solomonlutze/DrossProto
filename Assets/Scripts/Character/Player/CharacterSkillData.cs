@@ -39,6 +39,8 @@ public class CharacterSkillData : ScriptableObject
   [SerializeField]
 
   bool isAttack = false;
+  [Tooltip("Whether this attack should restart if queued/pressed when the last effect set ends")]
+  public bool isRepeatable;
   [SerializeField]
   [Tooltip("Time in seconds it takes to fully recover stamina for this skill")]
   public float staminaRecoveryTime;

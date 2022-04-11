@@ -388,7 +388,7 @@ public class Character : WorldObject
         currentSkillEffectIndex++;
         continue;
       }
-      if (queuedSkill == activeSkill && activeSkill.CanAdvanceSkillEffectSet(this))
+      if ((queuedSkill == activeSkill || pressingSkill == activeSkill) && activeSkill.CanAdvanceSkillEffectSet(this))
       {
         AdvanceSkillEffectSet();
         return;
@@ -407,17 +407,25 @@ public class Character : WorldObject
 
   public void EndSkill()
   {
+    bool repeatSkill = activeSkill && activeSkill.isRepeatable && (pressingSkill == activeSkill || queuedSkill == activeSkill);
     if (UsingSkill())
     {
       activeSkill.EndSkillEffect(this);
       activeSkill.CleanUp(this);
-      activeSkill = null;
     }
-    pressingSkill = null;
     currentSkillEffectSetIndex = 0;
     currentSkillEffectIndex = 0;
     timeSpentInSkillEffect = 0;
     chargeLevel = 0;
+    if (repeatSkill)
+    {
+      BeginSkill(activeSkill);
+    }
+    else
+    {
+      activeSkill = null;
+      pressingSkill = null;
+    }
   }
 
   public bool UsingSkill()
@@ -1076,6 +1084,7 @@ public class Character : WorldObject
   // DAMAGE FUNCTIONS
   protected virtual void TakeDamage(IDamageSource damageSource)
   {
+    Debug.Log("DEALDAMAGE take damage");
     if (damageSource.IsOwnedBy(this)) { return; }
     if (damageSource.IsSameOwnerType(this)) { return; }
     if (!WithinDamageHeight(damageSource)) { return; }
@@ -1483,8 +1492,6 @@ public class Character : WorldObject
   {
     staminaInfos[slot].currentStamina =
       Mathf.Clamp(staminaInfos[slot].currentStamina + adjustment, -100, 100);
-
-    Debug.Log("stamina for " + characterSkills[slot].displayName + ": " + staminaInfos[slot].currentStamina);
   }
 
   public void AdjustElementalDamageBuildup(DamageType type, float amount)
@@ -1512,6 +1519,7 @@ public class Character : WorldObject
 
   public virtual bool HasStaminaForSkill(CharacterSkillData skill)
   {
+    return true;
     return GetStaminaForSkill(skill) > 0;
   }
 
@@ -1742,6 +1750,10 @@ public class Character : WorldObject
     }
   }
 
+  public void OnWeaponHit(SkillEffect skillEffect, Collider2D collider)
+  {
+    Debug.Log("DEALDAMAGE weapon hit!");
+  }
   protected void RespawnCharacterAtLastSafeLocation()
   {
     EndSkill();

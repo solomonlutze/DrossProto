@@ -37,7 +37,7 @@ public class Weapon : MonoBehaviour
 
     foreach (Hitbox hitbox in defaultHitboxes)
     {
-      hitbox.Init(owner, attackSpawnData.damage);
+      hitbox.Init(owner, attackSpawnData.damage, this);
     }
     WorldObject.ChangeLayersRecursively(gameObject.transform, owner.currentFloor);
   }
@@ -46,7 +46,7 @@ public class Weapon : MonoBehaviour
   {
     timeAlive += Time.fixedDeltaTime;
     ExecuteWeaponActions(owner);
-    if (timeAlive > attack.duration.Resolve(owner))
+    if (attack.duration.Resolve(owner) > 0 && timeAlive > attack.duration.Resolve(owner))
     {
       CleanUp();
     }
@@ -119,6 +119,9 @@ public class Weapon : MonoBehaviour
 
   public void OnContact(Collider2D col)
   {
+    Debug.Log("DEALDAMAGE onContact");
+    Character colCharacter = col.GetComponentInParent<Character>();
+    if (!colCharacter || owner == colCharacter) { return; }
     if (attack.objectToSpawn != null && attack.spawnObjectOnContact)
     {
       Quaternion rotationAngle = Quaternion.AngleAxis(transform.eulerAngles.z + attack.objectToSpawn.rotationOffset.get(owner), Vector3.forward);
