@@ -57,7 +57,8 @@ public class Weapon : MonoBehaviour
     owningEffectActiveWeapons.Remove(this);
     if (owner != null && attack.objectToSpawn != null && attack.objectToSpawn.attackData != null && attack.spawnObjectOnDestruction)
     {
-      owningEffect.SpawnWeapon(attack.objectToSpawn, owner, owningEffectActiveWeapons);
+      attack.objectToSpawn.owningWeaponDataWeapon.name);
+      owningEffect.SpawnWeapon(attack.objectToSpawn, owner, owningEffectActiveWeapons, transform);
     }
     Destroy(this.gameObject);
   }
@@ -119,7 +120,6 @@ public class Weapon : MonoBehaviour
 
   public void OnContact(Collider2D col)
   {
-    Debug.Log("DEALDAMAGE onContact");
     Character colCharacter = col.GetComponentInParent<Character>();
     if (!colCharacter || owner == colCharacter) { return; }
     if (attack.objectToSpawn != null && attack.spawnObjectOnContact)

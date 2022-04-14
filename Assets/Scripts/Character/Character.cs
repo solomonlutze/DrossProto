@@ -1084,7 +1084,6 @@ public class Character : WorldObject
   // DAMAGE FUNCTIONS
   protected virtual void TakeDamage(IDamageSource damageSource)
   {
-    Debug.Log("DEALDAMAGE take damage");
     if (damageSource.IsOwnedBy(this)) { return; }
     if (damageSource.IsSameOwnerType(this)) { return; }
     if (!WithinDamageHeight(damageSource)) { return; }

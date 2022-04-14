@@ -155,12 +155,13 @@ public class SkillEffect
     owner.chargingUpParticleSystem.Stop();
     owner.fullyChargedParticleSystem.Stop();
   }
-  public void SpawnWeapon(AttackSpawn weaponSpawn, Character owner, List<Weapon> weaponInstances)
+  public void SpawnWeapon(AttackSpawn weaponSpawn, Character owner, List<Weapon> weaponInstances, Transform spawnTransformOverride = null)
   {
-    Quaternion rotationAngle = Quaternion.AngleAxis(owner.weaponPivotRoot.eulerAngles.z + weaponSpawn.rotationOffset.get(owner), Vector3.forward);
+    Transform spawnTransform = spawnTransformOverride ? spawnTransformOverride : owner.weaponPivotRoot;
+    Quaternion rotationAngle = Quaternion.AngleAxis(spawnTransform.eulerAngles.z + weaponSpawn.rotationOffset.get(owner), Vector3.forward);
     Weapon weaponInstance = GameObject.Instantiate(
       weaponSpawn.weaponObject,
-      owner.weaponPivotRoot.position + (rotationAngle * new Vector3(weaponSpawn.range.get(owner), 0, 0)),
+      spawnTransform.position + (rotationAngle * new Vector3(weaponSpawn.range.get(owner), 0, 0)),
       rotationAngle
     );
     weaponInstance.transform.parent = owner.weaponPivotRoot;
