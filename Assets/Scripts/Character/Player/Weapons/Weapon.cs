@@ -95,6 +95,23 @@ public class Weapon : MonoBehaviour
     }
   }
 
+  public void HomingWeaponAction(WeaponAction action, Character owner, float increment)
+  {
+    // Identify target
+    // if outside range or angle of target, return
+    // 
+    Vector3 targetPosition = Vector3.zero; // how do we get this?
+    if (
+      (targetPosition - transform.position).sqrMagnitude > attack.homing.homingRange
+      || Mathf.Abs(Utils.GetAngleToDirection(transform.rotation, targetPosition)) > attack.homing.maxAngleToTarget
+      )
+    {
+      return;
+    }
+    Quaternion targetDirection = Utils.GetDirectionAngle(targetPosition);
+    transform.rotation = Quaternion.RotateTowards(transform.rotation, targetDirection, action.motion.EvaluateIncrement(owner, progress, previousProgress));
+    // transform.rotation += transform.rotation 
+  }
   public void MoveWeaponAction(WeaponAction action, Character owner, float increment)
   {
     // rigidbody2D.MovePosition(transform.position + new Vector3(action.motion.EvaluateIncrement(owner, progress, previousProgress), 0, 0));

@@ -18,4 +18,16 @@ public class Utils
     }
     return dictionary;
   }
+
+
+  public static Quaternion GetDirectionAngle(Vector3 targetPoint)
+  {
+    Vector2 target = targetPoint;
+    float angle = Mathf.Atan2(target.y, target.x) * Mathf.Rad2Deg;
+    return Quaternion.AngleAxis(angle, Vector3.forward);
+  }
+  public static float GetAngleToDirection(Quaternion rotation, Vector3 targetPoint)
+  {
+    return Quaternion.Angle(GetDirectionAngle(targetPoint), rotation);
+  }
 }
