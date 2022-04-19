@@ -86,6 +86,9 @@ public class Weapon : MonoBehaviour
       case WeaponActionType.RotateRelative:
         RotateWeaponRelativeAction(action, owner, increment);
         break;
+      case WeaponActionType.Homing:
+        HomingWeaponAction(action, owner, increment);
+        break;
       case WeaponActionType.Wait:
         WaitWeaponAction(action, increment);
         break;
@@ -101,15 +104,20 @@ public class Weapon : MonoBehaviour
     // if outside range or angle of target, return
     // 
     Vector3 targetPosition = Vector3.zero; // how do we get this?
+    Debug.Log("HOMING sqrMag " + (targetPosition - transform.position).sqrMagnitude);
+    Debug.Log("HOMING angle " + Mathf.Abs(Utils.GetAngleToDirection(transform.rotation, targetPosition)));
     if (
-      (targetPosition - transform.position).sqrMagnitude > attack.homing.homingRange
+      (targetPosition - transform.position).sqrMagnitude > attack.homing.homingRange * attack.homing.homingRange
       || Mathf.Abs(Utils.GetAngleToDirection(transform.rotation, targetPosition)) > attack.homing.maxAngleToTarget
       )
     {
+      Debug.Log("HOMING returning early");
       return;
     }
-    Quaternion targetDirection = Utils.GetDirectionAngle(targetPosition);
+    Quaternion targetDirection = Utils.GetDirectionAngle(targetPosition - transform.position);
+    Debug.Log("HOMING target direction: " + targetDirection);
     transform.rotation = Quaternion.RotateTowards(transform.rotation, targetDirection, action.motion.EvaluateIncrement(owner, progress, previousProgress));
+    Debug.Log("HOMING rotation: " + transform.rotation);
     // transform.rotation += transform.rotation 
   }
   public void MoveWeaponAction(WeaponAction action, Character owner, float increment)
