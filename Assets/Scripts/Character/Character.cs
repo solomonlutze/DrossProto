@@ -167,6 +167,7 @@ public class Character : WorldObject
     float awarenessRange = GetAwarenessRange();
     if (awareness != null && awarenessRange > 0)
     {
+      Debug.Log("initializing awareness");
       awareness.Init(this);
       awareness.transform.localScale = new Vector3(awarenessRange, 1, 1);
     }
@@ -1122,8 +1123,7 @@ public class Character : WorldObject
     }
     else if (damageAfterResistances > 0)
     {
-
-      DoDamageFx(damageAfterResistances, knockback);
+      DoDamageFx(damageAfterResistances, knockback, damageSource.applySlowdown);
       AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
     }
     StartCoroutine(ApplyInvulnerability(damageSource));
@@ -1133,7 +1133,7 @@ public class Character : WorldObject
     }
   }
 
-  void DoDamageFx(float damageAfterResistances, Vector3 knockback)
+  void DoDamageFx(float damageAfterResistances, Vector3 knockback, bool weaponAttached)
   {
     float knockbackDistance = knockback.magnitude;
     GameObject splatter = Instantiate(
@@ -1168,6 +1168,10 @@ public class Character : WorldObject
       bloodSplashParticleSystem.transform.parent = null; // so that it plays when we die
       bloodSplashParticleSystem.gameObject.AddComponent<DestroyOnPlayerRespawn>(); // so it doesn't stick around forever
       baseSlowdownDuration = combatJuiceConstants.deathSlowdownBaseDuration;
+    }
+    else if (!weaponAttached)
+    {
+      baseSlowdownDuration = 0;
     }
     GameMaster.Instance.DoSlowdown(baseSlowdownDuration);
     BreakBodyParts(damageAfterResistances, knockback);

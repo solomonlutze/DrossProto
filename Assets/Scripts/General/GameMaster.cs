@@ -228,6 +228,7 @@ public class GameMaster : Singleton<GameMaster>
   private float fixedDeltaTime;
   public void DoSlowdown(float baseSlowdownDuration)
   {
+    if (baseSlowdownDuration <= 0) { return; }
     StartCoroutine(Slowdown(combatJuiceConstants.slowdownTimescale, baseSlowdownDuration * combatJuiceConstants.slowdownDurationMult));
   }
 

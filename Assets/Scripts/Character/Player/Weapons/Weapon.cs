@@ -9,15 +9,17 @@ public class Weapon : MonoBehaviour
   public Transform weaponBody;
   public Rigidbody2D rigidbody2D;
   public Hitbox[] defaultHitboxes;
+  // public AwarenessTrigger awarenessTrigger;
   Character owner;
   SkillEffect owningEffect;
   List<Weapon> owningEffectActiveWeapons;
-  Attack attack;
+  public Attack attack;
   float timeAlive = 0;
   float progress = 0;
   float previousProgress = 0;
   float increment = 0;
   int currentActionGroup = 0;
+  public bool attachToOwner;
 
   public void Update()
   {
@@ -33,8 +35,12 @@ public class Weapon : MonoBehaviour
     this.owningEffect = owningEffect;
     owningEffectActiveWeapons = activeWeaponObjects;
     owningEffectActiveWeapons.Add(this);
+    attachToOwner = attackSpawnData.attachToOwner;
     defaultHitboxes = GetComponentsInChildren<Hitbox>();
-
+    // if (awarenessTrigger != null)
+    // {
+    //   awarenessTrigger.Init(c, attack.homing.homingRange);
+    // }
     foreach (Hitbox hitbox in defaultHitboxes)
     {
       hitbox.Init(owner, attackSpawnData.damage, this);
@@ -98,28 +104,48 @@ public class Weapon : MonoBehaviour
     }
   }
 
+  Character GetNearestTarget()
+  {
+    Collider2D[] hitColliders = new Collider2D[5];
+    int numColliders = Physics2D.OverlapCircleNonAlloc(transform.position, attack.homing.homingRange, hitColliders, 1 << LayerMask.NameToLayer("Character"));
+    float maxDistance = 10000;
+    Character nearestEnemy = null;
+    for (int i = 0; i < numColliders; i++)
+    {
+      // Debug.Log("hit: " + hitColliders[i].gameObject.name);
+      Character c = hitColliders[i].GetComponentInParent<Character>();
+      if (c == null) { continue; }
+      float distance = (transform.position - c.transform.position).sqrMagnitude;
+      if (c != owner && c.gameObject.layer == owner.gameObject.layer && distance < maxDistance)
+      {
+        maxDistance = distance;
+        nearestEnemy = c;
+      }
+    }
+    // Character homingTarget = awarenessTrigger.NearestCharacter(attack.homing.maxAngleToTarget);
+    // if (homingTarget == null) { return; }
+    return nearestEnemy;
+  }
   public void HomingWeaponAction(WeaponAction action, Character owner, float increment)
   {
     // Identify target
     // if outside range or angle of target, return
     // 
-    Vector3 targetPosition = Vector3.zero; // how do we get this?
-    Debug.Log("HOMING sqrMag " + (targetPosition - transform.position).sqrMagnitude);
-    Debug.Log("HOMING angle " + Mathf.Abs(Utils.GetAngleToDirection(transform.rotation, targetPosition)));
-    if (
-      (targetPosition - transform.position).sqrMagnitude > attack.homing.homingRange * attack.homing.homingRange
-      || Mathf.Abs(Utils.GetAngleToDirection(transform.rotation, targetPosition)) > attack.homing.maxAngleToTarget
-      )
+    // if (awarenessTrigger == null)
+    // {
+    //   Debug.LogError("weapon " + gameObject.name + " has a homing action but no awarenessTrigger!");
+    // }
+    Character nearestTarget = GetNearestTarget();
+    if (nearestTarget == null) { return; }
+    Vector3 targetPosition = nearestTarget.transform.position;
+    if ((targetPosition - transform.position).sqrMagnitude > attack.homing.homingRange * attack.homing.homingRange)
     {
-      Debug.Log("HOMING returning early");
       return;
     }
     Quaternion targetDirection = Utils.GetDirectionAngle(targetPosition - transform.position);
-    Debug.Log("HOMING target direction: " + targetDirection);
     transform.rotation = Quaternion.RotateTowards(transform.rotation, targetDirection, action.motion.EvaluateIncrement(owner, progress, previousProgress));
-    Debug.Log("HOMING rotation: " + transform.rotation);
-    // transform.rotation += transform.rotation 
   }
+
   public void MoveWeaponAction(WeaponAction action, Character owner, float increment)
   {
     // rigidbody2D.MovePosition(transform.position + new Vector3(action.motion.EvaluateIncrement(owner, progress, previousProgress), 0, 0));

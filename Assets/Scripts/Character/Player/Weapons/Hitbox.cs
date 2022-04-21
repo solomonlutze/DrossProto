@@ -134,4 +134,12 @@ public class Hitbox : MonoBehaviour, IDamageSource
     }
   }
 
+  public bool applySlowdown
+  {
+    get
+    {
+      return owningWeapon.attachToOwner;
+    }
+  }
+
 }

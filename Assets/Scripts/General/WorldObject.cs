@@ -72,28 +72,31 @@ public class WorldObject : MonoBehaviour
 
   public static void ChangeLayersRecursively(Transform trans, string layerName)
   {
-    trans.gameObject.layer = LayerMask.NameToLayer(layerName);
-    SpriteRenderer sr = trans.gameObject.GetComponent<SpriteRenderer>();
-    if (sr != null)
+    if (trans.gameObject.layer != LayerMask.NameToLayer("DetectCharacter") && trans.gameObject.layer != LayerMask.NameToLayer("Character"))
     {
-      sr.sortingLayerName = layerName;
-    }
-    Renderer r = trans.gameObject.GetComponent<Renderer>();
-    if (r != null)
-    {
-      r.sortingLayerName = layerName;
-      // r.sortingLayerName = layerName;
-      // r.sortingOrder = 20;
-    }
-    TrailRenderer t = trans.gameObject.GetComponent<TrailRenderer>();
-    if (t != null)
-    {
-      t.sortingLayerName = layerName;
-    }
-    Canvas c = trans.gameObject.GetComponent<Canvas>();
-    if (c != null)
-    {
-      c.sortingLayerName = layerName;
+      trans.gameObject.layer = LayerMask.NameToLayer(layerName);
+      SpriteRenderer sr = trans.gameObject.GetComponent<SpriteRenderer>();
+      if (sr != null)
+      {
+        sr.sortingLayerName = layerName;
+      }
+      Renderer r = trans.gameObject.GetComponent<Renderer>();
+      if (r != null)
+      {
+        r.sortingLayerName = layerName;
+        // r.sortingLayerName = layerName;
+        // r.sortingOrder = 20;
+      }
+      TrailRenderer t = trans.gameObject.GetComponent<TrailRenderer>();
+      if (t != null)
+      {
+        t.sortingLayerName = layerName;
+      }
+      Canvas c = trans.gameObject.GetComponent<Canvas>();
+      if (c != null)
+      {
+        c.sortingLayerName = layerName;
+      }
     }
     foreach (Transform child in trans)
     {
