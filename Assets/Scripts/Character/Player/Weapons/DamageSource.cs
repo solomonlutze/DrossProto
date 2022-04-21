@@ -15,5 +15,6 @@ public interface IDamageSource
   DamageType damageType { get; }
   float stunMagnitude { get; }
   bool ignoresInvulnerability { get; }
+  bool applySlowdown { get; }
 
 }

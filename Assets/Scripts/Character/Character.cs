@@ -5,238 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Tilemaps;
-// TODO: Character can probably extend CustomPhysicsController, which simplifies movement code a bit.
-public class AnimationInfoObject
-{
-  public Vector2 animationInput;
-}
 
-public enum CharacterType
-{
-  Player,
-  Enemy
-}
-// non-derivable values like health, current number of molts, etc
-public enum CharacterVital
-{
-  CurrentHealth,
-  CurrentEnvironmentalDamageCooldown,
-  CurrentStamina,
-  CurrentCarapace, // Carapace might be "balance" sometime
-  CurrentMaxHealth,
-  CurrentMoltCount
-}
-
-// values driving physical character behavior
-// base values live in character data
-// can include maximums, cooldown periods, etc
-// not usually user facing, so can be pretty grody and granular if need be
-public enum CharacterStat
-{
-  REMOVE_0 = 0,
-  MaxHealthLostPerMolt = 1,
-  DetectableRange = 2,
-  MoveAcceleration = 3,
-  FlightAcceleration = 4,
-  Stamina = 5,
-  DashDistance = 6,
-  DashDuration = 7,
-  DashRecoveryDuration = 8,
-  RotationSpeed = 9,
-  Carapace = 10,
-  MoltDuration = 11,
-  BlockingMoveAcceleration = 12,
-  BlockingRotationSpeed = 13,
-  MaxHealth = 14
-}
-
-public enum CharacterAttribute
-{
-  REMOVE_0 = 0,
-  REMOVE_1 = 1,
-  REMOVE_2 = 2,
-  Burrow = 3,
-  Camouflage = 4,
-  HazardResistance = 5,
-  Resist_Fungal = 6,
-  Resist_Heat = 7,
-  Resist_Acid = 8,
-  Resist_Physical = 9,
-  WaterResistance = 10,
-  Flight = 11,
-  Dash = 12,
-  Health = 13,
-  Metabolism = 14,
-  SightRange = 15,
-  DarkVision = 16,
-  MoltingEfficiency = 17,
-  Reflexes = 18,
-  AntennaeSensitivity = 19
-}
-
-public enum BugSpecies
-{
-  Ant = 0,
-  AssassinBug = 1,
-  Bee = 2,
-  Blowfly = 3,
-  BombardierBeetle = 4,
-  Booklouse = 5,
-  Butterfly = 6,
-  Cicada = 7,
-  Cockroach = 8,
-  CuckooWasp = 9,
-  Dragonfly = 10,
-  Firefly = 11,
-  GiantHornet = 12,
-  GoliathBeetle = 13,
-  Ladybug = 14,
-  Mantis = 15,
-  Mayfly = 16,
-  MoleCricket = 17,
-  Mosquito = 18,
-  Moth = 19,
-  Scarab = 20,
-  Shieldbug = 21,
-  StickInsect = 22,
-  Strepsiptera = 23,
-  Termite = 24,
-  Wasp = 25,
-  WaterBoatman = 26,
-  WaterBug = 27,
-  WaterStrider = 28,
-  Default = 1000,
-
-}
-public enum CharacterAttackValue
-{
-  Damage,
-  Range,
-  HitboxSize,
-  Knockback,
-  Stun,
-  AttackSpeed,
-  Cooldown,
-  DurabilityDamage,
-  Venom,
-  AcidDamage,
-}
-
-// Special modes of character movement.
-// Possibly unnecessary!!
-public enum CharacterMovementAbility
-{
-  Burrow,
-  FastFeet,
-  Halteres,
-  Hover,
-  StickyFeet,
-  WaterStride
-}
-
-public enum AscendingDescendingState
-{ // negative is up and positive is down because the map is backwards, Do Not @ Me
-  Ascending = -1,
-  Descending = 1,
-  None = 0
-}
-
-public enum CharacterPerceptionAbility
-{
-  SensitiveAntennae
-}
-
-[System.Serializable]
-public class CharacterAttributeModification
-{
-  public CharacterAttribute statToModify;
-
-  public int magnitude;
-
-  public float applicationDuration;
-  public float duration;
-  public float delay;
-
-  public string source;
-
-  public CharacterAttributeModification(CharacterAttribute s, int m, float dur, float del, string src)
-  {
-    statToModify = s;
-    magnitude = m;
-    duration = dur;
-    delay = del;
-    source = src;
-  }
-}
-
-[System.Serializable]
-public class ActiveStatModification
-{
-  public int magnitude;
-  public string source;
-
-  public ActiveStatModification(int m, string s)
-  {
-    magnitude = m;
-    source = s;
-  }
-}
-
-[System.Serializable]
-public class CharacterAttackModifiers
-{
-  public CharacterAttackValueToIntDictionary attackValueModifiers;
-  public bool forcesLymphDrop;
-
-  public CharacterAttackModifiers()
-  {
-    attackValueModifiers = new CharacterAttackValueToIntDictionary();
-  }
-
-}
-
-[System.Serializable]
-public class TraitsLoadout
-{
-  public Trait head;
-  public Trait thorax;
-  public Trait abdomen;
-  public Trait legs;
-  public Trait wings;
-
-  public bool AllTraitsEmpty()
-  {
-    return head == null
-        && thorax == null
-        && abdomen == null
-        && legs == null
-        && wings == null;
-  }
-}
-
-// [System.Serializable]
-// public class Moveset
-// {
-//   public AttackTypeToCharacterSkillDataDictionary attacks;
-//   public TraitSlotToCharacterSkillDataDictionary skills;
-
-//   public Moveset()
-//   {
-//     attacks = new AttackTypeToCharacterSkillDataDictionary();
-//     skills = new TraitSlotToCharacterSkillDataDictionary();
-//   }
-
-//   public Moveset(TraitSlotToTraitDictionary traits)
-//   {
-//     attacks = new AttackTypeToCharacterSkillDataDictionary();
-//     skills = new TraitSlotToCharacterSkillDataDictionary();
-//     foreach (TraitSlot slot in traits.Keys)
-//     {
-//       skills[slot] = traits[slot].skill;
-//       // attacks[Character.GetAttackTypeForTraitSlot(slot)] = traits[slot].weaponData.attacks[Character.GetAttackTypeForTraitSlot(slot)];
-//     }
-//   }
-// }
 
 // TODO: Character should probably extend CustomPhysicsController, which should extend WorldObject
 public class Character : WorldObject
@@ -249,6 +18,7 @@ public class Character : WorldObject
 
   [Header("Attack Info")]
   public TraitSlotToCharacterSkillDataDictionary characterSkills;
+  public Dictionary<string, TraitSlot> traitSlotsForSkills;
   public List<CharacterSkillData> characterAttackSkills;
   public CharacterSkillData hopSkill;
   public CharacterSkillData moltSkill;
@@ -326,6 +96,7 @@ public class Character : WorldObject
   protected Dictionary<string, GameObject> traitSpawnedGameObjects;
   public AscendingDescendingState ascendingDescendingState = AscendingDescendingState.None;
   public Dictionary<DamageType, ElementalDamageBuildup> elementalDamageBuildups;
+  public Dictionary<TraitSlot, StaminaInfo> staminaInfos;
   public bool ascending
   {
     get { return ascendingDescendingState == AscendingDescendingState.Ascending; }
@@ -385,15 +156,18 @@ public class Character : WorldObject
     sourceInvulnerabilities = new List<string>();
     conditionallyActivatedTraitEffects = new List<TraitEffect>();
     elementalDamageBuildups = new Dictionary<DamageType, ElementalDamageBuildup>();
+    staminaInfos = Utils.InitializeEnumDictionary<TraitSlot, StaminaInfo>();
     ascendingDescendingState = AscendingDescendingState.None;
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
     characterSkills = CalculateSkills(traits);
+    traitSlotsForSkills = CalculateTraitSlotsForSkills();
     // attributes = CalculateAttributes(traits);
     AwarenessTrigger awareness = GetComponentInChildren<AwarenessTrigger>();
 
     float awarenessRange = GetAwarenessRange();
     if (awareness != null && awarenessRange > 0)
     {
+      Debug.Log("initializing awareness");
       awareness.Init(this);
       awareness.transform.localScale = new Vector3(awarenessRange, 1, 1);
     }
@@ -448,15 +222,6 @@ public class Character : WorldObject
     }
   }
 
-  public virtual CharacterSkillData GetSelectedCharacterSkill()
-  {
-    if (characterSkills.Count > 0)
-    {
-      return characterSkills[0];
-    }
-    return null;
-  }
-
   public static TraitSlotToCharacterSkillDataDictionary CalculateSkills(TraitSlotToTraitDictionary traits)
   {
     TraitSlotToCharacterSkillDataDictionary ret = new TraitSlotToCharacterSkillDataDictionary();
@@ -472,6 +237,15 @@ public class Character : WorldObject
     return ret;
   }
 
+  public Dictionary<string, TraitSlot> CalculateTraitSlotsForSkills()
+  {
+    Dictionary<string, TraitSlot> ret = new Dictionary<string, TraitSlot>();
+    foreach (TraitSlot slot in characterSkills.Keys)
+    {
+      ret[characterSkills[slot].id] = slot;
+    }
+    return ret;
+  }
   void InitializeAnimationParameters()
   {
     animator.SetFloat("HeadAnimationType", (int)traits[TraitSlot.Head].bugSpecies);
@@ -615,7 +389,7 @@ public class Character : WorldObject
         currentSkillEffectIndex++;
         continue;
       }
-      if (queuedSkill == activeSkill && activeSkill.CanAdvanceSkillEffectSet(this))
+      if ((queuedSkill == activeSkill || pressingSkill == activeSkill) && activeSkill.CanAdvanceSkillEffectSet(this))
       {
         AdvanceSkillEffectSet();
         return;
@@ -634,17 +408,25 @@ public class Character : WorldObject
 
   public void EndSkill()
   {
+    bool repeatSkill = activeSkill && activeSkill.isRepeatable && (pressingSkill == activeSkill || queuedSkill == activeSkill);
     if (UsingSkill())
     {
       activeSkill.EndSkillEffect(this);
       activeSkill.CleanUp(this);
-      activeSkill = null;
     }
-    pressingSkill = null;
     currentSkillEffectSetIndex = 0;
     currentSkillEffectIndex = 0;
     timeSpentInSkillEffect = 0;
     chargeLevel = 0;
+    if (repeatSkill)
+    {
+      BeginSkill(activeSkill);
+    }
+    else
+    {
+      activeSkill = null;
+      pressingSkill = null;
+    }
   }
 
   public bool UsingSkill()
@@ -1223,7 +1005,6 @@ public class Character : WorldObject
       || molting
       || carapaceBroken
       || IsInKnockback()
-      || !HasStamina()
       || animationPreventsMoving
     )
     {
@@ -1231,26 +1012,6 @@ public class Character : WorldObject
     }
     return true;
   }
-
-  // can begin a dash
-  protected virtual bool CanDash()
-  {
-    if (
-      ascending
-      || stunned
-      || molting
-      || carapaceBroken
-      || UsingMovementSkill()
-      || IsInKnockback()
-      || animationPreventsMoving // I guess?
-      || !HasStamina()
-    )
-    {
-      return false;
-    }
-    return true;
-  }
-
   // can block, cast a spell, or attack
   protected virtual bool CanAct()
   {
@@ -1275,7 +1036,7 @@ public class Character : WorldObject
     return
       (skillData.skillEffectSets[idx].alwaysExecute || activeSkill == pressingSkill || activeSkill == queuedSkill);
   }
-  protected virtual bool CanUseSkill(CharacterSkillData skillData, int effectSetIndex = 0)
+  public virtual bool CanUseSkill(CharacterSkillData skillData, int effectSetIndex = 0)
   {
     if (
       (IsMidair() && !skillData.skillEffectSets[effectSetIndex].canUseInMidair)
@@ -1284,7 +1045,7 @@ public class Character : WorldObject
       || carapaceBroken
       || IsInKnockback()
       || dashAttackQueued
-      || !HasStamina()
+      || !HasStaminaForSkill(skillData)
       || animationPreventsMoving // I guess?
     )
     {
@@ -1362,8 +1123,7 @@ public class Character : WorldObject
     }
     else if (damageAfterResistances > 0)
     {
-
-      DoDamageFx(damageAfterResistances, knockback);
+      DoDamageFx(damageAfterResistances, knockback, damageSource.applySlowdown);
       AdjustCurrentHealth(Mathf.Floor(-damageAfterResistances), damageSource.isNonlethal);
     }
     StartCoroutine(ApplyInvulnerability(damageSource));
@@ -1373,7 +1133,7 @@ public class Character : WorldObject
     }
   }
 
-  void DoDamageFx(float damageAfterResistances, Vector3 knockback)
+  void DoDamageFx(float damageAfterResistances, Vector3 knockback, bool weaponAttached)
   {
     float knockbackDistance = knockback.magnitude;
     GameObject splatter = Instantiate(
@@ -1408,6 +1168,10 @@ public class Character : WorldObject
       bloodSplashParticleSystem.transform.parent = null; // so that it plays when we die
       bloodSplashParticleSystem.gameObject.AddComponent<DestroyOnPlayerRespawn>(); // so it doesn't stick around forever
       baseSlowdownDuration = combatJuiceConstants.deathSlowdownBaseDuration;
+    }
+    else if (!weaponAttached)
+    {
+      baseSlowdownDuration = 0;
     }
     GameMaster.Instance.DoSlowdown(baseSlowdownDuration);
     BreakBodyParts(damageAfterResistances, knockback);
@@ -1718,9 +1482,19 @@ public class Character : WorldObject
     vitals[CharacterVital.CurrentMoltCount] += adjustment;
   }
 
-  public void AdjustCurrentStamina(float amount)
+  // public void AdjustCurrentStamina(float amount)
+  // {
+  //   vitals[CharacterVital.CurrentStamina] = Mathf.Min(vitals[CharacterVital.CurrentStamina] + amount, GetMaxStamina()); // no lower bound on current stamina! DFIU!!
+  // }
+
+  public void AdjustCurrentStaminaForSkill(string skillId, float adjustment)
   {
-    vitals[CharacterVital.CurrentStamina] = Mathf.Min(vitals[CharacterVital.CurrentStamina] + amount, GetMaxStamina()); // no lower bound on current stamina! DFIU!!
+    AdjustCurrentStamina(traitSlotsForSkills[skillId], adjustment);
+  }
+  public void AdjustCurrentStamina(TraitSlot slot, float adjustment)
+  {
+    staminaInfos[slot].currentStamina =
+      Mathf.Clamp(staminaInfos[slot].currentStamina + adjustment, -100, 100);
   }
 
   public void AdjustElementalDamageBuildup(DamageType type, float amount)
@@ -1741,10 +1515,17 @@ public class Character : WorldObject
     return vitals[vital];
   }
 
-  public bool HasStamina()
+  public float GetStaminaForSkill(CharacterSkillData skill)
   {
-    return GetCharacterVital(CharacterVital.CurrentStamina) > 0;
+    return staminaInfos[traitSlotsForSkills[skill.id]].currentStamina;
   }
+
+  public virtual bool HasStaminaForSkill(CharacterSkillData skill)
+  {
+    return true;
+    return GetStaminaForSkill(skill) > 0;
+  }
+
   public virtual void SetCurrentFloor(FloorLayer newFloorLayer)
   {
     if (!AllTilesOnTargetFloorClearOfObjects(newFloorLayer) && currentTile != null)
@@ -1972,6 +1753,10 @@ public class Character : WorldObject
     }
   }
 
+  public void OnWeaponHit(SkillEffect skillEffect, Collider2D collider)
+  {
+    Debug.Log("DEALDAMAGE weapon hit!");
+  }
   protected void RespawnCharacterAtLastSafeLocation()
   {
     EndSkill();
@@ -2056,10 +1841,12 @@ public class Character : WorldObject
   }
   protected void HandleCooldowns()
   {
-    if (!UsingSkill())
+    foreach (TraitSlot slot in characterSkills.Keys)
     {
-      AdjustCurrentStamina(GetStaminaRecoveryRate());
-      dashAttackQueued = false;
+      if (characterSkills[slot] != activeSkill)
+      {
+        AdjustCurrentStamina(slot, 100 / characterSkills[slot].staminaRecoveryTime * Time.deltaTime);
+      }
     }
 
     if (footstepCooldown > 0)

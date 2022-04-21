@@ -5,7 +5,8 @@ using UnityEngine;
 
 public class Hitbox : MonoBehaviour, IDamageSource
 {
-  AttackSkillEffect attackSkillEffect;
+  SkillEffect attackSkillEffect;
+  Weapon owningWeapon;
   Character owner;
 
   protected DamageInfo damageInfo;
@@ -22,10 +23,11 @@ public class Hitbox : MonoBehaviour, IDamageSource
     }
   }
 
-  public void Init(Character ch, DamageInfo di)
+  public void Init(Character ch, DamageInfo di, Weapon ow)
   {
     owner = ch;
     damageInfo = di;
+    owningWeapon = ow;
   }
 
   public void Init(Character ch)
@@ -36,8 +38,13 @@ public class Hitbox : MonoBehaviour, IDamageSource
 
   private void OnTriggerEnter2D(Collider2D other)
   {
-    Debug.Log("sending takeDamage from " + gameObject.name);
-    other.gameObject.SendMessage("TakeDamage", this, SendMessageOptions.DontRequireReceiver);
+    if (other.gameObject.GetComponent<Character>()) // Hacky shit! Need a way to confirm damage dealt to anything, not just character.
+    {
+      other.gameObject.SendMessage("TakeDamage", this, SendMessageOptions.DontRequireReceiver);
+      owner.OnWeaponHit(attackSkillEffect, other);
+      owningWeapon.OnContact(other);
+    }
+    // Debug.Break();
   }
 
   public bool IsOwnedBy(Character c)
@@ -124,6 +131,14 @@ public class Hitbox : MonoBehaviour, IDamageSource
     get
     {
       return new List<CharacterMovementAbility>();
+    }
+  }
+
+  public bool applySlowdown
+  {
+    get
+    {
+      return owningWeapon.attachToOwner;
     }
   }
 

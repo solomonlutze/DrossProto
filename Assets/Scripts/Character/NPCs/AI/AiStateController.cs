@@ -8,6 +8,7 @@ public class AiStateController : Character
   private bool aiActive;
   public AiState remainState;
   public bool waitingToAttack = false;
+  public CharacterSkillData skillToUse;
   public bool attacking
   {
     get
@@ -352,6 +353,13 @@ public class AiStateController : Character
 
   // closer than this and _none_ of our attacks are a good idea,
   // and we should back up
+
+  //This can get more complicated as we want to allow enemies to make more fine-grained choices
+  // e.g. to allow enemies to only use a skill if they can do a full combo
+  public override bool HasStaminaForSkill(CharacterSkillData skill)
+  {
+    return base.HasStaminaForSkill(skill);
+  }
   public float GetMinPreferredAttackRange()
   {
     float overallMin = 1000f;
@@ -410,6 +418,10 @@ public class AiStateController : Character
     return false;
   }
 
+  public bool WithinAttackRangeAndAngle(WorldObject target, SkillRangeInfo[] rangeInfos)
+  {
+    return WithinAttackRange(target, rangeInfos) && WithinAttackAngle(target, rangeInfos);
+  }
 
   public bool WithinAttackRange(WorldObject target, SkillRangeInfo[] rangeInfos)
   {
@@ -479,25 +491,26 @@ public class AiStateController : Character
     return true;
     // return (GetCharacterVital(CharacterVital.CurrentStamina) > GetSelectedCharacterSkill().staminaCost / 2);
   }
-  public void WaitThenAttack(CharacterSkillData attack)
-  {
-    waitingToAttack = true;
-    StartCoroutine(WaitThenAttackCoroutine(attack));
-  }
-  public IEnumerator WaitThenAttackCoroutine(CharacterSkillData attack)
-  {
-    yield return null;
-    // yield return new WaitForSeconds(Random.Range(0.4f, 1.1f));
-    // if (selectedAttackType == AttackType.Critical)
-    // {
-    //   StartCoroutine(UseCritAttack());
-    // }
-    // else
-    {
-      HandleSkillInput(attack);
-    }
-    waitingToAttack = false;
-  }
+  // public void 
+  // public void WaitThenAttack(CharacterSkillData attack)
+  // {
+  //   waitingToAttack = true;
+  //   StartCoroutine(WaitThenAttackCoroutine(attack));
+  // }
+  // public IEnumerator WaitThenAttackCoroutine(CharacterSkillData attack)
+  // {
+  //   yield return null;
+  //   // yield return new WaitForSeconds(Random.Range(0.4f, 1.1f));
+  //   // if (selectedAttackType == AttackType.Critical)
+  //   // {
+  //   //   StartCoroutine(UseCritAttack());
+  //   // }
+  //   // else
+  //   {
+  //     HandleSkillInput(attack);
+  //   }
+  //   waitingToAttack = false;
+  // }
 
   protected override void TakeDamage(IDamageSource damageSource)
   {
@@ -517,21 +530,14 @@ public class AiStateController : Character
     float magnitude = combatJuiceConstants.cameraShakeMagnitudeMult_Npc * knockbackDistance;
     GameMaster.Instance.DoCameraShake(duration, magnitude);
   }
-  // public override CharacterSkillData GetSelectedCharacterSkill()
-  // {
-  //   return GetSkillDataForAttackType(selectedAttackType);
-  // }
-
   private void SpawnDroppedItems()
   {
     if (GameMaster.Instance.DEBUG_dontDropItems) { return; }
     if (alreadyDroppedItems) { return; }
-    Debug.Log("dropping item");
     alreadyDroppedItems = true;
     foreach (PickupItem item in itemDrops)
     {
       TraitPickupItem traitItem = (TraitPickupItem)item;
-      Debug.Log("dropping item " + traitItem);
       if (traitItem != null)
       {
         foreach (TraitSlot slot in traits.Keys)
@@ -543,7 +549,6 @@ public class AiStateController : Character
         }
       }
       GameObject instantiatedItem = Instantiate(item.gameObject, transform.position, transform.rotation);
-      Debug.Log("dropped item " + instantiatedItem);
       WorldObject.ChangeLayersRecursively(instantiatedItem.transform, GetFloorLayer());
       instantiatedItem.transform.position = new Vector3(instantiatedItem.transform.position.x, instantiatedItem.transform.position.y, GridManager.GetZOffsetForGameObjectLayer(instantiatedItem.layer));
       // instantiatedItem.GetComponent<SpriteRenderer>().sortingLayerName = LayerMask.LayerToName(gameObject.layer);

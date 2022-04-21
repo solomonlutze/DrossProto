@@ -15,14 +15,10 @@ public class PlayerHUD : MonoBehaviour
   public ElementalBuildupBar fungalBuildupBar;
   // public StaminaBar staminaBar;
   public SuperTextMesh grubCountText;
-  // private SuperTextMesh healthFieldText;
-  // private SuperTextMesh healthValueText;
-  // private SuperTextMesh maxHealthValueText;
   private SuperTextMesh diedText;
   private SuperTextMesh respawnText;
 
-  // private SuperTextMesh activatedAbilityText;
-
+  public StaminaBar[] skillStaminaBars;
   public SuperTextMesh[] selectedSkillTexts;
   public SuperTextMesh selectedAttackSkillText;
   public SuperTextMesh selectedAttackSkillDescriptionText;
@@ -31,9 +27,6 @@ public class PlayerHUD : MonoBehaviour
   public CanvasGroup areaNameCanvasGroup;
 
   bool playerExists;
-  // public TextMeshProUGUI skill1ValueText;
-  // public TextMeshProUGUI skill2TitleText;
-  // public TextMeshProUGUI skill2ValueText;
 
   float areaNameDisplayTime;
   public float areaNameDisplayDuration;
@@ -51,11 +44,8 @@ public class PlayerHUD : MonoBehaviour
   void Update()
   {
     PlayerController playerController = GameMaster.Instance.GetPlayerController();
-    // if (areaNameDisplayTime < areaNameDisplayDuration + areaNameFadeOutDuration)
-    // {
     areaNameDisplayTime += Time.deltaTime;
     FadeOutAreaName();
-    // }
     if (playerController != null)
     {
       if (!playerExists)
@@ -65,6 +55,11 @@ public class PlayerHUD : MonoBehaviour
         heatBuildupBar.character = playerController;
         acidBuildupBar.character = playerController;
         fungalBuildupBar.character = playerController;
+        for (int i = 0; i < skillStaminaBars.Length; i++)
+        {
+          skillStaminaBars[i].character = playerController;
+          skillStaminaBars[i].characterStaminaInfo = playerController.staminaInfos[Trait.slots[i]];
+        }
         moltDescriptionText.text = "Hold button to shed max health. After several seconds, health is fully restored to new maximum.\n" + playerController.characterSkills[TraitSlot.Thorax].description;
         diedText.text = " ";
         for (int i = 0; i < selectedSkillTexts.Length; i++)
@@ -74,8 +69,7 @@ public class PlayerHUD : MonoBehaviour
       }
     }
     else if (playerExists && playerController == null)
-    { //  You Died, presumably
-      // healthValueText.text = "0";
+    { //  Character just died (presumably)
       playerExists = false;
       if (diedText.text == " ")
       {

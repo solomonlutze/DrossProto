@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections;
+using System;
 using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -32,24 +32,45 @@ public class SkillRangeInfo
 public class CharacterSkillData : ScriptableObject
 {
 
+  public string name;
   public string displayName;
   [TextArea]
   public string description;
   [SerializeField]
 
   bool isAttack = false;
+  [Tooltip("Whether this attack should restart if queued/pressed when the last effect set ends")]
+  public bool isRepeatable;
+  [SerializeField]
+  [Tooltip("Time in seconds it takes to fully recover stamina for this skill")]
+  public float staminaRecoveryTime;
+
+  [Tooltip("time a skill has to not be in use before it starts to recover")]
+  public float staminaRecoveryCooldown;
   public SkillEffectSet[] skillEffectSets;
-  // public SkillEffect[] skillEffects_old;
+
+  [SerializeField]
+  private string _id = "";
+  [HideInInspector]
+  public string id
+  {
+    get
+    {
+      if (_id == "")
+      {
+        _id = Guid.NewGuid().ToString("N").Substring(0, 15);
+      }
+      return _id;
+    }
+  }
 
   public virtual void Init(WeaponVariable weapon)
   {
-    // skillEffects_old = new SkillEffect[] {
-    //   new SkillEffect()
-    // };
   }
 
   public virtual void BeginSkillEffect(Character owner)
   {
+    owner.AdjustCurrentStaminaForSkill(id, -GetActiveSkillEffect(owner).staminaCost.Resolve(owner));
     GetActiveSkillEffect(owner).BeginSkillEffect(owner);
   }
 

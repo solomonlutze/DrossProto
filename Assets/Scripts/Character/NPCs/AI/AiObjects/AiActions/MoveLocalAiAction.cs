@@ -33,7 +33,6 @@ public class MoveLocalAiAction : AiAction
 
   void CalculateWeightedMovementOptions(AiStateController controller, Vector3 targetPosition)
   {
-    Debug.Log("calculate!");
     int angle = 0;
     Vector2 bestFitInput = Vector2.zero;
     float bestFitWeight = 0;

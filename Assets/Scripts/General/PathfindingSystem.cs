@@ -550,10 +550,10 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
   {
     if (tileNodesInfo.tileToConsider == null) { return false; }
     if (!CanTraverse(tileNodesInfo.tileToConsider, tileNodesInfo.ai, zPosition)) { return false; }
-    if (tileNodesInfo.tileToConsider.dealsDamage)
-    {
-      UnityEngine.Debug.Log("skipping tile bc damage: " + tileNodesInfo.tileToConsider.groundTileType); return false;
-    }
+    // if (tileNodesInfo.tileToConsider.dealsDamage)
+    // {
+    //   UnityEngine.Debug.Log("skipping tile bc damage: " + tileNodesInfo.tileToConsider.groundTileType); return false;
+    // }
     if (tileNodesInfo.tileToConsider.CanRespawnPlayer())
     {
       // if a skill would let us NOT respawn, add a path with that skill!

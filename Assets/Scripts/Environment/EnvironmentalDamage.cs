@@ -130,5 +130,12 @@ public class EnvironmentalDamage : IDamageSource
   {
     return tileType.environmentalDamageInfo.resistanceRequiredForImmunity;
   }
+  public bool applySlowdown
+  {
+    get
+    {
+      return false;
+    }
+  }
 
 }

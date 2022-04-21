@@ -14,9 +14,16 @@ public enum WeaponActionType
   Move,
   Wait,
   RotateRelative,
+  Homing,
   MarkDone
 }
 
+[System.Serializable]
+public class HomingParams
+{
+  public float homingRange = 0f;
+  public float maxAngleToTarget = 0f;
+}
 [System.Serializable]
 public class Attack
 {
@@ -25,6 +32,7 @@ public class Attack
   public bool spawnObjectOnContact;
   public bool spawnObjectOnDestruction;
   public Overrideable<float> duration;
+  public HomingParams homing;
   public WeaponAction[] weaponActions;
 
   public float GetCumulativeEffectiveWeaponRange(Character owner)
