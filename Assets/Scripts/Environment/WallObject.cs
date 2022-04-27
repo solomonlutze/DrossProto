@@ -26,29 +26,33 @@ public class WallObject : MonoBehaviour, IPoolable
     if (wallPieces == null || wallPieces.Length == 0)
     {
       wallPieces = new GameObject[numberOfPieces];
-      for (int i = 0; i < numberOfPieces; i++)
-      {
-        wallPieces[i] = Instantiate(wallPieceObject, transform.position, Quaternion.identity);
-        wallPieces[i].transform.parent = transform;
-        wallPieces[i].transform.localPosition = new Vector3(0, 0, (1f / numberOfPieces * (i + 1)) - 1);
-      }
     }
-    floorLayer = location.floorLayer;
-    string sortingLayer = floorLayer.ToString();
     for (int i = 0; i < numberOfPieces; i++)
     {
-      float progress = 1f / numberOfPieces * (i + 1);
+      // wallPieces[i] = Instantiate(wallPieceObject, transform.position, Quaternion.identity);
+      // wallPieces[i].transform.parent = transform;
+      wallPieces[i].transform.localPosition = new Vector3(0, 0, (1f / numberOfPieces * (i + 1)) - 1);
+    }
+    floorLayer = location.floorLayer;
+    float progress;// string sortingLayer = floorLayer.ToString();
+    GameObject wallPiece;
+    SpriteRenderer spriteRenderer;
+    for (int i = 0; i < numberOfPieces; i++)
+    {
+      progress = 1f / numberOfPieces * (i + 1);
+      wallPiece = wallPieces[i];
+      spriteRenderer = wallPiece.GetComponent<SpriteRenderer>();
       if (wallPieces[i] != null)
       {
         wallPieces[i].SetActive(false);
       }
       if (progress > 1 - heightInfo.x && groundTile != null)
       {
-        CreateWallPiece(groundTile, i);
+        CreateWallPiece(groundTile, i, wallPiece, spriteRenderer);
       }
       else if (progress < 1 - heightInfo.y && ceilingTile != null)
       {
-        CreateWallPiece(ceilingTile, i);
+        CreateWallPiece(ceilingTile, i, wallPiece, spriteRenderer);
       }
     }
     WorldObject.ChangeLayersRecursively(transform, floorLayer);
@@ -76,12 +80,10 @@ public class WallObject : MonoBehaviour, IPoolable
     heightInfo = new Vector2(height, heightInfo.y);
   }
 
-  void CreateWallPiece(EnvironmentTile tile, int i)
+  void CreateWallPiece(EnvironmentTile tile, int i, GameObject wallPiece, SpriteRenderer sr)
   {
-    GameObject wallPiece = wallPieces[i];
     wallPiece.name = "WallPiece_" + tile.name;
     wallPiece.SetActive(true);
-    SpriteRenderer sr = wallPiece.GetComponent<SpriteRenderer>();
     sr.sprite = tile.sprite;
     sr.sortingOrder = orderInLayer;
     Vector3 locScale = Vector3.one;

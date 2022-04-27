@@ -114,7 +114,7 @@ public class Weapon : MonoBehaviour
     {
       // Debug.Log("hit: " + hitColliders[i].gameObject.name);
       Character c = hitColliders[i].GetComponentInParent<Character>();
-      if (c == null) { continue; }
+      if (c == null || owner == null) { continue; }
       float distance = (transform.position - c.transform.position).sqrMagnitude;
       if (c != owner && c.gameObject.layer == owner.gameObject.layer && distance < maxDistance)
       {

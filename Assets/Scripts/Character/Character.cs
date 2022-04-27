@@ -466,6 +466,10 @@ public class Character : WorldObject
   {
     queuedSkill = null;
     activeSkill = skill;
+    if (skill.SkipIfAirborne(this) && IsMidair())
+    {
+      AdvanceSkillEffectSet();
+    }
     skill.BeginSkillEffect(this);
   }
 
@@ -829,7 +833,7 @@ public class Character : WorldObject
   public void BecomeGrounded()
   {
     transform.position = new Vector3(transform.position.x, transform.position.y, GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - GetMaxFloorHeight());
-    if (activeSkill && activeSkill.IsWhileAirborne(this))
+    if (activeSkill && activeSkill.EndOnGrounded(this))
     {
       AdvanceSkillEffect();
     }
@@ -1034,7 +1038,10 @@ public class Character : WorldObject
   protected bool ShouldUseSkillEffectSet(CharacterSkillData skillData, int idx = 0)
   {
     return
-      (skillData.skillEffectSets[idx].alwaysExecute || activeSkill == pressingSkill || activeSkill == queuedSkill);
+      !(skillData.SkipIfAirborne(this) && IsMidair()) && (
+        skillData.skillEffectSets[idx].alwaysExecute
+        || activeSkill == pressingSkill
+        || activeSkill == queuedSkill);
   }
   public virtual bool CanUseSkill(CharacterSkillData skillData, int effectSetIndex = 0)
   {
@@ -1489,6 +1496,7 @@ public class Character : WorldObject
 
   public void AdjustCurrentStaminaForSkill(string skillId, float adjustment)
   {
+    if (!traitSlotsForSkills.ContainsKey(skillId)) { return; }
     AdjustCurrentStamina(traitSlotsForSkills[skillId], adjustment);
   }
   public void AdjustCurrentStamina(TraitSlot slot, float adjustment)

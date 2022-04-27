@@ -591,12 +591,15 @@ public class WorldGridData : ScriptableObject
       Tilemap objectTilemap = layerFloor.objectTilemap;
       Tilemap waterTilemap = layerFloor.waterTilemap;
       Tilemap infoTilemap = layerFloor.infoTilemap;
+      TileLocation loc;
+      EnvironmentTileData tileData;
+      EnvironmentTileInfo tileInfo;
       for (int x = xMin; x < xMin + chunkSize; x++)
       {
         for (int y = yMin; y < yMin + chunkSize; y++)
         {
-          TileLocation loc = new TileLocation(new Vector2Int(x, y), layer);
-          EnvironmentTileData tileData = new EnvironmentTileData();
+          loc = new TileLocation(new Vector2Int(x, y), layer);
+          tileData = new EnvironmentTileData();
           if ((EnvironmentTile)objectTilemap.GetTile(loc.tilemapCoordinatesVector3) != null)
           {
             tileData.ceilingHeight = 0;
@@ -605,7 +608,7 @@ public class WorldGridData : ScriptableObject
           {
             tileData = environmentTileDataGrid[loc.floorLayer][GridManager.Instance.CoordsToKey(loc.tilemapCoordinates)];
           }
-          EnvironmentTileInfo tileInfo = GridManager.Instance.GetTileAtLocation(loc);
+          tileInfo = GridManager.Instance.GetTileAtLocation(loc);
           CreateTileParticleSystem(loc);
           if (!tileData.IsEmpty() || tileInfo.objectTileType != null) // || not && to allow ground to come up!
           {

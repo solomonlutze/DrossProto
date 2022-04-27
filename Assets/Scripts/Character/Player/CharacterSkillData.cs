@@ -106,7 +106,7 @@ public class CharacterSkillData : ScriptableObject
     currentSkillEffect.DoSkillEffect(owner);
     if (currentSkillEffect.useType == SkillEffectType.Continuous)
     {
-      if (
+      if (EndOnInputRelease(owner) &&
         !owner.pressingSkill == this && ((currentSkillEffect.minDuration.get(owner) > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.minDuration.get(owner))
         || (currentSkillEffect.minDuration.get(owner) <= 0))
       )
@@ -125,7 +125,10 @@ public class CharacterSkillData : ScriptableObject
         owner.AdvanceSkillEffect();
       }
     }
-
+    if (EndOnGrounded(owner) && !owner.IsMidair())
+    {
+      owner.AdvanceSkillEffect();
+    }
   }
   public void CleanUp(Character owner)
   {
@@ -156,9 +159,19 @@ public class CharacterSkillData : ScriptableObject
     return GetActiveSkillEffect(owner).useType == SkillEffectType.Continuous;
   }
 
-  public bool IsWhileAirborne(Character owner)
+  public bool EndOnGrounded(Character owner)
   {
-    return GetActiveSkillEffect(owner).useType == SkillEffectType.WhileAirborne;
+    return GetActiveSkillEffect(owner).endOnGrounded.Resolve(owner);
+  }
+
+  public bool SkipIfAirborne(Character owner)
+  {
+    return GetActiveSkillEffect(owner).skipIfAirborne.Resolve(owner);
+  }
+
+  public bool EndOnInputRelease(Character owner)
+  {
+    return GetActiveSkillEffect(owner).endOnInputRelease.Resolve(owner);
   }
   // a skill _EFFECT_ is interruptable, but the ENTIRE SKILL gets interrupted.
   public bool SkillIsInterruptable(Character owner)

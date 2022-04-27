@@ -122,7 +122,7 @@ public class AiStateController : Character
       timeSpentInState = 0f;
       currentState.OnExit(this);
       currentState = nextState;
-      Debug.Log("transitioned to state " + currentState);
+      // Debug.Log("transitioned to state " + currentState);
       //TODO: should we fall back if onEntry fails?
       currentState.OnEntry(this);
     }

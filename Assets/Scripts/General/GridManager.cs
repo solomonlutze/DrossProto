@@ -544,6 +544,7 @@ public class GridManager : Singleton<GridManager>
         chunksToLoad.Add(centeredOnLocation.chunkCoordinates + offset);
       }
     }
+    // StartCoroutine(YieldForExistingLoadCoroutine(chunksToLoad));
     if (chunkLoadCoroutine != null)
     {
       StopCoroutine(chunkLoadCoroutine);
@@ -580,18 +581,43 @@ public class GridManager : Singleton<GridManager>
     }
   }
 
+  bool waitingForLoad = false;
+  // IEnumerator YieldForExistingLoadCoroutine(HashSet<Vector2Int> chunksToLoad)
+  // {
+
+  //   if (chunkLoadCoroutine != null)
+  //   {
+  //     waitingForLoad = true;
+  //     // yield return chunkLoadCoroutine;
+  //   }
+  //   waitingForLoad = false;
+  //   chunkLoadCoroutine = StartCoroutine(LoadAndUnloadChunksCoroutine(chunksToLoad));
+  // }
+
+  System.Diagnostics.Stopwatch timeSinceLastLoad;
   IEnumerator LoadAndUnloadChunksCoroutine(HashSet<Vector2Int> chunksToLoad)
   {
+    timeSinceLastLoad ??= new System.Diagnostics.Stopwatch();
+    Debug.Log("CHUNKS TimeSinceLastLoad started: " + timeSinceLastLoad.ElapsedMilliseconds + "ms");
+    timeSinceLastLoad.Restart();
     System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
     watch.Start();
+    Debug.Log("CHUNKS Started loading!");
     yield return LoadChunksCoroutine(chunksToLoad);
     yield return UnloadChunksCoroutine(chunksToLoad);
-    // Debug.Log("load/unload took " + watch.ElapsedMilliseconds + "ms");
+    Debug.Log("CHUNKS finished load/unload, took " + watch.ElapsedMilliseconds + "ms");
+    // Debug.Log("CHUNKS Finished loading!");
     chunkLoadCoroutine = null;
+  }
+
+  public bool LoadingChunks()
+  {
+    return chunkLoadCoroutine != null;
   }
 
   IEnumerator LoadChunksCoroutine(HashSet<Vector2Int> desiredChunks)
   {
+    // if (false) { yield return null; }
     System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
     watch.Start();
     foreach (Vector2Int chunk in desiredChunks)
@@ -600,7 +626,7 @@ public class GridManager : Singleton<GridManager>
       {
         worldGridData.LoadChunk(chunk);
         loadedChunks.Add(chunk);
-        if (watch.ElapsedMilliseconds > .3)
+        if (watch.ElapsedMilliseconds > 50 && !waitingForLoad)
         {
           yield return null;
           watch.Restart();
@@ -611,6 +637,7 @@ public class GridManager : Singleton<GridManager>
 
   IEnumerator UnloadChunksCoroutine(HashSet<Vector2Int> desiredChunks)
   {
+    // if (false) { yield return null; }
     System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
     HashSet<Vector2Int> chunksToUnload = new HashSet<Vector2Int>();
     watch.Start();
@@ -620,7 +647,7 @@ public class GridManager : Singleton<GridManager>
       {
         chunksToUnload.Add(loadedChunk);
         worldGridData.UnloadChunk(loadedChunk);
-        if (watch.ElapsedMilliseconds > .3)
+        if (watch.ElapsedMilliseconds > 50 && !waitingForLoad)
         {
           yield return null;
           watch.Restart();

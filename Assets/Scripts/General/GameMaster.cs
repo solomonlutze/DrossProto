@@ -75,13 +75,13 @@ public class GameMaster : Singleton<GameMaster>
   {
     canvasHandler.SetAllCanvasesInactive();
     SetGameStatus(DrossConstants.GameState.Play);
-    Respawn(data.loadout);
+    StartCoroutine(Respawn(data.loadout));
   }
 
   void BeginGame()
   {
     SetGameStatus(DrossConstants.GameState.Play);
-    Respawn();
+    StartCoroutine(Respawn());
   }
 
   // Update is called once per frame
@@ -120,7 +120,7 @@ public class GameMaster : Singleton<GameMaster>
   {
     if (rewiredPlayer.GetButtonDown("Respawn"))
     {
-      Respawn(cachedPupa);
+      StartCoroutine(Respawn(cachedPupa));
     }
   }
 
@@ -176,7 +176,7 @@ public class GameMaster : Singleton<GameMaster>
   {
     objectsToDestroyOnRespawn.Add(gameObject);
   }
-  private void Respawn(TraitSlotToTraitDictionary overrideTraits = null)
+  private IEnumerator Respawn(TraitSlotToTraitDictionary overrideTraits = null)
   {
     timeSinceStartup.Restart();
     ClearVariables(variablesToClearOnRespawn, eventsToRaiseOnRespawn);
@@ -184,7 +184,7 @@ public class GameMaster : Singleton<GameMaster>
     GridManager.Instance.RestoreTilesOnPlayerRespawn();
     GameObject player = GameObject.FindGameObjectWithTag("Player");
     if (player != null)
-    {
+    { // Should only be valid for a player placed in the scene
       playerController = player.GetComponent<PlayerController>();
       playerController.currentFloor = (FloorLayer)Enum.Parse(typeof(FloorLayer), LayerMask.LayerToName(player.layer));
     }
@@ -214,6 +214,13 @@ public class GameMaster : Singleton<GameMaster>
         }
       }
     }
+    PauseGame();
+    while (GridManager.Instance.LoadingChunks())
+    {
+      UnityEngine.Debug.Log("Loading....");
+      yield return null;
+    }
+    UnpauseGame();
     AkSoundEngine.PostEvent("PlayClergyLoop", GameMaster.Instance.gameObject);
     DoActivateOnPlayerRespawn();
     DoDestroyOnPlayerRespawn();
