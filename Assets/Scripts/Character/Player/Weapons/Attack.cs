@@ -15,6 +15,7 @@ public enum WeaponActionType
   Wait,
   RotateRelative,
   Homing,
+  Scale,
   MarkDone
 }
 

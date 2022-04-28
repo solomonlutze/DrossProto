@@ -111,8 +111,10 @@ public class Hitbox : MonoBehaviour, IDamageSource
 
   public Vector3 GetKnockbackForCharacter(Character c)
   {
+    // Debug.Log("knockback is " + damageInfo.knockback.Resolve(owner) + " for weapon with owner " + owner);
+    // Debug.Log("knockback - hb position"+transform.position+)
     return damageInfo.knockback.Resolve(owner)
-      * ((transform.position - owner.transform.position).normalized);
+      * ((c.transform.position - owner.transform.position).normalized);
     // return attack_old.GetKnockback(character, this);
   }
 

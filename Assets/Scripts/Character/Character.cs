@@ -365,6 +365,13 @@ public class Character : WorldObject
   public void AdvanceSkillEffectSet()
   {
     currentSkillEffectIndex = 0;
+    bool repeatSet = activeSkill.SkillEffectSetIsRepeatable(this) && (pressingSkill == activeSkill || queuedSkill == activeSkill);
+    if (repeatSet && ShouldUseSkillEffectSet(activeSkill, currentSkillEffectSetIndex) && CanUseSkill(activeSkill, currentSkillEffectSetIndex))
+    {
+      BeginSkillEffect();
+      queuedSkill = null;
+      return;
+    }
     while (currentSkillEffectSetIndex < activeSkill.skillEffectSets.Length - 1)
     {
       currentSkillEffectSetIndex++;
@@ -1124,6 +1131,7 @@ public class Character : WorldObject
     }
     InterruptAnimation();
     Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
+    Debug.Log("knockback: " + knockback);
     if (damageSource.damageType != DamageType.Physical)
     {
       AdjustElementalDamageBuildup(damageSource.damageType, damageAfterResistances);

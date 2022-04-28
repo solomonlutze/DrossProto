@@ -179,8 +179,13 @@ public class CharacterSkillData : ScriptableObject
     return GetActiveSkillEffect(owner).interruptable.get(owner);
   }
 
+  public bool SkillEffectSetIsRepeatable(Character owner)
+  {
+    return GetActiveSkillEffectSet(owner).isRepeatable;
+  }
+
   // Used only for pathfinding! Tells us that we can pivot from one use of the skill into the next.
-  public bool SkillIsRepeatable()
+  public bool SkillIsCancelable()
   {
     return GetLastSkillEffect().cancelable.defaultValue;
   }

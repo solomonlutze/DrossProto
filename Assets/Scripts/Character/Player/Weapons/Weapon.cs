@@ -37,10 +37,6 @@ public class Weapon : MonoBehaviour
     owningEffectActiveWeapons.Add(this);
     attachToOwner = attackSpawnData.attachToOwner;
     defaultHitboxes = GetComponentsInChildren<Hitbox>();
-    // if (awarenessTrigger != null)
-    // {
-    //   awarenessTrigger.Init(c, attack.homing.homingRange);
-    // }
     foreach (Hitbox hitbox in defaultHitboxes)
     {
       hitbox.Init(owner, attackSpawnData.damage, this);
@@ -87,13 +83,16 @@ public class Weapon : MonoBehaviour
     switch (action.type)
     {
       case WeaponActionType.Move:
-        MoveWeaponAction(action, owner, increment);
+        MoveWeaponAction(action, owner);
         break;
       case WeaponActionType.RotateRelative:
         RotateWeaponRelativeAction(action, owner, increment);
         break;
       case WeaponActionType.Homing:
         HomingWeaponAction(action, owner, increment);
+        break;
+      case WeaponActionType.Scale:
+        ScaleWeaponAction(action, owner);
         break;
       case WeaponActionType.Wait:
         WaitWeaponAction(action, increment);
@@ -128,13 +127,6 @@ public class Weapon : MonoBehaviour
   }
   public void HomingWeaponAction(WeaponAction action, Character owner, float increment)
   {
-    // Identify target
-    // if outside range or angle of target, return
-    // 
-    // if (awarenessTrigger == null)
-    // {
-    //   Debug.LogError("weapon " + gameObject.name + " has a homing action but no awarenessTrigger!");
-    // }
     Character nearestTarget = GetNearestTarget();
     if (nearestTarget == null) { return; }
     Vector3 targetPosition = nearestTarget.transform.position;
@@ -146,17 +138,21 @@ public class Weapon : MonoBehaviour
     transform.rotation = Quaternion.RotateTowards(transform.rotation, targetDirection, action.motion.EvaluateIncrement(owner, progress, previousProgress));
   }
 
-  public void MoveWeaponAction(WeaponAction action, Character owner, float increment)
+  public void MoveWeaponAction(WeaponAction action, Character owner)
   {
-    // rigidbody2D.MovePosition(transform.position + new Vector3(action.motion.EvaluateIncrement(owner, progress, previousProgress), 0, 0));
     transform.position += transform.rotation * new Vector3(action.motion.EvaluateIncrement(owner, progress, previousProgress), 0, 0);
+  }
+
+  public void ScaleWeaponAction(WeaponAction action, Character owner)
+  {
+    float increment = action.motion.EvaluateIncrement(owner, progress, previousProgress);
+    transform.localScale += new Vector3(increment, increment, 0);
   }
 
   // Rotate weapon relative to owner - think of a sword swing
   public void RotateWeaponRelativeAction(WeaponAction action, Character owner, float increment)
   {
     Vector3 direction = transform.position - owner.transform.position;
-    // rigidbody2D.MoveRotation
     transform.RotateAround(owner.transform.position, Vector3.forward, action.motion.EvaluateIncrement(owner, progress, previousProgress));
   }
   public void WaitWeaponAction(WeaponAction action, float increment)

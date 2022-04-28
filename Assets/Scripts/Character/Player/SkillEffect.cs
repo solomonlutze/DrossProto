@@ -40,6 +40,7 @@ public class SkillEffectSet
   [Tooltip("Defines whether this effect set should always be executed every time the skill is used")]
   public bool alwaysExecute = true;
   public bool canUseInMidair = false;
+  public bool isRepeatable = false;
 
   public SkillEffect[] skillEffects;
   public float GetTotalStaminaCost(Character c)
