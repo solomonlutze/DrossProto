@@ -598,14 +598,14 @@ public class GridManager : Singleton<GridManager>
   IEnumerator LoadAndUnloadChunksCoroutine(HashSet<Vector2Int> chunksToLoad)
   {
     timeSinceLastLoad ??= new System.Diagnostics.Stopwatch();
-    Debug.Log("CHUNKS TimeSinceLastLoad started: " + timeSinceLastLoad.ElapsedMilliseconds + "ms");
+    // Debug.Log("CHUNKS TimeSinceLastLoad started: " + timeSinceLastLoad.ElapsedMilliseconds + "ms");
     timeSinceLastLoad.Restart();
     System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
     watch.Start();
-    Debug.Log("CHUNKS Started loading!");
+    // Debug.Log("CHUNKS Started loading!");
     yield return LoadChunksCoroutine(chunksToLoad);
     yield return UnloadChunksCoroutine(chunksToLoad);
-    Debug.Log("CHUNKS finished load/unload, took " + watch.ElapsedMilliseconds + "ms");
+    // Debug.Log("CHUNKS finished load/unload, took " + watch.ElapsedMilliseconds + "ms");
     // Debug.Log("CHUNKS Finished loading!");
     chunkLoadCoroutine = null;
   }

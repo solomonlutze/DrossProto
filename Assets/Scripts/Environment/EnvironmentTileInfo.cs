@@ -149,7 +149,7 @@ public class EnvironmentTileInfo
     infoTileType = infoTile;
     tileData = etd;
     environmentalDamageSources = new List<EnvironmentalDamage>();
-    foreach (EnvironmentTile t in new EnvironmentTile[] { groundTile, objectTile })
+    foreach (EnvironmentTile t in new EnvironmentTile[] { groundTileType, objectTileType })
       if (t != null && t.dealsDamage)
       {
         EnvironmentalDamage d = new EnvironmentalDamage();
@@ -222,7 +222,7 @@ public class EnvironmentTileInfo
     {
       return true;
     }
-    if (character.IsMidair())
+    if (character.IsMidair() || character.GetDistanceFromFloorTile(this.tileLocation) > 0.001)
     {
       return true;
     }

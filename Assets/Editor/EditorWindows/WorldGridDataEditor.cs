@@ -35,12 +35,7 @@ public class WorldGridDataEditor : Editor
     if (GUILayout.Button("Replace environment tile grid data with new"))
     {
       WorldGridData worldGridData = target as WorldGridData;
-      worldGridData.environmentTileDataGrid = new FloorLayerToEnvironmentTileDataDictionary();
-
-      foreach (FloorLayer fl in (FloorLayer[])Enum.GetValues(typeof(FloorLayer)))
-      {
-        worldGridData.environmentTileDataGrid.Add(fl, new IntToEnvironmentTileDataDictionary());
-      }
+      worldGridData.ClearWorldGrid();
     }
   }
 

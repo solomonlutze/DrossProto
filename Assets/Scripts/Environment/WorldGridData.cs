@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 using UnityEditor;
 
@@ -62,26 +63,10 @@ public class WorldGridData : ScriptableObject
     AssetDatabase.CreateAsset(data, path);
   }
 
-  // [MenuItem("CustomTools/RebuildWorldGrid")]
-  // private static void RebuildWorldGrid()
-  // {
-  //   WorldGridData worldGridData = Resources.Load("Data/EnvironmentData/WorldGridData") as WorldGridData;
-  //   Debug.Log("loading world grid data: " + worldGridData);
-  //   worldGridData.RebuildPlacedObjects();
-  // }
-
-  // [MenuItem("CustomTools/ClearWorldGrid")]
-  // private static void ClearWorldGrid()
-  // {
-  //   WorldGridData worldGridData = Resources.Load("Data/EnvironmentData/WorldGridData") as WorldGridData;
-  //   Debug.Log("loading world grid data: " + worldGridData);
-  // }
-
-
   [MenuItem("CustomTools/SortTilesToCorrectTilemaps")]
   private static void SortTilesToCorrectTilemaps()
   {
-    WorldGridData worldGridData = Resources.Load("Data/EnvironmentData/WorldGridData") as WorldGridData;
+    WorldGridData worldGridData = GetWorldGridDataForScene();
     Debug.Log("loading world grid data: " + worldGridData);
     int count = 0;
     foreach (LayerFloor layerFloor in GridManager.Instance.layerFloors.Values)
@@ -153,7 +138,6 @@ public class WorldGridData : ScriptableObject
     Debug.Log("new FloorHeightToPaint is " + heightToPaint);
   }
 
-
   [MenuItem("CustomTools/World Grid/Painting/Decrease floor height %#DOWN")]
   public static void DecreaseFloorHeightToPaint()
   {
@@ -165,6 +149,25 @@ public class WorldGridData : ScriptableObject
     Debug.Log("new FloorHeightToPaint is " + heightToPaint);
   }
 
+  [MenuItem("CustomTools/World Grid/DANGER/ClearAllWorldGridFloors")]
+  public static void ClearAllWorldGridFloors()
+  {
+    foreach (LayerFloor layerFloor in GridManager.Instance.layerFloors.Values)
+    {
+      layerFloor.groundTilemap.ClearAllTiles();
+      layerFloor.waterTilemap.ClearAllTiles();
+      layerFloor.objectTilemap.ClearAllTiles();
+      layerFloor.infoTilemap.ClearAllTiles();
+    }
+    GetWorldGridDataForScene().ClearWorldGrid();
+  }
+
+  public static WorldGridData GetWorldGridDataForScene()
+  {
+    string sceneName = SceneManager.GetSceneAt(0).name;
+    WorldGridData worldGridData = Resources.Load("Data/EnvironmentData/WorldGridData_" + sceneName) as WorldGridData;
+    return worldGridData;
+  }
   // 0,0 is the default - floors extend nowhere, and wall objects take up the whole height. 
   // --we do not need to track this as height data, but we do need a wallObject if there's an objectTile at that location.
   // 0,1 is "empty" - floors do not extend, ceilings do not extend. 
@@ -365,6 +368,15 @@ public class WorldGridData : ScriptableObject
       return environmentTileDataGrid[layer][locKey].groundHeight;
     }
     return 0;
+  }
+
+  public void ClearWorldGrid()
+  {
+    environmentTileDataGrid = new FloorLayerToEnvironmentTileDataDictionary();
+    foreach (FloorLayer fl in (FloorLayer[])Enum.GetValues(typeof(FloorLayer)))
+    {
+      environmentTileDataGrid.Add(fl, new IntToEnvironmentTileDataDictionary());
+    }
   }
 
   // Height Grid should contain a value if the expected height isn't (0,1) - that is, floor at 0 and ceiling at 1.

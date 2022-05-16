@@ -107,8 +107,11 @@ public class CharacterSkillData : ScriptableObject
     if (currentSkillEffect.useType == SkillEffectType.Continuous)
     {
       if (EndOnInputRelease(owner) &&
-        !owner.pressingSkill == this && ((currentSkillEffect.minDuration.get(owner) > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.minDuration.get(owner))
-        || (currentSkillEffect.minDuration.get(owner) <= 0))
+        !owner.pressingSkill == this &&
+        (
+          (currentSkillEffect.minDuration.get(owner) > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.minDuration.get(owner))
+          || (currentSkillEffect.minDuration.get(owner) <= 0)
+        )
       )
       {
         owner.AdvanceSkillEffect();

@@ -415,6 +415,7 @@ public class Character : WorldObject
 
   public void EndSkill()
   {
+    Debug.Log("Ending skill " + activeSkill + " at set idx " + currentSkillEffectSetIndex + " and effect index " + currentSkillEffectIndex);
     bool repeatSkill = activeSkill && activeSkill.isRepeatable && (pressingSkill == activeSkill || queuedSkill == activeSkill);
     if (UsingSkill())
     {
@@ -857,7 +858,11 @@ public class Character : WorldObject
     float minDistance = 1;
     foreach (EnvironmentTileInfo tile in overlappingTiles)
     {
-      minDistance = Mathf.Min(GetDistanceFromFloorTile(tile.tileLocation, withIncrement), minDistance);
+      Debug.Log("Distance: " + GetDistanceFromFloorTile(tile.tileLocation, withIncrement));
+      if (!tile.IsEmpty())
+      {
+        minDistance = Mathf.Min(GetDistanceFromFloorTile(tile.tileLocation, withIncrement), minDistance);
+      }
     }
     return minDistance;
   }
@@ -887,7 +892,7 @@ public class Character : WorldObject
     return false;
   }
 
-  float GetDistanceFromFloorTile(TileLocation loc, float withIncrement = 0)
+  public float GetDistanceFromFloorTile(TileLocation loc, float withIncrement = 0)
   {
     return GetZOffsetFromCurrentFloorLayer(withIncrement) - GridManager.Instance.GetFloorHeightForTileLocation(loc);
   }
@@ -1087,7 +1092,8 @@ public class Character : WorldObject
 
   bool WithinDamageHeight(IDamageSource damageSource)
   {
-    if (damageSource as EnvironmentalDamage != null)
+    EnvironmentalDamage envDamage = damageSource as EnvironmentalDamage;
+    if (envDamage != null && envDamage.tileType.floorTilemapType == FloorTilemapType.Object)
     {
       return true;
     }
@@ -1099,6 +1105,7 @@ public class Character : WorldObject
   // DAMAGE FUNCTIONS
   protected virtual void TakeDamage(IDamageSource damageSource)
   {
+    Debug.Log("damageSource " + damageSource);
     if (damageSource.IsOwnedBy(this)) { return; }
     if (damageSource.IsSameOwnerType(this)) { return; }
     if (!WithinDamageHeight(damageSource)) { return; }
@@ -1740,7 +1747,7 @@ public class Character : WorldObject
     {
       foreach (EnvironmentalDamage envDamage in tile.environmentalDamageSources)
       {
-        Debug.Log("env damage source status: " + envDamage.GetEnvironmentalDamageSourceStatus());
+        Debug.Log("groundTile: " + tile.groundTileType + ", objectTile: " + tile.objectTileType);
         if (envDamage.IsEnvironmentalDamageSourceActive())
         {
           TakeDamage(envDamage);
@@ -1759,7 +1766,10 @@ public class Character : WorldObject
     {
       if (!tile.CharacterCanCrossTile(this))
       {
-        AdjustElementalDamageBuildup(DamageType.Heat, -100);
+        if (tile.groundTileType.tileTags.Contains(TileTag.Water))
+        {
+          AdjustElementalDamageBuildup(DamageType.Heat, -100);
+        }
         RespawnCharacterAtLastSafeLocation();
       }
     }
@@ -1777,7 +1787,7 @@ public class Character : WorldObject
   {
     EndSkill();
     transform.position =
-      new Vector3(lastSafeTileLocation.cellCenterWorldPosition.x, lastSafeTileLocation.cellCenterWorldPosition.y, GridManager.GetZOffsetForGameObjectLayer(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
+      new Vector3(lastSafeTileLocation.cellCenterWorldPosition.x, lastSafeTileLocation.cellCenterWorldPosition.y, GridManager.GetZOffsetForGameObjectLayer(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)) - GridManager.Instance.GetTileAtLocation(lastSafeTileLocation).GroundHeight());
     if (currentFloor != lastSafeTileLocation.floorLayer)
     {
       SetCurrentFloor(lastSafeTileLocation.floorLayer);
