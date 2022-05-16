@@ -202,6 +202,7 @@ namespace UnityEditor.Tilemaps
 
         // TilemapEditorTool.SetActiveEditorTool(typeof(EraseTool));
         Debug.Log("floorTilemapType " + floorTilemapType);
+        Debug.Log("selected tiletype " + cell.tile);
         Tilemap desiredTilemap;
         if (floorTilemapType == FloorTilemapType.Ground)
         {
@@ -217,7 +218,6 @@ namespace UnityEditor.Tilemaps
         }
         else if (floorTilemapType == FloorTilemapType.Water)
         {
-          Debug.Log("selecting water tilemap?");
           desiredTilemap = desiredLayerFloor.waterTilemap;
         }
         else

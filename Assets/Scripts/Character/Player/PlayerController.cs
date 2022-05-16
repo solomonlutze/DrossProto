@@ -378,6 +378,7 @@ public class PlayerController : Character
           {
             if (pressingSkill == GetSkillForActionInput(skillActionName))
             {
+              Debug.Log("let go of button!");
               pressingSkill = null;
             }
           }

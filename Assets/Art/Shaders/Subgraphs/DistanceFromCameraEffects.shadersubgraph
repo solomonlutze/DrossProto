@@ -41,6 +41,9 @@
         },
         {
             "m_Id": "8bf99bcd0be849b09fa0253b56cfc32d"
+        },
+        {
+            "m_Id": "e585d7fab122413bb44e5389c7323e77"
         }
     ],
     "m_Keywords": [
@@ -174,6 +177,9 @@
         },
         {
             "m_Id": "64f5f55adaeb4c138a57631feb74653f"
+        },
+        {
+            "m_Id": "ae7c0c46c1674069b0959158459f7a4a"
         }
     ],
     "m_GroupDatas": [
@@ -604,6 +610,20 @@
                     "m_Id": "47e2a0b43ddb426a9caf1838849f91a7"
                 },
                 "m_SlotId": 1
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "ae7c0c46c1674069b0959158459f7a4a"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "ccc3378b103649fc9519fef0f1ab1a09"
+                },
+                "m_SlotId": -2076330115
             }
         },
         {
@@ -2239,6 +2259,21 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "6036f79ecb7d422fa45400c95a48877b",
+    "m_Id": 0,
+    "m_DisplayName": "MaxBrightnessMagnitude",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1Node",
     "m_ObjectId": "608f2434b17f4e2590e55635f59df6b8",
     "m_Group": {
@@ -3760,6 +3795,41 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
+    "m_ObjectId": "ae7c0c46c1674069b0959158459f7a4a",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Property",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -2470.0,
+            "y": 1351.0,
+            "width": 0.0,
+            "height": 0.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "6036f79ecb7d422fa45400c95a48877b"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_Property": {
+        "m_Id": "e585d7fab122413bb44e5389c7323e77"
+    }
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "af88406fd6064fbea2388dc6c645249d",
     "m_Id": 1726306667,
@@ -3827,6 +3897,21 @@
         "x": 446.0000305175781,
         "y": -47.99993896484375
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "b20be1c1d4fc4d599d5c0ac3865e884f",
+    "m_Id": -2076330115,
+    "m_DisplayName": "MaxBrightnessMagnitude",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Vector1_a929a99cfdcc4efc892b3def7584d4f8",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
 }
 
 {
@@ -4116,6 +4201,9 @@
             "m_Id": "51bdee10f4794a7892fe03cf42d9bbf7"
         },
         {
+            "m_Id": "b20be1c1d4fc4d599d5c0ac3865e884f"
+        },
+        {
             "m_Id": "71c62bcedbe04c82a138e4eb3a99991c"
         }
     ],
@@ -4131,13 +4219,15 @@
         "9d97c3bc-fb10-4df6-8978-ec356c979866",
         "169bca63-6029-454f-9955-b054bc83312e",
         "25af8694-cc28-46b4-bfec-2f5a3f81bd73",
-        "f1870dc4-2817-474d-a4cd-1f0b1c3400d8"
+        "f1870dc4-2817-474d-a4cd-1f0b1c3400d8",
+        "ccf3fdf0-92ce-4a36-9937-dacfe91960bb"
     ],
     "m_PropertyIds": [
         -1970827732,
         -961376510,
         -964181933,
-        -963622319
+        -963622319,
+        -2076330115
     ]
 }
 
@@ -4627,6 +4717,29 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
+    }
+}
+
+{
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
+    "m_ObjectId": "e585d7fab122413bb44e5389c7323e77",
+    "m_Guid": {
+        "m_GuidSerialized": "5d87d58f-fc5c-4434-b2e5-e8621d3178a6"
+    },
+    "m_Name": "MaxBrightnessMagnitude",
+    "m_DefaultReferenceName": "Vector1_e585d7fab122413bb44e5389c7323e77",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "m_Hidden": false,
+    "m_Value": 0.0,
+    "m_FloatType": 0,
+    "m_RangeValues": {
+        "x": 0.0,
+        "y": 1.0
     }
 }
 

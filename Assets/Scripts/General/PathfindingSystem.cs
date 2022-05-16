@@ -562,7 +562,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
         EnvironmentTileInfo previousTile = GridManager.Instance.GetTileAtLocation(tileNodesInfo.previousNode.loc);
         foreach (CharacterSkillData skill in tileNodesInfo.ai.GetSkillsThatCanCrossTileWithoutRespawning(tileNodesInfo.tileToConsider))
         {
-          if ((tileNodesInfo.previousNode.skillProgress + GetSkillProgressCostToTraverseHalfTile(skill, previousTile) < 1) || skill.SkillIsRepeatable())
+          if ((tileNodesInfo.previousNode.skillProgress + GetSkillProgressCostToTraverseHalfTile(skill, previousTile) < 1) || skill.SkillIsCancelable())
           {
             AddNode(tileNodesInfo, skill);
           }
@@ -748,7 +748,7 @@ public class PathfindingSystem : Singleton<PathfindingSystem>
     {
       foreach (CharacterSkillData skill in tileNodesInfo.ai.GetSkillsThatCanCrossEmptyTiles())
       {
-        if (tileNodesInfo.previousNode.distanceTraveledViaSkill + GridConstants.X_SPACING < skill.GetForwardMovementMagnitudeForPathfinding(tileInfo) || skill.SkillIsRepeatable())
+        if (tileNodesInfo.previousNode.distanceTraveledViaSkill + GridConstants.X_SPACING < skill.GetForwardMovementMagnitudeForPathfinding(tileInfo) || skill.SkillIsCancelable())
         {
           AddNode(tileNodesInfo, skill);
         }

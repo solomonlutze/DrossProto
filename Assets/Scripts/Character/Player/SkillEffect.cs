@@ -2,9 +2,8 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using System.Collections;
 using System.Collections.Generic;
-// NOTE: WhileAirborne means the effect lasts until the player lands no matter what.
-// If something else should ALSO end the effect, make a new flag
-public enum SkillEffectType { OneTime, Continuous, WhileAirborne }
+
+public enum SkillEffectType { OneTime, Continuous }
 
 [System.Serializable]
 public class SkillEffectGroup
@@ -41,6 +40,7 @@ public class SkillEffectSet
   [Tooltip("Defines whether this effect set should always be executed every time the skill is used")]
   public bool alwaysExecute = true;
   public bool canUseInMidair = false;
+  public bool isRepeatable = false;
 
   public SkillEffect[] skillEffects;
   public float GetTotalStaminaCost(Character c)
@@ -70,6 +70,12 @@ public class SkillEffect
 
   [Tooltip("Defines whether an input of this skill should end this effect and move to the next")]
   public Overrideable<bool> advanceable = new Overrideable<bool>(false);
+  [Tooltip("Defines whether the effect should end when the character touches the ground")]
+  public Overrideable<bool> endOnGrounded = new Overrideable<bool>(false);
+  [Tooltip("Defines whether the effect should be skipped if the character is not grounded")]
+  public Overrideable<bool> skipIfAirborne = new Overrideable<bool>(false);
+  [Tooltip("Defines whether the effect should end when the character is no longer inputting skill (ie button release). IGNORED FOR ONE TIME SKILLS.")]
+  public Overrideable<bool> endOnInputRelease = new Overrideable<bool>(true);
   [Tooltip("This effect is bypassed if the skillEffect is queued when this effect is reached. Good for eg pauses between attacks")]
   public Overrideable<bool> skipIfQueued = new Overrideable<bool>(false);
   [Tooltip("Animation only. Sets the 'IsGuarding' flag on the animator.")]

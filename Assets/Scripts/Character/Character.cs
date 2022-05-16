@@ -365,6 +365,13 @@ public class Character : WorldObject
   public void AdvanceSkillEffectSet()
   {
     currentSkillEffectIndex = 0;
+    bool repeatSet = activeSkill.SkillEffectSetIsRepeatable(this) && (pressingSkill == activeSkill || queuedSkill == activeSkill);
+    if (repeatSet && ShouldUseSkillEffectSet(activeSkill, currentSkillEffectSetIndex) && CanUseSkill(activeSkill, currentSkillEffectSetIndex))
+    {
+      BeginSkillEffect();
+      queuedSkill = null;
+      return;
+    }
     while (currentSkillEffectSetIndex < activeSkill.skillEffectSets.Length - 1)
     {
       currentSkillEffectSetIndex++;
@@ -408,6 +415,7 @@ public class Character : WorldObject
 
   public void EndSkill()
   {
+    Debug.Log("Ending skill " + activeSkill + " at set idx " + currentSkillEffectSetIndex + " and effect index " + currentSkillEffectIndex);
     bool repeatSkill = activeSkill && activeSkill.isRepeatable && (pressingSkill == activeSkill || queuedSkill == activeSkill);
     if (UsingSkill())
     {
@@ -466,6 +474,10 @@ public class Character : WorldObject
   {
     queuedSkill = null;
     activeSkill = skill;
+    if (skill.SkipIfAirborne(this) && IsMidair())
+    {
+      AdvanceSkillEffectSet();
+    }
     skill.BeginSkillEffect(this);
   }
 
@@ -829,7 +841,7 @@ public class Character : WorldObject
   public void BecomeGrounded()
   {
     transform.position = new Vector3(transform.position.x, transform.position.y, GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - GetMaxFloorHeight());
-    if (activeSkill && activeSkill.IsWhileAirborne(this))
+    if (activeSkill && activeSkill.EndOnGrounded(this))
     {
       AdvanceSkillEffect();
     }
@@ -846,7 +858,11 @@ public class Character : WorldObject
     float minDistance = 1;
     foreach (EnvironmentTileInfo tile in overlappingTiles)
     {
-      minDistance = Mathf.Min(GetDistanceFromFloorTile(tile.tileLocation, withIncrement), minDistance);
+      Debug.Log("Distance: " + GetDistanceFromFloorTile(tile.tileLocation, withIncrement));
+      if (!tile.IsEmpty())
+      {
+        minDistance = Mathf.Min(GetDistanceFromFloorTile(tile.tileLocation, withIncrement), minDistance);
+      }
     }
     return minDistance;
   }
@@ -876,7 +892,7 @@ public class Character : WorldObject
     return false;
   }
 
-  float GetDistanceFromFloorTile(TileLocation loc, float withIncrement = 0)
+  public float GetDistanceFromFloorTile(TileLocation loc, float withIncrement = 0)
   {
     return GetZOffsetFromCurrentFloorLayer(withIncrement) - GridManager.Instance.GetFloorHeightForTileLocation(loc);
   }
@@ -1034,7 +1050,10 @@ public class Character : WorldObject
   protected bool ShouldUseSkillEffectSet(CharacterSkillData skillData, int idx = 0)
   {
     return
-      (skillData.skillEffectSets[idx].alwaysExecute || activeSkill == pressingSkill || activeSkill == queuedSkill);
+      !(skillData.SkipIfAirborne(this) && IsMidair()) && (
+        skillData.skillEffectSets[idx].alwaysExecute
+        || activeSkill == pressingSkill
+        || activeSkill == queuedSkill);
   }
   public virtual bool CanUseSkill(CharacterSkillData skillData, int effectSetIndex = 0)
   {
@@ -1073,7 +1092,8 @@ public class Character : WorldObject
 
   bool WithinDamageHeight(IDamageSource damageSource)
   {
-    if (damageSource as EnvironmentalDamage != null)
+    EnvironmentalDamage envDamage = damageSource as EnvironmentalDamage;
+    if (envDamage != null && envDamage.tileType.floorTilemapType == FloorTilemapType.Object)
     {
       return true;
     }
@@ -1085,6 +1105,7 @@ public class Character : WorldObject
   // DAMAGE FUNCTIONS
   protected virtual void TakeDamage(IDamageSource damageSource)
   {
+    Debug.Log("damageSource " + damageSource);
     if (damageSource.IsOwnedBy(this)) { return; }
     if (damageSource.IsSameOwnerType(this)) { return; }
     if (!WithinDamageHeight(damageSource)) { return; }
@@ -1117,6 +1138,7 @@ public class Character : WorldObject
     }
     InterruptAnimation();
     Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
+    Debug.Log("knockback: " + knockback);
     if (damageSource.damageType != DamageType.Physical)
     {
       AdjustElementalDamageBuildup(damageSource.damageType, damageAfterResistances);
@@ -1489,6 +1511,7 @@ public class Character : WorldObject
 
   public void AdjustCurrentStaminaForSkill(string skillId, float adjustment)
   {
+    if (!traitSlotsForSkills.ContainsKey(skillId)) { return; }
     AdjustCurrentStamina(traitSlotsForSkills[skillId], adjustment);
   }
   public void AdjustCurrentStamina(TraitSlot slot, float adjustment)
@@ -1724,7 +1747,7 @@ public class Character : WorldObject
     {
       foreach (EnvironmentalDamage envDamage in tile.environmentalDamageSources)
       {
-        Debug.Log("env damage source status: " + envDamage.GetEnvironmentalDamageSourceStatus());
+        Debug.Log("groundTile: " + tile.groundTileType + ", objectTile: " + tile.objectTileType);
         if (envDamage.IsEnvironmentalDamageSourceActive())
         {
           TakeDamage(envDamage);
@@ -1743,7 +1766,10 @@ public class Character : WorldObject
     {
       if (!tile.CharacterCanCrossTile(this))
       {
-        AdjustElementalDamageBuildup(DamageType.Heat, -100);
+        if (tile.groundTileType.tileTags.Contains(TileTag.Water))
+        {
+          AdjustElementalDamageBuildup(DamageType.Heat, -100);
+        }
         RespawnCharacterAtLastSafeLocation();
       }
     }
@@ -1761,7 +1787,7 @@ public class Character : WorldObject
   {
     EndSkill();
     transform.position =
-      new Vector3(lastSafeTileLocation.cellCenterWorldPosition.x, lastSafeTileLocation.cellCenterWorldPosition.y, GridManager.GetZOffsetForGameObjectLayer(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)));
+      new Vector3(lastSafeTileLocation.cellCenterWorldPosition.x, lastSafeTileLocation.cellCenterWorldPosition.y, GridManager.GetZOffsetForGameObjectLayer(GetGameObjectLayerFromFloorLayer(lastSafeTileLocation.floorLayer)) - GridManager.Instance.GetTileAtLocation(lastSafeTileLocation).GroundHeight());
     if (currentFloor != lastSafeTileLocation.floorLayer)
     {
       SetCurrentFloor(lastSafeTileLocation.floorLayer);
