@@ -115,6 +115,16 @@ public class EnvironmentalDamage : IDamageSource
     }
   }
 
+
+  public bool GetCharacterWithinVerticalRange(Character c)
+  {
+    if (tileType.floorTilemapType == FloorTilemapType.Object)
+    {
+      return true;
+    }
+    return !c.IsMidair(); // TODO: FIXME!!!
+  }
+
   public float invulnerabilityWindow
   {
     get

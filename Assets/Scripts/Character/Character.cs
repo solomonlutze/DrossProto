@@ -858,7 +858,6 @@ public class Character : WorldObject
     float minDistance = 1;
     foreach (EnvironmentTileInfo tile in overlappingTiles)
     {
-      Debug.Log("Distance: " + GetDistanceFromFloorTile(tile.tileLocation, withIncrement));
       if (!tile.IsEmpty())
       {
         minDistance = Mathf.Min(GetDistanceFromFloorTile(tile.tileLocation, withIncrement), minDistance);
@@ -1090,25 +1089,13 @@ public class Character : WorldObject
     return true;
   }
 
-  bool WithinDamageHeight(IDamageSource damageSource)
-  {
-    EnvironmentalDamage envDamage = damageSource as EnvironmentalDamage;
-    if (envDamage != null && envDamage.tileType.floorTilemapType == FloorTilemapType.Object)
-    {
-      return true;
-    }
-    // !!!FIXME FIXME FIXME!!!!
-    return !IsMidair();
-    // !!!FIXME FIXME FIXME!!!!
-
-  }
   // DAMAGE FUNCTIONS
   protected virtual void TakeDamage(IDamageSource damageSource)
   {
     Debug.Log("damageSource " + damageSource);
     if (damageSource.IsOwnedBy(this)) { return; }
     if (damageSource.IsSameOwnerType(this)) { return; }
-    if (!WithinDamageHeight(damageSource)) { return; }
+    if (!damageSource.GetCharacterWithinVerticalRange(this)) { return; }
 
     // Crit damage:
     // -If you're using a crit, you don't take damage

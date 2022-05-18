@@ -23,8 +23,9 @@ public class DamageInfo
   public Overrideable<bool> isNonlethal;
   // whether this damage object should respect invulnerability from OTHER targets
   public Overrideable<bool> ignoreInvulnerability;
-  // whether this damage object should corrode certain tiles
-  // TODO: Possibly deprecated by acid damage
+
+  [Tooltip("How far up (x) and down (y) the attack hits")]
+  public Overrideable<Vector2> verticalRange;
 
 }
 

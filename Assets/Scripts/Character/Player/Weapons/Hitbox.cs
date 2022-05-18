@@ -111,13 +111,20 @@ public class Hitbox : MonoBehaviour, IDamageSource
 
   public Vector3 GetKnockbackForCharacter(Character c)
   {
-    // Debug.Log("knockback is " + damageInfo.knockback.Resolve(owner) + " for weapon with owner " + owner);
-    // Debug.Log("knockback - hb position"+transform.position+)
     return damageInfo.knockback.Resolve(owner)
       * ((c.transform.position - owner.transform.position).normalized);
-    // return attack_old.GetKnockback(character, this);
   }
 
+  // example: suppose weapon z is 0, vert range is (.5, 1)
+  // remember: negative numbers are higher elevation on z axis, because fuck you
+  public bool GetCharacterWithinVerticalRange(Character c)
+  {
+    float buffer = .00001f;
+    Vector2 verticalRange = damageInfo.verticalRange.Resolve(owner);
+    float maxHeight = transform.position.z - (verticalRange.x + buffer); // max height -.5
+    float minHeight = transform.position.z + (verticalRange.y + buffer); // min height 1
+    return c.transform.position.z <= minHeight && c.transform.position.z >= maxHeight;
+  }
   public float CalculateDamageAfterResistances(Character c)
   {
     if (c != null)

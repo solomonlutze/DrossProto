@@ -17,4 +17,5 @@ public interface IDamageSource
   bool ignoresInvulnerability { get; }
   bool applySlowdown { get; }
 
+  bool GetCharacterWithinVerticalRange(Character c);
 }
