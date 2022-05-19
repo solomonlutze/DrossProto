@@ -88,6 +88,9 @@ public class Weapon : MonoBehaviour
       case WeaponActionType.RotateRelative:
         RotateWeaponRelativeAction(action, owner, increment);
         break;
+      case WeaponActionType.RotateRelativeVertical:
+        RotateWeaponRelativeVerticalAction(action, owner, increment);
+        break;
       case WeaponActionType.Homing:
         HomingWeaponAction(action, owner, increment);
         break;
@@ -152,9 +155,16 @@ public class Weapon : MonoBehaviour
   // Rotate weapon relative to owner - think of a sword swing
   public void RotateWeaponRelativeAction(WeaponAction action, Character owner, float increment)
   {
-    Vector3 direction = transform.position - owner.transform.position;
     transform.RotateAround(owner.transform.position, Vector3.forward, action.motion.EvaluateIncrement(owner, progress, previousProgress));
   }
+
+  // Rotate weapon relative to owner around y axis - think of a hammer smash
+  public void RotateWeaponRelativeVerticalAction(WeaponAction action, Character owner, float increment)
+  {
+    transform.RotateAround(owner.transform.position, owner.orientation.rotation * Vector3.up, action.motion.EvaluateIncrement(owner, progress, previousProgress));
+  }
+
+
   public void WaitWeaponAction(WeaponAction action, float increment)
   {
     // do nothing

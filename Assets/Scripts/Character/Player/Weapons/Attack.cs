@@ -11,12 +11,13 @@ public class WeaponAction
 
 public enum WeaponActionType
 {
-  Move,
-  Wait,
-  RotateRelative,
-  Homing,
-  Scale,
-  MarkDone
+  Move = 0,
+  Wait = 1,
+  RotateRelative = 2,
+  Homing = 3,
+  Scale = 4,
+  MarkDone = 5,
+  RotateRelativeVertical = 6,
 }
 
 [System.Serializable]
