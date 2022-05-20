@@ -164,7 +164,9 @@ public class SkillEffect
   public void SpawnWeapon(AttackSpawn weaponSpawn, Character owner, List<Weapon> weaponInstances, Transform spawnTransformOverride = null)
   {
     Transform spawnTransform = spawnTransformOverride ? spawnTransformOverride : owner.weaponPivotRoot;
-    Quaternion rotationAngle = Quaternion.AngleAxis(spawnTransform.eulerAngles.z + weaponSpawn.rotationOffset.get(owner), Vector3.forward);
+    Quaternion rotationAngleHorizontal = Quaternion.AngleAxis(spawnTransform.eulerAngles.z + weaponSpawn.rotationOffset.get(owner), Vector3.forward);
+    Quaternion rotationAngleVertical = Quaternion.AngleAxis(spawnTransform.eulerAngles.y + weaponSpawn.verticalRotationOffset.get(owner), Vector3.up);
+    Quaternion rotationAngle = rotationAngleHorizontal * rotationAngleVertical;
     Weapon weaponInstance = GameObject.Instantiate(
       weaponSpawn.weaponObject,
       spawnTransform.position + (rotationAngle * new Vector3(weaponSpawn.range.get(owner), 0, 0)),

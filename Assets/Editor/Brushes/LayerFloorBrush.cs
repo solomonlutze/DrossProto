@@ -137,8 +137,7 @@ namespace UnityEditor.Tilemaps
       LayerFloor parentLayerFloor = brushTarget.GetComponentInParent<LayerFloor>();
       SceneView sceneView = SceneView.lastActiveSceneView;
       int cameraZ = Mathf.RoundToInt(sceneView.camera.transform.position.z);
-      Debug.Log(gridLayout);
-      FloorLayer targetLayerFromCameraPosition = (FloorLayer)(-(cameraZ - 10)); // 12 - 2 = 10, to account for camera distance
+      FloorLayer targetLayerFromCameraPosition = GridManager.GetFloorLayerFromZPosition(cameraZ + 5);
       Debug.Log("target layer: " + targetLayerFromCameraPosition);
       if (parentLayerFloor == null)
       {

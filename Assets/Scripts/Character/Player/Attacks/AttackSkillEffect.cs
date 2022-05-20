@@ -44,6 +44,7 @@ public class AttackSpawn
     }
   }
   public Overrideable<float> rotationOffset;
+  public Overrideable<float> verticalRotationOffset;
   public bool attachToOwner = true;
   public AttackSpawn()
   {

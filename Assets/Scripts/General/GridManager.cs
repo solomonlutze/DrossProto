@@ -728,6 +728,7 @@ public class GridManager : Singleton<GridManager>
   }
 
 
+  // NOTE: shaders must be manually updated whenever this happens!
   [MenuItem("CustomTools/DANGER/Relocate World Along Z Axis")]
   public static void RescaleWorldAlongZAxis()
   {
