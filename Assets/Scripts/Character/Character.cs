@@ -807,7 +807,7 @@ public class Character : WorldObject
   {
     if (increment == 0) { return; }
 
-    if (GetZOffsetFromCurrentFloorLayer(increment) < 0)
+    if (GetNormalizedZOffsetFromCurrentFloorLayer(increment) < 0)
     { // attempting to go down a floor
       if (!CanPassThroughFloorLayer(currentFloor))
       {
@@ -821,7 +821,7 @@ public class Character : WorldObject
       BecomeGrounded();
       return;
     }
-    else if (GetZOffsetFromCurrentFloorLayer(increment) > 1)
+    else if (GetNormalizedZOffsetFromCurrentFloorLayer(increment) > 1)
     {
       if (!CanPassThroughFloorLayer(currentFloor + 1))
       {
@@ -846,10 +846,22 @@ public class Character : WorldObject
       AdvanceSkillEffect();
     }
   }
-  // again this returns numbers you'd expect - positive if above, negative if below.
+  // this returns numbers you'd expect - positive if above, negative if below.
   float GetZOffsetFromCurrentFloorLayer(float withIncrement = 0)
   {
     return GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - (transform.position.z - withIncrement);
+  }
+
+  // this returns numbers you'd expect - positive if above, negative if below.
+  // note that increment should NOT be normalized here!
+  protected float GetNormalizedZOffsetFromCurrentFloorLayer(float withIncrement = 0)
+  {
+    //eg layer offset is -50, position is -57.5
+    // we are 3/4 of the way to the next floor, so normalized offset is .75
+    // (position - layer offset) = -7.5
+    // - (position - layerOffset) = 7.5
+    // -(position - layerOffset) / z_spacing = .75
+    return -((transform.position.z - GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - withIncrement) / GridConstants.Z_SPACING);
   }
 
   float GetMinDistanceFromOverlappingFloorTiles(float withIncrement = 0)
@@ -942,12 +954,12 @@ public class Character : WorldObject
     if (ShouldFall())
     {
       animationValue = .3f;
-      increment = -1 / ascendDescendSpeed * Time.deltaTime;
+      increment = -1 / ascendDescendSpeed * Time.deltaTime * GridConstants.Z_SPACING;
     }
     if (UsingSkill() && activeSkill.SkillMovesCharacterVertically(this))
     {
       // animationValue = CalculateVerticalMovementAnimationSpeed(activeSkill.GetMovement(this, SkillEffectCurveProperty.MoveUp), activeSkill.IsContinuous(this));
-      easedSkillUpwardMovementProgressIncrement = (CalculateCurveProgressIncrement(activeSkill.GetMovement(this, SkillEffectMovementProperty.MoveUp), false, activeSkill.IsContinuous(this)));
+      easedSkillUpwardMovementProgressIncrement = GridConstants.Z_SPACING * (CalculateCurveProgressIncrement(activeSkill.GetMovement(this, SkillEffectMovementProperty.MoveUp), false, activeSkill.IsContinuous(this)));
       increment = easedSkillUpwardMovementProgressIncrement;
       animationValue = Mathf.Lerp(.5f, 1.5f, increment / Time.deltaTime);
     }
@@ -1936,19 +1948,20 @@ public class Character : WorldObject
     }
   }
 
+  float NORMALIZED_HOP_HEIGHT = .25f;
   // accepts ownPosition so pathfinding can consider places we aren't currently
   public bool CanHopUpAtLocation(float ownZPosition, Vector3 wallPosition)
   {
-    Vector3 hopCheckLocation = new Vector3(wallPosition.x, wallPosition.y, ownZPosition - .25f); // the spot whose wallObject we want to compare // TODO: CLEAR MAGIC NUMBER
+    Vector3 hopCheckLocation = new Vector3(wallPosition.x, wallPosition.y, ownZPosition - NORMALIZED_HOP_HEIGHT * GridConstants.Z_SPACING); // the spot whose wallObject we want to compare // TODO: CLEAR MAGIC NUMBER
     EnvironmentTileInfo eti = GridManager.Instance.GetTileAtLocation(new TileLocation(hopCheckLocation));
     WallObject wallObject = GridManager.Instance.GetWallObjectAtLocation(new TileLocation(hopCheckLocation));
     float groundHeightOffset = eti.GroundHeight();
-    return wallObject == null || !GridManager.Instance.ShouldHaveCollisionWith(eti, ownZPosition - .25f); // TODO: CLEAR MAGIC NUMBER
+    return wallObject == null || !GridManager.Instance.ShouldHaveCollisionWith(eti, ownZPosition - NORMALIZED_HOP_HEIGHT * GridConstants.Z_SPACING); // TODO: CLEAR MAGIC NUMBER
   }
 
   public void OnWallObjectCollisionStay(Vector3 wallPosition)
   {
-    if (CanUseSkill(hopSkill) && CanHopUpAtLocation(transform.position.z, wallPosition)) // TODO: CLEAR MAGIC NUMBER
+    if (CanUseSkill(hopSkill) && CanHopUpAtLocation(transform.position.z, wallPosition))
     {
       BeginSkill(hopSkill);
     }

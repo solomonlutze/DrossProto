@@ -27,11 +27,11 @@ public class TileLocation
   {
     get
     {
-      int zOffSet = GridManager.GetZOffsetForGameObjectLayer(WorldObject.GetGameObjectLayerFromFloorLayer(floorLayer));
+      float zOffSet = GridManager.GetZOffsetForGameObjectLayer(WorldObject.GetGameObjectLayerFromFloorLayer(floorLayer));
       Vector3 worldPos = GridManager.Instance.levelGrid.CellToWorld(new Vector3Int(
         tilemapCoordinates.x,
         tilemapCoordinates.y,
-        zOffSet)
+        (int)zOffSet)
       );
       return new Vector3(worldPos.x, worldPos.y, zOffSet);
     }

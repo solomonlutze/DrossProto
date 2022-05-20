@@ -289,12 +289,12 @@ public class EnvironmentTileInfo
 
   public float GroundHeight()
   {
-    return tileData.groundHeight;
+    return tileData.groundHeight * GridConstants.Z_SPACING;
   }
 
   public float CeilingHeight()
   {
-    return tileData.ceilingHeight;
+    return tileData.ceilingHeight * GridConstants.Z_SPACING;
   }
 
   public TileParticleSystem GetTileParticleSystem()

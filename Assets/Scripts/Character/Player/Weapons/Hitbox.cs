@@ -121,8 +121,8 @@ public class Hitbox : MonoBehaviour, IDamageSource
   {
     float buffer = .00001f;
     Vector2 verticalRange = damageInfo.verticalRange.Resolve(owner);
-    float maxHeight = transform.position.z - (verticalRange.x + buffer); // max height -.5
-    float minHeight = transform.position.z + (verticalRange.y + buffer); // min height 1
+    float maxHeight = transform.position.z - (verticalRange.x * GridConstants.Z_SPACING + buffer); // max height -.5
+    float minHeight = transform.position.z + (verticalRange.y * GridConstants.Z_SPACING + buffer); // min height 1
     return c.transform.position.z <= minHeight && c.transform.position.z >= maxHeight;
   }
   public float CalculateDamageAfterResistances(Character c)
