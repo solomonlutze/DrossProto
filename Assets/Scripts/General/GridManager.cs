@@ -12,6 +12,7 @@ public static class GridConstants
   // below are world-scale distances between center of a hex and one in the adjacent column (x) or row (y)
   public const float X_SPACING = 0.87625f; // actual width of hexes
   public const float Y_SPACING = .75f; // y-distance between 2 hexes in adjacent rows
+  public const float Z_SPACING = 6f; // distance between two floors
 }
 public enum TilemapDirection { None, UpperLeft, UpperRight, Left, Right, LowerLeft, LowerRight, Above, Below }
 
@@ -414,14 +415,20 @@ public class GridManager : Singleton<GridManager>
     yield return null;
     Destroy(th);
   }
-  public static int GetZOffsetForGameObjectLayer(int floorLayer)
+  public static float GetZOffsetForGameObjectLayer(int floorLayer)
   {
-    return (LayerMask.NameToLayer("B6") + DrossConstants.numberOfFloorLayers) - floorLayer;
+    // (floorLayer - layer(b6) - (number of floor layers / 2 -1)) * constant
+    // eg if layer(b6) is 5, number of floor layers is 12, constant is 10
+    // b6: (5 - 5 - 5) = -5
+    // b1: 10 - 5 - 5 = 0
+    // f6: 16 - 5 - 5 = 6
+    // return (floorLayer - LayerMask.NameToLayer("B6") - ((DrossConstants.numberOfFloorLayers / 2) - 1)) * GridConstants.Z_SPACING;
+    return (LayerMask.NameToLayer("B6") - floorLayer) * GridConstants.Z_SPACING;
   }
 
   public static FloorLayer GetFloorLayerFromZPosition(float zPos)
   {
-    return (FloorLayer)(-(Mathf.CeilToInt(zPos) - 12));
+    return (FloorLayer)(-Mathf.CeilToInt(zPos / GridConstants.Z_SPACING));
   }
 
   public float GetFloorHeightForTileLocation(TileLocation loc)
@@ -704,6 +711,29 @@ public class GridManager : Singleton<GridManager>
       {
         layerFloor.infoTilemap.gameObject.SetActive(!layerFloor.infoTilemap.gameObject.activeSelf);
       }
+    }
+  }
+
+  [MenuItem("CustomTools/Test/TestLayerConversion")]
+  public static void TestLayerConversion()
+  {
+
+    foreach (LayerFloor layerFloor in GridManager.Instance.layerFloors.Values)
+    {
+      Debug.Log(layerFloor.name + " position from floor layer: " + GetZOffsetForGameObjectLayer(layerFloor.gameObject.layer));
+      Debug.Log(layerFloor.name + " floor layer from position (" + (layerFloor.transform.position.z) + "): " + GetFloorLayerFromZPosition(layerFloor.transform.position.z));
+      Debug.Log(layerFloor.name + " floor layer from position (" + (layerFloor.transform.position.z - .5f) + "): " + GetFloorLayerFromZPosition(layerFloor.transform.position.z - .5f));
+      Debug.Log(layerFloor.name + " floor layer from position: (" + (layerFloor.transform.position.z - 9.5f) + ") " + GetFloorLayerFromZPosition(layerFloor.transform.position.z - 9.5f));
+    }
+  }
+
+
+  [MenuItem("CustomTools/DANGER/Relocate World Along Z Axis")]
+  public static void RescaleWorldAlongZAxis()
+  {
+    foreach (LayerFloor layerFloor in GridManager.Instance.layerFloors.Values)
+    {
+      layerFloor.gameObject.transform.position = new Vector3(0, 0, GetZOffsetForGameObjectLayer(layerFloor.gameObject.layer));
     }
   }
 

@@ -22,6 +22,7 @@ public class WallObject : MonoBehaviour, IPoolable
   // or during a total rebuild
   public void Init(TileLocation location)
   {
+    transform.localScale = new Vector3(1, 1, GridConstants.Z_SPACING);
     tileLocation = location;
     if (wallPieces == null || wallPieces.Length == 0)
     {
