@@ -107,6 +107,9 @@ public class Weapon : MonoBehaviour
       case WeaponActionType.Homing:
         HomingWeaponAction(action, owner, increment);
         break;
+      case WeaponActionType.HomingVertical:
+        HomingVerticalWeaponAction(action, owner, increment);
+        break;
       case WeaponActionType.Scale:
         ScaleWeaponAction(action, owner);
         break;
@@ -145,15 +148,33 @@ public class Weapon : MonoBehaviour
   {
     Character nearestTarget = GetNearestTarget();
     if (nearestTarget == null) { return; }
-    Vector3 targetPosition = nearestTarget.transform.position;
-    if ((targetPosition - transform.position).sqrMagnitude > attack.homing.homingRange * attack.homing.homingRange)
+    Vector2 targetPosition = (Vector2)nearestTarget.transform.position;
+    Vector2 ownPosition = (Vector2)transform.position;
+    if ((targetPosition - ownPosition).sqrMagnitude > attack.homing.homingRange * attack.homing.homingRange)
     {
       return;
     }
-    Quaternion targetDirection = Utils.GetDirectionAngle(targetPosition - transform.position);
+    Quaternion targetDirection = Utils.GetDirectionAngle(targetPosition - ownPosition);
     transform.rotation = Quaternion.RotateTowards(transform.rotation, targetDirection, action.motion.EvaluateIncrement(owner, progress, previousProgress));
   }
 
+  // Unlike regular homing, does not adjust angle - instead strictly moves up/down
+
+  public void HomingVerticalWeaponAction(WeaponAction action, Character owner, float increment)
+  {
+    Character nearestTarget = GetNearestTarget();
+    if (nearestTarget == null) { return; }
+    if (Mathf.Abs(nearestTarget.transform.position.z - transform.position.z) > Mathf.Abs(WorldObject.ConvertNormalizedZDistanceToWorldspace(attack.homing.verticalHomingRange)))
+    {
+      return;
+    }
+    float multiplier = Mathf.Sign(transform.position.z - nearestTarget.transform.position.z);
+    transform.position += new Vector3(0, 0, multiplier * WorldObject.ConvertNormalizedZDistanceToWorldspace(action.motion.EvaluateIncrement(owner, progress, previousProgress)));
+    if (Mathf.Sign(transform.position.z - nearestTarget.transform.position.z) != multiplier)
+    { // means we passed our target - don't allow this
+      transform.position = new Vector3(transform.position.x, transform.position.y, nearestTarget.transform.position.z);
+    }
+  }
   public void MoveWeaponAction(WeaponAction action, Character owner)
   {
     transform.position += transform.rotation * new Vector3(action.motion.EvaluateIncrement(owner, progress, previousProgress), 0, 0);

@@ -15,17 +15,24 @@ public enum WeaponActionType
   MoveVertical = 7,
   Wait = 1,
   RotateRelative = 2,
+  RotateRelativeVertical = 6,
   Homing = 3,
+  HomingVertical = 8,
   Scale = 4,
   MarkDone = 5,
-  RotateRelativeVertical = 6,
 }
 
 [System.Serializable]
 public class HomingParams
 {
+  [Tooltip("max distance at which weapon will home, horizontally")]
   public float homingRange = 0f;
+
+  [Tooltip("greatest angle between weapon rotation (on z axis) and target")]
   public float maxAngleToTarget = 0f;
+
+  [Tooltip("max distance at which weapon will home, vertically")]
+  public float verticalHomingRange = 0f;
 }
 [System.Serializable]
 public class Attack
