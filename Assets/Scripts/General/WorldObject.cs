@@ -85,7 +85,7 @@ public class WorldObject : MonoBehaviour
 
   public static void ChangeLayersRecursively(Transform trans, string layerName)
   {
-    if (trans.gameObject.layer != LayerMask.NameToLayer("DetectCharacter") && trans.gameObject.layer != LayerMask.NameToLayer("Character"))
+    if (trans.gameObject.layer != LayerMask.NameToLayer("DetectCharacter") && trans.gameObject.layer != LayerMask.NameToLayer("Character") && trans.gameObject.layer != LayerMask.NameToLayer("Damage"))
     {
       trans.gameObject.layer = LayerMask.NameToLayer(layerName);
       SpriteRenderer sr = trans.gameObject.GetComponent<SpriteRenderer>();

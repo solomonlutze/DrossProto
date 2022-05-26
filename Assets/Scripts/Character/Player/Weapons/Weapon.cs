@@ -134,7 +134,7 @@ public class Weapon : MonoBehaviour
       Character c = hitColliders[i].GetComponentInParent<Character>();
       if (c == null || owner == null) { continue; }
       float distance = (transform.position - c.transform.position).sqrMagnitude;
-      if (c != owner && c.gameObject.layer == owner.gameObject.layer && distance < maxDistance)
+      if (c != owner && distance < maxDistance)
       {
         maxDistance = distance;
         nearestEnemy = c;
