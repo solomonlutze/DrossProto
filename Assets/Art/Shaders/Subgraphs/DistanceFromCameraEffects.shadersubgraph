@@ -155,9 +155,6 @@
             "m_Id": "e9bbdd94b88245e59d9e84ab95112b73"
         },
         {
-            "m_Id": "60f52d2531974da3841979f156c8928b"
-        },
-        {
             "m_Id": "5f4b311158b5451ca69696e6b85dd6d2"
         },
         {
@@ -2326,41 +2323,6 @@
 }
 
 {
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
-    "m_ObjectId": "60f52d2531974da3841979f156c8928b",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "Property",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": -486.0187683105469,
-            "y": 438.40875244140627,
-            "width": 0.0,
-            "height": 0.0
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "6808e31f895849e98108759fc70bf9a7"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_Property": {
-        "m_Id": "25d1c393ae734253ab03397da4ee9df4"
-    }
-}
-
-{
     "m_SGVersion": 1,
     "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
     "m_ObjectId": "61d9f7bc9df643078984e8efce2b6be6",
@@ -2512,19 +2474,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Texture2DMaterialSlot",
-    "m_ObjectId": "6808e31f895849e98108759fc70bf9a7",
-    "m_Id": 0,
-    "m_DisplayName": "_MaskTex",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "Out",
-    "m_StageCapability": 3,
-    "m_BareResource": false
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
     "m_ObjectId": "6f39127cac194931b32a851aabfe4704",
     "m_Id": 2,
@@ -2559,9 +2508,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -517.0,
-            "y": 377.0000305175781,
-            "width": 133.5,
+            "x": -494.9999694824219,
+            "y": 418.0,
+            "width": 134.0,
             "height": 34.0
         }
     },

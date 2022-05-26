@@ -61,6 +61,19 @@ public class WorldObject : MonoBehaviour
       ChangeLayersRecursively(t, (FloorLayer)Enum.Parse(typeof(FloorLayer), LayerMask.LayerToName(gameObjectLayer)));
     }
   }
+
+  // WARNING! multiplies by a negative because negative is "up" in worldspace and "down" for normalized
+  public static float ConvertNormalizedZDistanceToWorldspace(float normalizedZ)
+  {
+    return -normalizedZ * GridConstants.Z_SPACING;
+  }
+
+  // WARNING! multiplies by a negative because negative is "up" in worldspace and "down" for normalized
+  public static float NormalizeWorldspaceZDistance(float worldspaceZ)
+  {
+    return -worldspaceZ / GridConstants.Z_SPACING;
+  }
+
   public static void ChangeLayersRecursively(Transform t, FloorLayer layerName)
   {
     // if (t.position.z != GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(layerName)))

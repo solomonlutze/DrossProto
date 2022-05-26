@@ -12,6 +12,7 @@ public class WeaponAction
 public enum WeaponActionType
 {
   Move = 0,
+  MoveVertical = 7,
   Wait = 1,
   RotateRelative = 2,
   Homing = 3,

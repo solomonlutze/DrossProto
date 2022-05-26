@@ -169,7 +169,7 @@ public class SkillEffect
     Quaternion rotationAngle = rotationAngleHorizontal * rotationAngleVertical;
     Weapon weaponInstance = GameObject.Instantiate(
       weaponSpawn.weaponObject,
-      spawnTransform.position + (rotationAngle * new Vector3(weaponSpawn.range.get(owner), 0, 0)),
+      spawnTransform.position + (rotationAngle * new Vector3(weaponSpawn.range.get(owner), 0, WorldObject.ConvertNormalizedZDistanceToWorldspace(weaponSpawn.verticalRange.get(owner)))),
       rotationAngle
     );
     weaponInstance.transform.parent = owner.weaponPivotRoot;
