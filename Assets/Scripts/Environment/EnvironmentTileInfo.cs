@@ -292,6 +292,11 @@ public class EnvironmentTileInfo
     return tileData.groundHeight * GridConstants.Z_SPACING;
   }
 
+  public float GroundPosition_World()
+  {
+    return GridManager.Instance.GetFloorPositionForTileLocation(tileLocation);
+  }
+
   public float CeilingHeight()
   {
     return tileData.ceilingHeight * GridConstants.Z_SPACING;

@@ -277,10 +277,6 @@ public class WorldGridData : ScriptableObject
       return;
     }
     TilePlacedObjects tilePlacedObjects = GetPlacedObjectsAtLocation(tileLocation, true);
-    // if (GridManager.Instance.placedGameObjects.ContainsKey(CoordsToKey(tileLocation)) && GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)] != null)
-    // {
-    //   wallObject = GridManager.Instance.placedGameObjects[CoordsToKey(tileLocation)].wallObject;
-    // }
     if (tilePlacedObjects.wallObject == null)
     {
       tilePlacedObjects.wallObject = ObjectPoolManager.Instance.GetWallObjectPool().GetObject();
