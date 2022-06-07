@@ -20,6 +20,8 @@ public class Weapon : MonoBehaviour
   float increment = 0;
   int currentActionGroup = 0;
   public bool attachToOwner;
+  Vector3 previousPosition;
+  public float verticalTiltScale = .7f;
 
   public void Update()
   {
@@ -42,12 +44,20 @@ public class Weapon : MonoBehaviour
       hitbox.Init(owner, attackSpawnData.damage, this);
     }
     WorldObject.ChangeLayersRecursively(gameObject.transform, owner.currentFloor);
+    previousPosition = transform.position;
   }
 
   void FixedUpdate()
   {
     timeAlive += Time.fixedDeltaTime;
     ExecuteWeaponActions(owner);
+    weaponBody.transform.right = (transform.position - previousPosition).normalized;
+    float y = weaponBody.transform.localEulerAngles.y;
+    if ((y < -90 && y > -270) || (y > 90 && y < 270)) { y += 180; }
+    if (y > 90) { y -= 360; }
+    if (y < -90) { y += 360; }
+    weaponBody.transform.localEulerAngles = new Vector3(0, y * verticalTiltScale, 0);
+    previousPosition = transform.position;
     if (attack.duration.Resolve(owner) > 0 && timeAlive > attack.duration.Resolve(owner))
     {
       CleanUp();
@@ -85,6 +95,9 @@ public class Weapon : MonoBehaviour
       case WeaponActionType.Move:
         MoveWeaponAction(action, owner);
         break;
+      case WeaponActionType.MoveVertical:
+        MoveWeaponVerticalAction(action, owner);
+        break;
       case WeaponActionType.RotateRelative:
         RotateWeaponRelativeAction(action, owner, increment);
         break;
@@ -93,6 +106,9 @@ public class Weapon : MonoBehaviour
         break;
       case WeaponActionType.Homing:
         HomingWeaponAction(action, owner, increment);
+        break;
+      case WeaponActionType.HomingVertical:
+        HomingVerticalWeaponAction(action, owner, increment);
         break;
       case WeaponActionType.Scale:
         ScaleWeaponAction(action, owner);
@@ -118,7 +134,7 @@ public class Weapon : MonoBehaviour
       Character c = hitColliders[i].GetComponentInParent<Character>();
       if (c == null || owner == null) { continue; }
       float distance = (transform.position - c.transform.position).sqrMagnitude;
-      if (c != owner && c.gameObject.layer == owner.gameObject.layer && distance < maxDistance)
+      if (c != owner && distance < maxDistance)
       {
         maxDistance = distance;
         nearestEnemy = c;
@@ -132,20 +148,42 @@ public class Weapon : MonoBehaviour
   {
     Character nearestTarget = GetNearestTarget();
     if (nearestTarget == null) { return; }
-    Vector3 targetPosition = nearestTarget.transform.position;
-    if ((targetPosition - transform.position).sqrMagnitude > attack.homing.homingRange * attack.homing.homingRange)
+    Vector2 targetPosition = (Vector2)nearestTarget.transform.position;
+    Vector2 ownPosition = (Vector2)transform.position;
+    if ((targetPosition - ownPosition).sqrMagnitude > attack.homing.homingRange * attack.homing.homingRange)
     {
       return;
     }
-    Quaternion targetDirection = Utils.GetDirectionAngle(targetPosition - transform.position);
+    Quaternion targetDirection = Utils.GetDirectionAngle(targetPosition - ownPosition);
     transform.rotation = Quaternion.RotateTowards(transform.rotation, targetDirection, action.motion.EvaluateIncrement(owner, progress, previousProgress));
   }
 
+  // Unlike regular homing, does not adjust angle - instead strictly moves up/down
+
+  public void HomingVerticalWeaponAction(WeaponAction action, Character owner, float increment)
+  {
+    Character nearestTarget = GetNearestTarget();
+    if (nearestTarget == null) { return; }
+    if (Mathf.Abs(nearestTarget.transform.position.z - transform.position.z) > Mathf.Abs(WorldObject.ConvertNormalizedZDistanceToWorldspace(attack.homing.verticalHomingRange)))
+    {
+      return;
+    }
+    float multiplier = Mathf.Sign(transform.position.z - nearestTarget.transform.position.z);
+    transform.position += new Vector3(0, 0, multiplier * WorldObject.ConvertNormalizedZDistanceToWorldspace(action.motion.EvaluateIncrement(owner, progress, previousProgress)));
+    if (Mathf.Sign(transform.position.z - nearestTarget.transform.position.z) != multiplier)
+    { // means we passed our target - don't allow this
+      transform.position = new Vector3(transform.position.x, transform.position.y, nearestTarget.transform.position.z);
+    }
+  }
   public void MoveWeaponAction(WeaponAction action, Character owner)
   {
     transform.position += transform.rotation * new Vector3(action.motion.EvaluateIncrement(owner, progress, previousProgress), 0, 0);
   }
 
+  public void MoveWeaponVerticalAction(WeaponAction action, Character owner)
+  {
+    transform.position += new Vector3(0, 0, WorldObject.ConvertNormalizedZDistanceToWorldspace(action.motion.EvaluateIncrement(owner, progress, previousProgress)));
+  }
   public void ScaleWeaponAction(WeaponAction action, Character owner)
   {
     float increment = action.motion.EvaluateIncrement(owner, progress, previousProgress);

@@ -416,7 +416,7 @@ public class Character : WorldObject
   public void EndSkill()
   {
     Debug.Log("Ending skill " + activeSkill + " at set idx " + currentSkillEffectSetIndex + " and effect index " + currentSkillEffectIndex);
-    bool repeatSkill = activeSkill && activeSkill.isRepeatable && (pressingSkill == activeSkill || queuedSkill == activeSkill);
+    bool repeatSkill = activeSkill && activeSkill.isRepeatable && (pressingSkill == activeSkill || queuedSkill == activeSkill) && CanUseSkill(activeSkill);
     if (UsingSkill())
     {
       activeSkill.EndSkillEffect(this);
@@ -1544,7 +1544,10 @@ public class Character : WorldObject
 
   public virtual bool HasStaminaForSkill(CharacterSkillData skill)
   {
-    return true;
+    if (!traitSlotsForSkills.ContainsKey(skill.id))
+    { // probably hop or another stamina-less skill
+      return true;
+    }
     return GetStaminaForSkill(skill) > 0;
   }
 
@@ -1577,7 +1580,7 @@ public class Character : WorldObject
   }
 
 
-  //TODO: this could potentially cause offset issues
+  //TODO: delete, replace use with WorldObjectGetCurrentTileLocation()
   public TileLocation CalculateCurrentTileLocation()
   {
     return new TileLocation(
@@ -1614,6 +1617,19 @@ public class Character : WorldObject
     return touchingTiles;
   }
 
+  protected HashSet<WallObject> GetTouchingWallObjects(FloorLayer layerToConsider)
+  {
+    HashSet<WallObject> touchingWallObjects = new HashSet<WallObject>();
+    foreach (Vector2 point in touchingCollider.points)
+    {
+      EnvironmentTileInfo eti = GridManager.Instance.GetTileAtWorldPosition(transform.TransformPoint(point.x, point.y, transform.position.z), layerToConsider);
+      if (GridManager.Instance.ShouldHaveCollisionWith(eti, transform))
+      {
+        touchingWallObjects.Add(GridManager.Instance.GetWallObjectAtLocation(eti.tileLocation));
+      }
+    }
+    return touchingWallObjects;
+  }
   // Returns tiles we are, or would be, overlapping
   protected HashSet<EnvironmentTileInfo> GetOverlappingTiles(FloorLayer layerToConsider)
   {
@@ -1635,6 +1651,7 @@ public class Character : WorldObject
     return overlappingWallObjects;
   }
 
+
   public bool TouchingTileWithTag(TileTag tag)
   {
     HashSet<EnvironmentTileInfo> touchingTiles = GetTouchingTiles(currentFloor);
@@ -1648,6 +1665,10 @@ public class Character : WorldObject
     return false;
   }
 
+  public bool TouchingWall()
+  {
+    return GetTouchingWallObjects(currentFloor).Count > 0;
+  }
   protected virtual bool AllTilesOnTargetFloorEmpty(FloorLayer targetFloor)
   {
     // if we're flying, every tile above us needs to be empty.
@@ -1961,7 +1982,7 @@ public class Character : WorldObject
 
   public void OnWallObjectCollisionStay(Vector3 wallPosition)
   {
-    if (CanUseSkill(hopSkill) && CanHopUpAtLocation(transform.position.z, wallPosition))
+    if (!UsingSkill() && movementInput != Vector2.zero && CanUseSkill(hopSkill) && CanHopUpAtLocation(transform.position.z, wallPosition))
     {
       BeginSkill(hopSkill);
     }

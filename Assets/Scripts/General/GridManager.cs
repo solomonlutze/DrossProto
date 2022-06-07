@@ -230,6 +230,10 @@ public class GridManager : Singleton<GridManager>
     return TileIsValid(location) && GetTileAtLocation(location).IsEmpty();
   }
 
+  public float GetFloorLayerZPosition(FloorLayer fl)
+  {
+    return layerFloors[fl].transform.position.z;
+  }
   public EnvironmentTileInfo GetAdjacentTile(TileLocation location, TilemapDirection dir)
   {
     return GetAdjacentTile(location.position3D, location.floorLayer, dir);
@@ -728,6 +732,7 @@ public class GridManager : Singleton<GridManager>
   }
 
 
+  // NOTE: shaders must be manually updated whenever this happens!
   [MenuItem("CustomTools/DANGER/Relocate World Along Z Axis")]
   public static void RescaleWorldAlongZAxis()
   {

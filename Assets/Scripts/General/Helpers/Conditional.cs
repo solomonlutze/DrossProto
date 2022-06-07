@@ -2,7 +2,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public enum ConditionType { TileType, TouchingTileWithTag, ChargeLevel }
+public enum ConditionType { TileType, TouchingTileWithTag, TouchingWall, ChargeLevel }
 public enum Comparator { Equals, LessThan, LessOrEqual, GreaterThan, GreaterOrEqual }
 
 [System.Serializable]
@@ -33,6 +33,12 @@ public class Conditional<T>
         case ConditionType.TileType:
           Debug.Log("evaluating tiletype condition; groundTileTags contains " + condition._tileType + ": " + c.currentTile.groundTileTags.Contains(condition._tileType));
           if (!c.currentTile.groundTileTags.Contains(condition._tileType))
+          {
+            return false;
+          }
+          break;
+        case ConditionType.TouchingWall:
+          if (!c.TouchingWall())
           {
             return false;
           }

@@ -45,6 +45,24 @@ public class WorldObject : MonoBehaviour
     );
   }
 
+  public float GetCurrentFloorHeight_WorldPosition()
+  {
+    return GridManager.GetZOffsetForGameObjectLayer(gameObject.layer) - GetCurrentFloorHeight();
+  }
+
+  public float GetCurrentGroundPosition()
+  {
+    EnvironmentTileInfo nearestGroundTile = GridManager.Instance.GetTileAtLocation(GetTileLocation());
+    while (nearestGroundTile.IsEmpty())
+    {
+      nearestGroundTile = GridManager.Instance.GetAdjacentTile(nearestGroundTile.tileLocation, TilemapDirection.Below);
+    }
+    return nearestGroundTile.GroundPosition_World();
+  }
+  public float GetCurrentFloorHeight()
+  {
+    return GridManager.Instance.GetTileAtLocation(GetTileLocation()).GroundHeight();
+  }
   public FloorLayer GetFloorLayer()
   {
     return (FloorLayer)Enum.Parse(typeof(FloorLayer), LayerMask.LayerToName(gameObject.layer));
@@ -61,6 +79,19 @@ public class WorldObject : MonoBehaviour
       ChangeLayersRecursively(t, (FloorLayer)Enum.Parse(typeof(FloorLayer), LayerMask.LayerToName(gameObjectLayer)));
     }
   }
+
+  // WARNING! multiplies by a negative because negative is "up" in worldspace and "down" for normalized
+  public static float ConvertNormalizedZDistanceToWorldspace(float normalizedZ)
+  {
+    return -normalizedZ * GridConstants.Z_SPACING;
+  }
+
+  // WARNING! multiplies by a negative because negative is "up" in worldspace and "down" for normalized
+  public static float NormalizeWorldspaceZDistance(float worldspaceZ)
+  {
+    return -worldspaceZ / GridConstants.Z_SPACING;
+  }
+
   public static void ChangeLayersRecursively(Transform t, FloorLayer layerName)
   {
     // if (t.position.z != GridManager.GetZOffsetForFloor(GetGameObjectLayerFromFloorLayer(layerName)))
@@ -72,7 +103,12 @@ public class WorldObject : MonoBehaviour
 
   public static void ChangeLayersRecursively(Transform trans, string layerName)
   {
-    if (trans.gameObject.layer != LayerMask.NameToLayer("DetectCharacter") && trans.gameObject.layer != LayerMask.NameToLayer("Character"))
+    if (
+      trans.gameObject.layer != LayerMask.NameToLayer("DetectCharacter")
+      && trans.gameObject.layer != LayerMask.NameToLayer("Character")
+      && trans.gameObject.layer != LayerMask.NameToLayer("Damage")
+      && trans.gameObject.layer != LayerMask.NameToLayer("Hurtbox")
+      )
     {
       trans.gameObject.layer = LayerMask.NameToLayer(layerName);
       SpriteRenderer sr = trans.gameObject.GetComponent<SpriteRenderer>();

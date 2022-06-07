@@ -28,6 +28,7 @@ public class Hitbox : MonoBehaviour, IDamageSource
     owner = ch;
     damageInfo = di;
     owningWeapon = ow;
+    gameObject.layer = LayerMask.NameToLayer("Damage");
   }
 
   public void Init(Character ch)
@@ -38,9 +39,10 @@ public class Hitbox : MonoBehaviour, IDamageSource
 
   private void OnTriggerEnter2D(Collider2D other)
   {
-    if (other.gameObject.GetComponent<Character>()) // Hacky shit! Need a way to confirm damage dealt to anything, not just character.
+    Character c = other.GetComponentInParent<Character>();
+    if (c != null) // Hacky shit! Need a way to confirm damage dealt to anything, not just character.
     {
-      other.gameObject.SendMessage("TakeDamage", this, SendMessageOptions.DontRequireReceiver);
+      c.gameObject.SendMessage("TakeDamage", this, SendMessageOptions.DontRequireReceiver);
       owner.OnWeaponHit(attackSkillEffect, other);
       owningWeapon.OnContact(other);
     }
