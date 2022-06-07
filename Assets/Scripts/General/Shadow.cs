@@ -2,15 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Shadow : WorldObject
+public class Shadow : MonoBehaviour
 {
   public WorldObject owner;
   public AnimationCurve sizeByDistance;
-  public float minSize = 0f;
   public float maxSize = 2f;
   public AnimationCurve opacityByDistance;
-  public float maxOpacity = 1f;
-  public float minOpacity = 0f;
   public SpriteRenderer sprite;
 
   void Start()
@@ -28,9 +25,12 @@ public class Shadow : WorldObject
     {
       Destroy(gameObject);
     }
-    transform.position = new Vector3(transform.position.x, transform.position.y, GetCurrentGroundPosition());
-    float distance = Vector3.Distance(transform.position, owner.transform.position);
-    float scale = sizeByDistance.Evaluate(distance);
+    Debug.Log("Shadow owner position: " + owner.transform.position);
+    transform.position = new Vector3(transform.position.x, transform.position.y, owner.GetCurrentGroundPosition());
+    float distance = Vector3.Distance(transform.position, owner.transform.position) / GridConstants.Z_SPACING;
+    Debug.Log("SHADOWS distance: " + distance);
+    Debug.Log("SHADOWS position: " + transform.position);
+    float scale = sizeByDistance.Evaluate(distance) * maxSize;
     transform.localScale = new Vector3(scale, scale, 1);
     sprite.color = new Color(sprite.color.r, sprite.color.g, sprite.color.b, opacityByDistance.Evaluate(distance));
   }
