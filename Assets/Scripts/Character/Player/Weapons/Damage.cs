@@ -24,8 +24,8 @@ public class DamageInfo
   // whether this damage object should respect invulnerability from OTHER targets
   public Overrideable<bool> ignoreInvulnerability;
 
-  [Tooltip("How far up (x) and down (y) the attack hits")]
-  public Overrideable<Vector2> verticalRange;
+  [Tooltip("How far up (x) and down (y) the attack hits, in normalized Z units")]
+  public Overrideable<Vector2> verticalRange = new Overrideable<Vector2>(new Vector2(.1f, .2f));
 
 }
 

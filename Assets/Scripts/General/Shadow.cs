@@ -25,11 +25,8 @@ public class Shadow : MonoBehaviour
     {
       Destroy(gameObject);
     }
-    Debug.Log("Shadow owner position: " + owner.transform.position);
     transform.position = new Vector3(transform.position.x, transform.position.y, owner.GetCurrentGroundPosition());
     float distance = Vector3.Distance(transform.position, owner.transform.position) / GridConstants.Z_SPACING;
-    Debug.Log("SHADOWS distance: " + distance);
-    Debug.Log("SHADOWS position: " + transform.position);
     float scale = sizeByDistance.Evaluate(distance) * maxSize;
     transform.localScale = new Vector3(scale, scale, 1);
     sprite.color = new Color(sprite.color.r, sprite.color.g, sprite.color.b, opacityByDistance.Evaluate(distance));

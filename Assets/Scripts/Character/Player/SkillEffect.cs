@@ -40,7 +40,6 @@ public class SkillEffectSet
   [Tooltip("Defines whether this effect set should always be executed every time the skill is used")]
   public bool alwaysExecute = true;
   public bool canUseInMidair = false;
-  public bool isRepeatable = false;
 
   public SkillEffect[] skillEffects;
   public float GetTotalStaminaCost(Character c)
@@ -78,6 +77,8 @@ public class SkillEffect
   public Overrideable<bool> endOnInputRelease = new Overrideable<bool>(true);
   [Tooltip("This effect is bypassed if the skillEffect is queued when this effect is reached. Good for eg pauses between attacks")]
   public Overrideable<bool> skipIfQueued = new Overrideable<bool>(false);
+  [Tooltip("This effect is repeated if the skillEffect is queued when the end of the effect is reached.")]
+  public Overrideable<bool> isRepeatable = new Overrideable<bool>(false);
   [Tooltip("Animation only. Sets the 'IsGuarding' flag on the animator.")]
   public bool isGuarding;
   [Tooltip("This skill resets the character's visuals.")]
@@ -111,10 +112,9 @@ public class SkillEffect
     {
       owner.InitializeVisuals();
     }
-    List<Weapon> weaponInstances = new List<Weapon>();
     foreach (AttackSpawn weaponSpawn in weaponSpawns)
     {
-      SpawnWeapon(weaponSpawn, owner, weaponInstances);
+      SpawnWeapon(weaponSpawn, owner);
     }
     if (chargeLevels.Length > 0)
     {
@@ -139,6 +139,18 @@ public class SkillEffect
     {
       owner.AdjustElementalDamageBuildup(buildupChange.Key, owner.CalculateCurveProgressIncrement(buildupChange.Value, false, useType == SkillEffectType.Continuous));
     }
+    if (weaponSpawns.Length > 0 && owner.currentAttackSpawnIndex < weaponSpawns.Length)
+    {
+      if (weaponSpawns[owner.currentAttackSpawnIndex].afterPrevious)
+      {
+        Debug.LogError("WARNING: afterPrevious for attack spawn not implemented!");
+      }
+      if (owner.timeSpentInSkillEffect > weaponSpawns[owner.currentAttackSpawnIndex].delay.Resolve(owner))
+      {
+        SpawnWeapon(weaponSpawns[owner.currentAttackSpawnIndex], owner);
+        owner.currentAttackSpawnIndex++;
+      }
+    }
     if (chargeLevels.Length > 0 && owner.chargeLevel < chargeLevels.Length)
     {
       if (owner.timeSpentInSkillEffect > chargeLevels[owner.chargeLevel].Resolve(owner))
@@ -161,7 +173,7 @@ public class SkillEffect
     owner.chargingUpParticleSystem.Stop();
     owner.fullyChargedParticleSystem.Stop();
   }
-  public void SpawnWeapon(AttackSpawn weaponSpawn, Character owner, List<Weapon> weaponInstances, Transform spawnTransformOverride = null)
+  public void SpawnWeapon(AttackSpawn weaponSpawn, Character owner, Transform spawnTransformOverride = null)
   {
     Transform spawnTransform = spawnTransformOverride ? spawnTransformOverride : owner.weaponPivotRoot;
     Quaternion rotationAngleHorizontal = Quaternion.AngleAxis(spawnTransform.eulerAngles.z + weaponSpawn.rotationOffset.get(owner), Vector3.forward);
@@ -169,26 +181,26 @@ public class SkillEffect
     Quaternion rotationAngle = rotationAngleHorizontal * rotationAngleVertical;
     Weapon weaponInstance = GameObject.Instantiate(
       weaponSpawn.weaponObject,
-      spawnTransform.position + (rotationAngle * new Vector3(weaponSpawn.range.get(owner), 0, WorldObject.ConvertNormalizedZDistanceToWorldspace(weaponSpawn.verticalRange.get(owner)))),
+      spawnTransform.position + (rotationAngle * new Vector3(weaponSpawn.range.get(owner), 0, WorldObject.ConvertNormalizedZDistanceToWorldspace(weaponSpawn.verticalSpawnDistance.get(owner)))),
       rotationAngle
     );
     weaponInstance.transform.parent = owner.weaponPivotRoot;
-    weaponInstance.Init(weaponSpawn, this, owner, weaponInstances);
+    weaponInstance.Init(weaponSpawn, this, owner);
     if (!weaponSpawn.attachToOwner)
     {
       weaponInstance.transform.parent = null; // we want to instantiate relative to the weaponPivot and then immediately leave the hierarchy
     }
   }
 
-  public virtual float GetEffectiveRange(Character owner)
-  {
-    List<float> weaponRanges = new List<float>();
-    foreach (AttackSpawn attackSpawn in weaponSpawns)
-    {
-      weaponRanges.Add(attackSpawn.range.get(owner) + attackSpawn.weaponSize + attackSpawn.attackData.GetCumulativeEffectiveWeaponRange(owner));
-    }
-    return Mathf.Max(weaponRanges.ToArray());
-  }
+  // public virtual float GetEffectiveRange(Character owner)
+  // {
+  //   List<float> weaponRanges = new List<float>();
+  //   foreach (AttackSpawn attackSpawn in weaponSpawns)
+  //   {
+  //     weaponRanges.Add(attackSpawn.range.get(owner) + attackSpawn.weaponSize + attackSpawn.attackData.GetCumulativeEffectiveWeaponRange(owner));
+  //   }
+  //   return Mathf.Max(weaponRanges.ToArray());
+  // }
 
   public virtual List<SkillRangeInfo> CalculateRangeInfos(Character owner)
   {
@@ -196,7 +208,7 @@ public class SkillEffect
     for (int i = 0; i < weaponSpawns.Length; i++)
     {
       SkillRangeInfo info = new SkillRangeInfo(weaponSpawns[i], owner);
-      infos.Add(weaponSpawns[i].attackData.GetAttackRangeInfo(ref info, owner, info.maxRange, info.maxAngle));
+      infos.Add(weaponSpawns[i].attackData.GetAttackRangeInfo(ref info, owner, weaponSpawns[i].weaponSize, info.minRange, info.maxAngle));
     }
     return infos;
   }

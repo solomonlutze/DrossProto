@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 public class PauseMenu : MenuBase
 {
 
-
+  public GameObject[] spawners;
   public void Unpause()
   {
     GameMaster.Instance.SetGameUnpaused();
@@ -24,6 +24,19 @@ public class PauseMenu : MenuBase
     GameMaster.Instance.Restart();
   }
 
+  public void SpawnEnemy(int idx)
+  {
+    bool wasActive = spawners[idx].activeSelf;
+    if (!wasActive)
+    {
+      spawners[idx].SetActive(true);
+    }
+    spawners[idx].SendMessage("Activate", SendMessageOptions.RequireReceiver);
+    if (!wasActive)
+    {
+      spawners[idx].SetActive(false);
+    }
+  }
   public void Quit()
   {
     Application.Quit();

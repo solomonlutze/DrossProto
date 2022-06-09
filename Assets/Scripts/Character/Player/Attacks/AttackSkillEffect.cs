@@ -30,7 +30,9 @@ public class AttackSpawn
     }
   }
   public Overrideable<float> range;
-  public Overrideable<float> verticalRange;
+  public bool afterPrevious;
+  public Overrideable<float> delay;
+  public Overrideable<float> verticalSpawnDistance;
 
   //TODO: Account for multiple hitboxes and non-box collider hitboxes!!
   public float weaponSize

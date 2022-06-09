@@ -30,12 +30,12 @@ public class Weapon : MonoBehaviour
       CleanUp();
     }
   }
-  public void Init(AttackSpawn attackSpawnData, SkillEffect owningEffect, Character c, List<Weapon> activeWeaponObjects)
+  public void Init(AttackSpawn attackSpawnData, SkillEffect owningEffect, Character c)
   {
     attack = attackSpawnData.attackData;
     owner = c;
     this.owningEffect = owningEffect;
-    owningEffectActiveWeapons = activeWeaponObjects;
+    owningEffectActiveWeapons = c.activeWeaponObjects;
     owningEffectActiveWeapons.Add(this);
     attachToOwner = attackSpawnData.attachToOwner;
     defaultHitboxes = GetComponentsInChildren<Hitbox>();
@@ -70,7 +70,7 @@ public class Weapon : MonoBehaviour
     if (owner != null && attack.objectToSpawn != null && attack.objectToSpawn.attackData != null && attack.spawnObjectOnDestruction)
     {
       // attack.objectToSpawn.owningWeaponDataWeapon.name);
-      owningEffect.SpawnWeapon(attack.objectToSpawn, owner, owningEffectActiveWeapons, transform);
+      owningEffect.SpawnWeapon(attack.objectToSpawn, owner, transform);
     }
     Destroy(this.gameObject);
   }
@@ -224,7 +224,7 @@ public class Weapon : MonoBehaviour
       Weapon weapon = go.GetComponent<Weapon>();
       if (weapon != null)
       {
-        go.GetComponent<Weapon>().Init(attack.objectToSpawn, owningEffect, owner, owningEffectActiveWeapons);
+        go.GetComponent<Weapon>().Init(attack.objectToSpawn, owningEffect, owner);
       }
     }
     if (attack.destroyOnContact)

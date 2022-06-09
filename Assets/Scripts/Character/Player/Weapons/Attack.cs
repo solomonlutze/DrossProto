@@ -68,9 +68,9 @@ public class Attack
     return ownRange + childRange;
   }
 
-  public SkillRangeInfo GetAttackRangeInfo(ref SkillRangeInfo info, Character owner, float initialRange, float initialAngle)
+  public SkillRangeInfo GetAttackRangeInfo(ref SkillRangeInfo info, Character owner, float initialWeaponSize, float initialRange, float initialAngle)
   {
-    float currentRange = initialRange;
+    float currentRange = initialWeaponSize + initialRange;
     float currentAngle = initialAngle;
     foreach (WeaponAction action in weaponActions)
     {
@@ -86,10 +86,20 @@ public class Attack
         info.minAngle = Mathf.Min(currentAngle, info.minAngle);
         info.maxAngle = Mathf.Max(currentAngle, info.maxAngle);
       }
+      else if (action.type == WeaponActionType.Scale)
+      {
+        if (action.motion.magnitude.Resolve(owner) > 1)
+        {
+          currentRange -= initialWeaponSize; // default weapon size already included, so need to deduct it if we also scale
+          currentRange += initialWeaponSize * action.motion.magnitude.Resolve(owner);
+          info.minRange = Mathf.Min(currentRange, info.minRange);
+          info.maxRange = Mathf.Max(currentRange, info.maxRange);
+        }
+      }
     }
     if (objectToSpawn != null && objectToSpawn.attackData != null && spawnObjectOnDestruction)
     {
-      objectToSpawn.attackData.GetAttackRangeInfo(ref info, owner, objectToSpawn.weaponSize + currentRange, currentAngle);
+      objectToSpawn.attackData.GetAttackRangeInfo(ref info, owner, objectToSpawn.weaponSize, currentRange, currentAngle);
     }
     return info;
   }

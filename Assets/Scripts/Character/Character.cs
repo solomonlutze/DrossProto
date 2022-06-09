@@ -68,9 +68,12 @@ public class Character : WorldObject
   public CharacterSkillData activeSkill;
   public CharacterSkillData queuedSkill;
   public CharacterSkillData pressingSkill;
+  public List<Weapon> activeWeaponObjects;
+
   public float timeSpentInSkillEffect = 0f;
   public int currentSkillEffectSetIndex = 0;
   public int currentSkillEffectIndex = 0;
+  public int currentAttackSpawnIndex = 0;
   public bool molting = false;
   public float easedSkillForwardMovementProgressIncrement = 0.0f;
   public float easedSkillUpwardMovementProgressIncrement = 0.0f;
@@ -365,13 +368,13 @@ public class Character : WorldObject
   public void AdvanceSkillEffectSet()
   {
     currentSkillEffectIndex = 0;
-    bool repeatSet = activeSkill.SkillEffectSetIsRepeatable(this) && (pressingSkill == activeSkill || queuedSkill == activeSkill);
-    if (repeatSet && ShouldUseSkillEffectSet(activeSkill, currentSkillEffectSetIndex) && CanUseSkill(activeSkill, currentSkillEffectSetIndex))
-    {
-      BeginSkillEffect();
-      queuedSkill = null;
-      return;
-    }
+    // bool repeatSet = activeSkill.SkillEffectSetIsRepeatable(this) && (pressingSkill == activeSkill || queuedSkill == activeSkill);
+    // if (repeatSet && ShouldUseSkillEffectSet(activeSkill, currentSkillEffectSetIndex) && CanUseSkill(activeSkill, currentSkillEffectSetIndex))
+    // {
+    //   BeginSkillEffect();
+    //   queuedSkill = null;
+    //   return;
+    // }
     while (currentSkillEffectSetIndex < activeSkill.skillEffectSets.Length - 1)
     {
       currentSkillEffectSetIndex++;
@@ -388,6 +391,13 @@ public class Character : WorldObject
   public void AdvanceSkillEffect()
   {
     activeSkill.EndSkillEffect(this);
+    bool repeatSkillEffect = activeSkill.SkillEffectIsRepeatable(this) && (pressingSkill == activeSkill || queuedSkill == activeSkill);
+    if (repeatSkillEffect && ShouldUseSkillEffectSet(activeSkill, currentSkillEffectSetIndex) && CanUseSkill(activeSkill, currentSkillEffectSetIndex))
+    {
+      BeginSkillEffect();
+      queuedSkill = null;
+      return;
+    }
     currentSkillEffectIndex++;
     while (currentSkillEffectIndex <= activeSkill.GetActiveSkillEffectSet(this).skillEffects.Length - 1)
     {

@@ -191,9 +191,9 @@ public class CharacterSkillData : ScriptableObject
     return GetActiveSkillEffect(owner).interruptable.get(owner);
   }
 
-  public bool SkillEffectSetIsRepeatable(Character owner)
+  public bool SkillEffectIsRepeatable(Character owner)
   {
-    return GetActiveSkillEffectSet(owner).isRepeatable;
+    return GetActiveSkillEffect(owner).isRepeatable.Resolve(owner);
   }
 
   // Used only for pathfinding! Tells us that we can pivot from one use of the skill into the next.
@@ -341,18 +341,18 @@ public class CharacterSkillData : ScriptableObject
   // This may not be useful but could be used to determine whether we're "close enough" in an abstract way,
   // vs specifically within range and angle of a particular attack effect.
   // Also tho it's probably broken
-  public float GetEffectiveRange(Character owner)
-  {
-    List<float> effectRanges = new List<float>();
-    foreach (SkillEffectSet effectSet in skillEffectSets)
-    {
-      foreach (SkillEffect effect in effectSet.skillEffects)
-      {
-        effectRanges.Add(effect.GetEffectiveRange(owner));
-      }
-    }
-    return Mathf.Max(effectRanges.ToArray());
-  }
+  // public float GetEffectiveRange(Character owner)
+  // {
+  //   List<float> effectRanges = new List<float>();
+  //   foreach (SkillEffectSet effectSet in skillEffectSets)
+  //   {
+  //     foreach (SkillEffect effect in effectSet.skillEffects)
+  //     {
+  //       effectRanges.Add(effect.GetEffectiveRange(owner));
+  //     }
+  //   }
+  //   return Mathf.Max(effectRanges.ToArray());
+  // }
 
   void SetIsAttack()
   {
