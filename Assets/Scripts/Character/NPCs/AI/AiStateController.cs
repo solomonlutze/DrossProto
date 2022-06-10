@@ -110,7 +110,7 @@ public class AiStateController : Character
       attackCooldownTimer = 0;
     }
     base.BeginSkill(skill);
-    pressingSkill = null;
+    // pressingSkill = null;
   }
   /*
   *STATE LOGIC

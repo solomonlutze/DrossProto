@@ -1114,7 +1114,6 @@ public class Character : WorldObject
   // DAMAGE FUNCTIONS
   protected virtual void TakeDamage(IDamageSource damageSource)
   {
-    Debug.Log("damageSource " + damageSource);
     if (damageSource.IsOwnedBy(this)) { return; }
     if (damageSource.IsSameOwnerType(this)) { return; }
     if (!damageSource.GetCharacterWithinVerticalRange(this)) { return; }
@@ -1147,7 +1146,6 @@ public class Character : WorldObject
     }
     InterruptAnimation();
     Vector3 knockback = damageSource.GetKnockbackForCharacter(this);
-    Debug.Log("knockback: " + knockback);
     if (damageSource.damageType != DamageType.Physical)
     {
       AdjustElementalDamageBuildup(damageSource.damageType, damageAfterResistances);
