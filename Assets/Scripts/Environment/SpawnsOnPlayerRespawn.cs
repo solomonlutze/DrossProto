@@ -29,6 +29,7 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
       Destroy(spawnedObj); // I just have a terrible feeling about this but I don't know why
     }
     spawnedObj = Instantiate(objectToSpawn, transform.position, transform.rotation);
+    GameMaster.Instance.RegisterObjectToDestroyOnRespawn(spawnedObj);
     WorldObject wObj = spawnedObj.GetComponent<WorldObject>();
     if (wObj != null)
     {

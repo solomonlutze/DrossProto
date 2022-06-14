@@ -1170,6 +1170,7 @@ public class Character : WorldObject
       transform.position + knockback * knockbackDistance * combatJuiceConstants.splatterSpawnDistanceMult,
       transform.rotation
     );
+    splatter.transform.position = new Vector3(splatter.transform.position.x, splatter.transform.position.y, GetCurrentGroundPosition());
     Color randomTraitColor = traits[RandomTraitSlot()].primaryColor;
     splatter.GetComponentInChildren<SpriteRenderer>().color = randomTraitColor;
     splatter.transform.localScale = new Vector3(

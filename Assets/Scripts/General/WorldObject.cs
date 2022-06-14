@@ -101,6 +101,15 @@ public class WorldObject : MonoBehaviour
     ChangeLayersRecursively(t, layerName.ToString());
   }
 
+  public static bool HaveApproximatelySameElevation(GameObject object1, GameObject object2)
+  {
+    return HaveApproximatelySameElevation(object1.transform, object2.transform);
+  }
+
+  public static bool HaveApproximatelySameElevation(Transform transform1, Transform transform2)
+  {
+    return Mathf.Abs(transform1.position.z - transform2.position.z) <= .001f;
+  }
   public static void ChangeLayersRecursively(Transform trans, string layerName)
   {
     if (

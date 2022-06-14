@@ -147,7 +147,6 @@ public class PlayerController : Character
     // }
     if (interactables.Count > 0)
     {
-
       interactables.RemoveAll(interactableObject => interactableObject == null);
       foreach (GameObject interactableObject in interactables)
       {

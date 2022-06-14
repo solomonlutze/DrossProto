@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -167,7 +167,10 @@ public class GameMaster : Singleton<GameMaster>
   public void Restart()
   {
     UnpauseGame();
-    SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    if (playerController != null)
+    {
+      Destroy(playerController.gameObject);
+    }
     SetGameStatus(DrossConstants.GameState.ChooseBug);
     canvasHandler.DisplaySelectBugScreen();
   }
