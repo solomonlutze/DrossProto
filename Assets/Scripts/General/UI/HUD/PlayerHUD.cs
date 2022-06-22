@@ -16,6 +16,7 @@ public class PlayerHUD : MonoBehaviour
   // public StaminaBar staminaBar;
   public SuperTextMesh grubCountText;
   private SuperTextMesh diedText;
+  private SuperTextMesh victoryText;
   private SuperTextMesh respawnText;
 
   public StaminaBar[] skillStaminaBars;
@@ -31,13 +32,16 @@ public class PlayerHUD : MonoBehaviour
   float areaNameDisplayTime;
   public float areaNameDisplayDuration;
   public float areaNameFadeOutDuration;
-  private string diedString = "This body has been destroyed.\nPress Return to be reborn.";
+  private string diedString = "This body has been destroyed.\nPress Return/Start to be reborn.";
+  private string victoryString = "All the other bugs are dead.\nYou win!";
   private string obliteratedString = "This body has been swallowed by Oblivion.\nPress Return to be reborn.";
   // Use this for initialization
   // TODO: these should be public properties we set in the inspector
   void Start()
   {
     diedText = transform.Find("DiedText").GetComponent<SuperTextMesh>();
+    victoryText = transform.Find("VictoryText").GetComponent<SuperTextMesh>();
+    ClearVictoryText();
   }
 
   // Update is called once per frame
@@ -85,6 +89,15 @@ public class PlayerHUD : MonoBehaviour
     }
   }
 
+  public void SetVictoryText()
+  {
+    victoryText.text = victoryString;
+  }
+
+  public void ClearVictoryText()
+  {
+    victoryText.text = " ";
+  }
   public void SetGrubCount()
   {
     grubCountText.text = "" + grubCount.Value;

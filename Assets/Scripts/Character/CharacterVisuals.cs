@@ -89,7 +89,6 @@ public class CharacterVisuals : MonoBehaviour
 
   IEnumerator DoDamageFlash(Color32 damageFlashColor)
   {
-    Debug.Log("Doing damage flash");
     SetOverrideColor(damageFlashColor);
     yield return new WaitForSeconds(.1f);
     SetOverrideColor(defaultColor);

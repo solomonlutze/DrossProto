@@ -2,11 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using Yarn.Unity;
 using Rewired;
 using ScriptableObjectArchitecture;
-using UnityEngine.SceneManagement;
 using System.Diagnostics;
 
 public class GameMaster : Singleton<GameMaster>
@@ -24,6 +22,7 @@ public class GameMaster : Singleton<GameMaster>
   public InputGlyphHelper inputGlyphHelper;
   public GameObject playerPrefab;
   public DialogueRunner dialogueRunner;
+  public PlayerHUD playerHud;
   public VariableStorage dialogueVariableStorage;
   private PlayerController playerController;
 
@@ -224,7 +223,7 @@ public class GameMaster : Singleton<GameMaster>
       yield return null;
     }
     UnpauseGame();
-    AkSoundEngine.PostEvent("PlayClergyLoop", GameMaster.Instance.gameObject);
+    // AkSoundEngine.PostEvent("PlayClergyLoop", GameMaster.Instance.gameObject);
     DoActivateOnPlayerRespawn();
     DoDestroyOnPlayerRespawn();
     SetGameStatus(DrossConstants.GameState.Play);

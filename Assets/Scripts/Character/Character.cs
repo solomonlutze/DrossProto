@@ -425,7 +425,6 @@ public class Character : WorldObject
 
   public void EndSkill()
   {
-    Debug.Log("Ending skill " + activeSkill + " at set idx " + currentSkillEffectSetIndex + " and effect index " + currentSkillEffectIndex);
     bool repeatSkill = activeSkill && activeSkill.isRepeatable && (pressingSkill == activeSkill || queuedSkill == activeSkill) && CanUseSkill(activeSkill);
     if (UsingSkill())
     {
@@ -1776,7 +1775,6 @@ public class Character : WorldObject
     {
       foreach (EnvironmentalDamage envDamage in tile.environmentalDamageSources)
       {
-        Debug.Log("groundTile: " + tile.groundTileType + ", objectTile: " + tile.objectTileType);
         if (envDamage.IsEnvironmentalDamageSourceActive())
         {
           TakeDamage(envDamage);

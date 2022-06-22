@@ -131,7 +131,6 @@ public class Hitbox : MonoBehaviour, IDamageSource
   {
     if (c != null)
     {
-      Debug.Log("damage amount " + damageAmount + " adjusted to " + damageAmount * c.GetDamageMultiplier(damageType));
       return damageAmount * c.GetDamageMultiplier(damageType);
     }
     return damageAmount;

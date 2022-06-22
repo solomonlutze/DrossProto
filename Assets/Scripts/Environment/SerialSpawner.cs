@@ -9,6 +9,7 @@ public class SpawnInfoSet
   public float delayBefore;
 
 }
+
 [System.Serializable]
 public class SpawnInfo
 {
@@ -16,6 +17,7 @@ public class SpawnInfo
   public float startingHeatlhPercent = 100;
 
 }
+
 [SelectionBase]
 public class SerialSpawner : ActivateOnPlayerRespawn
 {
@@ -24,7 +26,7 @@ public class SerialSpawner : ActivateOnPlayerRespawn
   public List<SpawnInfoSet> spawns;
   private List<GameObject> spawnedObjects;
   bool waitingToSpawn;
-
+  bool displayingVictoryText;
   void Start()
   {
     Activate();
@@ -43,7 +45,15 @@ public class SerialSpawner : ActivateOnPlayerRespawn
       }
       spawnedObjects = new List<GameObject>();
       currentSpawn++;
-      StartCoroutine(WaitThenSpawnNext());
+      if (currentSpawn < spawns.Count)
+      {
+        StartCoroutine(WaitThenSpawnNext());
+
+      }
+      else
+      {
+        Debug.Log("all enemies dead? victory?");
+      }
     }
   }
 
@@ -54,6 +64,7 @@ public class SerialSpawner : ActivateOnPlayerRespawn
     SpawnNext();
     waitingToSpawn = false;
   }
+
   public void SpawnNext()
   {
     foreach (SpawnInfo spawn in spawns[currentSpawn].spawnInfos)
@@ -73,6 +84,7 @@ public class SerialSpawner : ActivateOnPlayerRespawn
 
   public override void Activate()
   {
+    displayingVictoryText = false;
     spawnedObjects = new List<GameObject>();
     currentSpawn = 0;
     StartCoroutine(WaitThenSpawnNext());

@@ -53,7 +53,6 @@ public class ParticleSystemMaster : MonoBehaviour
 
   public ParticleSystem GetParticleSystemForCharacterAndTile(Character character, EnvironmentTile tile)
   {
-    Debug.Log("floor: " + character.currentFloor + ", keys: " + particleSystemMap[character.currentFloor].Keys);
     return particleSystemMap[character.currentFloor][tile];
   }
   public void EmitFootstep(Character c, EnvironmentTile tile, ParticleSystem.EmitParams emitParams, int count)
