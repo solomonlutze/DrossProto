@@ -26,7 +26,7 @@ public class SerialSpawner : ActivateOnPlayerRespawn
   public List<SpawnInfoSet> spawns;
   private List<GameObject> spawnedObjects;
   bool waitingToSpawn;
-  bool displayingVictoryText;
+
   void Start()
   {
     Activate();
@@ -52,6 +52,7 @@ public class SerialSpawner : ActivateOnPlayerRespawn
       }
       else
       {
+        GameMaster.Instance.DisplayVictoryText();
         Debug.Log("all enemies dead? victory?");
       }
     }
@@ -84,7 +85,7 @@ public class SerialSpawner : ActivateOnPlayerRespawn
 
   public override void Activate()
   {
-    displayingVictoryText = false;
+    GameMaster.Instance.ClearVictoryText();
     spawnedObjects = new List<GameObject>();
     currentSpawn = 0;
     StartCoroutine(WaitThenSpawnNext());

@@ -344,6 +344,15 @@ public class GameMaster : Singleton<GameMaster>
     }
   }
 
+  public void DisplayVictoryText()
+  {
+    playerHud.SetVictoryText();
+  }
+
+  public void ClearVictoryText()
+  {
+    playerHud.ClearVictoryText();
+  }
   //continues running while paused, jsyk
   public static IEnumerator WaitForRealSeconds(float time)
   {
