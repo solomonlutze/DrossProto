@@ -8,6 +8,7 @@ public class SkillReadyAiDecision : AiDecision
   public override bool Decide(AiStateController controller)
   {
     List<CharacterSkillData> viableAttacks = new List<CharacterSkillData>();
+    if (controller.attackCooldownTimer < controller.aiSettings.minAttackCooldown) { return false; }
     foreach (CharacterSkillData skillData in controller.characterAttackSkills)
     {
       if (controller.CanUseSkill(skillData))

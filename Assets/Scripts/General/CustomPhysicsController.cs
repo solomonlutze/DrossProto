@@ -123,50 +123,22 @@ public class CustomPhysicsController : MonoBehaviour
   void CalculateMovementTopDown()
   {
     moveAcceleration = owningCharacter.GetMoveAcceleration();
-
-    // maxVelocity = moveAcceleration - drag * Time.deltaTime;
     Vector2 desiredMovement;
     if (owningCharacter.IsInKnockback()) // Ignore velocity + drag; move manually
     {
       desiredMovement = (movementInput.normalized * owningCharacter.GetEasedMovementProgressIncrement());
-      // Vector2 xMove = new Vector2(desiredMovement.x, 0);
-      // if (!ignoreCollisionPhysics)
-      // {
-      //   xMove = CalculateCollisionForAxis(xMove);
-      // }
-      // desiredMovement.x = xMove.x;
-      // Vector2 yMove = new Vector2(0, desiredMovement.y);
-      // if (!ignoreCollisionPhysics)
-      // {
-      //   yMove = CalculateCollisionForAxis(yMove);
-      // }
-      // desiredMovement.y = yMove.y;
       rb.MovePosition(rb.position + desiredMovement);
     }
     else if (owningCharacter.UsingForwardMovementSkill()) // TODO: maybe someday we want to allow forward movement + regular movement in same skill? ehh
     {
       desiredMovement = (orientation.rotation * new Vector2(owningCharacter.GetEasedMovementProgressIncrement(), 0));
-      // Vector2 xMove = new Vector2(desiredMovement.x, 0);
-      // if (!ignoreCollisionPhysics)
-      // {
-      //   xMove = CalculateCollisionForAxis(xMove);
-      // }
-      // desiredMovement.x = xMove.x;
-      // Vector2 yMove = new Vector2(0, desiredMovement.y);
-      // if (!ignoreCollisionPhysics)
-      // {
-      //   yMove = CalculateCollisionForAxis(yMove);
-      // }
-      // desiredMovement.y = yMove.y;
       rb.MovePosition(rb.position + desiredMovement);
     }
     else
     {
-      // desiredMovement = (movementInput.normalized * moveAcceleration - (drag * velocity)) * Time.deltaTime;
       Vector2 orientedMovement = orientation.rotation * (movementInput == Vector2.zero ? Vector2.zero : Vector2.right);
-      // float idealVelocity = (Vector3.Dot(orientation.rotation.eulerAngles.normalized, movementInput.normalized) + 1) / 2;
-      // Debug.Log("idealVelocity " + idealVelocity + ", orientation " + orientation.rotation.eulerAngles + ", movementInput " + movementInput);
-      float idealVelocity = 1;
+      // float idealVelocity = 1;
+      float idealVelocity = Vector2.Dot(orientedMovement.normalized, movementInput.normalized) + 1 / 2;
       if (owningCharacter.GetRotationSpeed() > 0)
       {
         desiredMovement = (orientedMovement * moveAcceleration * idealVelocity - (drag * velocity)) * Time.fixedDeltaTime;

@@ -105,12 +105,16 @@ public class AiStateController : Character
 
   public override void BeginSkill(CharacterSkillData skill)
   {
-    if (characterAttackSkills.Contains(skill))
+    base.BeginSkill(skill);
+  }
+
+  public override void EndSkill()
+  {
+    if (characterAttackSkills.Contains(activeSkill))
     {
       attackCooldownTimer = 0;
     }
-    base.BeginSkill(skill);
-    // pressingSkill = null;
+    base.EndSkill();
   }
   /*
   *STATE LOGIC

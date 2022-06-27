@@ -423,7 +423,7 @@ public class Character : WorldObject
     activeSkill.BeginSkillEffect(this);
   }
 
-  public void EndSkill()
+  public virtual void EndSkill()
   {
     bool repeatSkill = activeSkill && activeSkill.isRepeatable && (pressingSkill == activeSkill || queuedSkill == activeSkill) && CanUseSkill(activeSkill);
     if (UsingSkill())
