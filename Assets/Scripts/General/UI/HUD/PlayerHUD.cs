@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using ScriptableObjectArchitecture;
 using TMPro;
-
 public class PlayerHUD : MonoBehaviour
 {
   //TODO: Use TextMeshProUGUI instead of STM

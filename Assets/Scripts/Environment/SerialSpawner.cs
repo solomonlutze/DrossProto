@@ -26,10 +26,11 @@ public class SerialSpawner : ActivateOnPlayerRespawn
   public List<SpawnInfoSet> spawns;
   private List<GameObject> spawnedObjects;
   bool waitingToSpawn;
-
+  Coroutine waitingToSpawnCoroutine;
   void Start()
   {
-    Activate();
+    spawnedObjects = new List<GameObject>();
+    // Activate();
   }
 
   public void Update()
@@ -64,6 +65,7 @@ public class SerialSpawner : ActivateOnPlayerRespawn
     yield return new WaitForSeconds(spawns[currentSpawn].delayBefore);
     SpawnNext();
     waitingToSpawn = false;
+    waitingToSpawnCoroutine = null;
   }
 
   public void SpawnNext()
@@ -88,7 +90,11 @@ public class SerialSpawner : ActivateOnPlayerRespawn
     GameMaster.Instance.ClearVictoryText();
     spawnedObjects = new List<GameObject>();
     currentSpawn = 0;
-    StartCoroutine(WaitThenSpawnNext());
+    if (waitingToSpawnCoroutine != null)
+    {
+      StopCoroutine(waitingToSpawnCoroutine);
+    }
+    waitingToSpawnCoroutine = StartCoroutine(WaitThenSpawnNext());
   }
 
 }

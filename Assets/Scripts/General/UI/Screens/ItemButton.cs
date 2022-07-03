@@ -7,7 +7,7 @@ public class ItemButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 {
 
   public Button button;
-  public TextMeshProUGUI nameLabel;
+  // public TextMeshProUGUI nameLabel;
   protected InventoryEntry item;
   protected InventoryScreen inventoryScreen;
   protected int? slotNumber;
@@ -37,7 +37,7 @@ public class ItemButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
   {
     item = itemEntryInfo;
     slotNumber = slot;
-    nameLabel.text = itemEntryInfo.itemName;
+    // nameLabel.text = itemEntryInfo.itemName;
     inventoryScreen = parentScreen;
   }
 
