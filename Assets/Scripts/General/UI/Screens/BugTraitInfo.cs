@@ -10,7 +10,6 @@ public class BugTraitInfo : MonoBehaviour
 {
   // private TraitSlot traitSlot;
   // public Trait trait;
-  public BugStatusView parentScreen;
   public SuperTextMesh providingLymphNameText;
   public SuperTextMesh skillNameText;
   public SuperTextMesh skillDescriptionText;
@@ -18,9 +17,8 @@ public class BugTraitInfo : MonoBehaviour
   Trait trait;
   TraitSlot traitSlot;
 
-  public void Init(BugStatusView parent, Trait t, TraitSlot ts)
+  public void Init(Trait t, TraitSlot ts)
   {
-    parentScreen = parent;
     trait = t;
     traitSlot = ts;
     Debug.Log("init'ing trait info for " + trait);

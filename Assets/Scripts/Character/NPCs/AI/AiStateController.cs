@@ -544,13 +544,14 @@ public class AiStateController : Character
       TraitPickupItem traitItem = (TraitPickupItem)item;
       if (traitItem != null)
       {
-        foreach (TraitSlot slot in traits.Keys)
-        {
-          if (traitItem.traits.ContainsKey(slot))
-          { // it definitely should
-            traitItem.traits[slot] = traits[slot];
-          }
-        }
+        // foreach (TraitSlot slot in traits.Keys)
+        // {
+        // if (traitItem.traits.ContainsKey(slot))
+        // { // it definitely should
+        TraitSlot slot = GetTraitSlotForPickupItem();
+        traitItem.traits[slot] = traits[slot];
+        // }
+        // }
       }
       GameObject instantiatedItem = Instantiate(item.gameObject, transform.position, transform.rotation);
       WorldObject.ChangeLayersRecursively(instantiatedItem.transform, GetFloorLayer());
@@ -559,6 +560,10 @@ public class AiStateController : Character
     }
   }
 
+  public TraitSlot GetTraitSlotForPickupItem()
+  {
+    return Utils.RandomEnumValue<TraitSlot>();
+  }
   public override void Die()
   {
     if (!alreadyDroppedItems)
