@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 public static class DrossConstants
 {
-  public enum GameState { Play, Dead, Dialogue, Menu, ChooseBug, Pause }
+  public enum GameState { Play = 0, Dead = 1, Dialogue = 2, Menu = 3, ChooseBug = 4, Pause = 5, EquipTraits = 6 }
   public const float DEFAULT_DETECTION_RANGE = 20f;
   public const float CARAPACE_DAMAGE_REDUCTION = 1f;
   public const float CARAPACE_BREAK_STUN_DURATION = 5.0f;

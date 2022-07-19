@@ -17,6 +17,7 @@ public class CanvasHandler : MonoBehaviour
   private Rewired.Player rewiredPlayer; public InventoryScreen inventoryScreen;
 
   public BugStatusView bugStatusScreen;
+  public EquipTraitsView equipTraitsScreen;
   public PauseMenu pauseScreen;
   public StartingBugSelectScreen startingBugSelectScreen;
   private List<GameObject> canvasList = new List<GameObject>();
@@ -24,9 +25,9 @@ public class CanvasHandler : MonoBehaviour
   // Use this for initialization
   void Start()
   {
-    // canvasList.Add(inventoryScreen.gameObject);
     rewiredPlayer = ReInput.players.GetPlayer(rewiredPlayerId);
     canvasList.Add(bugStatusScreen.gameObject);
+    canvasList.Add(equipTraitsScreen.gameObject);
     canvasList.Add(startingBugSelectScreen.gameObject);
     canvasList.Add(pauseScreen.gameObject);
     SetAllCanvasesInactive();
@@ -59,7 +60,6 @@ public class CanvasHandler : MonoBehaviour
         }
         break;
     }
-
   }
 
   // TODO: this should def actually advance dialogue
@@ -86,16 +86,6 @@ public class CanvasHandler : MonoBehaviour
 
   // Dialogue canvas functions
 
-  public void DisplayBugStatusView()
-  {
-    // BulletinBoardCanvas.GetComponent<BulletinBoardCanvas>().SetBulletinBoardText();
-    PlayerController player = GameMaster.Instance.GetPlayerController();
-    if (player != null)
-    {
-      DisplayBugStatusView(player.attributes, Character.CalculateAttributes(player.pupa), null, null, player.pupa, null);
-    }
-  }
-
   public void DisplayPauseMenu()
   {
     GameMaster.Instance.SetGameMenu();
@@ -113,6 +103,12 @@ public class CanvasHandler : MonoBehaviour
     startingBugSelectScreen.gameObject.SetActive(true);
   }
 
+  public void DisplayEquipTraitsView()
+  {
+    equipTraitsScreen.Init(GameMaster.Instance.cachedPupa, GameMaster.Instance.GetCollectedTraitItems());
+    equipTraitsScreen.gameObject.SetActive(true);
+  }
+
   public void DisplayBugStatusView(
     CharacterAttributeToIntDictionary currentAttributes,
     CharacterAttributeToIntDictionary nextAttributes,
@@ -123,10 +119,17 @@ public class CanvasHandler : MonoBehaviour
   {
     GameMaster.Instance.SetGameMenu();
     SetAllCanvasesInactive();
-    // bugStatusScreen.Init(currentAttributes, nextAttributes, skillDatas, pupaSkillDatas, pupaTraits, traitPickupItem);
     bugStatusScreen.gameObject.SetActive(true);
   }
 
+  public void DisplayBugStatusView()
+  {
+    PlayerController player = GameMaster.Instance.GetPlayerController();
+    if (player != null)
+    {
+      DisplayBugStatusView(player.attributes, Character.CalculateAttributes(player.pupa), null, null, player.pupa, null);
+    }
+  }
   public void DisplayBugStatusView(
     TraitSlotToTraitDictionary currentTraits,
     TraitPickupItem traitPickupItem = null)

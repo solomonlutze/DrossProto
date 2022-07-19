@@ -9,13 +9,11 @@ using UnityEngine.EventSystems;
 public class TraitButton : ButtonBase, ISelectHandler
 {
   public TraitSlot traitSlot;
-  public BugStatusView parentScreen;
+  public BugStatusView parentScreen_OLD;
+  public EquipTraitsView parentScreen;
 
   public void HandleClick()
   {
-    // replace the currently-equipped trait with new trait
-    // destroy TraitPickupItem
-    // should maybe happen on parent screen?
     parentScreen.OnTraitButtonClicked(traitSlot);
   }
   public void OnSelect(BaseEventData data)
