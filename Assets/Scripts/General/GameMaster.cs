@@ -30,7 +30,8 @@ public class GameMaster : Singleton<GameMaster>
   public DrossConstants.GameState gameStatus;
 
   // Saved when player dies so their next life can be preserved
-  private TraitSlotToTraitDictionary cachedPupa;
+  public TraitSlotToTraitDictionary cachedPupa;
+  public List<TraitSlotToTraitDictionary> collectedTraitItems;
   public GameObject[] spawnPoints;
 
   public BaseVariable[] variablesToClearOnRespawn;
@@ -57,6 +58,7 @@ public class GameMaster : Singleton<GameMaster>
     Time.fixedDeltaTime = 1 / 60f;
     fixedDeltaTime = Time.fixedDeltaTime;
     objectsToDestroyOnRespawn = new List<GameObject>();
+    collectedTraitItems = new List<TraitSlotToTraitDictionary>();
     pathfinding = GetComponent<PathfindingSystem>();
     SetGameStatus(startingGameStatus);
     switch (GetGameStatus())
@@ -106,6 +108,13 @@ public class GameMaster : Singleton<GameMaster>
           SetGamePaused();
         }
         break;
+
+      case DrossConstants.GameState.EquipTraits:
+        if (rewiredPlayer.GetButtonDown("Pause"))
+        {
+          ConfirmEquipAndRespawn();
+        }
+        break;
       case DrossConstants.GameState.Pause:
         if (rewiredPlayer.GetButtonDown("Pause"))
         {
@@ -115,11 +124,18 @@ public class GameMaster : Singleton<GameMaster>
     }
   }
 
+  public void ConfirmEquipAndRespawn(TraitSlotToTraitDictionary overrideTraits = null)
+  {
+    canvasHandler.CloseMenus();
+    collectedTraitItems.Clear();
+    StartCoroutine(Respawn(overrideTraits == null ? cachedPupa : overrideTraits));
+  }
   private void HandleDeadInput()
   {
     if (rewiredPlayer.GetButtonDown("Respawn"))
     {
-      StartCoroutine(Respawn(cachedPupa));
+      SetGameStatus(DrossConstants.GameState.EquipTraits);
+      canvasHandler.DisplayEquipTraitsView();
     }
   }
 
@@ -319,6 +335,19 @@ public class GameMaster : Singleton<GameMaster>
   {
     if (!dialogueRunner.isDialogueRunning) { return; }
     StartCoroutine(dialogueRunner.Interrupt());
+  }
+
+  public void AddCollectedTraitItem(TraitSlotToTraitDictionary item)
+  {
+    collectedTraitItems.Add(item);
+  }
+  public void ClearCollectedTraitItems()
+  {
+    collectedTraitItems.Clear();
+  }
+  public List<TraitSlotToTraitDictionary> GetCollectedTraitItems()
+  {
+    return collectedTraitItems;
   }
 
   public static void ClearVariables(BaseVariable[] variablesToClear, GameEvent[] eventsToRaise)

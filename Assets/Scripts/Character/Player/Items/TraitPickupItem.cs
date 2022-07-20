@@ -16,7 +16,18 @@ public class TraitPickupItem : PickupItem
   {
     if (GameMaster.Instance.GetPlayerController() != null)
     {
-      GameMaster.Instance.canvasHandler.DisplayBugStatusViewForTraitItem(this);
+      GameMaster.Instance.AddCollectedTraitItem(traits);
+      // string itemName = "Lymph";
+      foreach (TraitSlot slot in traits.Keys)
+      {
+        if (traits[slot] != null)
+        {
+          // itemName = slot.ToString();
+          GameMaster.Instance.playerHud.SetPickupItem(traits[slot].traitName + " " + slot);
+          break;
+        }
+      }
+      Destroy(gameObject);
     }
   }
 

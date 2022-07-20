@@ -1,4 +1,5 @@
 using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -29,5 +30,11 @@ public class Utils
   public static float GetAngleToDirection(Quaternion rotation, Vector3 targetPoint)
   {
     return Quaternion.Angle(GetDirectionAngle(targetPoint), rotation);
+  }
+  static System.Random _R = new System.Random();
+  public static T RandomEnumValue<T>()
+  {
+    var v = Enum.GetValues(typeof(T));
+    return (T)v.GetValue(_R.Next(v.Length));
   }
 }

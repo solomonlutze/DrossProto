@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 public class AiStateController : Character
@@ -262,7 +263,7 @@ public class AiStateController : Character
 
   public IEnumerator DelayThenSetOverrideDestinationCoroutine(Vector3 pos, FloorLayer fl)
   {
-    yield return new WaitForSeconds(Random.Range(.1f, 6f));
+    yield return new WaitForSeconds(UnityEngine.Random.Range(.1f, 6f));
     SetOverrideDestination(pos, fl);
   }
 
@@ -544,21 +545,52 @@ public class AiStateController : Character
       TraitPickupItem traitItem = (TraitPickupItem)item;
       if (traitItem != null)
       {
-        foreach (TraitSlot slot in traits.Keys)
+        traitItem.traits = new TraitSlotToTraitDictionary();
+        List<TraitSlot> validSlots = GetValidTraitSlotsForPickupItem();
+        if (validSlots.Count == 0)
         {
-          if (traitItem.traits.ContainsKey(slot))
-          { // it definitely should
-            traitItem.traits[slot] = traits[slot];
-          }
+          return;
         }
+        TraitSlot slot = validSlots[UnityEngine.Random.Range(0, validSlots.Count)];
+        traitItem.traits[slot] = traits[slot];
       }
       GameObject instantiatedItem = Instantiate(item.gameObject, transform.position, transform.rotation);
       WorldObject.ChangeLayersRecursively(instantiatedItem.transform, GetFloorLayer());
       instantiatedItem.transform.position = new Vector3(instantiatedItem.transform.position.x, instantiatedItem.transform.position.y, GetCurrentGroundPosition());
-      // instantiatedItem.GetComponent<SpriteRenderer>().sortingLayerName = LayerMask.LayerToName(gameObject.layer);
     }
   }
 
+  // there are five slots
+  // if any collected items are the same type as us, exclude their slot
+  // then, if any of the character's current traits are the same type as us, exclude their slot
+  public List<TraitSlot> GetValidTraitSlotsForPickupItem()
+  {
+    List<TraitSlot> validSlots = new List<TraitSlot>();
+    if (GameMaster.Instance.GetPlayerController() == null) { return validSlots; }
+    foreach (TraitSlotToTraitDictionary collectedItem in GameMaster.Instance.collectedTraitItems)
+    {
+      foreach (TraitSlot slot in collectedItem.Keys)
+      {
+        if (collectedItem[slot] != null && collectedItem[slot].bugSpecies != traits[slot].bugSpecies)
+        {
+          validSlots.Add(slot);
+        }
+      }
+    }
+    foreach (TraitSlot slot in Enum.GetValues(typeof(TraitSlot)))
+    {
+      TraitSlotToTraitDictionary playerTraits = GameMaster.Instance.GetPlayerController().traits;
+      if (playerTraits[slot].bugSpecies != traits[slot].bugSpecies)
+      {
+        validSlots.Add(slot);
+      }
+      else if (validSlots.Contains(slot))
+      {
+        validSlots.Remove(slot);
+      }
+    }
+    return validSlots;
+  }
   public override void Die()
   {
     if (!alreadyDroppedItems)

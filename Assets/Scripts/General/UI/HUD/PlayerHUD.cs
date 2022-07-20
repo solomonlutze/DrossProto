@@ -25,10 +25,15 @@ public class PlayerHUD : MonoBehaviour
   public SuperTextMesh moltDescriptionText;
   public SuperTextMesh areaNameText;
   public CanvasGroup areaNameCanvasGroup;
+  public SuperTextMesh itemPickupNameText;
+  public CanvasGroup itemPickupCanvasGroup;
 
   bool playerExists;
 
   float areaNameDisplayTime;
+  float itemPickupDisplayTime;
+  public float itemPickupDisplayDuration;
+  public float itemPickupFadeOutDuration;
   public float areaNameDisplayDuration;
   public float areaNameFadeOutDuration;
   private string diedString = "This body has been destroyed.\nPress Return/Start to be reborn.";
@@ -40,6 +45,7 @@ public class PlayerHUD : MonoBehaviour
   {
     diedText = transform.Find("DiedText").GetComponent<SuperTextMesh>();
     victoryText = transform.Find("VictoryText").GetComponent<SuperTextMesh>();
+    itemPickupNameText.text = "";
     ClearVictoryText();
   }
 
@@ -47,8 +53,8 @@ public class PlayerHUD : MonoBehaviour
   void Update()
   {
     PlayerController playerController = GameMaster.Instance.GetPlayerController();
-    areaNameDisplayTime += Time.deltaTime;
     FadeOutAreaName();
+    FadeOutPickupItem();
     if (playerController != null)
     {
       if (!playerExists)
@@ -110,7 +116,23 @@ public class PlayerHUD : MonoBehaviour
 
   public void FadeOutAreaName()
   {
+    areaNameDisplayTime += Time.deltaTime;
     float fadeOutProgress = Mathf.Clamp((areaNameDisplayTime - areaNameDisplayDuration) / areaNameFadeOutDuration, 0, 1);
     areaNameCanvasGroup.alpha = 1 - fadeOutProgress;
+  }
+
+  public void SetPickupItem(string itemName)
+  {
+    Debug.Log("setting item name to " + itemName);
+    itemPickupNameText.text = itemName;
+    itemPickupDisplayTime = 0;
+  }
+
+  public void FadeOutPickupItem()
+  {
+    itemPickupDisplayTime += Time.deltaTime;
+    float fadeOutProgress = Mathf.Clamp((itemPickupDisplayTime - itemPickupDisplayDuration) / itemPickupFadeOutDuration, 0, 1);
+    Debug.Log("fadeOutProgress " + fadeOutProgress);
+    itemPickupCanvasGroup.alpha = 1 - fadeOutProgress;
   }
 }

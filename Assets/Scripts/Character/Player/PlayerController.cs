@@ -58,8 +58,8 @@ public class PlayerController : Character
     if (overrideTraits != null)
     {
       traits = new TraitSlotToTraitDictionary(overrideTraits);
-      pupa = new TraitSlotToTraitDictionary(overrideTraits);
     }
+    pupa = traits;
     characterVisuals.SetCharacterVisuals(traits);
     base.Init();
     currentTile = GridManager.Instance.GetTileAtLocation(CalculateCurrentTileLocation());
@@ -508,11 +508,11 @@ public class PlayerController : Character
 
   public override void DoCameraShake(float damageAfterResistances, float knockbackDistance)
   {
-
     float duration = combatJuiceConstants.cameraShakeDurationMult_Player * knockbackDistance;
     float magnitude = combatJuiceConstants.cameraShakeMagnitudeMult_Player * knockbackDistance;
     GameMaster.Instance.DoCameraShake(duration, magnitude);
   }
+
   override public void Die()
   {
     GameMaster.Instance.KillPlayer(pupa);

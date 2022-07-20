@@ -46,7 +46,7 @@ public class BugStatusView : MenuBase
     displayedPickupItem = pickupItem;
     foreach (TraitSlot slot in currentTraits.Keys)
     {
-      traitInfos[slot].Init(this, currentTraits[slot], slot);
+      traitInfos[slot].Init(currentTraits[slot], slot);
     }
 
     foreach (TraitSlot slot in nextTraitInfos.Keys)
@@ -59,7 +59,7 @@ public class BugStatusView : MenuBase
       else
       {
         nextTraits = pickupItem.traits;
-        nextTraitInfos[slot].Init(this, nextTraits[slot], slot);
+        nextTraitInfos[slot].Init(nextTraits[slot], slot);
         nextTraitInfos[slot].gameObject.SetActive(true);
       }
     }
