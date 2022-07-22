@@ -251,11 +251,11 @@ public class Character : WorldObject
   }
   void InitializeAnimationParameters()
   {
-    animator.SetFloat("HeadAnimationType", (int)traits[TraitSlot.Head].bugSpecies);
-    animator.SetFloat("ThoraxAnimationType", (int)traits[TraitSlot.Thorax].bugSpecies);
-    animator.SetFloat("AbdomenAnimationType", (int)traits[TraitSlot.Abdomen].bugSpecies);
-    animator.SetFloat("LegsAnimationType", (int)traits[TraitSlot.Legs].bugSpecies);
-    animator.SetFloat("WingsAnimationType", (int)traits[TraitSlot.Wings].bugSpecies);
+    animator.SetFloat("HeadAnimationType", (int)traits[TraitSlot.Head].bugSpecies_DEPRECATED);
+    animator.SetFloat("ThoraxAnimationType", (int)traits[TraitSlot.Thorax].bugSpecies_DEPRECATED);
+    animator.SetFloat("AbdomenAnimationType", (int)traits[TraitSlot.Abdomen].bugSpecies_DEPRECATED);
+    animator.SetFloat("LegsAnimationType", (int)traits[TraitSlot.Legs].bugSpecies_DEPRECATED);
+    animator.SetFloat("WingsAnimationType", (int)traits[TraitSlot.Wings].bugSpecies_DEPRECATED);
   }
   // non-physics biz
   protected virtual void Update()

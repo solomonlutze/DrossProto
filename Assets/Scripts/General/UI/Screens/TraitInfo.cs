@@ -23,11 +23,8 @@ public class TraitInfo : MonoBehaviour
       gameObject.SetActive(false);
       return;
     }
-    // base.Init(itemEntryInfo, parentScreen);
     nameLabelObject.text = trait.traitName;
     SetTraitAttributeText(trait, traitSlot, attributeDataObjects);
-    // if (itemEntryInfo.equipped) { nameLabel.text += "\n (Equipped)"; }
-    if (lymphLogoObject != null) { lymphLogoObject.Init(trait.lymphType); }
   }
 
   public void SetTraitAttributeText(Trait trait, TraitSlot traitSlot, Dictionary<CharacterAttribute, IAttributeDataInterface> attributeDataObjects)

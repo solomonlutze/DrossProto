@@ -1,7 +1,7 @@
 
 using UnityEngine;
 using UnityEngine.UI;
-public class CharacterBodyPartVisual_Old : MonoBehaviour
+public class CharacterBodyPartVisual_OLD : MonoBehaviour
 {
   public SpriteRenderer spriteRenderer1;
   public SpriteRenderer spriteRenderer2;

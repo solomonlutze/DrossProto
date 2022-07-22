@@ -571,7 +571,7 @@ public class AiStateController : Character
     {
       foreach (TraitSlot slot in collectedItem.Keys)
       {
-        if (collectedItem[slot] != null && collectedItem[slot].bugSpecies != traits[slot].bugSpecies)
+        if (collectedItem[slot] != null && collectedItem[slot].bugSpecies_DEPRECATED != traits[slot].bugSpecies_DEPRECATED)
         {
           validSlots.Add(slot);
         }
@@ -580,7 +580,7 @@ public class AiStateController : Character
     foreach (TraitSlot slot in Enum.GetValues(typeof(TraitSlot)))
     {
       TraitSlotToTraitDictionary playerTraits = GameMaster.Instance.GetPlayerController().traits;
-      if (playerTraits[slot].bugSpecies != traits[slot].bugSpecies)
+      if (playerTraits[slot].bugSpecies_DEPRECATED != traits[slot].bugSpecies_DEPRECATED)
       {
         validSlots.Add(slot);
       }

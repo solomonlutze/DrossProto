@@ -20,7 +20,8 @@ public class CharacterVisuals : MonoBehaviour
     {BugSkeletonPart.MandibleRight, TraitSlot.Head},
     {BugSkeletonPart.MandibleLeft, TraitSlot.Head},
     {BugSkeletonPart.Head, TraitSlot.Head},
-    {BugSkeletonPart.Eyes, TraitSlot.Head},
+    {BugSkeletonPart.EyeLeft, TraitSlot.Head},
+    {BugSkeletonPart.EyeRight, TraitSlot.Head},
     {BugSkeletonPart.AntennaRight, TraitSlot.Head},
     {BugSkeletonPart.AntennaLeft, TraitSlot.Head},
     {BugSkeletonPart.Thorax, TraitSlot.Thorax},
@@ -29,6 +30,9 @@ public class CharacterVisuals : MonoBehaviour
     {BugSkeletonPart.ForewingRight, TraitSlot.Wings},
     {BugSkeletonPart.ForewingLeft, TraitSlot.Wings},
   };
+
+  public Dictionary<TraitSlot, GameObject> bugPartPrefabs;
+  public Dictionary<TraitSlot, Transform> bugParts;
   public Color32 defaultColor = Color.clear;
 
   public void Start()
@@ -54,7 +58,7 @@ public class CharacterVisuals : MonoBehaviour
   public void SetOverrideColor(Color32 overrideColor)
   {
     MaterialPropertyBlock mpb = new MaterialPropertyBlock();
-    foreach (CharacterBodyPartVisual visual in skeletonPartToCharacterBodyPartVisual.Values)
+    foreach (CharacterBodyPartVisual_OLD visual in skeletonPartToCharacterBodyPartVisual.Values)
     {
       if (visual.spriteRenderer1 != null)
       {
@@ -76,7 +80,7 @@ public class CharacterVisuals : MonoBehaviour
 
     foreach (BugSkeletonPart part in skeletonPartToCharacterBodyPartVisual.Keys)
     {
-      CharacterBodyPartVisual visual = skeletonPartToCharacterBodyPartVisual[part];
+      CharacterBodyPartVisual_OLD visual = skeletonPartToCharacterBodyPartVisual[part];
       visual.ClearSprites();
       visual.gameObject.SetActive(false);
     }
@@ -111,12 +115,12 @@ public class CharacterVisuals : MonoBehaviour
   public void BreakOffRandomBodyPart(Vector2 knockback)
   {
     int partToBreakIndex = UnityEngine.Random.Range(0, unbrokenBugParts.Count);
-    CharacterBodyPartVisual partToBreakVisual = skeletonPartToCharacterBodyPartVisual[unbrokenBugParts[partToBreakIndex]];
+    CharacterBodyPartVisual_OLD partToBreakVisual = skeletonPartToCharacterBodyPartVisual[unbrokenBugParts[partToBreakIndex]];
     BreakOffBodyPart(knockback, partToBreakVisual);
     unbrokenBugParts.RemoveAt(partToBreakIndex);
   }
 
-  public void BreakOffBodyPart(Vector2 knockback, CharacterBodyPartVisual partToBreakVisual)
+  public void BreakOffBodyPart(Vector2 knockback, CharacterBodyPartVisual_OLD partToBreakVisual)
   {
     GameObject brokenPart = Instantiate(partToBreakVisual.gameObject, partToBreakVisual.transform.position, partToBreakVisual.transform.rotation);
     brokenPart.transform.parent = null;
@@ -133,7 +137,7 @@ public class CharacterVisuals : MonoBehaviour
 
   public void BreakOffRemainingBodyParts(Vector2 knockback)
   {
-    foreach (CharacterBodyPartVisual visual in skeletonPartToCharacterBodyPartVisual.Values)
+    foreach (CharacterBodyPartVisual_OLD visual in skeletonPartToCharacterBodyPartVisual.Values)
     {
       if (visual.spriteRenderer1.sprite != null) // part isn't broken
       {

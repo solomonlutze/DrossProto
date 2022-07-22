@@ -14,15 +14,15 @@ public enum BugSkeletonPart
   MandibleRight,
   MandibleLeft,
   Head,
-  Eyes,
+  EyeLeft,
+  EyeRight = 18,
   AntennaRight,
   AntennaLeft,
   Thorax,
   HindwingRight,
   HindwingLeft,
   ForewingRight,
-  ForewingLeft
-
+  ForewingLeft,
 }
 
 public enum BreakableBugSkeletonPart
@@ -55,7 +55,8 @@ public class BugSkeletonImagesData : ScriptableObject
   BugSkeletonPart.MandibleRight,
   BugSkeletonPart.MandibleLeft,
   BugSkeletonPart.Head,
-  BugSkeletonPart.Eyes,
+  BugSkeletonPart.EyeLeft,
+  BugSkeletonPart.EyeRight,
   BugSkeletonPart.AntennaRight,
   BugSkeletonPart.AntennaLeft,
   BugSkeletonPart.Thorax,
