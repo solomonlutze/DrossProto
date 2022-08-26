@@ -60,7 +60,6 @@ public class PlayerController : Character
       traits = new TraitSlotToTraitDictionary(overrideTraits);
     }
     pupa = traits;
-    characterVisuals.SetCharacterVisuals(traits);
     base.Init();
     currentTile = GridManager.Instance.GetTileAtLocation(CalculateCurrentTileLocation());
     if (currentTile.infoTileType != null)

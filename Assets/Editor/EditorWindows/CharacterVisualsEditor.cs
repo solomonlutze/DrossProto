@@ -13,15 +13,16 @@ public class CharacterVisualsEditor : Editor
     DrawDefaultInspector();
     if (GUILayout.Button("Set Images From Skeleton Data"))
     {
-      string path = EditorUtility.OpenFilePanel("Select skeleton data", "Assets/resources/Data/ArtData/CharacterArt", "");
-      Debug.Log("path: " + path);
-      string modifiedPath = path.Substring((Application.dataPath + "/resources/").Length);
-      modifiedPath = modifiedPath.Substring(0, modifiedPath.Length - (".Asset").Length);
-      Debug.Log("relative path: " + modifiedPath);
+      Debug.LogError("doesn't do anything! knock it off!");
+      // string path = EditorUtility.OpenFilePanel("Select skeleton data", "Assets/resources/Data/ArtData/CharacterArt", "");
+      // Debug.Log("path: " + path);
+      // string modifiedPath = path.Substring((Application.dataPath + "/resources/").Length);
+      // modifiedPath = modifiedPath.Substring(0, modifiedPath.Length - (".Asset").Length);
+      // Debug.Log("relative path: " + modifiedPath);
 
-      BugSkeletonImagesData imagesData = Resources.Load<BugSkeletonImagesData>(modifiedPath);
-      data.SetCharacterVisualsFromSkeletonImagesData(imagesData);
-      GUIUtility.ExitGUI();
+      // BugSkeletonImagesData imagesData = Resources.Load<BugSkeletonImagesData>(modifiedPath);
+      // data.SetCharacterVisualsFromSkeletonImagesData(imagesData);
+      // GUIUtility.ExitGUI();
     }
     if (GUILayout.Button("Set renderer layers"))
     {

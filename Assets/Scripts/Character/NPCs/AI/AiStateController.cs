@@ -549,6 +549,7 @@ public class AiStateController : Character
         List<TraitSlot> validSlots = GetValidTraitSlotsForPickupItem();
         if (validSlots.Count == 0)
         {
+          Debug.Log("no valid slots, not dropping item");
           return;
         }
         TraitSlot slot = validSlots[UnityEngine.Random.Range(0, validSlots.Count)];
@@ -557,6 +558,7 @@ public class AiStateController : Character
       GameObject instantiatedItem = Instantiate(item.gameObject, transform.position, transform.rotation);
       WorldObject.ChangeLayersRecursively(instantiatedItem.transform, GetFloorLayer());
       instantiatedItem.transform.position = new Vector3(instantiatedItem.transform.position.x, instantiatedItem.transform.position.y, GetCurrentGroundPosition());
+      Debug.Log("item dropped?");
     }
   }
 

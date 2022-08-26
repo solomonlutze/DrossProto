@@ -42,6 +42,7 @@ public class GameMaster : Singleton<GameMaster>
 
   public LymphTypeToSpriteDictionary lymphTypeToSpriteMapping;
   public CombatJuiceData combatJuiceConstants;
+  public SettingsData settingsData;
   public Stopwatch timeSinceStartup;
   public Camera mainCamera;
   public Camera camera2D; // god save me

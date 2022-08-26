@@ -43,6 +43,7 @@ public enum BugSpecies
   Default = 1000,
 }
 
+[System.Serializable]
 public class BugInfo
 {
   public BugFaction faction;

@@ -31,7 +31,6 @@ public class Conditional<T>
       switch (condition.conditionType)
       {
         case ConditionType.TileType:
-          Debug.Log("evaluating tiletype condition; groundTileTags contains " + condition._tileType + ": " + c.currentTile.groundTileTags.Contains(condition._tileType));
           if (!c.currentTile.groundTileTags.Contains(condition._tileType))
           {
             return false;

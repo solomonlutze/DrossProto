@@ -36,6 +36,7 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
       wObj.currentFloor = WorldObject.GetFloorLayerOfGameObject(gameObject);
     }
     WorldObject.ChangeLayersRecursively(spawnedObj.transform, wObj.currentFloor);
+    spawnedObj.SendMessage("Init", SendMessageOptions.DontRequireReceiver);
     if (spawnOnlyOnce)
     {
       Destroy(gameObject);

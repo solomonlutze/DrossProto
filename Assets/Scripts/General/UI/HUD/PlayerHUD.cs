@@ -123,7 +123,6 @@ public class PlayerHUD : MonoBehaviour
 
   public void SetPickupItem(string itemName)
   {
-    Debug.Log("setting item name to " + itemName);
     itemPickupNameText.text = itemName;
     itemPickupDisplayTime = 0;
   }
@@ -132,7 +131,6 @@ public class PlayerHUD : MonoBehaviour
   {
     itemPickupDisplayTime += Time.deltaTime;
     float fadeOutProgress = Mathf.Clamp((itemPickupDisplayTime - itemPickupDisplayDuration) / itemPickupFadeOutDuration, 0, 1);
-    Debug.Log("fadeOutProgress " + fadeOutProgress);
     itemPickupCanvasGroup.alpha = 1 - fadeOutProgress;
   }
 }

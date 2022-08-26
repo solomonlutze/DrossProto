@@ -144,25 +144,25 @@ public class AttributesView : MonoBehaviour
 
   public void ShowHighlightedTraitDelta(Trait remove, Trait add)
   {
-    if (add != null && remove != null)
-    {
-      traitToRemove = remove;
-      traitToAdd = add;
-      int proposedAttributeAdd = 0;
-      int proposedAttributeRemove = 0;
-      foreach (CharacterAttribute attribute in remove.attributeModifiers.Keys.Union(add.attributeModifiers.Keys))
-      {
-        proposedAttributeAdd = 0;
-        proposedAttributeRemove = 0;
-        if (traitToAdd != null && traitToRemove != null)
-        {
-          traitToAdd.attributeModifiers.TryGetValue(attribute, out proposedAttributeAdd);
-          traitToRemove.attributeModifiers.TryGetValue(attribute, out proposedAttributeRemove);
-        }
-        attributeInfoGameObjects[attribute].GetComponent<AttributeInfo>().HighlightDelta(proposedAttributeAdd - proposedAttributeRemove);
-      }
-      InitSkillData(add.skillData_old, remove.skillData_old);
-    }
+    // if (add != null && remove != null)
+    // {
+    //   traitToRemove = remove;
+    //   traitToAdd = add;
+    //   int proposedAttributeAdd = 0;
+    //   int proposedAttributeRemove = 0;
+    //   foreach (CharacterAttribute attribute in remove.attributeModifiers.Keys.Union(add.attributeModifiers.Keys))
+    //   {
+    //     proposedAttributeAdd = 0;
+    //     proposedAttributeRemove = 0;
+    //     if (traitToAdd != null && traitToRemove != null)
+    //     {
+    //       traitToAdd.attributeModifiers.TryGetValue(attribute, out proposedAttributeAdd);
+    //       traitToRemove.attributeModifiers.TryGetValue(attribute, out proposedAttributeRemove);
+    //     }
+    //     attributeInfoGameObjects[attribute].GetComponent<AttributeInfo>().HighlightDelta(proposedAttributeAdd - proposedAttributeRemove);
+    //   }
+    //   InitSkillData(add.skillData_old, remove.skillData_old);
+    // }
   }
 
   public void UnshowHighlightedTraitDelta()

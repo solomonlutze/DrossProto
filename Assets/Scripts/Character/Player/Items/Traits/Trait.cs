@@ -175,8 +175,8 @@ public class Trait : ScriptableObject
   [HideInInspector]
   public CharacterAttributeToIntDictionary attributeModifiers;
   [HideInInspector]
-  public CharacterSkillData skillData_old; // Not deprecated yet but soon I think?
   public GameObject owningBugPrefab;
+  public BugPartVisual visualPrefab;
   public CharacterSkillData skill; // When this gets used depends on what body part this is equipped to!
   public Sprite visual1;
 
