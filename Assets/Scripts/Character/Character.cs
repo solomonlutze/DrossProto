@@ -100,6 +100,7 @@ public class Character : WorldObject
   public AscendingDescendingState ascendingDescendingState = AscendingDescendingState.None;
   public Dictionary<DamageType, ElementalDamageBuildup> elementalDamageBuildups;
   public Dictionary<TraitSlot, StaminaInfo> staminaInfos;
+  public Dictionary<TraitSlot, bool> brokenParts;
   public bool ascending
   {
     get { return ascendingDescendingState == AscendingDescendingState.Ascending; }
@@ -156,10 +157,12 @@ public class Character : WorldObject
 
   protected virtual void Init()
   {
+    characterVisuals.SetCharacterVisuals(traits);
     sourceInvulnerabilities = new List<string>();
     conditionallyActivatedTraitEffects = new List<TraitEffect>();
     elementalDamageBuildups = new Dictionary<DamageType, ElementalDamageBuildup>();
     staminaInfos = Utils.InitializeEnumDictionary<TraitSlot, StaminaInfo>();
+    brokenParts = new Dictionary<TraitSlot, bool>();
     ascendingDescendingState = AscendingDescendingState.None;
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
     characterSkills = CalculateSkills(traits);
@@ -176,6 +179,12 @@ public class Character : WorldObject
     }
     InitializeFromCharacterData();
     InitializeAnimationParameters();
+  }
+
+  public void RestoreBrokenParts()
+  {
+    brokenParts.Clear();
+    InitializeVisuals();
   }
   public void InitializeVisuals()
   {
@@ -251,11 +260,11 @@ public class Character : WorldObject
   }
   void InitializeAnimationParameters()
   {
-    animator.SetFloat("HeadAnimationType", (int)traits[TraitSlot.Head].bugSpecies);
-    animator.SetFloat("ThoraxAnimationType", (int)traits[TraitSlot.Thorax].bugSpecies);
-    animator.SetFloat("AbdomenAnimationType", (int)traits[TraitSlot.Abdomen].bugSpecies);
-    animator.SetFloat("LegsAnimationType", (int)traits[TraitSlot.Legs].bugSpecies);
-    animator.SetFloat("WingsAnimationType", (int)traits[TraitSlot.Wings].bugSpecies);
+    animator.SetFloat("HeadAnimationType", (int)traits[TraitSlot.Head].bugSpecies_DEPRECATED);
+    animator.SetFloat("ThoraxAnimationType", (int)traits[TraitSlot.Thorax].bugSpecies_DEPRECATED);
+    animator.SetFloat("AbdomenAnimationType", (int)traits[TraitSlot.Abdomen].bugSpecies_DEPRECATED);
+    animator.SetFloat("LegsAnimationType", (int)traits[TraitSlot.Legs].bugSpecies_DEPRECATED);
+    animator.SetFloat("WingsAnimationType", (int)traits[TraitSlot.Wings].bugSpecies_DEPRECATED);
   }
   // non-physics biz
   protected virtual void Update()
@@ -1218,15 +1227,23 @@ public class Character : WorldObject
     int twentyPercentOfMaxHealth = Mathf.FloorToInt(GetCurrentMaxHealth() / 5f);
     for (int i = 0; i < Mathf.FloorToInt(damageAfterResistances / twentyPercentOfMaxHealth); i++)
     {
-      characterVisuals.BreakOffRandomBodyPart(knockback);
+      BreakNextBodyPart(knockback);
     }
     if (
       GetCharacterVital(CharacterVital.CurrentHealth) < GetCurrentMaxHealth() // don't break on initial hit
       && damageAfterResistances % twentyPercentOfMaxHealth > GetCharacterVital(CharacterVital.CurrentHealth) % twentyPercentOfMaxHealth
     )
     {
-      characterVisuals.BreakOffRandomBodyPart(knockback);
+      BreakNextBodyPart(knockback);
     }
+  }
+
+  void BreakNextBodyPart(Vector2 knockback)
+  {
+    TraitSlot slotToBreak = GameMaster.Instance.settingsData.bodyPartBreakOrder[brokenParts.Count()];
+    brokenParts[slotToBreak] = true;
+    characterVisuals.BreakRandomBodyPartFromSlot(knockback, slotToBreak, 2);
+    Debug.Log("broke part " + slotToBreak);
   }
   public virtual void PlayDamageSounds()
   {

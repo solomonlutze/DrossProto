@@ -14,12 +14,12 @@ public class UIBug : MonoBehaviour
 
   public void PopulateVisuals(TraitSlotToTraitDictionary traitsForVisuals)
   {
-    characterVisuals.SetCharacterVisuals(traitsForVisuals);
-    animator.SetFloat("HeadAnimationType", (int)traitsForVisuals[TraitSlot.Head].bugSpecies);
-    animator.SetFloat("ThoraxAnimationType", (int)traitsForVisuals[TraitSlot.Thorax].bugSpecies);
-    animator.SetFloat("AbdomenAnimationType", (int)traitsForVisuals[TraitSlot.Abdomen].bugSpecies);
-    animator.SetFloat("LegsAnimationType", (int)traitsForVisuals[TraitSlot.Legs].bugSpecies);
-    animator.SetFloat("WingsAnimationType", (int)traitsForVisuals[TraitSlot.Wings].bugSpecies);
+    characterVisuals.SetCharacterVisuals(traitsForVisuals, true);
+    animator.SetFloat("HeadAnimationType", (int)traitsForVisuals[TraitSlot.Head].bugSpecies_DEPRECATED);
+    animator.SetFloat("ThoraxAnimationType", (int)traitsForVisuals[TraitSlot.Thorax].bugSpecies_DEPRECATED);
+    animator.SetFloat("AbdomenAnimationType", (int)traitsForVisuals[TraitSlot.Abdomen].bugSpecies_DEPRECATED);
+    animator.SetFloat("LegsAnimationType", (int)traitsForVisuals[TraitSlot.Legs].bugSpecies_DEPRECATED);
+    animator.SetFloat("WingsAnimationType", (int)traitsForVisuals[TraitSlot.Wings].bugSpecies_DEPRECATED);
   }
   public void HighlightSlot(TraitSlot slot, Trait overrideTrait)
   {

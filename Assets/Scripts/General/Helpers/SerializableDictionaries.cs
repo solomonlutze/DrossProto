@@ -32,36 +32,9 @@ public class LymphTypeToIntDictionary : SerializableDictionaryBase<LymphType, in
   }
 }
 
-// [System.Serializable]
-// public class TraitSlotToGameObjectDictionary : SerializableDictionaryBase<TraitSlot, GameObject>
-// {
-
-//     public TraitSlotToGameObjectDictionary()
-//     {
-//         foreach (TraitSlot slot in (TraitSlot[])Enum.GetValues(typeof(TraitSlot)))
-//         {
-//             Add(slot, null);
-//         }
-//     }
-// }
-
 [System.Serializable]
-public class TraitSlotToCharacterCharacterBodyPartVisualDictionary : SerializableDictionaryBase<TraitSlot, CharacterBodyPartVisual_Old>
+public class BugSkeletonPartToCharacterCharacterBodyPartVisualDictionary : SerializableDictionaryBase<BugSkeletonPart, BugSkeletonPartVisual>
 {
-
-  public TraitSlotToCharacterCharacterBodyPartVisualDictionary()
-  {
-    foreach (TraitSlot slot in (TraitSlot[])Enum.GetValues(typeof(TraitSlot)))
-    {
-      Add(slot, null);
-    }
-  }
-}
-
-[System.Serializable]
-public class BugSkeletonPartToCharacterCharacterBodyPartVisualDictionary : SerializableDictionaryBase<BugSkeletonPart, CharacterBodyPartVisual>
-{
-
   public BugSkeletonPartToCharacterCharacterBodyPartVisualDictionary()
   {
     foreach (BugSkeletonPart part in (TraitSlot[])Enum.GetValues(typeof(BugSkeletonPart)))
@@ -70,6 +43,7 @@ public class BugSkeletonPartToCharacterCharacterBodyPartVisualDictionary : Seria
     }
   }
 }
+
 [System.Serializable]
 public class TraitSlotToTraitDictionary : SerializableDictionaryBase<TraitSlot, Trait>
 {
@@ -89,6 +63,20 @@ public class TraitSlotToTraitDictionary : SerializableDictionaryBase<TraitSlot, 
       Add(slot, toClone[slot]);
     }
   }
+}
+
+[System.Serializable]
+public class TraitSlotToTransformDictionary : SerializableDictionaryBase<TraitSlot, Transform>
+{
+
+  public TraitSlotToTransformDictionary()
+  {
+    foreach (TraitSlot slot in (TraitSlot[])Enum.GetValues(typeof(TraitSlot)))
+    {
+      Add(slot, null);
+    }
+  }
+
 }
 
 [System.Serializable]
@@ -309,6 +297,8 @@ public class AnimationNameToAnimationClipDictionary : SerializableDictionaryBase
 public class BugSpeciesToBugAnimationDictionary : SerializableDictionaryBase<BugSpecies, BugAnimationData> { }
 [System.Serializable]
 public class BugSkeletonPartToSpriteDictionary : SerializableDictionaryBase<BugSkeletonPart, Sprite> { }
+[System.Serializable]
+public class BugSkeletonPartToVisualDictionary : SerializableDictionaryBase<BugSkeletonPart, BugSkeletonPartVisual> { }
 [System.Serializable]
 public class SkillEffectPropertyToFloat : SerializableDictionaryBase<SkillEffectFloatProperty, Overrideable<float>> { }
 [System.Serializable]

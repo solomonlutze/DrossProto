@@ -23,11 +23,8 @@ public class TraitInfo : MonoBehaviour
       gameObject.SetActive(false);
       return;
     }
-    // base.Init(itemEntryInfo, parentScreen);
     nameLabelObject.text = trait.traitName;
     SetTraitAttributeText(trait, traitSlot, attributeDataObjects);
-    // if (itemEntryInfo.equipped) { nameLabel.text += "\n (Equipped)"; }
-    if (lymphLogoObject != null) { lymphLogoObject.Init(trait.lymphType); }
   }
 
   public void SetTraitAttributeText(Trait trait, TraitSlot traitSlot, Dictionary<CharacterAttribute, IAttributeDataInterface> attributeDataObjects)
@@ -41,11 +38,11 @@ public class TraitInfo : MonoBehaviour
       traitAttributeTexts[i].text = $"{attributeName}{System.String.Concat(Enumerable.Repeat("+", entry.Value - 1))}";
       i++;
     }
-    if (trait.skillData_old != null)
-    {
-      traitAttributeTexts[i].text = trait.skillData_old.displayName;
-      i++;
-    }
+    // if (trait.skillData_old != null)
+    // {
+    //   traitAttributeTexts[i].text = trait.skillData_old.displayName;
+    //   i++;
+    // }
     while (i < traitAttributeTexts.Length)
     {
       traitAttributeTexts[i].gameObject.SetActive(false);

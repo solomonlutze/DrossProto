@@ -82,7 +82,7 @@ public class SkillEffect
   [Tooltip("Animation only. Sets the 'IsGuarding' flag on the animator.")]
   public bool isGuarding;
   [Tooltip("This skill resets the character's visuals.")]
-  public bool restoreCharacterVisuals;
+  public bool restoreBrokenParts;
 
   [FormerlySerializedAs("duration")]
   [Tooltip("Min time to spend in skill effect. Always define this!")]
@@ -108,9 +108,9 @@ public class SkillEffect
 
   public virtual void BeginSkillEffect(Character owner)
   {
-    if (restoreCharacterVisuals)
+    if (restoreBrokenParts)
     {
-      owner.InitializeVisuals();
+      owner.RestoreBrokenParts();
     }
     foreach (AttackSpawn weaponSpawn in weaponSpawns)
     {

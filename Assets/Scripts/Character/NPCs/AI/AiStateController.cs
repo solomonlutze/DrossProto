@@ -549,6 +549,7 @@ public class AiStateController : Character
         List<TraitSlot> validSlots = GetValidTraitSlotsForPickupItem();
         if (validSlots.Count == 0)
         {
+          Debug.Log("no valid slots, not dropping item");
           return;
         }
         TraitSlot slot = validSlots[UnityEngine.Random.Range(0, validSlots.Count)];
@@ -557,6 +558,7 @@ public class AiStateController : Character
       GameObject instantiatedItem = Instantiate(item.gameObject, transform.position, transform.rotation);
       WorldObject.ChangeLayersRecursively(instantiatedItem.transform, GetFloorLayer());
       instantiatedItem.transform.position = new Vector3(instantiatedItem.transform.position.x, instantiatedItem.transform.position.y, GetCurrentGroundPosition());
+      Debug.Log("item dropped?");
     }
   }
 
@@ -571,7 +573,7 @@ public class AiStateController : Character
     {
       foreach (TraitSlot slot in collectedItem.Keys)
       {
-        if (collectedItem[slot] != null && collectedItem[slot].bugSpecies != traits[slot].bugSpecies)
+        if (collectedItem[slot] != null && collectedItem[slot].bugSpecies_DEPRECATED != traits[slot].bugSpecies_DEPRECATED)
         {
           validSlots.Add(slot);
         }
@@ -580,7 +582,7 @@ public class AiStateController : Character
     foreach (TraitSlot slot in Enum.GetValues(typeof(TraitSlot)))
     {
       TraitSlotToTraitDictionary playerTraits = GameMaster.Instance.GetPlayerController().traits;
-      if (playerTraits[slot].bugSpecies != traits[slot].bugSpecies)
+      if (playerTraits[slot].bugSpecies_DEPRECATED != traits[slot].bugSpecies_DEPRECATED)
       {
         validSlots.Add(slot);
       }

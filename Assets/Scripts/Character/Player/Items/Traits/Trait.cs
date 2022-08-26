@@ -167,16 +167,16 @@ public class TraitEffect
 public class Trait : ScriptableObject
 {
   public string traitName;
-  public BugSpecies bugSpecies;
+  public BugSpecies bugSpecies_DEPRECATED;
+  public BugInfo bugInfo;
 
   [TextArea]
   public string traitDescription;
   [HideInInspector]
   public CharacterAttributeToIntDictionary attributeModifiers;
   [HideInInspector]
-  public CharacterSkillData skillData_old; // Not deprecated yet but soon I think?
   public GameObject owningBugPrefab;
-  public LymphType lymphType;
+  public BugPartVisual visualPrefab;
   public CharacterSkillData skill; // When this gets used depends on what body part this is equipped to!
   public Sprite visual1;
 
