@@ -8,6 +8,7 @@ using UnityEngine.Serialization;
 public class DamageInfo
 {
   public Overrideable<int> damageAmount;
+  public Overrideable<int> staminaDamageAmount;
   // amount of impulse force applied on hit
   public Overrideable<DamageType> damageType;
 

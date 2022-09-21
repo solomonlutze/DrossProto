@@ -72,7 +72,7 @@ public class CharacterSkillData : ScriptableObject
   {
     if (GetActiveSkillEffect(owner).useType == SkillEffectType.OneTime)
     {
-      owner.AdjustCurrentStaminaForSkill(id, -GetActiveSkillEffect(owner).staminaCost.Resolve(owner));
+      owner.AdjustCurrentStaminaForSkill(id, GetActiveSkillEffect(owner).staminaCost.Resolve(owner));
     }
     GetActiveSkillEffect(owner).BeginSkillEffect(owner);
   }
@@ -109,7 +109,7 @@ public class CharacterSkillData : ScriptableObject
     currentSkillEffect.DoSkillEffect(owner);
     if (currentSkillEffect.useType == SkillEffectType.Continuous)
     {
-      owner.AdjustCurrentStaminaForSkill(id, -currentSkillEffect.staminaCost.Resolve(owner) * Time.deltaTime);
+      owner.AdjustCurrentStaminaForSkill(id, currentSkillEffect.staminaCost.Resolve(owner) * Time.deltaTime);
       if (EndOnInputRelease(owner) &&
         !owner.pressingSkill == this &&
         (
@@ -124,11 +124,11 @@ public class CharacterSkillData : ScriptableObject
       {
         owner.AdvanceSkillEffect();
       }
-      else if (!owner.HasStaminaForSkill(this))
-      {
-        Debug.Log("advancing skill effect");
-        owner.AdvanceSkillEffect();
-      }
+      // else if (!owner.HasStaminaForSkill(this))
+      // {
+      //   Debug.Log("advancing skill effect");
+      //   owner.AdvanceSkillEffect();
+      // }
     }
     else if (currentSkillEffect.useType == SkillEffectType.OneTime)
     {

@@ -67,7 +67,7 @@ public class PlayerHUD : MonoBehaviour
         for (int i = 0; i < skillStaminaBars.Length; i++)
         {
           skillStaminaBars[i].character = playerController;
-          skillStaminaBars[i].characterStaminaInfo = playerController.staminaInfos[Trait.slots[i]];
+          skillStaminaBars[i].partStatusInfo = playerController.partStatusInfos[Trait.slots[i]];
         }
         moltDescriptionText.text = "Hold button to shed max health. After several seconds, health is fully restored to new maximum.\n" + playerController.characterSkills[TraitSlot.Thorax].description;
         diedText.text = " ";

@@ -1,4 +1,4 @@
-using System;
+using UnityEngine;
 
 public class CharacterHelperClasses { }
 
@@ -172,8 +172,52 @@ public class TraitsLoadout
   }
 }
 [System.Serializable]
-public class StaminaInfo
+public class PartStatusInfo
 {
-  public float currentStamina = 100;
+  // "Stamina" might be branded as "exhaustion" in game!
+  public float currentStamina = 0;
+  public float currentHealth = 100;
   public float recoveryCooldown = 0;
+  public float remainingStamina
+  {
+    get
+    {
+      return currentHealth - currentStamina;
+    }
+  }
+
+  public bool HasStaminaRemaining()
+  {
+    return currentStamina < currentHealth;
+  }
+  // public float GetRemainingStamina()
+  // {
+  //   return currentHealth - currentStamina;
+  // }
+
+  public void AdjustCurrentStamina(float adjustment)
+  {
+    float staminaAdjustment = adjustment;
+    if (Mathf.RoundToInt(adjustment) > 0 && currentStamina != 0)
+    {
+      Debug.Log("    Stamina Damage - original " + currentStamina + ", currentHealth " + currentHealth + ", remainingStamina " + remainingStamina + ", adjustment " + adjustment);
+    }
+    if (Mathf.RoundToInt(adjustment) != 0 && adjustment > remainingStamina)
+    { // taking more stamina damage than we have health; deal some as part damage
+      staminaAdjustment -= remainingStamina;
+      float partDamage = Mathf.Clamp(adjustment - remainingStamina, 0, adjustment);
+      partDamage = partDamage * GameMaster.Instance.settingsData.exhaustionDamageMultiplier;
+      AdjustCurrentHealth(-partDamage);
+    }
+    currentStamina = Mathf.Clamp(currentStamina + adjustment, 0, currentHealth);
+  }
+
+  public float AdjustCurrentHealth(float adjustment, bool isNonbreaking = false)
+  {
+    float originalHealth = currentHealth;
+    currentHealth = Mathf.Clamp(currentHealth + adjustment, isNonbreaking ? 1 : 0, 100);
+    AdjustCurrentStamina(0);
+    Debug.Log("   Part Damage - original " + originalHealth + ", adjustment " + adjustment + ", new current " + currentHealth);
+    return adjustment + originalHealth - currentHealth; // if part breaks, return the amount of surplus damage not applied; should this just damage other parts directly, and/or should the damage get eaten by the broken part?
+  }
 }

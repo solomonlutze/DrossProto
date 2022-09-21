@@ -376,7 +376,6 @@ public class PlayerController : Character
           {
             if (pressingSkill == GetSkillForActionInput(skillActionName))
             {
-              Debug.Log("let go of button!");
               pressingSkill = null;
             }
           }
@@ -393,7 +392,6 @@ public class PlayerController : Character
           }
           else if (rewiredPlayer.GetButtonDown("Interact"))
           {
-            Debug.Log("Interact?");
             if (availableContextualActions.Count > 0)
             {
               GetSelectedContextualAction().actionToCall();
@@ -512,10 +510,10 @@ public class PlayerController : Character
     GameMaster.Instance.DoCameraShake(duration, magnitude);
   }
 
-  override public void Die()
+  override public void Die(Vector2 knockback = default(Vector2))
   {
     GameMaster.Instance.KillPlayer(pupa);
-    base.Die();
+    base.Die(knockback);
   }
 
 }

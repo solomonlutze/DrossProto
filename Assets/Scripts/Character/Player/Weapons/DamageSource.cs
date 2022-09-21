@@ -9,9 +9,11 @@ public interface IDamageSource
   Vector3 GetKnockbackForCharacter(Character c);
   List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage { get; }
   float CalculateDamageAfterResistances(Character c);
+  float CalculateStaminaDamageAfterResistances(Character c);
   float invulnerabilityWindow { get; }
   bool isNonlethal { get; }
   int damageAmount { get; }
+  int staminaDamageAmount { get; }
   DamageType damageType { get; }
   float stunMagnitude { get; }
   bool ignoresInvulnerability { get; }

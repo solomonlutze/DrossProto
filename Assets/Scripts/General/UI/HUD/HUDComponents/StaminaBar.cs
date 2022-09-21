@@ -9,6 +9,7 @@ public class StaminaBar : MonoBehaviour
   public CanvasGroup staminaBarContainer;
   public RectTransform staminaBarController;
   public RectTransform staminaBarContentsFill;
+  public RectTransform staminaBarMaxContentsFill;
   public Image staminaBarContentsSprite
   {
     get
@@ -16,16 +17,24 @@ public class StaminaBar : MonoBehaviour
       return staminaBarContentsFill == null ? null : staminaBarContentsFill.GetComponent<Image>();
     }
   }
-
+  public Image staminaBarMaxContentsSprite
+  {
+    get
+    {
+      return staminaBarMaxContentsFill == null ? null : staminaBarMaxContentsFill.GetComponent<Image>();
+    }
+  }
   public Color lowStaminaColor;
   public Color defaultStaminaColor;
   public Character character;
-  public StaminaInfo characterStaminaInfo;
+  public PartStatusInfo partStatusInfo;
   public Vector3 defaultScale;
+  public Vector3 defaultMaxScale;
   void Start()
   {
     Init();
     defaultScale = staminaBarContentsFill.localScale;
+    defaultMaxScale = staminaBarMaxContentsFill.localScale;
   }
   // Update is called once per frame
   void Update()
@@ -48,8 +57,9 @@ public class StaminaBar : MonoBehaviour
 
   void HandleStaminaBar()
   {
-    float currentStamina = Mathf.Max(characterStaminaInfo.currentStamina, 0);
+    float currentStamina = Mathf.Max(partStatusInfo.currentStamina, 0);
     float maxStamina = 100;
+    float currentMaxStamina = partStatusInfo.currentHealth;
     // if (!character.blocking && !character.staminaBroken)
     // {
     //   staminaBarContainer.alpha -= Time.deltaTime / staminaBarFadeTime;
@@ -61,6 +71,7 @@ public class StaminaBar : MonoBehaviour
     //   staminaBarContainer.alpha = Mathf.Min(1, staminaBarContainer.alpha);
     // }
     staminaBarContentsFill.localScale = new Vector3(currentStamina / maxStamina * defaultScale.x, defaultScale.y, 0);
+    staminaBarMaxContentsFill.localScale = new Vector3((maxStamina - currentMaxStamina) / maxStamina * defaultMaxScale.x, defaultMaxScale.y, 0);
     // if (character.staminaBroken)
     // {
     //   if (staminaBrokenFlashCoroutine == null)

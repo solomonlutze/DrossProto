@@ -63,17 +63,22 @@ public class Hitbox : MonoBehaviour, IDamageSource
   {
     get
     {
-      return damageInfo.damageAmount.Resolve(owner);
-      // return attack_old.GetDamageAmount(character);
+      return Mathf.FloorToInt(damageInfo.damageAmount.Resolve(owner) * GameMaster.Instance.DEBUG_damageMultiplier);
     }
   }
 
+  public int staminaDamageAmount
+  {
+    get
+    {
+      return Mathf.FloorToInt(damageInfo.staminaDamageAmount.Resolve(owner) * GameMaster.Instance.DEBUG_damageMultiplier);
+    }
+  }
   public DamageType damageType
   {
     get
     {
       return damageInfo.damageType.Resolve(owner);
-      // return attack_old.GetDamageType(character);
     }
   }
 
@@ -82,7 +87,6 @@ public class Hitbox : MonoBehaviour, IDamageSource
     get
     {
       return damageInfo.stun.Resolve(owner);
-      // return attack_old.GetStun(character);
     }
   }
 
@@ -91,7 +95,6 @@ public class Hitbox : MonoBehaviour, IDamageSource
     get
     {
       return damageInfo.ignoreInvulnerability.Resolve(owner);
-      // return attack_old.IgnoresInvulnerability();
     }
   }
 
@@ -136,6 +139,14 @@ public class Hitbox : MonoBehaviour, IDamageSource
     return damageAmount;
   }
 
+  public float CalculateStaminaDamageAfterResistances(Character c)
+  {
+    if (c != null)
+    {
+      return staminaDamageAmount * c.GetDamageMultiplier(damageType);
+    }
+    return staminaDamageAmount;
+  }
   public List<CharacterMovementAbility> movementAbilitiesWhichBypassDamage
   {
     get

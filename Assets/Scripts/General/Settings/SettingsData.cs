@@ -14,6 +14,9 @@ public class SettingsData : ScriptableObject
     TraitSlot.Legs,
     TraitSlot.Head,
     };
+
+  public float exhaustionDamageMultiplier = .25f;
+
 #if UNITY_EDITOR
   [MenuItem("Assets/Create/SettingsData")]
   public static void CreateSettingsData()

@@ -593,12 +593,12 @@ public class AiStateController : Character
     }
     return validSlots;
   }
-  public override void Die()
+  public override void Die(Vector2 knockback = default(Vector2))
   {
     if (!alreadyDroppedItems)
     {
       SpawnDroppedItems();
     }
-    base.Die();
+    base.Die(knockback);
   }
 }

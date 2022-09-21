@@ -128,10 +128,10 @@ public class SkillEffect
       switch (vitalChange.Key)
       {
         case CharacterVital.CurrentHealth:
-          owner.AdjustCurrentHealth(owner.CalculateCurveProgressIncrement(vitalChange.Value, false, useType == SkillEffectType.Continuous));
+          owner.AdjustBodyPartHealthAndStamina(owner.CalculateCurveProgressIncrement(vitalChange.Value, false, useType == SkillEffectType.Continuous), 0, lastActiveOnly: false);
           break;
         case CharacterVital.CurrentMaxHealth:
-          owner.AdjustCurrentMaxHealth(owner.CalculateCurveProgressIncrement(vitalChange.Value, false, useType == SkillEffectType.Continuous));
+          owner.AdjustBodyPartHealthAndStamina(owner.CalculateCurveProgressIncrement(vitalChange.Value, false, useType == SkillEffectType.Continuous), 0, lastActiveOnly: false);
           break;
       }
     }

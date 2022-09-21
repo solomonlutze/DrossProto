@@ -67,11 +67,39 @@ public class EnvironmentalDamage : IDamageSource
     //   return damageAmount;
     // }
   }
+  public float CalculateStaminaDamageAfterResistances(Character c)
+  {
+    if (c != null)
+    {
+      Debug.Log("damage amount " + staminaDamageAmount + " adjusted to " + staminaDamageAmount * c.GetDamageMultiplier(damageType));
+      return staminaDamageAmount * c.GetDamageMultiplier(damageType);
+    }
+    return staminaDamageAmount;
+    // if (
+    //   c.GetDamageTypeResistanceLevel(damageType) >= GetResistanceRequiredForImmunity() // high enough resistance to ignore altogether
+    //   )
+    // {
+    //   return 0;
+    // }
+    // else
+    // {
+    //   return damageAmount;
+    // }
+  }
+
   public int damageAmount
   {
     get
     {
-      return tileType.environmentalDamageInfo.damageAmount.Resolve();
+      return Mathf.FloorToInt(tileType.environmentalDamageInfo.damageAmount.Resolve() * GameMaster.Instance.DEBUG_damageMultiplier);
+    }
+  }
+
+  public int staminaDamageAmount
+  {
+    get
+    {
+      return Mathf.FloorToInt(tileType.environmentalDamageInfo.staminaDamageAmount.Resolve() * GameMaster.Instance.DEBUG_damageMultiplier);
     }
   }
 

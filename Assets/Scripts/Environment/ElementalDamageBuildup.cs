@@ -10,4 +10,5 @@ public class ElementalBuildupConstant
 {
   public float delay;
   public float dps;
+  public float staminaDps;
 }

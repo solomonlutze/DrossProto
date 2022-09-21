@@ -11,6 +11,7 @@ public class GameMaster : Singleton<GameMaster>
 {
   public bool DebugEnabled = false;
   public bool DEBUG_dontDropItems = false;
+  public float DEBUG_damageMultiplier = 2.0f;
   public int rewiredPlayerId = 0;
 
   private Rewired.Player rewiredPlayer;

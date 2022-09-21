@@ -8,6 +8,7 @@ public class EnemyHUD : MonoBehaviour
 {
   // public CarapaceBar carapaceBar;
   public HealthBar healthBar;
+  public StaminaBar[] skillStaminaBars;
   // public StaminaBar staminaBar;
 
 
@@ -34,6 +35,11 @@ public class EnemyHUD : MonoBehaviour
     if (character != null)
     {
       healthBar.character = character; //todo: anywhere but update please!
+      for (int i = 0; i < skillStaminaBars.Length; i++)
+      {
+        skillStaminaBars[i].character = character;
+        skillStaminaBars[i].partStatusInfo = character.partStatusInfos[Trait.slots[i]];
+      }
       // carapaceBar.character = character;
       // staminaBar.character = character;
     }
