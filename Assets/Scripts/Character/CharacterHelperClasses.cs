@@ -175,49 +175,71 @@ public class TraitsLoadout
 public class PartStatusInfo
 {
   // "Stamina" might be branded as "exhaustion" in game!
-  public float currentStamina = 0;
-  public float currentHealth = 100;
+  public float currentExhaustion = 0;
+  public float currentDamage = 0;
+  public float maxDamage = 100;
+  public float exhaustionThreshold = 50;
+  // public float currentHealth
+  // {
+  //   get
+  //   {
+  //     return maxDamage - currentDamage;
+  //   }
+  // }
   public float recoveryCooldown = 0;
   public float remainingStamina
   {
     get
     {
-      return currentHealth - currentStamina;
+      return maxDamage - currentExhaustion;
     }
   }
 
   public bool HasStaminaRemaining()
   {
-    return currentStamina < currentHealth;
+    return currentExhaustion < maxDamage;
   }
   // public float GetRemainingStamina()
   // {
   //   return currentHealth - currentStamina;
   // }
 
-  public void AdjustCurrentStamina(float adjustment)
+  public bool IsBroken()
+  {
+    return currentDamage >= maxDamage;
+  }
+  public void AdjustCurrentExhaustion(float adjustment)
   {
     float staminaAdjustment = adjustment;
-    if (Mathf.RoundToInt(adjustment) > 0 && currentStamina != 0)
+    if (Mathf.RoundToInt(adjustment) > 0 && currentExhaustion != 0)
     {
-      Debug.Log("    Stamina Damage - original " + currentStamina + ", currentHealth " + currentHealth + ", remainingStamina " + remainingStamina + ", adjustment " + adjustment);
+      Debug.Log("    Stamina Damage - original " + currentExhaustion + ", currentDamage " + currentDamage + ", remainingStamina " + remainingStamina + ", adjustment " + adjustment);
     }
-    if (Mathf.RoundToInt(adjustment) != 0 && adjustment > remainingStamina)
-    { // taking more stamina damage than we have health; deal some as part damage
-      staminaAdjustment -= remainingStamina;
-      float partDamage = Mathf.Clamp(adjustment - remainingStamina, 0, adjustment);
-      partDamage = partDamage * GameMaster.Instance.settingsData.exhaustionDamageMultiplier;
-      AdjustCurrentHealth(-partDamage);
+    // if (Mathf.RoundToInt(adjustment) != 0 && adjustment > remainingStamina)
+    // { // taking more stamina damage than we have health; deal some as part damage
+    //   staminaAdjustment -= remainingStamina;
+    //   float partDamage = Mathf.Clamp(adjustment - remainingStamina, 0, adjustment);
+    //   partDamage = partDamage * GameMaster.Instance.settingsData.exhaustionDamageMultiplier;
+    //   AdjustCurrentDamage(partDamage);
+    // }
+    currentExhaustion = Mathf.Clamp(currentExhaustion + adjustment, currentDamage, maxDamage);
+    if (currentExhaustion == maxDamage)
+    {
+      BreakBodyPart();
     }
-    currentStamina = Mathf.Clamp(currentStamina + adjustment, 0, currentHealth);
   }
 
-  public float AdjustCurrentHealth(float adjustment, bool isNonbreaking = false)
+  public void BreakBodyPart()
   {
-    float originalHealth = currentHealth;
-    currentHealth = Mathf.Clamp(currentHealth + adjustment, isNonbreaking ? 1 : 0, 100);
-    AdjustCurrentStamina(0);
-    Debug.Log("   Part Damage - original " + originalHealth + ", adjustment " + adjustment + ", new current " + currentHealth);
-    return adjustment + originalHealth - currentHealth; // if part breaks, return the amount of surplus damage not applied; should this just damage other parts directly, and/or should the damage get eaten by the broken part?
+    currentDamage = maxDamage;
+  }
+
+  public float AdjustCurrentDamage(float adjustment, bool isNonbreaking = false)
+  {
+    float originalDamage = currentDamage;
+    currentDamage = Mathf.Clamp(currentDamage + adjustment, 0, isNonbreaking ? maxDamage - 1 : maxDamage);
+    AdjustCurrentExhaustion(adjustment);
+    // Debug.Log("   Part Damage - originalDamage " + originalDamage + ", adjustment " + adjustment + ", new currentDamage " + currentDamage);
+    return adjustment + originalDamage - currentDamage; // if part breaks, return the amount of surplus damage not applied; should this just damage other parts directly, and/or should the damage get eaten by the broken part?
   }
 }

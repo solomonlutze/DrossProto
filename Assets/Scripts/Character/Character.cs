@@ -1171,13 +1171,13 @@ public class Character : WorldObject
     }
     else if (damageAfterResistances > 0)
     {
-      Dictionary<TraitSlot, float> cachedHealth = new Dictionary<TraitSlot, float>();
+      Dictionary<TraitSlot, float> cachedDamage = new Dictionary<TraitSlot, float>();
       foreach (TraitSlot slot in partStatusInfos.Keys)
       {
-        cachedHealth[slot] = partStatusInfos[slot].currentHealth;
+        cachedDamage[slot] = partStatusInfos[slot].currentDamage;
       }
-      AdjustBodyPartHealthAndStamina(Mathf.Floor(-damageAfterResistances), Mathf.Floor(staminaDamageAfterResistances), knockback, lastActiveOnly: true, isNonlethal: damageSource.isNonlethal);
-      DoDamageFx(damageAfterResistances, cachedHealth, knockback, damageSource.applySlowdown);
+      AdjustBodyPartHealthAndStamina(Mathf.Floor(damageAfterResistances), Mathf.Floor(staminaDamageAfterResistances), knockback, lastActiveOnly: true, isNonlethal: damageSource.isNonlethal);
+      DoDamageFx(damageAfterResistances, cachedDamage, knockback, damageSource.applySlowdown);
     }
     StartCoroutine(ApplyInvulnerability(damageSource));
     if (knockback != Vector3.zero)
@@ -1186,7 +1186,7 @@ public class Character : WorldObject
     }
   }
 
-  void DoDamageFx(float damageAfterResistances, Dictionary<TraitSlot, float> cachedHealth, Vector3 knockback, bool weaponAttached)
+  void DoDamageFx(float damageAfterResistances, Dictionary<TraitSlot, float> cachedDamage, Vector3 knockback, bool weaponAttached)
   {
     float knockbackDistance = knockback.magnitude;
     GameObject splatter = Instantiate(
@@ -1228,32 +1228,32 @@ public class Character : WorldObject
       baseSlowdownDuration = 0;
     }
     GameMaster.Instance.DoSlowdown(baseSlowdownDuration);
-    BreakBodyParts(damageAfterResistances, cachedHealth, knockback);
+    BreakBodyParts(damageAfterResistances, cachedDamage, knockback);
     PlayDamageSounds();
     DoCameraShake(damageAfterResistances, knockbackDistance);
 
   }
-  void BreakBodyParts(float damageAfterResistances, Dictionary<TraitSlot, float> cachedHealth, Vector2 knockback)
+  void BreakBodyParts(float damageAfterResistances, Dictionary<TraitSlot, float> cachedDamage, Vector2 knockback)
   {
     // if (GetUnbrokenBodyParts().Count == 0)
     // {
     //   characterVisuals.BreakOffRemainingBodyParts(knockback);
     //   return;
     // }
-    foreach (TraitSlot slot in cachedHealth.Keys)
-    {
-      if (GetBodyPartHealthForSlot(slot) <= 0 && cachedHealth[slot] > 0)
-      {
-        characterVisuals.BreakRandomBodyPartFromSlot(knockback, slot);
-        if (cachedHealth[slot] > 50)
-        {
-          characterVisuals.BreakRandomBodyPartFromSlot(knockback, slot);
-        }
-      }
-      else if (GetBodyPartHealthForSlot(slot) <= 50 && cachedHealth[slot] > 50)
-      {
-        characterVisuals.BreakRandomBodyPartFromSlot(knockback, slot);
-      }
+    foreach (TraitSlot slot in cachedDamage.Keys)
+    { // TODO: fix all this
+      // if (GetBodyPartHealthForSlot(slot) <= 0 && cachedDamage[slot] > 0)
+      // {
+      //   characterVisuals.BreakRandomBodyPartFromSlot(knockback, slot);
+      //   if (cachedDamage[slot] > 50)
+      //   {
+      //     characterVisuals.BreakRandomBodyPartFromSlot(knockback, slot);
+      //   }
+      // }
+      // else if (GetBodyPartHealthForSlot(slot) <= 50 && cachedDamage[slot] > 50)
+      // {
+      //   characterVisuals.BreakRandomBodyPartFromSlot(knockback, slot);
+      // }
     }
   }
 
@@ -1366,13 +1366,18 @@ public class Character : WorldObject
   {
     return GetCharacterVital(CharacterVital.CurrentMaxHealth);
   }
-  public float GetBodyPartCurrentHealth(TraitSlot bodyPart)
+  public float GetBodyPartCurrentDamage(TraitSlot bodyPart)
   {
-    return partStatusInfos[bodyPart].currentHealth;
+    return partStatusInfos[bodyPart].currentDamage;
+  }
+
+  public bool IsBodyPartBroken(TraitSlot bodyPart)
+  {
+    return partStatusInfos[bodyPart].IsBroken();
   }
   public float GetBodyPartCurrentStamina(TraitSlot bodyPart)
   {
-    return partStatusInfos[bodyPart].currentStamina;
+    return partStatusInfos[bodyPart].currentExhaustion;
   }
   public float GetTrueMaxHealth()
   {
@@ -1543,19 +1548,22 @@ public class Character : WorldObject
   public void AdjustBodyPartHealthAndStamina(float adjustment, float staminaAdjustment, Vector2 knockback = default(Vector2), bool lastActiveOnly = true, bool isNonlethal = false, bool isNonbreaking = false)
   {
     List<TraitSlot> unbrokenBodyParts = GetUnbrokenBodyParts();
-    if (lastActiveSkill == null || GetBodyPartHealthForSkill(lastActiveSkill) <= 0 || !lastActiveOnly) // last active part broken; all other parts split damage
+    if (true) // gfy
+    // if (lastActiveSkill == null || GetBodyPartHealthForSkill(lastActiveSkill) <= 0 || !lastActiveOnly) // last active part broken; all other parts split damage
     {
+      Debug.Log("unbrokenBodyParts " + unbrokenBodyParts.Count);
       if (unbrokenBodyParts.Count > 0)
       {
-        int damagePerPart = Mathf.CeilToInt(adjustment / unbrokenBodyParts.Count);
-        int staminaDamagePerPart = Mathf.CeilToInt(staminaAdjustment / unbrokenBodyParts.Count);
+        int damagePerPart = Mathf.CeilToInt(adjustment); //Mathf.CeilToInt(adjustment / unbrokenBodyParts.Count);
+        int staminaDamagePerPart = Mathf.CeilToInt(staminaAdjustment); //Mathf.CeilToInt(staminaAdjustment / unbrokenBodyParts.Count);
         foreach (TraitSlot bodyPart in unbrokenBodyParts)
         {
           AdjustPartCurrentHealth(bodyPart, damagePerPart, isNonbreaking);
           AdjustPartCurrentStamina(bodyPart, staminaDamagePerPart);
+          Debug.Log("adjustment " + adjustment + ", staminaAdjustment " + staminaAdjustment + ", damage " + GetBodyPartCurrentDamage(bodyPart) + ", staminaDamage " + GetBodyPartCurrentStamina(bodyPart));
         }
       }
-      else if (!isNonlethal && adjustment < 0)
+      else if (!isNonlethal && adjustment > 0)
       {
         Die(knockback);
       }
@@ -1566,7 +1574,7 @@ public class Character : WorldObject
       Debug.Log(gameObject.name + " Taking part damage on " + bodyPart);
       AdjustPartCurrentHealth(bodyPart, adjustment, isNonbreaking);
       AdjustPartCurrentStamina(bodyPart, staminaAdjustment);
-      if (GetBodyPartCurrentHealth(bodyPart) <= 0)
+      if (IsBodyPartBroken(bodyPart))
       { // part broke!
         brokenParts[bodyPart] = true;
         for (int i = 0; i < GameMaster.Instance.settingsData.bodyPartBreakOrder.Count; i++)
@@ -1603,7 +1611,7 @@ public class Character : WorldObject
   // leftover adjustment = 10
   public float AdjustPartCurrentHealth(TraitSlot bodyPart, float adjustment, bool isNonbreaking = false)
   {
-    return partStatusInfos[bodyPart].AdjustCurrentHealth(adjustment);
+    return partStatusInfos[bodyPart].AdjustCurrentDamage(adjustment);
   }
 
   // currentStamina: 10
@@ -1622,7 +1630,7 @@ public class Character : WorldObject
 
   public void AdjustPartCurrentStamina(TraitSlot slot, float adjustment)
   {
-    partStatusInfos[slot].AdjustCurrentStamina(adjustment);
+    partStatusInfos[slot].AdjustCurrentExhaustion(adjustment);
     // float staminaAdjustment = adjustment;
     // if (Mathf.RoundToInt(adjustment) != 0 && -adjustment > partStatusInfos[slot].currentStamina)
     // { // taking more stamina damage than we have health; deal some as part damage
@@ -1683,7 +1691,7 @@ public class Character : WorldObject
     List<TraitSlot> ret = new List<TraitSlot>();
     foreach (TraitSlot slot in partStatusInfos.Keys)
     {
-      if (partStatusInfos[slot].currentHealth > 0)
+      if (!partStatusInfos[slot].IsBroken())
       {
         ret.Add(slot);
       }
@@ -1693,18 +1701,18 @@ public class Character : WorldObject
 
   public float GetStaminaForSkill(CharacterSkillData skill)
   {
-    return partStatusInfos[traitSlotsForSkills[skill.id]].currentStamina;
+    return partStatusInfos[traitSlotsForSkills[skill.id]].currentExhaustion;
   }
 
-  public float GetBodyPartHealthForSkill(CharacterSkillData skill)
-  {
-    return GetBodyPartHealthForSlot(traitSlotsForSkills[skill.id]);
-  }
+  // public float GetBodyPartHealthForSkill(CharacterSkillData skill)
+  // {
+  //   return GetBodyPartHealthForSlot(traitSlotsForSkills[skill.id]);
+  // }
 
-  public float GetBodyPartHealthForSlot(TraitSlot slot)
-  {
-    return partStatusInfos[slot].currentHealth;
-  }
+  // public float GetBodyPartHealthForSlot(TraitSlot slot)
+  // {
+  //   return partStatusInfos[slot].currentHealth;
+  // }
   public virtual bool HasStaminaForSkill(CharacterSkillData skill)
   {
     if (!traitSlotsForSkills.ContainsKey(skill.id))
@@ -2091,7 +2099,7 @@ public class Character : WorldObject
           }
           else
           {
-            AdjustBodyPartHealthAndStamina(-damage, -staminaDamage, Vector2.zero, false);
+            AdjustBodyPartHealthAndStamina(damage, staminaDamage, Vector2.zero, false);
           }
         }
       }

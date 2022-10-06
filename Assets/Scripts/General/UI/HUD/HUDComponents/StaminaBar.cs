@@ -57,9 +57,9 @@ public class StaminaBar : MonoBehaviour
 
   void HandleStaminaBar()
   {
-    float currentStamina = Mathf.Max(partStatusInfo.currentStamina, 0);
+    float currentStamina = Mathf.Max(partStatusInfo.currentExhaustion, 0);
     float maxStamina = 100;
-    float currentMaxStamina = partStatusInfo.currentHealth;
+    float currentMaxStamina = partStatusInfo.maxDamage - partStatusInfo.currentDamage;
     // if (!character.blocking && !character.staminaBroken)
     // {
     //   staminaBarContainer.alpha -= Time.deltaTime / staminaBarFadeTime;
