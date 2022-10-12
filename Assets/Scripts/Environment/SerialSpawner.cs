@@ -48,8 +48,7 @@ public class SerialSpawner : ActivateOnPlayerRespawn
       currentSpawn++;
       if (currentSpawn < spawns.Count)
       {
-        StartCoroutine(WaitThenSpawnNext());
-
+        waitingToSpawnCoroutine = StartCoroutine(WaitThenSpawnNext());
       }
       else
       {

@@ -1377,7 +1377,7 @@ public class Character : WorldObject
   }
   public float GetBodyPartCurrentStamina(TraitSlot bodyPart)
   {
-    return partStatusInfos[bodyPart].currentExhaustion;
+    return partStatusInfos[bodyPart].currentExertion;
   }
   public float GetTrueMaxHealth()
   {
@@ -1630,7 +1630,7 @@ public class Character : WorldObject
 
   public void AdjustPartCurrentStamina(TraitSlot slot, float adjustment)
   {
-    partStatusInfos[slot].AdjustCurrentExhaustion(adjustment);
+    partStatusInfos[slot].AdjustCurrentExertion(adjustment);
     // float staminaAdjustment = adjustment;
     // if (Mathf.RoundToInt(adjustment) != 0 && -adjustment > partStatusInfos[slot].currentStamina)
     // { // taking more stamina damage than we have health; deal some as part damage
@@ -1701,7 +1701,7 @@ public class Character : WorldObject
 
   public float GetStaminaForSkill(CharacterSkillData skill)
   {
-    return partStatusInfos[traitSlotsForSkills[skill.id]].currentExhaustion;
+    return partStatusInfos[traitSlotsForSkills[skill.id]].currentExertion;
   }
 
   // public float GetBodyPartHealthForSkill(CharacterSkillData skill)
@@ -1719,7 +1719,7 @@ public class Character : WorldObject
     { // probably hop or another stamina-less skill
       return true;
     }
-    return partStatusInfos[traitSlotsForSkills[skill.id]].HasStaminaRemaining();
+    return !partStatusInfos[traitSlotsForSkills[skill.id]].IsExhausted();
   }
 
   public virtual void SetCurrentFloor(FloorLayer newFloorLayer)

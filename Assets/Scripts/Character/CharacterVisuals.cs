@@ -61,7 +61,6 @@ public class CharacterVisuals : MonoBehaviour
       bugParts[slot] = bugPartVisual.transform;
       foreach (BugSkeletonPart part in bugParts[slot].GetComponent<BugPartVisual>().visualParts.Keys)
       {
-        Debug.Log("setting part " + part + " to " + bugPartVisual.visualParts[part]);
         skeletonPartToCharacterBodyPartVisual[part] = bugPartVisual.visualParts[part];
       }
       bugPartVisual.gameObject.name = slot.ToString();

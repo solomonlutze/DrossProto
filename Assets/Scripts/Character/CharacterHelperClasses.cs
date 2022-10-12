@@ -175,7 +175,7 @@ public class TraitsLoadout
 public class PartStatusInfo
 {
   // "Stamina" might be branded as "exhaustion" in game!
-  public float currentExhaustion = 0;
+  public float currentExertion = 0;
   public float currentDamage = 0;
   public float maxDamage = 100;
   public float exhaustionThreshold = 50;
@@ -187,17 +187,30 @@ public class PartStatusInfo
   //   }
   // }
   public float recoveryCooldown = 0;
+  public float remainingExertionUntilExhausted
+  {
+    get
+    {
+      return Mathf.Max(exhaustionThreshold - currentExertion, 0);
+    }
+  }
+
   public float remainingStamina
   {
     get
     {
-      return maxDamage - currentExhaustion;
+      return maxDamage - currentExertion;
     }
+  }
+
+  public bool IsExhausted()
+  {
+    return remainingExertionUntilExhausted <= 0;
   }
 
   public bool HasStaminaRemaining()
   {
-    return currentExhaustion < maxDamage;
+    return currentExertion < maxDamage;
   }
   // public float GetRemainingStamina()
   // {
@@ -208,22 +221,22 @@ public class PartStatusInfo
   {
     return currentDamage >= maxDamage;
   }
-  public void AdjustCurrentExhaustion(float adjustment)
+  public void AdjustCurrentExertion(float adjustment)
   {
     float staminaAdjustment = adjustment;
-    if (Mathf.RoundToInt(adjustment) > 0 && currentExhaustion != 0)
+    if (Mathf.RoundToInt(adjustment) > 0 && currentExertion != 0)
     {
-      Debug.Log("    Stamina Damage - original " + currentExhaustion + ", currentDamage " + currentDamage + ", remainingStamina " + remainingStamina + ", adjustment " + adjustment);
+      Debug.Log("    exertion - original " + currentExertion + ", currentDamage " + currentDamage + ", remainingStamina " + remainingStamina + ", adjustment " + adjustment + ", remainingStaminaUntilExhaustion " + remainingExertionUntilExhausted);
     }
-    // if (Mathf.RoundToInt(adjustment) != 0 && adjustment > remainingStamina)
-    // { // taking more stamina damage than we have health; deal some as part damage
-    //   staminaAdjustment -= remainingStamina;
-    //   float partDamage = Mathf.Clamp(adjustment - remainingStamina, 0, adjustment);
-    //   partDamage = partDamage * GameMaster.Instance.settingsData.exhaustionDamageMultiplier;
-    //   AdjustCurrentDamage(partDamage);
-    // }
-    currentExhaustion = Mathf.Clamp(currentExhaustion + adjustment, currentDamage, maxDamage);
-    if (currentExhaustion == maxDamage)
+    if (Mathf.RoundToInt(adjustment) != 0 && adjustment > remainingExertionUntilExhausted)
+    { // taking  stamina damage above exertion;
+      // staminaAdjustment -= remainingStamina;
+      float partDamage = Mathf.Clamp(adjustment - remainingExertionUntilExhausted, 0, adjustment);
+      partDamage = partDamage * GameMaster.Instance.settingsData.exhaustionDamageMultiplier;
+      AdjustCurrentDamage(partDamage, exhausts: false);
+    }
+    currentExertion = Mathf.Clamp(currentExertion + adjustment, currentDamage, maxDamage);
+    if (currentExertion == maxDamage)
     {
       BreakBodyPart();
     }
@@ -234,11 +247,11 @@ public class PartStatusInfo
     currentDamage = maxDamage;
   }
 
-  public float AdjustCurrentDamage(float adjustment, bool isNonbreaking = false)
+  public float AdjustCurrentDamage(float adjustment, bool isNonbreaking = false, bool exhausts = true)
   {
     float originalDamage = currentDamage;
     currentDamage = Mathf.Clamp(currentDamage + adjustment, 0, isNonbreaking ? maxDamage - 1 : maxDamage);
-    AdjustCurrentExhaustion(adjustment);
+    if (exhausts) { AdjustCurrentExertion(adjustment); };
     // Debug.Log("   Part Damage - originalDamage " + originalDamage + ", adjustment " + adjustment + ", new currentDamage " + currentDamage);
     return adjustment + originalDamage - currentDamage; // if part breaks, return the amount of surplus damage not applied; should this just damage other parts directly, and/or should the damage get eaten by the broken part?
   }
