@@ -1099,7 +1099,7 @@ public class Character : WorldObject
       || carapaceBroken
       || IsInKnockback()
       || dashAttackQueued
-      // || !HasStaminaForSkill(skillData)
+      || !HasStaminaForSkill(skillData)
       || animationPreventsMoving // I guess?
     )
     {
@@ -1559,7 +1559,7 @@ public class Character : WorldObject
         foreach (TraitSlot bodyPart in unbrokenBodyParts)
         {
           AdjustPartCurrentHealth(bodyPart, damagePerPart, isNonbreaking);
-          AdjustPartCurrentStamina(bodyPart, staminaDamagePerPart);
+          AdjustPartCurrentStamina(bodyPart, staminaDamagePerPart, isBreaking: true);
           Debug.Log("adjustment " + adjustment + ", staminaAdjustment " + staminaAdjustment + ", damage " + GetBodyPartCurrentDamage(bodyPart) + ", staminaDamage " + GetBodyPartCurrentStamina(bodyPart));
         }
       }
@@ -1573,7 +1573,7 @@ public class Character : WorldObject
       TraitSlot bodyPart = traitSlotsForSkills[lastActiveSkill.id];
       Debug.Log(gameObject.name + " Taking part damage on " + bodyPart);
       AdjustPartCurrentHealth(bodyPart, adjustment, isNonbreaking);
-      AdjustPartCurrentStamina(bodyPart, staminaAdjustment);
+      AdjustPartCurrentStamina(bodyPart, staminaAdjustment, isBreaking: true);
       if (IsBodyPartBroken(bodyPart))
       { // part broke!
         brokenParts[bodyPart] = true;
@@ -1625,12 +1625,12 @@ public class Character : WorldObject
   {
     if (!traitSlotsForSkills.ContainsKey(skillId)) { return; }
     TraitSlot slot = traitSlotsForSkills[skillId];
-    AdjustPartCurrentStamina(slot, adjustment);
+    AdjustPartCurrentStamina(slot, adjustment, isBreaking: false);
   }
 
-  public void AdjustPartCurrentStamina(TraitSlot slot, float adjustment)
+  public void AdjustPartCurrentStamina(TraitSlot slot, float adjustment, bool isBreaking = false)
   {
-    partStatusInfos[slot].AdjustCurrentExertion(adjustment);
+    partStatusInfos[slot].AdjustCurrentExertion(adjustment, isBreaking);
     // float staminaAdjustment = adjustment;
     // if (Mathf.RoundToInt(adjustment) != 0 && -adjustment > partStatusInfos[slot].currentStamina)
     // { // taking more stamina damage than we have health; deal some as part damage
@@ -1719,7 +1719,7 @@ public class Character : WorldObject
     { // probably hop or another stamina-less skill
       return true;
     }
-    return !partStatusInfos[traitSlotsForSkills[skill.id]].IsExhausted();
+    return partStatusInfos[traitSlotsForSkills[skill.id]].HasStaminaRemaining() || partStatusInfos[traitSlotsForSkills[skill.id]].IsBroken();
   }
 
   public virtual void SetCurrentFloor(FloorLayer newFloorLayer)
@@ -2058,7 +2058,7 @@ public class Character : WorldObject
     {
       if (characterSkills[slot] != activeSkill)
       {
-        AdjustPartCurrentStamina(slot, -100 / characterSkills[slot].staminaRecoveryTime * Time.deltaTime);
+        AdjustPartCurrentStamina(slot, -100 / characterSkills[slot].staminaRecoveryTime * Time.deltaTime, isBreaking: false);
       }
     }
 

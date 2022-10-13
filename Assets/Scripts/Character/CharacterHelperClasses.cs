@@ -221,7 +221,7 @@ public class PartStatusInfo
   {
     return currentDamage >= maxDamage;
   }
-  public void AdjustCurrentExertion(float adjustment)
+  public void AdjustCurrentExertion(float adjustment, bool isBreaking = true)
   {
     float staminaAdjustment = adjustment;
     if (Mathf.RoundToInt(adjustment) > 0 && currentExertion != 0)
@@ -235,8 +235,8 @@ public class PartStatusInfo
       partDamage = partDamage * GameMaster.Instance.settingsData.exhaustionDamageMultiplier;
       AdjustCurrentDamage(partDamage, exhausts: false);
     }
-    currentExertion = Mathf.Clamp(currentExertion + adjustment, currentDamage, maxDamage);
-    if (currentExertion == maxDamage)
+    currentExertion = Mathf.Max(currentExertion + adjustment, currentDamage);
+    if (currentExertion >= maxDamage && isBreaking)
     {
       BreakBodyPart();
     }
