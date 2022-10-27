@@ -224,10 +224,6 @@ public class PartStatusInfo
   public void AdjustCurrentExertion(float adjustment, bool isBreaking = true)
   {
     float staminaAdjustment = adjustment;
-    if (Mathf.RoundToInt(adjustment) > 0 && currentExertion != 0)
-    {
-      Debug.Log("    exertion - original " + currentExertion + ", currentDamage " + currentDamage + ", remainingStamina " + remainingStamina + ", adjustment " + adjustment + ", remainingStaminaUntilExhaustion " + remainingExertionUntilExhausted);
-    }
     if (Mathf.RoundToInt(adjustment) != 0 && adjustment > remainingExertionUntilExhausted)
     { // taking  stamina damage above exertion;
       // staminaAdjustment -= remainingStamina;

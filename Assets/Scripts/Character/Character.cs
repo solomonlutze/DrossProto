@@ -1099,7 +1099,7 @@ public class Character : WorldObject
       || carapaceBroken
       || IsInKnockback()
       || dashAttackQueued
-      || !HasStaminaForSkill(skillData)
+      || (!HasStaminaForSkill(skillData) && !partStatusInfos[traitSlotsForSkills[skillData.id]].IsBroken())
       || animationPreventsMoving // I guess?
     )
     {
@@ -1551,7 +1551,6 @@ public class Character : WorldObject
     if (true) // gfy
     // if (lastActiveSkill == null || GetBodyPartHealthForSkill(lastActiveSkill) <= 0 || !lastActiveOnly) // last active part broken; all other parts split damage
     {
-      Debug.Log("unbrokenBodyParts " + unbrokenBodyParts.Count);
       if (unbrokenBodyParts.Count > 0)
       {
         int damagePerPart = Mathf.CeilToInt(adjustment); //Mathf.CeilToInt(adjustment / unbrokenBodyParts.Count);
@@ -1560,7 +1559,6 @@ public class Character : WorldObject
         {
           AdjustPartCurrentHealth(bodyPart, damagePerPart, isNonbreaking);
           AdjustPartCurrentStamina(bodyPart, staminaDamagePerPart, isBreaking: true);
-          Debug.Log("adjustment " + adjustment + ", staminaAdjustment " + staminaAdjustment + ", damage " + GetBodyPartCurrentDamage(bodyPart) + ", staminaDamage " + GetBodyPartCurrentStamina(bodyPart));
         }
       }
       else if (!isNonlethal && adjustment > 0)
@@ -1571,7 +1569,6 @@ public class Character : WorldObject
     else
     { // last active part still working; it takes full damage until broken
       TraitSlot bodyPart = traitSlotsForSkills[lastActiveSkill.id];
-      Debug.Log(gameObject.name + " Taking part damage on " + bodyPart);
       AdjustPartCurrentHealth(bodyPart, adjustment, isNonbreaking);
       AdjustPartCurrentStamina(bodyPart, staminaAdjustment, isBreaking: true);
       if (IsBodyPartBroken(bodyPart))
@@ -1719,7 +1716,7 @@ public class Character : WorldObject
     { // probably hop or another stamina-less skill
       return true;
     }
-    return partStatusInfos[traitSlotsForSkills[skill.id]].HasStaminaRemaining() || partStatusInfos[traitSlotsForSkills[skill.id]].IsBroken();
+    return partStatusInfos[traitSlotsForSkills[skill.id]].HasStaminaRemaining();
   }
 
   public virtual void SetCurrentFloor(FloorLayer newFloorLayer)

@@ -24,6 +24,7 @@ public class StaminaBar : MonoBehaviour
       return staminaBarMaxContentsFill == null ? null : staminaBarMaxContentsFill.GetComponent<Image>();
     }
   }
+  float flashStartTime = 0;
   public Color lowStaminaColor;
   public Color defaultStaminaColor;
   public Character character;
@@ -70,6 +71,20 @@ public class StaminaBar : MonoBehaviour
     //   staminaBarContainer.alpha += Time.deltaTime / staminaBarFadeTime;
     //   staminaBarContainer.alpha = Mathf.Min(1, staminaBarContainer.alpha);
     // }
+    if (partStatusInfo.IsExhausted())
+    {
+      if (flashStartTime == 0)
+      {
+        flashStartTime = Time.time;
+      }
+      float lerpAmount = (Mathf.Sin((Mathf.PI * (Time.time - flashStartTime) * 5)) + 1) / 2;
+      staminaBarContentsSprite.color = Color.Lerp(defaultStaminaColor, lowStaminaColor, lerpAmount);
+    }
+    else
+    {
+      flashStartTime = 0;
+      staminaBarContentsSprite.color = defaultStaminaColor;
+    }
     staminaBarContentsFill.localScale = new Vector3(currentStamina / maxStamina * defaultScale.x, defaultScale.y, 0);
     staminaBarMaxContentsFill.localScale = new Vector3((maxStamina - currentMaxStamina) / maxStamina * defaultMaxScale.x, defaultMaxScale.y, 0);
     // if (character.staminaBroken)
