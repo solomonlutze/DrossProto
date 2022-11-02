@@ -55,5 +55,7 @@
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "ms-dotnettools.csharp",
   "editor.tabSize": 2,
-  "editor.detectIndentation": false
+  "editor.detectIndentation": false,
+  "omnisharp.useModernNet": false,
+  "omnisharp.path": "",
 }
