@@ -163,6 +163,10 @@ public class Character : WorldObject
     conditionallyActivatedTraitEffects = new List<TraitEffect>();
     elementalDamageBuildups = new Dictionary<DamageType, ElementalDamageBuildup>();
     partStatusInfos = Utils.InitializeEnumDictionary<TraitSlot, PartStatusInfo>();
+    foreach (PartStatusInfo info in partStatusInfos.Values)
+    {
+      info.Init(this);
+    }
     brokenParts = new Dictionary<TraitSlot, bool>();
     ascendingDescendingState = AscendingDescendingState.None;
     traitSpawnedGameObjects = new Dictionary<string, GameObject>();
@@ -1691,6 +1695,19 @@ public class Character : WorldObject
       if (!partStatusInfos[slot].IsBroken())
       {
         ret.Add(slot);
+      }
+    }
+    return ret;
+  }
+
+  public List<PartStatusInfo> GetUnbrokenBodyPartStatuses()
+  {
+    List<PartStatusInfo> ret = new List<PartStatusInfo>();
+    foreach (TraitSlot slot in partStatusInfos.Keys)
+    {
+      if (!partStatusInfos[slot].IsBroken())
+      {
+        ret.Add(partStatusInfos[slot]);
       }
     }
     return ret;

@@ -175,6 +175,7 @@ public class TraitsLoadout
 public class PartStatusInfo
 {
   // "Stamina" might be branded as "exhaustion" in game!
+  Character owner;
   public float currentExertion = 0;
   public float currentDamage = 0;
   public float maxDamage = 100;
@@ -203,6 +204,10 @@ public class PartStatusInfo
       return maxDamage - currentExertion;
     }
   }
+  public void Init(Character c)
+  {
+    owner = c;
+  }
 
   public bool IsExhausted()
   {
@@ -230,17 +235,31 @@ public class PartStatusInfo
   public void AdjustCurrentExertion(float adjustment, bool isBreaking = true)
   {
     float staminaAdjustment = adjustment;
-    if (Mathf.RoundToInt(adjustment) != 0 && adjustment > remainingExertionUntilBreakingPoint)
-    { // taking stamina damage above exertion;
-      // staminaAdjustment -= remainingStamina;
-      float partDamage = Mathf.Clamp(adjustment - remainingExertionUntilBreakingPoint, 0, adjustment);
-      partDamage = partDamage * GameMaster.Instance.settingsData.exhaustionDamageMultiplier;
-      AdjustCurrentDamage(partDamage, exhausts: false);
-    }
-    currentExertion = Mathf.Max(currentExertion + adjustment, currentMinExertion);
-    if (currentExertion >= breakingPoint && isBreaking)
     {
-      BreakBodyPart();
+      if (Mathf.RoundToInt(adjustment) != 0 && adjustment > remainingExertionUntilBreakingPoint)
+      {
+        // taking stamina damage above exertion
+        float partDamage = Mathf.Clamp(adjustment - remainingExertionUntilBreakingPoint, 0, adjustment);
+        partDamage = partDamage * GameMaster.Instance.settingsData.exhaustionDamageMultiplier;
+        if (IsBroken())
+        {
+          // deal damage to all unbroken parts
+          foreach (PartStatusInfo statusInfo in owner.GetUnbrokenBodyPartStatuses())
+          {
+            statusInfo.AdjustCurrentDamage(partDamage, exhausts: false);
+          }
+        }
+        else
+        {
+          // deal damage to self only
+          AdjustCurrentDamage(partDamage, exhausts: false);
+        }
+      }
+      currentExertion = Mathf.Max(currentExertion + adjustment, currentMinExertion);
+      if (currentExertion >= breakingPoint && isBreaking)
+      {
+        BreakBodyPart();
+      }
     }
   }
 
@@ -253,8 +272,14 @@ public class PartStatusInfo
   {
     float originalDamage = currentDamage;
     currentDamage = Mathf.Clamp(currentDamage + adjustment, 0, isNonbreaking ? breakingPoint - 1 : breakingPoint);
-    if (exhausts) { AdjustCurrentExertion(adjustment); };
-    // Debug.Log("   Part Damage - originalDamage " + originalDamage + ", adjustment " + adjustment + ", new currentDamage " + currentDamage);
+    if (exhausts)
+    {
+      AdjustCurrentExertion(adjustment);
+    }
+    if (currentDamage > breakingPoint)
+    {
+      currentDamage = breakingPoint; // might need to be a %
+    }
     return adjustment + originalDamage - currentDamage; // if part breaks, return the amount of surplus damage not applied; should this just damage other parts directly, and/or should the damage get eaten by the broken part?
   }
 }
