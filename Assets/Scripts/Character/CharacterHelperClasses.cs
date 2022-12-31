@@ -211,3 +211,10 @@ public class StaminaInfo
   public float currentStamina = 100;
   public float recoveryCooldown = 0;
 }
+
+// [System.Serializable]
+// public class PartsHealt
+// {
+//   public float currentStamina = 100;
+//   public float recoveryCooldown = 0;
+// }
