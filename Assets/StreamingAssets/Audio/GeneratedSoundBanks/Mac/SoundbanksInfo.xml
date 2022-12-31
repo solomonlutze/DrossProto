@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SoundBanksInfo Platform="Mac" BasePlatform="Mac" SchemaVersion="12" SoundbankVersion="140">
+	<RootPaths>
+		<ProjectRoot>C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\</ProjectRoot>
+		<SourceFilesRoot>C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\</SourceFilesRoot>
+		<SoundBanksRoot>C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\GeneratedSoundBanks\Mac\</SoundBanksRoot>
+		<ExternalSourcesInputFile></ExternalSourcesInputFile>
+		<ExternalSourcesOutputRoot>C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\GeneratedSoundBanks\Mac</ExternalSourcesOutputRoot>
+	</RootPaths>
+	<DialogueEvents/>
+	<StreamedFiles/>
+	<MediaFilesNotInAnyBank/>
+	<SoundBanks>
+		<SoundBank Id="1355168291" Language="SFX" Hash="2142431423">
+			<ObjectPath>Init</ObjectPath>
+			<ShortName>Init</ShortName>
+			<Path>Init.bnk</Path>
+		</SoundBank>
+		<SoundBank Id="4072029455" Language="SFX" Hash="32041808">
+			<ObjectPath>\SoundBanks\Default Work Unit\New_SoundBank</ObjectPath>
+			<ShortName>New_SoundBank</ShortName>
+			<Path>New_SoundBank.bnk</Path>
+			<IncludedEvents>
+				<Event Id="3535749687" Name="ClergyChiff_FadeIn" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyChiff_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="4078546634" Name="ClergyChiff_FadeOut" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyChiff_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1808654167" Name="ClergyChiff_Mute" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyChiff_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="2649150380" Name="ClergyCombatDrums_FadeIn" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyCombatDrums_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1162885195" Name="ClergyCombatDrums_FadeOut" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyCombatDrums_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="4221855272" Name="ClergyCombatDrums_Mute" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyCombatDrums_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1879436279" Name="ClergyCombatKeys_FadeIn" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyCombatKeys_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1230432138" Name="ClergyCombatKeys_FadeOut" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyCombatKeys_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="2860874263" Name="ClergyCombatKeys_Mute" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyCombatKeys_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="3822221927" Name="ClergyCombatSynth_FadeIn" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyCombatSynth_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="609965274" Name="ClergyCombatSynth_FadeOut" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyCombatSynth_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1688666823" Name="ClergyCombatSynth_Mute" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyCombatSynth_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="4050988588" Name="ClergyHighPiano_FadeIn" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyHighPiano_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1315483595" Name="ClergyHighPiano_FadeOut" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyHighPiano_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="508271784" Name="ClergyHighPiano_Mute" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyHighPiano_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="4232397232" Name="ClergyLowPiano_FadeIn" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyLowPiano_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="3087814807" Name="ClergyLowPiano_FadeOut" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyLowPiano_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="4092190060" Name="ClergyLowPiano_Mute" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyLowPiano_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="862562412" Name="ClergyOrgan_FadeIn" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyOrgan_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1648697867" Name="ClergyOrgan_FadeOut" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyOrgan_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="2688512488" Name="ClergyOrgan_Mute" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyOrgan_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1378818894" Name="ClergyPlayerCharge_FadeIn" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyPlayerCharge_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="3107395537" Name="ClergyPlayerCharge_FadeOut" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyPlayerCharge_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="4170249178" Name="ClergyPlayerCharge_Mute" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergyPlayerCharge_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="437274956" Name="ClergySynthPad_FadeIn" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergySynthPad_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1519674219" Name="ClergySynthPad_FadeOut" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergySynthPad_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="2419406024" Name="ClergySynthPad_Mute" ObjectPath="\Events\Default Work Unit\Clergy\Stems\ClergySynthPad_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="377677153" Name="ForestBass_FadeIn" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestBass_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="3859359968" Name="ForestBass_FadeOut" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestBass_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="927001049" Name="ForestBass_Mute" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestBass_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="243282158" Name="ForestCombatPerc_FadeIn" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestCombatPerc_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="3436875761" Name="ForestCombatPerc_FadeOut" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestCombatPerc_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="811362170" Name="ForestCombatPerc_Mute" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestCombatPerc_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1059504727" Name="ForestCombatSynth1_FadeIn" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestCombatSynth1_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="3121111402" Name="ForestCombatSynth1_FadeOut" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestCombatSynth1_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="149297271" Name="ForestCombatSynth1_Mute" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestCombatSynth1_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1646641026" Name="ForestCombatSynth2_FadeIn" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestCombatSynth2_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="241700285" Name="ForestCombatSynth2_FadeOut" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestCombatSynth2_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="2716092894" Name="ForestCombatSynth2_Mute" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestCombatSynth2_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="789586643" Name="ForestHarp_FadeIn" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestHarp_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="3797400814" Name="ForestHarp_FadeOut" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestHarp_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1613632515" Name="ForestHarp_Mute" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestHarp_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="4213686493" Name="ForestKeys1_FadeIn" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestKeys1_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="564362116" Name="ForestKeys1_FadeOut" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestKeys1_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1885824965" Name="ForestKeys1_Mute" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestKeys1_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="43880748" Name="ForestKeys2_FadeIn" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestKeys2_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1358727371" Name="ForestKeys2_FadeOut" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestKeys2_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="3582363560" Name="ForestKeys2_Mute" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestKeys2_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1308151514" Name="ForestMusicBox_FadeIn" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestMusicBox_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="2477333589" Name="ForestMusicBox_FadeOut" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestMusicBox_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="2815271654" Name="ForestMusicBox_Mute" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestMusicBox_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="761111897" Name="ForestSynthPad_FadeIn" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestSynthPad_FadeIn" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="2825298712" Name="ForestSynthPad_FadeOut" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestSynthPad_FadeOut" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="4152771809" Name="ForestSynthPad_Mute" ObjectPath="\Events\Default Work Unit\Forest\Stems\ForestSynthPad_Mute" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="53993631" Name="PauseClergyFade" ObjectPath="\Events\Default Work Unit\Clergy\PauseClergyFade" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="494042608" Name="PauseClergyInstant" ObjectPath="\Events\Default Work Unit\Clergy\PauseClergyInstant" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="1500653772" Name="PauseMusicFade" ObjectPath="\Events\Default Work Unit\PauseMusicFade" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="2611812313" Name="PauseMusicInstant" ObjectPath="\Events\Default Work Unit\PauseMusicInstant" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="184422097" Name="PlayClergyLoop" ObjectPath="\Events\Default Work Unit\Clergy\PlayClergyLoop" DurationType="Infinite">
+					<IncludedMemoryFiles>
+						<File Id="19311986" Language="SFX">
+							<ShortName>ClergyStem - Clergy Synth 3.wav</ShortName>
+							<Path>SFX\ClergyStem - Clergy Synth 3_9EDFC787.wem</Path>
+						</File>
+						<File Id="26800994" Language="SFX">
+							<ShortName>Clergy_PlayerSmallHit2.wav</ShortName>
+							<Path>SFX\Clergy_PlayerSmallHit2_9EDFC787.wem</Path>
+						</File>
+						<File Id="83062844" Language="SFX">
+							<ShortName>Clergy_PlayerSmallHit3.wav</ShortName>
+							<Path>SFX\Clergy_PlayerSmallHit3_9EDFC787.wem</Path>
+						</File>
+						<File Id="98956701" Language="SFX">
+							<ShortName>ClergyStem - Low piano.wav</ShortName>
+							<Path>SFX\ClergyStem - Low piano_9EDFC787.wem</Path>
+						</File>
+						<File Id="181576834" Language="SFX">
+							<ShortName>DrossVictoryStinger.wav</ShortName>
+							<Path>SFX\DrossVictoryStinger_9EDFC787.wem</Path>
+						</File>
+						<File Id="196343448" Language="SFX">
+							<ShortName>Clergy_PlayerSmallHit1.wav</ShortName>
+							<Path>SFX\Clergy_PlayerSmallHit1_9EDFC787.wem</Path>
+						</File>
+						<File Id="297956327" Language="SFX">
+							<ShortName>Clergy_EnemySmallHit3.wav</ShortName>
+							<Path>SFX\Clergy_EnemySmallHit3_9EDFC787.wem</Path>
+						</File>
+						<File Id="355561072" Language="SFX">
+							<ShortName>Clergy_PlayerSmallHit4.wav</ShortName>
+							<Path>SFX\Clergy_PlayerSmallHit4_9EDFC787.wem</Path>
+						</File>
+						<File Id="366062061" Language="SFX">
+							<ShortName>ClergyStem - High piano fix.wav</ShortName>
+							<Path>SFX\ClergyStem - High piano fix_9EDFC787.wem</Path>
+						</File>
+						<File Id="443514291" Language="SFX">
+							<ShortName>ClergyStem - Combat drums.wav</ShortName>
+							<Path>SFX\ClergyStem - Combat drums_9EDFC787.wem</Path>
+						</File>
+						<File Id="451354464" Language="SFX">
+							<ShortName>Clergy_EnemySmallHit5.wav</ShortName>
+							<Path>SFX\Clergy_EnemySmallHit5_9EDFC787.wem</Path>
+						</File>
+						<File Id="548898609" Language="SFX">
+							<ShortName>DrossBigHitsDemo.wav</ShortName>
+							<Path>SFX\DrossBigHitsDemo_9EDFC787.wem</Path>
+						</File>
+						<File Id="601621679" Language="SFX">
+							<ShortName>Clergy_PlayerSmallHit5.wav</ShortName>
+							<Path>SFX\Clergy_PlayerSmallHit5_9EDFC787.wem</Path>
+						</File>
+						<File Id="608252169" Language="SFX">
+							<ShortName>Clergy_EnemySmallHit2.wav</ShortName>
+							<Path>SFX\Clergy_EnemySmallHit2_9EDFC787.wem</Path>
+						</File>
+						<File Id="645808521" Language="SFX">
+							<ShortName>Clergy_EnemySmallHit1.wav</ShortName>
+							<Path>SFX\Clergy_EnemySmallHit1_9EDFC787.wem</Path>
+						</File>
+						<File Id="678026825" Language="SFX">
+							<ShortName>DrossEnemyChargeDemo.wav</ShortName>
+							<Path>SFX\DrossEnemyChargeDemo_9EDFC787.wem</Path>
+						</File>
+						<File Id="744760141" Language="SFX">
+							<ShortName>ClergyStem - Combat synth.wav</ShortName>
+							<Path>SFX\ClergyStem - Combat synth_9EDFC787.wem</Path>
+						</File>
+						<File Id="752304627" Language="SFX">
+							<ShortName>ClergyStem - Organ.wav</ShortName>
+							<Path>SFX\ClergyStem - Organ_9EDFC787.wem</Path>
+						</File>
+						<File Id="887696593" Language="SFX">
+							<ShortName>ClergyStem - Combat keys.wav</ShortName>
+							<Path>SFX\ClergyStem - Combat keys_9EDFC787.wem</Path>
+						</File>
+						<File Id="947335030" Language="SFX">
+							<ShortName>Clergy_EnemySmallHit4.wav</ShortName>
+							<Path>SFX\Clergy_EnemySmallHit4_9EDFC787.wem</Path>
+						</File>
+						<File Id="985111337" Language="SFX">
+							<ShortName>ClergyStem - Chiff piano fix.wav</ShortName>
+							<Path>SFX\ClergyStem - Chiff piano fix_9EDFC787.wem</Path>
+						</File>
+						<File Id="1017742300" Language="SFX">
+							<ShortName>DrossChargeDemo.wav</ShortName>
+							<Path>SFX\DrossChargeDemo_9EDFC787.wem</Path>
+						</File>
+					</IncludedMemoryFiles>
+				</Event>
+				<Event Id="2108607652" Name="PlayClergyOnce" ObjectPath="\Events\Default Work Unit\Clergy\PlayClergyOnce" DurationType="Infinite">
+					<IncludedMemoryFiles>
+						<File Id="19311986" Language="SFX">
+							<ShortName>ClergyStem - Clergy Synth 3.wav</ShortName>
+							<Path>SFX\ClergyStem - Clergy Synth 3_9EDFC787.wem</Path>
+						</File>
+						<File Id="26800994" Language="SFX">
+							<ShortName>Clergy_PlayerSmallHit2.wav</ShortName>
+							<Path>SFX\Clergy_PlayerSmallHit2_9EDFC787.wem</Path>
+						</File>
+						<File Id="83062844" Language="SFX">
+							<ShortName>Clergy_PlayerSmallHit3.wav</ShortName>
+							<Path>SFX\Clergy_PlayerSmallHit3_9EDFC787.wem</Path>
+						</File>
+						<File Id="98956701" Language="SFX">
+							<ShortName>ClergyStem - Low piano.wav</ShortName>
+							<Path>SFX\ClergyStem - Low piano_9EDFC787.wem</Path>
+						</File>
+						<File Id="181576834" Language="SFX">
+							<ShortName>DrossVictoryStinger.wav</ShortName>
+							<Path>SFX\DrossVictoryStinger_9EDFC787.wem</Path>
+						</File>
+						<File Id="196343448" Language="SFX">
+							<ShortName>Clergy_PlayerSmallHit1.wav</ShortName>
+							<Path>SFX\Clergy_PlayerSmallHit1_9EDFC787.wem</Path>
+						</File>
+						<File Id="297956327" Language="SFX">
+							<ShortName>Clergy_EnemySmallHit3.wav</ShortName>
+							<Path>SFX\Clergy_EnemySmallHit3_9EDFC787.wem</Path>
+						</File>
+						<File Id="355561072" Language="SFX">
+							<ShortName>Clergy_PlayerSmallHit4.wav</ShortName>
+							<Path>SFX\Clergy_PlayerSmallHit4_9EDFC787.wem</Path>
+						</File>
+						<File Id="366062061" Language="SFX">
+							<ShortName>ClergyStem - High piano fix.wav</ShortName>
+							<Path>SFX\ClergyStem - High piano fix_9EDFC787.wem</Path>
+						</File>
+						<File Id="443514291" Language="SFX">
+							<ShortName>ClergyStem - Combat drums.wav</ShortName>
+							<Path>SFX\ClergyStem - Combat drums_9EDFC787.wem</Path>
+						</File>
+						<File Id="451354464" Language="SFX">
+							<ShortName>Clergy_EnemySmallHit5.wav</ShortName>
+							<Path>SFX\Clergy_EnemySmallHit5_9EDFC787.wem</Path>
+						</File>
+						<File Id="548898609" Language="SFX">
+							<ShortName>DrossBigHitsDemo.wav</ShortName>
+							<Path>SFX\DrossBigHitsDemo_9EDFC787.wem</Path>
+						</File>
+						<File Id="601621679" Language="SFX">
+							<ShortName>Clergy_PlayerSmallHit5.wav</ShortName>
+							<Path>SFX\Clergy_PlayerSmallHit5_9EDFC787.wem</Path>
+						</File>
+						<File Id="608252169" Language="SFX">
+							<ShortName>Clergy_EnemySmallHit2.wav</ShortName>
+							<Path>SFX\Clergy_EnemySmallHit2_9EDFC787.wem</Path>
+						</File>
+						<File Id="645808521" Language="SFX">
+							<ShortName>Clergy_EnemySmallHit1.wav</ShortName>
+							<Path>SFX\Clergy_EnemySmallHit1_9EDFC787.wem</Path>
+						</File>
+						<File Id="678026825" Language="SFX">
+							<ShortName>DrossEnemyChargeDemo.wav</ShortName>
+							<Path>SFX\DrossEnemyChargeDemo_9EDFC787.wem</Path>
+						</File>
+						<File Id="744760141" Language="SFX">
+							<ShortName>ClergyStem - Combat synth.wav</ShortName>
+							<Path>SFX\ClergyStem - Combat synth_9EDFC787.wem</Path>
+						</File>
+						<File Id="752304627" Language="SFX">
+							<ShortName>ClergyStem - Organ.wav</ShortName>
+							<Path>SFX\ClergyStem - Organ_9EDFC787.wem</Path>
+						</File>
+						<File Id="887696593" Language="SFX">
+							<ShortName>ClergyStem - Combat keys.wav</ShortName>
+							<Path>SFX\ClergyStem - Combat keys_9EDFC787.wem</Path>
+						</File>
+						<File Id="947335030" Language="SFX">
+							<ShortName>Clergy_EnemySmallHit4.wav</ShortName>
+							<Path>SFX\Clergy_EnemySmallHit4_9EDFC787.wem</Path>
+						</File>
+						<File Id="985111337" Language="SFX">
+							<ShortName>ClergyStem - Chiff piano fix.wav</ShortName>
+							<Path>SFX\ClergyStem - Chiff piano fix_9EDFC787.wem</Path>
+						</File>
+						<File Id="1017742300" Language="SFX">
+							<ShortName>DrossChargeDemo.wav</ShortName>
+							<Path>SFX\DrossChargeDemo_9EDFC787.wem</Path>
+						</File>
+					</IncludedMemoryFiles>
+				</Event>
+				<Event Id="417627684" Name="PlayMusic" ObjectPath="\Events\Default Work Unit\PlayMusic" DurationType="Infinite">
+					<IncludedMemoryFiles>
+						<File Id="19311986" Language="SFX">
+							<ShortName>ClergyStem - Clergy Synth 3.wav</ShortName>
+							<Path>SFX\ClergyStem - Clergy Synth 3_9EDFC787.wem</Path>
+						</File>
+						<File Id="26800994" Language="SFX">
+							<ShortName>Clergy_PlayerSmallHit2.wav</ShortName>
+							<Path>SFX\Clergy_PlayerSmallHit2_9EDFC787.wem</Path>
+						</File>
+						<File Id="83062844" Language="SFX">
+							<ShortName>Clergy_PlayerSmallHit3.wav</ShortName>
+							<Path>SFX\Clergy_PlayerSmallHit3_9EDFC787.wem</Path>
+						</File>
+						<File Id="92829271" Language="SFX">
+							<ShortName>Forest Loop - Combat perc.wav</ShortName>
+							<Path>SFX\Forest Loop - Combat perc_9EDFC787.wem</Path>
+						</File>
+						<File Id="98956701" Language="SFX">
+							<ShortName>ClergyStem - Low piano.wav</ShortName>
+							<Path>SFX\ClergyStem - Low piano_9EDFC787.wem</Path>
+						</File>
+						<File Id="120096609" Language="SFX">
+							<ShortName>Forest Intro - Harp.wav</ShortName>
+							<Path>SFX\Forest Intro - Harp_9EDFC787.wem</Path>
+						</File>
+						<File Id="123161364" Language="SFX">
+							<ShortName>Forest Loop - Harp.wav</ShortName>
+							<Path>SFX\Forest Loop - Harp_9EDFC787.wem</Path>
+						</File>
+						<File Id="159812642" Language="SFX">
+							<ShortName>Forest Loop - Combat synth 1.wav</ShortName>
+							<Path>SFX\Forest Loop - Combat synth 1_9EDFC787.wem</Path>
+						</File>
+						<File Id="181576834" Language="SFX">
+							<ShortName>DrossVictoryStinger.wav</ShortName>
+							<Path>SFX\DrossVictoryStinger_9EDFC787.wem</Path>
+						</File>
+						<File Id="188888642" Language="SFX">
+							<ShortName>Forest Intro - Bass.wav</ShortName>
+							<Path>SFX\Forest Intro - Bass_9EDFC787.wem</Path>
+						</File>
+						<File Id="196343448" Language="SFX">
+							<ShortName>Clergy_PlayerSmallHit1.wav</ShortName>
+							<Path>SFX\Clergy_PlayerSmallHit1_9EDFC787.wem</Path>
+						</File>
+						<File Id="239724574" Language="SFX">
+							<ShortName>Forest Loop - Music box.wav</ShortName>
+							<Path>SFX\Forest Loop - Music box_9EDFC787.wem</Path>
+						</File>
+						<File Id="244825492" Language="SFX">
+							<ShortName>Forest Intro - Synth pad.wav</ShortName>
+							<Path>SFX\Forest Intro - Synth pad_9EDFC787.wem</Path>
+						</File>
+						<File Id="295701603" Language="SFX">
+							<ShortName>Forest Loop - Synth pad.wav</ShortName>
+							<Path>SFX\Forest Loop - Synth pad_9EDFC787.wem</Path>
+						</File>
+						<File Id="297956327" Language="SFX">
+							<ShortName>Clergy_EnemySmallHit3.wav</ShortName>
+							<Path>SFX\Clergy_EnemySmallHit3_9EDFC787.wem</Path>
+						</File>
+						<File Id="311445076" Language="SFX">
+							<ShortName>Forest Intro - Keys 2.wav</ShortName>
+							<Path>SFX\Forest Intro - Keys 2_9EDFC787.wem</Path>
+						</File>
+						<File Id="355561072" Language="SFX">
+							<ShortName>Clergy_PlayerSmallHit4.wav</ShortName>
+							<Path>SFX\Clergy_PlayerSmallHit4_9EDFC787.wem</Path>
+						</File>
+						<File Id="366062061" Language="SFX">
+							<ShortName>ClergyStem - High piano fix.wav</ShortName>
+							<Path>SFX\ClergyStem - High piano fix_9EDFC787.wem</Path>
+						</File>
+						<File Id="443514291" Language="SFX">
+							<ShortName>ClergyStem - Combat drums.wav</ShortName>
+							<Path>SFX\ClergyStem - Combat drums_9EDFC787.wem</Path>
+						</File>
+						<File Id="451354464" Language="SFX">
+							<ShortName>Clergy_EnemySmallHit5.wav</ShortName>
+							<Path>SFX\Clergy_EnemySmallHit5_9EDFC787.wem</Path>
+						</File>
+						<File Id="548898609" Language="SFX">
+							<ShortName>DrossBigHitsDemo.wav</ShortName>
+							<Path>SFX\DrossBigHitsDemo_9EDFC787.wem</Path>
+						</File>
+						<File Id="587922032" Language="SFX">
+							<ShortName>Forest Loop - Keys 2.wav</ShortName>
+							<Path>SFX\Forest Loop - Keys 2_9EDFC787.wem</Path>
+						</File>
+						<File Id="601621679" Language="SFX">
+							<ShortName>Clergy_PlayerSmallHit5.wav</ShortName>
+							<Path>SFX\Clergy_PlayerSmallHit5_9EDFC787.wem</Path>
+						</File>
+						<File Id="602833753" Language="SFX">
+							<ShortName>Forest Intro - Keys 1.wav</ShortName>
+							<Path>SFX\Forest Intro - Keys 1_9EDFC787.wem</Path>
+						</File>
+						<File Id="608252169" Language="SFX">
+							<ShortName>Clergy_EnemySmallHit2.wav</ShortName>
+							<Path>SFX\Clergy_EnemySmallHit2_9EDFC787.wem</Path>
+						</File>
+						<File Id="645808521" Language="SFX">
+							<ShortName>Clergy_EnemySmallHit1.wav</ShortName>
+							<Path>SFX\Clergy_EnemySmallHit1_9EDFC787.wem</Path>
+						</File>
+						<File Id="678026825" Language="SFX">
+							<ShortName>DrossEnemyChargeDemo.wav</ShortName>
+							<Path>SFX\DrossEnemyChargeDemo_9EDFC787.wem</Path>
+						</File>
+						<File Id="744760141" Language="SFX">
+							<ShortName>ClergyStem - Combat synth.wav</ShortName>
+							<Path>SFX\ClergyStem - Combat synth_9EDFC787.wem</Path>
+						</File>
+						<File Id="752304627" Language="SFX">
+							<ShortName>ClergyStem - Organ.wav</ShortName>
+							<Path>SFX\ClergyStem - Organ_9EDFC787.wem</Path>
+						</File>
+						<File Id="783013939" Language="SFX">
+							<ShortName>Forest Loop - Combat synth 2.wav</ShortName>
+							<Path>SFX\Forest Loop - Combat synth 2_9EDFC787.wem</Path>
+						</File>
+						<File Id="887696593" Language="SFX">
+							<ShortName>ClergyStem - Combat keys.wav</ShortName>
+							<Path>SFX\ClergyStem - Combat keys_9EDFC787.wem</Path>
+						</File>
+						<File Id="913704626" Language="SFX">
+							<ShortName>Forest Intro - Music box.wav</ShortName>
+							<Path>SFX\Forest Intro - Music box_9EDFC787.wem</Path>
+						</File>
+						<File Id="947335030" Language="SFX">
+							<ShortName>Clergy_EnemySmallHit4.wav</ShortName>
+							<Path>SFX\Clergy_EnemySmallHit4_9EDFC787.wem</Path>
+						</File>
+						<File Id="954991201" Language="SFX">
+							<ShortName>Forest Loop - Bass.wav</ShortName>
+							<Path>SFX\Forest Loop - Bass_9EDFC787.wem</Path>
+						</File>
+						<File Id="985111337" Language="SFX">
+							<ShortName>ClergyStem - Chiff piano fix.wav</ShortName>
+							<Path>SFX\ClergyStem - Chiff piano fix_9EDFC787.wem</Path>
+						</File>
+						<File Id="1006792690" Language="SFX">
+							<ShortName>Forest Loop - Keys 1.wav</ShortName>
+							<Path>SFX\Forest Loop - Keys 1_9EDFC787.wem</Path>
+						</File>
+						<File Id="1017742300" Language="SFX">
+							<ShortName>DrossChargeDemo.wav</ShortName>
+							<Path>SFX\DrossChargeDemo_9EDFC787.wem</Path>
+						</File>
+					</IncludedMemoryFiles>
+					<SwitchContainers>
+						<SwitchContainer SwitchValue="{D6B5DC14-6CE3-4450-B0AA-B57BCAD5881D}">
+							<Media>
+								<File Id="19311986"/>
+								<File Id="26800994"/>
+								<File Id="83062844"/>
+								<File Id="98956701"/>
+								<File Id="181576834"/>
+								<File Id="196343448"/>
+								<File Id="297956327"/>
+								<File Id="355561072"/>
+								<File Id="366062061"/>
+								<File Id="443514291"/>
+								<File Id="451354464"/>
+								<File Id="548898609"/>
+								<File Id="601621679"/>
+								<File Id="608252169"/>
+								<File Id="645808521"/>
+								<File Id="678026825"/>
+								<File Id="744760141"/>
+								<File Id="752304627"/>
+								<File Id="887696593"/>
+								<File Id="947335030"/>
+								<File Id="985111337"/>
+								<File Id="1017742300"/>
+							</Media>
+						</SwitchContainer>
+						<SwitchContainer SwitchValue="{CAB804FD-85C9-47F3-86AE-DB743E3260F9}">
+							<Media>
+								<File Id="92829271"/>
+								<File Id="120096609"/>
+								<File Id="123161364"/>
+								<File Id="159812642"/>
+								<File Id="188888642"/>
+								<File Id="239724574"/>
+								<File Id="244825492"/>
+								<File Id="295701603"/>
+								<File Id="311445076"/>
+								<File Id="587922032"/>
+								<File Id="602833753"/>
+								<File Id="783013939"/>
+								<File Id="913704626"/>
+								<File Id="954991201"/>
+								<File Id="1006792690"/>
+							</Media>
+						</SwitchContainer>
+					</SwitchContainers>
+				</Event>
+				<Event Id="2562752829" Name="SetState_Clergy" ObjectPath="\Events\Default Work Unit\AreaStates\SetState_Clergy" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000">
+					<ActionSetState>
+						<ActionSetStateEntry Id="1866128945" Name="Clergy" ObjectPath="\States\Default Work Unit\CurrentArea\Clergy"/>
+					</ActionSetState>
+				</Event>
+				<Event Id="4090379250" Name="SetState_Forest" ObjectPath="\Events\Default Work Unit\AreaStates\SetState_Forest" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000">
+					<ActionSetState>
+						<ActionSetStateEntry Id="491961918" Name="Forest" ObjectPath="\States\Default Work Unit\CurrentArea\Forest"/>
+					</ActionSetState>
+				</Event>
+				<Event Id="3102302711" Name="StopClergyFade" ObjectPath="\Events\Default Work Unit\Clergy\StopClergyFade" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="2842649672" Name="StopClergyInstant" ObjectPath="\Events\Default Work Unit\Clergy\StopClergyInstant" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="10535348" Name="StopMusicFade" ObjectPath="\Events\Default Work Unit\StopMusicFade" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="807943329" Name="StopMusicInstant" ObjectPath="\Events\Default Work Unit\StopMusicInstant" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+				<Event Id="710827885" Name="TriggerClergyEnemyCharge" ObjectPath="\Events\Default Work Unit\Clergy\TriggerClergyEnemyCharge" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000">
+					<ActionTrigger>
+						<ActionTriggerEntry Id="2664006471" Name="ClergyEnemyCharge" ObjectPath="\Triggers\Default Work Unit\ClergyEnemyCharge"/>
+					</ActionTrigger>
+				</Event>
+				<Event Id="669629115" Name="TriggerClergySmallEnemyHit" ObjectPath="\Events\Default Work Unit\Clergy\TriggerClergySmallEnemyHit" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000">
+					<ActionTrigger>
+						<ActionTriggerEntry Id="4230137495" Name="ClergyEnemySmallHit" ObjectPath="\Triggers\Default Work Unit\ClergyEnemySmallHit"/>
+					</ActionTrigger>
+				</Event>
+				<Event Id="3498184062" Name="TriggerClergySmallPlayerHit" ObjectPath="\Events\Default Work Unit\Clergy\TriggerClergySmallPlayerHit" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000">
+					<ActionTrigger>
+						<ActionTriggerEntry Id="2855527090" Name="ClergyPlayerSmallHit" ObjectPath="\Triggers\Default Work Unit\ClergyPlayerSmallHit"/>
+					</ActionTrigger>
+				</Event>
+				<Event Id="2496981351" Name="TriggerClergyVictoryStinger" ObjectPath="\Events\Default Work Unit\Clergy\TriggerClergyVictoryStinger" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000">
+					<ActionTrigger>
+						<ActionTriggerEntry Id="792541133" Name="ClergyVictoryStinger" ObjectPath="\Triggers\Default Work Unit\ClergyVictoryStinger"/>
+					</ActionTrigger>
+				</Event>
+				<Event Id="2939543682" Name="UnpauseClergy" ObjectPath="\Events\Default Work Unit\Clergy\UnpauseClergy" DurationType="OneShot" DurationMin="0.000000" DurationMax="0.000000"/>
+			</IncludedEvents>
+			<StateGroups>
+				<StateGroup Id="491961918" Name="Forest" ObjectPath="\States\Default Work Unit\CurrentArea\Forest">
+					<States/>
+				</StateGroup>
+				<StateGroup Id="1866128945" Name="Clergy" ObjectPath="\States\Default Work Unit\CurrentArea\Clergy">
+					<States/>
+				</StateGroup>
+				<StateGroup Id="3189127347" Name="CurrentArea" ObjectPath="\States\Default Work Unit\CurrentArea">
+					<States>
+						<State Id="748895195" Name="None" ObjectPath="\States\Default Work Unit\CurrentArea\None"/>
+						<State Id="1866128945" Name="Clergy" ObjectPath="\States\Default Work Unit\CurrentArea\Clergy"/>
+						<State Id="491961918" Name="Forest" ObjectPath="\States\Default Work Unit\CurrentArea\Forest"/>
+					</States>
+				</StateGroup>
+			</StateGroups>
+			<Triggers>
+				<Trigger Id="792541133" Name="ClergyVictoryStinger" ObjectPath="\Triggers\Default Work Unit\ClergyVictoryStinger"/>
+				<Trigger Id="2664006471" Name="ClergyEnemyCharge" ObjectPath="\Triggers\Default Work Unit\ClergyEnemyCharge"/>
+				<Trigger Id="2855527090" Name="ClergyPlayerSmallHit" ObjectPath="\Triggers\Default Work Unit\ClergyPlayerSmallHit"/>
+				<Trigger Id="3912663603" Name="ClergyPlayerBigHit" ObjectPath="\Triggers\Default Work Unit\ClergyPlayerBigHit"/>
+				<Trigger Id="4230137495" Name="ClergyEnemySmallHit" ObjectPath="\Triggers\Default Work Unit\ClergyEnemySmallHit"/>
+			</Triggers>
+		</SoundBank>
+	</SoundBanks>
+</SoundBanksInfo>

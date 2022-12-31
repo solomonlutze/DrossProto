@@ -94,7 +94,7 @@ public class SkillEffect
   public SkillEffectPropertyToFloat properties;
   public SkillEffectDamageMultiplierToFloat damageMultipliers;
   public SkillEffectMovementPropertyToCurve movement;
-  public CharacterVitalToCurveDictionary vitalChanges;
+  public BodyPartVitalToCurveDictionary partVitalChanges;
   public DamageTypeToCurveDictionary buildupChanges;
   public List<CharacterMovementAbility> movementAbilities;
 
@@ -123,17 +123,25 @@ public class SkillEffect
   }
   public virtual void DoSkillEffect(Character owner)
   {
-    foreach (KeyValuePair<CharacterVital, NormalizedCurve> vitalChange in vitalChanges)
+    foreach (KeyValuePair<BodyPartVital, NormalizedCurve> vitalChange in partVitalChanges)
     {
-      switch (vitalChange.Key)
+      foreach (PartStatusInfo part in owner.partStatusInfos.Values)
       {
-        case CharacterVital.CurrentHealth:
-          owner.AdjustBodyPartHealthAndStamina(owner.CalculateCurveProgressIncrement(vitalChange.Value, false, useType == SkillEffectType.Continuous), 0, lastActiveOnly: false);
-          break;
-        case CharacterVital.CurrentMaxHealth:
-          owner.AdjustBodyPartHealthAndStamina(owner.CalculateCurveProgressIncrement(vitalChange.Value, false, useType == SkillEffectType.Continuous), 0, lastActiveOnly: false);
-          break;
+        switch (vitalChange.Key)
+        { // this operation could probably live on PartStatusInfo. Don't overthink it for now
+          case BodyPartVital.CurrentDamage:
+            part.AdjustCurrentDamage(owner.CalculateCurveProgressIncrement(vitalChange.Value, false, useType == SkillEffectType.Continuous), isNonbreaking: true, exhausts: false);
+            break;
+          case BodyPartVital.CurrentExertion:
+            part.AdjustCurrentExertion(owner.CalculateCurveProgressIncrement(vitalChange.Value, false, useType == SkillEffectType.Continuous), isBreaking: false);
+            break;
+          case BodyPartVital.CurrentBreakingPoint_Percent:
+            part.AdjustBreakingPoint_Percent(owner.CalculateCurveProgressIncrement(vitalChange.Value, false, useType == SkillEffectType.Continuous));
+            break;
+            // TODO: adjust breaking point by molting cost (per-part)
+        }
       }
+
     }
     foreach (KeyValuePair<DamageType, NormalizedCurve> buildupChange in buildupChanges)
     {

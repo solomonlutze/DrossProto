@@ -1,0 +1,128 @@
+Event	ID	Name			Wwise Object Path	Notes
+	10535348	StopMusicFade			\Default Work Unit\StopMusicFade	
+	43880748	ForestKeys2_FadeIn			\Default Work Unit\Forest\Stems\ForestKeys2_FadeIn	
+	53993631	PauseClergyFade			\Default Work Unit\Clergy\PauseClergyFade	
+	149297271	ForestCombatSynth1_Mute			\Default Work Unit\Forest\Stems\ForestCombatSynth1_Mute	
+	184422097	PlayClergyLoop			\Default Work Unit\Clergy\PlayClergyLoop	
+	241700285	ForestCombatSynth2_FadeOut			\Default Work Unit\Forest\Stems\ForestCombatSynth2_FadeOut	
+	243282158	ForestCombatPerc_FadeIn			\Default Work Unit\Forest\Stems\ForestCombatPerc_FadeIn	
+	377677153	ForestBass_FadeIn			\Default Work Unit\Forest\Stems\ForestBass_FadeIn	
+	417627684	PlayMusic			\Default Work Unit\PlayMusic	
+	437274956	ClergySynthPad_FadeIn			\Default Work Unit\Clergy\Stems\ClergySynthPad_FadeIn	
+	494042608	PauseClergyInstant			\Default Work Unit\Clergy\PauseClergyInstant	
+	508271784	ClergyHighPiano_Mute			\Default Work Unit\Clergy\Stems\ClergyHighPiano_Mute	
+	564362116	ForestKeys1_FadeOut			\Default Work Unit\Forest\Stems\ForestKeys1_FadeOut	
+	609965274	ClergyCombatSynth_FadeOut			\Default Work Unit\Clergy\Stems\ClergyCombatSynth_FadeOut	
+	669629115	TriggerClergySmallEnemyHit			\Default Work Unit\Clergy\TriggerClergySmallEnemyHit	
+	710827885	TriggerClergyEnemyCharge			\Default Work Unit\Clergy\TriggerClergyEnemyCharge	
+	761111897	ForestSynthPad_FadeIn			\Default Work Unit\Forest\Stems\ForestSynthPad_FadeIn	
+	789586643	ForestHarp_FadeIn			\Default Work Unit\Forest\Stems\ForestHarp_FadeIn	
+	807943329	StopMusicInstant			\Default Work Unit\StopMusicInstant	
+	811362170	ForestCombatPerc_Mute			\Default Work Unit\Forest\Stems\ForestCombatPerc_Mute	
+	862562412	ClergyOrgan_FadeIn			\Default Work Unit\Clergy\Stems\ClergyOrgan_FadeIn	
+	927001049	ForestBass_Mute			\Default Work Unit\Forest\Stems\ForestBass_Mute	
+	1059504727	ForestCombatSynth1_FadeIn			\Default Work Unit\Forest\Stems\ForestCombatSynth1_FadeIn	
+	1162885195	ClergyCombatDrums_FadeOut			\Default Work Unit\Clergy\Stems\ClergyCombatDrums_FadeOut	
+	1230432138	ClergyCombatKeys_FadeOut			\Default Work Unit\Clergy\Stems\ClergyCombatKeys_FadeOut	
+	1308151514	ForestMusicBox_FadeIn			\Default Work Unit\Forest\Stems\ForestMusicBox_FadeIn	
+	1315483595	ClergyHighPiano_FadeOut			\Default Work Unit\Clergy\Stems\ClergyHighPiano_FadeOut	
+	1358727371	ForestKeys2_FadeOut			\Default Work Unit\Forest\Stems\ForestKeys2_FadeOut	
+	1378818894	ClergyPlayerCharge_FadeIn			\Default Work Unit\Clergy\Stems\ClergyPlayerCharge_FadeIn	
+	1500653772	PauseMusicFade			\Default Work Unit\PauseMusicFade	
+	1519674219	ClergySynthPad_FadeOut			\Default Work Unit\Clergy\Stems\ClergySynthPad_FadeOut	
+	1613632515	ForestHarp_Mute			\Default Work Unit\Forest\Stems\ForestHarp_Mute	
+	1646641026	ForestCombatSynth2_FadeIn			\Default Work Unit\Forest\Stems\ForestCombatSynth2_FadeIn	
+	1648697867	ClergyOrgan_FadeOut			\Default Work Unit\Clergy\Stems\ClergyOrgan_FadeOut	
+	1688666823	ClergyCombatSynth_Mute			\Default Work Unit\Clergy\Stems\ClergyCombatSynth_Mute	
+	1808654167	ClergyChiff_Mute			\Default Work Unit\Clergy\Stems\ClergyChiff_Mute	
+	1879436279	ClergyCombatKeys_FadeIn			\Default Work Unit\Clergy\Stems\ClergyCombatKeys_FadeIn	
+	1885824965	ForestKeys1_Mute			\Default Work Unit\Forest\Stems\ForestKeys1_Mute	
+	2108607652	PlayClergyOnce			\Default Work Unit\Clergy\PlayClergyOnce	
+	2419406024	ClergySynthPad_Mute			\Default Work Unit\Clergy\Stems\ClergySynthPad_Mute	
+	2477333589	ForestMusicBox_FadeOut			\Default Work Unit\Forest\Stems\ForestMusicBox_FadeOut	
+	2496981351	TriggerClergyVictoryStinger			\Default Work Unit\Clergy\TriggerClergyVictoryStinger	
+	2562752829	SetState_Clergy			\Default Work Unit\AreaStates\SetState_Clergy	
+	2611812313	PauseMusicInstant			\Default Work Unit\PauseMusicInstant	
+	2649150380	ClergyCombatDrums_FadeIn			\Default Work Unit\Clergy\Stems\ClergyCombatDrums_FadeIn	
+	2688512488	ClergyOrgan_Mute			\Default Work Unit\Clergy\Stems\ClergyOrgan_Mute	
+	2716092894	ForestCombatSynth2_Mute			\Default Work Unit\Forest\Stems\ForestCombatSynth2_Mute	
+	2815271654	ForestMusicBox_Mute			\Default Work Unit\Forest\Stems\ForestMusicBox_Mute	
+	2825298712	ForestSynthPad_FadeOut			\Default Work Unit\Forest\Stems\ForestSynthPad_FadeOut	
+	2842649672	StopClergyInstant			\Default Work Unit\Clergy\StopClergyInstant	
+	2860874263	ClergyCombatKeys_Mute			\Default Work Unit\Clergy\Stems\ClergyCombatKeys_Mute	
+	2939543682	UnpauseClergy			\Default Work Unit\Clergy\UnpauseClergy	
+	3087814807	ClergyLowPiano_FadeOut			\Default Work Unit\Clergy\Stems\ClergyLowPiano_FadeOut	
+	3102302711	StopClergyFade			\Default Work Unit\Clergy\StopClergyFade	
+	3107395537	ClergyPlayerCharge_FadeOut			\Default Work Unit\Clergy\Stems\ClergyPlayerCharge_FadeOut	
+	3121111402	ForestCombatSynth1_FadeOut			\Default Work Unit\Forest\Stems\ForestCombatSynth1_FadeOut	
+	3436875761	ForestCombatPerc_FadeOut			\Default Work Unit\Forest\Stems\ForestCombatPerc_FadeOut	
+	3498184062	TriggerClergySmallPlayerHit			\Default Work Unit\Clergy\TriggerClergySmallPlayerHit	
+	3535749687	ClergyChiff_FadeIn			\Default Work Unit\Clergy\Stems\ClergyChiff_FadeIn	
+	3582363560	ForestKeys2_Mute			\Default Work Unit\Forest\Stems\ForestKeys2_Mute	
+	3797400814	ForestHarp_FadeOut			\Default Work Unit\Forest\Stems\ForestHarp_FadeOut	
+	3822221927	ClergyCombatSynth_FadeIn			\Default Work Unit\Clergy\Stems\ClergyCombatSynth_FadeIn	
+	3859359968	ForestBass_FadeOut			\Default Work Unit\Forest\Stems\ForestBass_FadeOut	
+	4050988588	ClergyHighPiano_FadeIn			\Default Work Unit\Clergy\Stems\ClergyHighPiano_FadeIn	
+	4078546634	ClergyChiff_FadeOut			\Default Work Unit\Clergy\Stems\ClergyChiff_FadeOut	
+	4090379250	SetState_Forest			\Default Work Unit\AreaStates\SetState_Forest	
+	4092190060	ClergyLowPiano_Mute			\Default Work Unit\Clergy\Stems\ClergyLowPiano_Mute	
+	4152771809	ForestSynthPad_Mute			\Default Work Unit\Forest\Stems\ForestSynthPad_Mute	
+	4170249178	ClergyPlayerCharge_Mute			\Default Work Unit\Clergy\Stems\ClergyPlayerCharge_Mute	
+	4213686493	ForestKeys1_FadeIn			\Default Work Unit\Forest\Stems\ForestKeys1_FadeIn	
+	4221855272	ClergyCombatDrums_Mute			\Default Work Unit\Clergy\Stems\ClergyCombatDrums_Mute	
+	4232397232	ClergyLowPiano_FadeIn			\Default Work Unit\Clergy\Stems\ClergyLowPiano_FadeIn	
+
+State Group	ID	Name			Wwise Object Path	Notes
+	3189127347	CurrentArea			\Default Work Unit\CurrentArea	
+
+State	ID	Name	State Group			Notes
+	491961918	Forest	CurrentArea			
+	748895195	None	CurrentArea			
+	1866128945	Clergy	CurrentArea			
+
+Trigger	ID	Name			Wwise Object Path	Notes
+	792541133	ClergyVictoryStinger			\Default Work Unit\ClergyVictoryStinger	
+	2664006471	ClergyEnemyCharge			\Default Work Unit\ClergyEnemyCharge	
+	2855527090	ClergyPlayerSmallHit			\Default Work Unit\ClergyPlayerSmallHit	
+	3912663603	ClergyPlayerBigHit			\Default Work Unit\ClergyPlayerBigHit	
+	4230137495	ClergyEnemySmallHit			\Default Work Unit\ClergyEnemySmallHit	
+
+In Memory Audio	ID	Name	Audio source file		Wwise Object Path	Notes	Data Size
+	19311986	ClergyStem - Clergy Synth	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\ClergyStem - Clergy Synth 3_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Background Music\ClergyStem - Clergy Synth		3176824
+	26800994	Clergy_PlayerSmallHit	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Clergy_PlayerSmallHit2_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Player Small Hits\Clergy_PlayerSmallHit		40542
+	83062844	Clergy_PlayerSmallHit	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Clergy_PlayerSmallHit3_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Player Small Hits\Clergy_PlayerSmallHit		41403
+	92829271	Forest Loop - Combat perc	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Forest Loop - Combat perc_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Forest Background Music\Forest Loop\Forest Loop - Combat perc		1674704
+	98956701	ClergyStem - Low piano	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\ClergyStem - Low piano_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Background Music\ClergyStem - Low piano		1508134
+	120096609	Forest Intro - Harp	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Forest Intro - Harp_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Forest Background Music\Forest Intro\Forest Intro - Harp		114542
+	123161364	Forest Loop - Harp	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Forest Loop - Harp_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Forest Background Music\Forest Loop\Forest Loop - Harp		1613697
+	159812642	Forest Loop - Combat synth 1	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Forest Loop - Combat synth 1_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Forest Background Music\Forest Loop\Forest Loop - Combat synth 1		1707200
+	181576834	DrossVictoryStinger	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\DrossVictoryStinger_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Victory Stinger\DrossVictoryStinger		49496
+	188888642	Forest Intro - Bass	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Forest Intro - Bass_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Forest Background Music\Forest Intro\Forest Intro - Bass		1840
+	196343448	Clergy_PlayerSmallHit	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Clergy_PlayerSmallHit1_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Player Small Hits\Clergy_PlayerSmallHit		42282
+	239724574	Forest Loop - Music box	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Forest Loop - Music box_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Forest Background Music\Forest Loop\Forest Loop - Music box		1432635
+	244825492	Forest Intro - Synth pad	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Forest Intro - Synth pad_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Forest Background Music\Forest Intro\Forest Intro - Synth pad		120662
+	295701603	Forest Loop - Synth pad	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Forest Loop - Synth pad_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Forest Background Music\Forest Loop\Forest Loop - Synth pad		1300350
+	297956327	Clergy_EnemySmallHit1	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Clergy_EnemySmallHit3_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Enemy Small Hits\Clergy_EnemySmallHit1		41170
+	311445076	Forest Intro - Keys 2	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Forest Intro - Keys 2_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Forest Background Music\Forest Intro\Forest Intro - Keys 2		93329
+	355561072	Clergy_PlayerSmallHit	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Clergy_PlayerSmallHit4_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Player Small Hits\Clergy_PlayerSmallHit		40800
+	366062061	ClergyStem - High piano	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\ClergyStem - High piano fix_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Background Music\ClergyStem - High piano		1339609
+	443514291	ClergyStem - Combat drums	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\ClergyStem - Combat drums_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Background Music\ClergyStem - Combat drums		1637203
+	451354464	Clergy_EnemySmallHit1	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Clergy_EnemySmallHit5_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Enemy Small Hits\Clergy_EnemySmallHit1		40593
+	548898609	DrossBigHitsDemo	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\DrossBigHitsDemo_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Player Big Hits\DrossBigHitsDemo		211103
+	587922032	Forest Loop - Keys 2	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Forest Loop - Keys 2_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Forest Background Music\Forest Loop\Forest Loop - Keys 2		1328176
+	601621679	Clergy_PlayerSmallHit	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Clergy_PlayerSmallHit5_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Player Small Hits\Clergy_PlayerSmallHit		39624
+	602833753	Forest Intro - Keys 1	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Forest Intro - Keys 1_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Forest Background Music\Forest Intro\Forest Intro - Keys 1		102499
+	608252169	Clergy_EnemySmallHit1	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Clergy_EnemySmallHit2_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Enemy Small Hits\Clergy_EnemySmallHit1		41218
+	645808521	Clergy_EnemySmallHit1	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Clergy_EnemySmallHit1_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Enemy Small Hits\Clergy_EnemySmallHit1		41772
+	678026825	DrossEnemyChargeDemo	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\DrossEnemyChargeDemo_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Enemy Charge\DrossEnemyChargeDemo		31735
+	744760141	ClergyStem - Combat synth	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\ClergyStem - Combat synth_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Background Music\ClergyStem - Combat synth		1610424
+	752304627	ClergyStem - Organ	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\ClergyStem - Organ_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Background Music\ClergyStem - Organ		900563
+	783013939	Forest Loop - Combat synth 2	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Forest Loop - Combat synth 2_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Forest Background Music\Forest Loop\Forest Loop - Combat synth 2		605893
+	887696593	ClergyStem - Combat keys	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\ClergyStem - Combat keys_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Background Music\ClergyStem - Combat keys		1810188
+	913704626	Forest Intro - Music box	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Forest Intro - Music box_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Forest Background Music\Forest Intro\Forest Intro - Music box		69470
+	947335030	Clergy_EnemySmallHit1	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Clergy_EnemySmallHit4_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Enemy Small Hits\Clergy_EnemySmallHit1		42437
+	954991201	Forest Loop - Bass	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Forest Loop - Bass_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Forest Background Music\Forest Loop\Forest Loop - Bass		1200594
+	985111337	ClergyStem - Chiff piano	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\ClergyStem - Chiff piano fix_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Background Music\ClergyStem - Chiff piano		1278571
+	1006792690	Forest Loop - Keys 1	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\Forest Loop - Keys 1_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Forest Background Music\Forest Loop\Forest Loop - Keys 1		1679149
+	1017742300	ClergyStem - Player charge	C:\Users\megan\WwiseProjects\Dross\Dross-Wwise\Dross\.cache\Mac\SFX\DrossChargeDemo_9EDFC787.wem		\Interactive Music Hierarchy\Default Work Unit\Area Music\Clergy Background Music\Clergy Background Music\ClergyStem - Player charge		62328
+
