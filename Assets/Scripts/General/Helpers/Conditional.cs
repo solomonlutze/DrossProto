@@ -2,7 +2,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public enum ConditionType { TileType, TouchingTileWithTag, TouchingWall, ChargeLevel }
+public enum ConditionType { TileType, TouchingTileWithTag, TouchingWall, ChargeLevel, PartBroken }
 public enum Comparator { Equals, LessThan, LessOrEqual, GreaterThan, GreaterOrEqual }
 
 [System.Serializable]
@@ -50,6 +50,12 @@ public class Conditional<T>
           break;
         case ConditionType.ChargeLevel:
           if (!DoComparison(c.chargeLevel, condition._chargeLevel, condition.comparator))
+          {
+            return false;
+          }
+          break;
+        case ConditionType.PartBroken:
+          if (!c.IsBodyPartBroken(c.traitSlotsForSkills[c.activeSkill.id]))
           {
             return false;
           }

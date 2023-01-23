@@ -226,6 +226,18 @@ public class SkillEffect
     return 0;
   }
 
+  float GetDurationMultiplier(Character owner)
+  {
+    return owner.IsActiveSkillPartBroken() ? DrossConstants.BROKEN_PART_EFFECT_DURATION_MULTIPLIER : 1f;
+  }
+  public float GetMinDuration(Character owner)
+  {
+    return minDuration.get(owner) * GetDurationMultiplier(owner);
+  }
+  public float GetMaxDuration(Character owner)
+  {
+    return maxDuration.get(owner) * GetDurationMultiplier(owner);
+  }
   int _previousAttackSpawnCount = 0;
 
 }

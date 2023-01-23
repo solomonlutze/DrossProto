@@ -113,14 +113,14 @@ public class CharacterSkillData : ScriptableObject
       if (EndOnInputRelease(owner) &&
         !owner.pressingSkill == this &&
         (
-          (currentSkillEffect.minDuration.get(owner) > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.minDuration.get(owner))
-          || (currentSkillEffect.minDuration.get(owner) <= 0)
+          (currentSkillEffect.GetMinDuration(owner) > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.GetMinDuration(owner))
+          || (currentSkillEffect.GetMinDuration(owner) <= 0)
         )
       )
       {
         owner.AdvanceSkillEffect();
       }
-      else if (currentSkillEffect.maxDuration.get(owner) > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.maxDuration.get(owner))
+      else if (currentSkillEffect.GetMaxDuration(owner) > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.GetMaxDuration(owner))
       {
         owner.AdvanceSkillEffect();
       }
@@ -132,7 +132,7 @@ public class CharacterSkillData : ScriptableObject
     }
     else if (currentSkillEffect.useType == SkillEffectType.OneTime)
     {
-      if (owner.timeSpentInSkillEffect > currentSkillEffect.minDuration.get(owner))
+      if (owner.timeSpentInSkillEffect > currentSkillEffect.GetMinDuration(owner))
       {
         owner.AdvanceSkillEffect();
       }
@@ -149,7 +149,7 @@ public class CharacterSkillData : ScriptableObject
 
   public float GetActiveEffectDuration(Character owner)
   {
-    return GetActiveSkillEffect(owner).minDuration.get(owner);
+    return GetActiveSkillEffect(owner).GetMinDuration(owner);
   }
   public float GetActiveEffectMaxDuration(Character owner)
   {
@@ -190,11 +190,16 @@ public class CharacterSkillData : ScriptableObject
   {
     return GetActiveSkillEffect(owner).interruptable.get(owner);
   }
-
+  // // a skill _EFFECT_ is interruptable, but the ENTIRE SKILL gets interrupted.
+  // public bool SkillIsInterruptableWithEnvironmental Effec(Character owner)
+  // {
+  //   return GetActiveSkillEffect(owner).interruptable.get(owner);
+  // }
   public bool SkillEffectIsRepeatable(Character owner)
   {
     return GetActiveSkillEffect(owner).isRepeatable.Resolve(owner);
   }
+
 
   // Used only for pathfinding! Tells us that we can pivot from one use of the skill into the next.
   public bool SkillIsCancelable()
