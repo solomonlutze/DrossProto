@@ -5,7 +5,6 @@ using UnityEngine.Tilemaps;
 
 public class CustomPhysicsController : MonoBehaviour
 {
-
   private Rigidbody2D rb;
   protected ContactFilter2D contactFilter;
 

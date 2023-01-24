@@ -568,7 +568,7 @@ public class AiStateController : Character
   public List<TraitSlot> GetValidTraitSlotsForPickupItem()
   {
     List<TraitSlot> validSlots = new List<TraitSlot>();
-    if (GameMaster.Instance.GetPlayerController() == null) { return validSlots; }
+    if (GameMaster.Instance.GetPlayerController() == null) { Debug.Log("Couldn't find player??"); return validSlots; }
     foreach (TraitSlotToTraitDictionary collectedItem in GameMaster.Instance.collectedTraitItems)
     {
       foreach (TraitSlot slot in collectedItem.Keys)

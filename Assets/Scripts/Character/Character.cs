@@ -6,10 +6,12 @@ using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Tilemaps;
 
-
 // TODO: Character should probably extend CustomPhysicsController, which should extend WorldObject
 public class Character : WorldObject
 {
+  public static float BASE_SCRAMBLE_VELOCITY = 3.5f;
+  public static float SCRAMBLE_MAX_ANGLE = 45;
+
   [Header("Stats and Vitals")]
   public CharacterType characterType;
   public CharacterVitalToFloatDictionary vitals;
@@ -89,7 +91,7 @@ public class Character : WorldObject
   public bool sticking = false;
   public Coroutine skillCoroutine;
   protected Coroutine flyCoroutine;
-  protected Vector2 movementInput;
+  public Vector2 movementInput;
   // point in space we would like to face
   public Vector3 orientTowards;
   protected TileLocation currentTileLocation;
@@ -1381,7 +1383,7 @@ public class Character : WorldObject
   }
   public bool IsActiveSkillPartBroken()
   {
-    return partStatusInfos[traitSlotsForSkills[activeSkill.id]].IsBroken();
+    return activeSkill && traitSlotsForSkills.ContainsKey(activeSkill.id) && partStatusInfos[traitSlotsForSkills[activeSkill.id]].IsBroken();
   }
   public float GetBodyPartCurrentStamina(TraitSlot bodyPart)
   {
@@ -2136,10 +2138,12 @@ public class Character : WorldObject
     return wallObject == null || !GridManager.Instance.ShouldHaveCollisionWith(eti, ownZPosition - NORMALIZED_HOP_HEIGHT * GridConstants.Z_SPACING); // TODO: CLEAR MAGIC NUMBER
   }
 
-  public void OnWallObjectCollisionStay(Vector3 wallPosition)
+  public void OnWallObjectCollisionStay(Vector3 wallPosition, Vector2 normal)
   {
-    if (!UsingSkill() && movementInput != Vector2.zero && CanUseSkill(hopSkill) && CanHopUpAtLocation(transform.position.z, wallPosition))
+    float angle = Vector2.Angle(normal, movementInput);
+    if ((!UsingSkill() || activeSkill.SkillIsCancelable()) && movementInput != Vector2.zero && angle < SCRAMBLE_MAX_ANGLE && CanUseSkill(hopSkill) /*&& CanHopUpAtLocation(transform.position.z, wallPosition)*/)
     {
+      if (UsingSkill()) { InterruptSkill(hopSkill); return; }
       BeginSkill(hopSkill);
     }
   }

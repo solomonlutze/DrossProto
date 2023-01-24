@@ -2,7 +2,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public enum ConditionType { TileType, TouchingTileWithTag, TouchingWall, ChargeLevel, PartBroken }
+public enum ConditionType { TileType, TouchingTileWithTag, TouchingWall, ChargeLevel, PartBroken, MoveInputNormalizedMagnitude, VelocityNormalizedMagnitude } // NOTE: move input normalized against min scramble velocity (see character)
 public enum Comparator { Equals, LessThan, LessOrEqual, GreaterThan, GreaterOrEqual }
 
 [System.Serializable]
@@ -13,6 +13,8 @@ public class Condition
   public TileTag _tileType;
   public TileTag _touchingTileType;
   public int _chargeLevel;
+  public float _moveInputMagnitude;
+  public float _velocityMagnitude;
 }
 
 // NOTE: Conditionals and conditions will look uggo if you use them by themselves.
@@ -50,6 +52,18 @@ public class Conditional<T>
           break;
         case ConditionType.ChargeLevel:
           if (!DoComparison(c.chargeLevel, condition._chargeLevel, condition.comparator))
+          {
+            return false;
+          }
+          break;
+        case ConditionType.MoveInputNormalizedMagnitude:
+          if (!DoComparison(c.movementInput.magnitude, condition._moveInputMagnitude, condition.comparator))
+          {
+            return false;
+          }
+          break;
+        case ConditionType.VelocityNormalizedMagnitude:
+          if (!DoComparison((c.po.velocity.magnitude / Time.fixedDeltaTime) / Character.BASE_SCRAMBLE_VELOCITY, condition._velocityMagnitude, condition.comparator))
           {
             return false;
           }

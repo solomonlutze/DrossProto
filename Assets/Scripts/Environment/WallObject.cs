@@ -106,6 +106,11 @@ public class WallObject : MonoBehaviour, IPoolable
 
   void OnCollisionStay2D(Collision2D col)
   {
-    col.gameObject.SendMessage("OnWallObjectCollisionStay", transform.position, SendMessageOptions.DontRequireReceiver);
+    Character c = col.gameObject.GetComponentInParent<Character>();
+    if (c != null)
+    {
+      c.OnWallObjectCollisionStay(transform.position, col.contacts[0].normal);
+    }
+    // col.gameObject.SendMessage("OnWallObjectCollisionStay", transform.position, col.contacts[0].normal, SendMessageOptions.DontRequireReceiver);
   }
 }

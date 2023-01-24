@@ -31,10 +31,26 @@ public class ConditionDrawer : PropertyDrawer
         EditorGUI.PropertyField(conditionValueRect, property.FindPropertyRelative("_touchingTileType"), new GUIContent("is"));
         break;
       case ConditionType.ChargeLevel:
-        int _comparatorIndex = EditorGUI.Popup(comparatorValueRect, property.FindPropertyRelative("comparator").intValue, _comparatorChoices);
-        property.FindPropertyRelative("comparator").intValue = _comparatorIndex;
-        EditorGUI.PropertyField(conditionWithComparatorValueRect, property.FindPropertyRelative("_chargeLevel"), new GUIContent(""));
-        break;
+        {
+          int _comparatorIndex = EditorGUI.Popup(comparatorValueRect, property.FindPropertyRelative("comparator").intValue, _comparatorChoices);
+          property.FindPropertyRelative("comparator").intValue = _comparatorIndex;
+          EditorGUI.PropertyField(conditionWithComparatorValueRect, property.FindPropertyRelative("_chargeLevel"), new GUIContent(""));
+          break;
+        }
+      case ConditionType.MoveInputNormalizedMagnitude:
+        {
+          int _comparatorIndex = EditorGUI.Popup(comparatorValueRect, property.FindPropertyRelative("comparator").intValue, _comparatorChoices);
+          property.FindPropertyRelative("comparator").intValue = _comparatorIndex;
+          EditorGUI.PropertyField(conditionWithComparatorValueRect, property.FindPropertyRelative("_moveInputMagnitude"), new GUIContent(""));
+          break;
+        }
+      case ConditionType.VelocityNormalizedMagnitude:
+        {
+          int _comparatorIndex = EditorGUI.Popup(comparatorValueRect, property.FindPropertyRelative("comparator").intValue, _comparatorChoices);
+          property.FindPropertyRelative("comparator").intValue = _comparatorIndex;
+          EditorGUI.PropertyField(conditionWithComparatorValueRect, property.FindPropertyRelative("_velocityMagnitude"), new GUIContent(""));
+          break;
+        }
     }
 
     EditorGUIUtility.labelWidth = labelWidth;
