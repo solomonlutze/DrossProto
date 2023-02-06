@@ -142,7 +142,7 @@ public class WorldGridData : ScriptableObject
   public static void DecreaseFloorHeightToPaint()
   {
     heightToPaint -= .2f;
-    if (heightToPaint < 0.0001)
+    if (heightToPaint < 0.1)
     {
       heightToPaint = 0;
     }

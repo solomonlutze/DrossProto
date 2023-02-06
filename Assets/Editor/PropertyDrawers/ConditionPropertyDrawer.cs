@@ -6,7 +6,7 @@ public class ConditionDrawer : PropertyDrawer
 {
 
   // NOTE: these must be in the same order as their Comparator counterparts or this doesn't work!
-  string[] _comparatorChoices = new[] { "=", "<", "<=", ">", ">=" };
+  string[] _comparatorChoices = new[] { "=", "<", "<=", ">", ">=", "!=" };
   public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
   {
     EditorGUI.BeginProperty(position, label, property);

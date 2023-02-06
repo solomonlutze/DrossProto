@@ -66,6 +66,10 @@ public class SkillEffect
   public Overrideable<bool> interruptable = new Overrideable<bool>(false);
   [Tooltip("Defines whether this (or another) skill can be used to interrupt this effect and subsequent effects")]
   public Overrideable<bool> cancelable = new Overrideable<bool>(false);
+  [Tooltip("If this effect is canceled, the character should instantly change directions. Mostly for scramble skills.")]
+  public Overrideable<bool> reverseDirectionIfCanceled = new Overrideable<bool>(false);
+  [Tooltip("Indicates a scramble action. Used for determining whether other skills can be used.")]
+  public Overrideable<bool> scrambling = new Overrideable<bool>(false);
 
   [Tooltip("Defines whether an input of this skill should end this effect and move to the next")]
   public Overrideable<bool> advanceable = new Overrideable<bool>(false);

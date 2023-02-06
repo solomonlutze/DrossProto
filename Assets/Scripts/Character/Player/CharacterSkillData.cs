@@ -47,6 +47,11 @@ public class CharacterSkillData : ScriptableObject
 
   [Tooltip("time a skill has to not be in use before it starts to recover")]
   public float staminaRecoveryCooldown;
+
+  //TODO: move to skill effect?
+  [Tooltip("indicates we can start this skill while scrambling.")]
+
+  public bool canUseWhileScrambling;
   public SkillEffectSet[] skillEffectSets;
 
   [SerializeField]
@@ -120,6 +125,7 @@ public class CharacterSkillData : ScriptableObject
       {
         owner.AdvanceSkillEffect();
       }
+      else if (!GetShouldExecute(owner)) { owner.AdvanceSkillEffect(); }
       else if (currentSkillEffect.GetMaxDuration(owner) > 0 && owner.timeSpentInSkillEffect > currentSkillEffect.GetMaxDuration(owner))
       {
         owner.AdvanceSkillEffect();
@@ -227,6 +233,16 @@ public class CharacterSkillData : ScriptableObject
   {
     return GetActiveSkillEffect(owner).cancelable.get(owner);
   }
+
+  public bool ReversesDirectionOnCancel(Character owner)
+  {
+    return GetActiveSkillEffect(owner).reverseDirectionIfCanceled.get(owner);
+  }
+  public bool Scrambling(Character owner)
+  {
+    return GetActiveSkillEffect(owner).scrambling.get(owner);
+  }
+
   public bool SkillMovesCharacter(Character owner)
   {
     return GetActiveSkillEffect(owner).movement.Count > 0;
@@ -238,7 +254,7 @@ public class CharacterSkillData : ScriptableObject
   public bool SkillMovesCharacterVertically(Character owner)
   {
     return GetActiveSkillEffect(owner).movement.ContainsKey(SkillEffectMovementProperty.MoveUp)
-    && (GetActiveSkillEffect(owner).movement[SkillEffectMovementProperty.MoveUp].magnitude.Resolve(owner) > 0);
+    && (GetActiveSkillEffect(owner).movement[SkillEffectMovementProperty.MoveUp].magnitude.Resolve(owner) != 0);
   }
 
   public bool SkillProvidesMovementAbility(CharacterMovementAbility movementAbility)

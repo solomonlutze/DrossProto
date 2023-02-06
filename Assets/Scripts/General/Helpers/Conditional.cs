@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 public enum ConditionType { TileType, TouchingTileWithTag, TouchingWall, ChargeLevel, PartBroken, MoveInputNormalizedMagnitude, VelocityNormalizedMagnitude } // NOTE: move input normalized against min scramble velocity (see character)
-public enum Comparator { Equals, LessThan, LessOrEqual, GreaterThan, GreaterOrEqual }
+public enum Comparator { Equals, LessThan, LessOrEqual, GreaterThan, GreaterOrEqual, NotEqual }
 
 [System.Serializable]
 public class Condition
@@ -121,6 +121,8 @@ public class Conditional<T>
     {
       case Comparator.Equals:
         return target == value;
+      case Comparator.NotEqual:
+        return target != value;
       case Comparator.LessThan:
         return value < target;
       case Comparator.LessOrEqual:

@@ -11,6 +11,7 @@ public class Character : WorldObject
 {
   public static float BASE_SCRAMBLE_VELOCITY = 3.5f;
   public static float SCRAMBLE_MAX_ANGLE = 45;
+  public static float REVERSE_DIRECTION_INPUT_DELAY = .6f;
 
   [Header("Stats and Vitals")]
   public CharacterType characterType;
@@ -116,6 +117,7 @@ public class Character : WorldObject
   protected List<string> sourceInvulnerabilities;
   public float footstepCooldown = 0.0f;
   public float maxFootstepCooldown = 0.2f;
+  public float reverseDirectionRotationCooldown = 0.0f;
 
   public bool dashAttackQueued = false;
   public int chargeLevel = 0;
@@ -514,9 +516,19 @@ public class Character : WorldObject
   public void InterruptSkill(CharacterSkillData skill)
   {
     activeSkill.CleanUp(this);
+    if (activeSkill.ReversesDirectionOnCancel(this))
+    {
+      Vector3 rot = orientation.rotation.eulerAngles;
+      rot = new Vector3(rot.x, rot.y, rot.z + 180);
+      orientation.rotation = Quaternion.Euler(rot);
+      Input.ResetInputAxes();
+      reverseDirectionRotationCooldown = REVERSE_DIRECTION_INPUT_DELAY;
+      // orientation.rotation = Quaternion.AngleAxis(180, Vector3.forward);
+    }
     currentSkillEffectIndex = 0;
     currentSkillEffectSetIndex = 0;
     timeSpentInSkillEffect = 0;
+
     BeginSkill(skill);
   }
 
@@ -568,10 +580,11 @@ public class Character : WorldObject
   void HandleFacingDirection()
   {
     if (
-      (animationPreventsMoving || stunned || carapaceBroken)
+      (animationPreventsMoving || stunned || carapaceBroken || reverseDirectionRotationCooldown > 0)
       && !activeMovementAbilities.Contains(CharacterMovementAbility.Halteres)
     )
     {
+      Debug.Log("can't turn!");
       return;
     }
     if (movementInput != Vector2.zero)
@@ -1090,7 +1103,7 @@ public class Character : WorldObject
   public virtual bool CanUseSkill(CharacterSkillData skillData, int effectSetIndex = 0)
   {
     if (
-      (IsMidair() && !skillData.skillEffectSets[effectSetIndex].canUseInMidair)
+      (IsMidair() && !skillData.skillEffectSets[effectSetIndex].canUseInMidair && !(activeSkill && activeSkill.Scrambling(this) && skillData.canUseWhileScrambling))
       || stunned
       || molting
       || carapaceBroken
@@ -2056,6 +2069,10 @@ public class Character : WorldObject
     {
       footstepCooldown -= Time.deltaTime;
     }
+    if (reverseDirectionRotationCooldown > 0)
+    {
+      reverseDirectionRotationCooldown -= Time.deltaTime;
+    }
     foreach (DamageType type in (DamageType[])Enum.GetValues(typeof(DamageType)))
     {
       elementalDamageBuildups.TryGetValue(type, out ElementalDamageBuildup buildup);
@@ -2141,7 +2158,7 @@ public class Character : WorldObject
   public void OnWallObjectCollisionStay(Vector3 wallPosition, Vector2 normal)
   {
     float angle = Vector2.Angle(normal, movementInput);
-    if ((!UsingSkill() || activeSkill.SkillIsCancelable()) && movementInput != Vector2.zero && angle < SCRAMBLE_MAX_ANGLE && CanUseSkill(hopSkill) /*&& CanHopUpAtLocation(transform.position.z, wallPosition)*/)
+    if ((!UsingSkill() || activeSkill.SkillIsCancelable(this)) && movementInput != Vector2.zero && angle < SCRAMBLE_MAX_ANGLE && CanUseSkill(hopSkill) /*&& CanHopUpAtLocation(transform.position.z, wallPosition)*/)
     {
       if (UsingSkill()) { InterruptSkill(hopSkill); return; }
       BeginSkill(hopSkill);
