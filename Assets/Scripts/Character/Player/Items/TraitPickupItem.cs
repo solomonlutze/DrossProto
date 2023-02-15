@@ -12,7 +12,7 @@ public class TraitPickupItem : PickupItem
     set { }
   }
 
-  void PlayerActivate()
+  public override void PlayerActivate()
   {
     if (GameMaster.Instance.GetPlayerController() != null)
     {

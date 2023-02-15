@@ -44,13 +44,14 @@ public enum MusicStem
 }
 
 [System.Serializable]
-public class InfoTile : Tile
+public class InfoTile : EnvironmentTile
 {
-  [Tooltip("This tile won't change ")]
+  [Tooltip("This tile won't change music")]
   public bool neutralTile;
   public string areaName;
+  public bool canLayEgg;
   public List<MusicStem> musicStems;
-  public FloorTilemapType floorTilemapType = FloorTilemapType.Info;
+  // floorTilemapType = FloorTilemapType.Info;
 
 #if UNITY_EDITOR
   // The following is a helper that adds a menu item to create an EnvironmentTile Asset

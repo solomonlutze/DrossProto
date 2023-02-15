@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public enum InventoryItemType { Currency, Weapon, Consumable, Trait }
+public enum InventoryItemType { Currency, Weapon, Consumable, Trait, Food }
 
 public class PickedUpItem
 {

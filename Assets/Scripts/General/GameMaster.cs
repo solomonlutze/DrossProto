@@ -22,6 +22,7 @@ public class GameMaster : Singleton<GameMaster>
   public ParticleSystemMaster particleSystemMaster;
   public InputGlyphHelper inputGlyphHelper;
   public GameObject playerPrefab;
+  public Egg eggPrefab;
   public DialogueRunner dialogueRunner;
   public PlayerHUD playerHud;
   public VariableStorage dialogueVariableStorage;
@@ -33,6 +34,11 @@ public class GameMaster : Singleton<GameMaster>
   // Saved when player dies so their next life can be preserved
   public TraitSlotToTraitDictionary cachedPupa;
   public List<TraitSlotToTraitDictionary> collectedTraitItems;
+  public int foodRequiredForEgg;
+  public int maxFood;
+  public List<FoodInfo> collectedFood;
+  public List<LaidEggInfo> laidEggs;
+  public int selectedEgg = 0;
   public GameObject[] spawnPoints;
 
   public BaseVariable[] variablesToClearOnRespawn;
@@ -44,6 +50,7 @@ public class GameMaster : Singleton<GameMaster>
   public LymphTypeToSpriteDictionary lymphTypeToSpriteMapping;
   public CombatJuiceData combatJuiceConstants;
   public SettingsData settingsData;
+  public float cycleLength;
   public Stopwatch timeSinceStartup;
   public Camera mainCamera;
   public Camera camera2D; // god save me
@@ -61,6 +68,8 @@ public class GameMaster : Singleton<GameMaster>
     fixedDeltaTime = Time.fixedDeltaTime;
     objectsToDestroyOnRespawn = new List<GameObject>();
     collectedTraitItems = new List<TraitSlotToTraitDictionary>();
+    collectedFood = new List<FoodInfo>();
+    laidEggs = new List<LaidEggInfo>();
     pathfinding = GetComponent<PathfindingSystem>();
     SetGameStatus(startingGameStatus);
     switch (GetGameStatus())
@@ -91,6 +100,10 @@ public class GameMaster : Singleton<GameMaster>
   void Update()
   {
     HandleInput();
+    if (playerController && timeSinceStartup.ElapsedMilliseconds / 1000f > cycleLength)
+    {
+      playerController.Die();
+    }
   }
 
   private void HandleInput()
@@ -134,10 +147,15 @@ public class GameMaster : Singleton<GameMaster>
   }
   private void HandleDeadInput()
   {
+    if (rewiredPlayer.GetButtonDown("UISubmit"))
+    {
+      selectedEgg = Mathf.FloorToInt(Mathf.Repeat(selectedEgg + 1, laidEggs.Count));
+    }
     if (rewiredPlayer.GetButtonDown("Respawn"))
     {
-      SetGameStatus(DrossConstants.GameState.EquipTraits);
-      canvasHandler.DisplayEquipTraitsView();
+      ConfirmEquipAndRespawn();
+      // SetGameStatus(DrossConstants.GameState.EquipTraits);
+      // canvasHandler.DisplayEquipTraitsView();
     }
   }
 
@@ -183,6 +201,7 @@ public class GameMaster : Singleton<GameMaster>
 
   public void Restart()
   {
+    timeSinceStartup.Restart();
     UnpauseGame();
     if (playerController != null)
     {
@@ -210,13 +229,13 @@ public class GameMaster : Singleton<GameMaster>
     }
     else
     {
-      GameObject spawnPoint = ChooseSpawnPoint();
+      TileLocation spawnPoint = ChooseSpawnPoint();
       FloorLayer fl = FloorLayer.F1;
       if (spawnPoint != null)
       {
-        fl = spawnPoint.GetComponent<SpawnPoint>().GetTileLocation().floorLayer;
+        fl = spawnPoint.floorLayer;
       }
-      playerController = Instantiate(playerPrefab, spawnPoint.transform.position, Quaternion.identity).GetComponent<PlayerController>();
+      playerController = Instantiate(playerPrefab, spawnPoint.cellCenterWorldPosition, Quaternion.identity).GetComponent<PlayerController>();
       playerController.currentFloor = fl;
     }
     playerController.SetCurrentFloor(playerController.currentFloor);
@@ -294,9 +313,15 @@ public class GameMaster : Singleton<GameMaster>
     objectsToDestroyOnRespawn.Clear();
   }
 
-  private GameObject ChooseSpawnPoint()
+  private TileLocation ChooseSpawnPoint()
   {
-    return nextSpawnPoint ?? null;
+    if (laidEggs.Count > 0)
+    {
+      TileLocation loc = laidEggs[selectedEgg].location;
+      laidEggs.RemoveAt(selectedEgg);
+      return loc;
+    }
+    return nextSpawnPoint.GetComponent<SpawnPoint>().GetTileLocation() ?? null;
     // if (spawnPoints.Length > 0) {
     // 	previousSpawnPoint = (int) Mathf.Repeat(previousSpawnPoint+1, spawnPoints.Length);
     // 	return spawnPoints[previousSpawnPoint];
@@ -346,6 +371,38 @@ public class GameMaster : Singleton<GameMaster>
   public void ClearCollectedTraitItems()
   {
     collectedTraitItems.Clear();
+  }
+
+  public void AddCollectedFoodItem(FoodInfo food)
+  {
+    collectedFood.Add(food);
+    UnityEngine.Debug.Log("Collected food " + food + ", collected " + collectedFood.Count + "/" + maxFood);
+  }
+  public void ClearCollectedFoodItems()
+  {
+    collectedFood.Clear();
+  }
+
+  public void LayEgg()
+  {
+    Egg newEgg = Instantiate(eggPrefab, playerController.transform.position, Quaternion.identity);
+    WorldObject.ChangeLayersRecursively(newEgg.transform, playerController.gameObject.layer);
+    LaidEggInfo info = new LaidEggInfo(playerController.GetTileLocation(), playerController.traits);
+    List<TraitSlot> shuffledSlots = Utils.ShuffleEnum<TraitSlot>();
+    for (int i = 0; i < foodRequiredForEgg; i++)
+    {
+      UnityEngine.Debug.Log("food count: " + collectedFood.Count + ", food: " + collectedFood[0].foodType + ", trait: " + collectedFood[0].traits);
+      if (collectedFood[0].foodType == FoodType.Lymph && collectedFood[0].traits != null)
+      {
+        UnityEngine.Debug.Log("assigning trait " + shuffledSlots[0]);
+        info.slots[shuffledSlots[0]] = collectedFood[0].traits[shuffledSlots[0]];
+        shuffledSlots.RemoveAt(0);
+      }
+      collectedFood.RemoveAt(0);
+    }
+    UnityEngine.Debug.Log("laid an egg!");
+    laidEggs.Add(info);
+
   }
   public List<TraitSlotToTraitDictionary> GetCollectedTraitItems()
   {

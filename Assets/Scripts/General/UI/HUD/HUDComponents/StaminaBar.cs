@@ -57,7 +57,6 @@ public class StaminaBar : MonoBehaviour
     staminaBarContentsSprite.color = defaultStaminaColor;
     staminaBarContainer.alpha = 1;
     breakingPointLineScale = breakingPointLine.transform.parent.GetComponent<RectTransform>().rect.height;
-    Debug.Log("breakingPointLineScale: " + breakingPointLineScale);
   }
 
   void HandleStaminaBar()
@@ -66,7 +65,6 @@ public class StaminaBar : MonoBehaviour
     float maxStamina = 100;
     float currentMaxStamina = partStatusInfo.maxDamage - partStatusInfo.currentDamage;
     float currentBreakingPoint = partStatusInfo.breakingPoint;
-    Debug.Log("currentBreakingPoint: " + currentBreakingPoint);
     // if (!character.blocking && !character.staminaBroken)
     // {
     //   staminaBarContainer.alpha -= Time.deltaTime / staminaBarFadeTime;
@@ -93,7 +91,6 @@ public class StaminaBar : MonoBehaviour
     }
     staminaBarContentsFill.localScale = new Vector3(currentStamina / maxStamina * defaultScale.x, defaultScale.y, 0);
     staminaBarMaxContentsFill.localScale = new Vector3((maxStamina - currentMaxStamina) / maxStamina * defaultMaxScale.x, defaultMaxScale.y, 0);
-    Debug.Log("x position: " + -breakingPointLineScale * currentBreakingPoint / 100);
     breakingPointLine.localPosition = new Vector3(breakingPointLineScale * currentBreakingPoint / 100 - breakingPointLineScale, breakingPointLine.localPosition.y, breakingPointLine.localPosition.z);
     // if (character.staminaBroken)
     // {

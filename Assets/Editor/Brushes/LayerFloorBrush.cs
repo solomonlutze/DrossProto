@@ -14,12 +14,16 @@ namespace UnityEditor.Tilemaps
   {
     public override void BoxFill(GridLayout gridLayout, GameObject brushTarget, BoundsInt position)
     {
+      Debug.Log("boxfill");
       EnvironmentTile tile = null;
 
       if (cells.Length > 0)
       {
+        Debug.Log("cells exist");
         tile = cells[0].tile as EnvironmentTile;
       }
+      Debug.Log("tile: " + tile);
+
       if (tile != null)
       {
         // get tile type
@@ -70,21 +74,27 @@ namespace UnityEditor.Tilemaps
         base.BoxFill(gridLayout, brushTarget, position);
         // this section insures a given tile ONLY has water OR ground, not both
         GameObject tilemapToEraseOn = null;
+        bool shouldSetTileHeight = false;
         if (tile.floorTilemapType == FloorTilemapType.Ground)
         {
+          shouldSetTileHeight = true;
           tilemapToEraseOn = brushTargetParent.Find(brushTargetParent.gameObject.name + "_Water").gameObject;
         }
         else if (tile.floorTilemapType == FloorTilemapType.Water)
         {
+          shouldSetTileHeight = true;
           tilemapToEraseOn = brushTargetParent.Find(brushTargetParent.gameObject.name + "_Ground").gameObject;
         }
         if (tilemapToEraseOn != null)
         {
           base.BoxErase(gridLayout, tilemapToEraseOn, position);
         }
-        foreach (Vector3Int location in position.allPositionsWithin)
+        if (shouldSetTileHeight)
         {
-          GridManager.Instance.worldGridData.PaintFloorHeight(WorldObject.GetFloorLayerOfGameObject(brushTarget), location, tile);
+          foreach (Vector3Int location in position.allPositionsWithin)
+          {
+            GridManager.Instance.worldGridData.PaintFloorHeight(WorldObject.GetFloorLayerOfGameObject(brushTarget), location, tile);
+          }
         }
       }
     }

@@ -37,4 +37,21 @@ public class Utils
     var v = Enum.GetValues(typeof(T));
     return (T)v.GetValue(_R.Next(v.Length));
   }
+  public static List<T> ShuffleEnum<T>()
+  {
+    List<T> values = new List<T>((T[])Enum.GetValues(typeof(T)));
+    Utils.Shuffle<T>(values);
+    return values;
+  }
+
+  public static void Shuffle<T>(List<T> list)
+  {
+    for (int i = 0; i < list.Count; i++)
+    {
+      T temp = list[i];
+      int randomIndex = UnityEngine.Random.Range(i, list.Count);
+      list[i] = list[randomIndex];
+      list[randomIndex] = temp;
+    }
+  }
 }

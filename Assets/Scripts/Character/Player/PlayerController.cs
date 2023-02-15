@@ -161,21 +161,42 @@ public class PlayerController : Character
     // {
     //   AddContextualAction("climb", ClimbAdjacentTile);
     // }
-    if (GridManager.Instance.AdjacentTileIsValid(GetTileLocation(), TilemapDirection.Above) && GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
+
+    if (tile.infoTileType != null && tile.infoTileType.canLayEgg)
     {
-      Debug.Log("adding ascend action");
-      AddContextualAction("ascend", AscendOneFloor);
+      AddContextualAction(
+          "Lay Egg",
+          () => TryToLayEgg()
+        );
     }
-    if (GridManager.Instance.AdjacentTileIsValid(GetTileLocation(), TilemapDirection.Below) && GridManager.Instance.CanDescendThroughCurrentTile(GetTileLocation(), this))
-    {
-      AddContextualAction("descend", DescendOneFloor);
-    }
+    // if (GridManager.Instance.AdjacentTileIsValid(GetTileLocation(), TilemapDirection.Above) && GridManager.Instance.CanAscendThroughTileAbove(GetTileLocation(), this))
+    // {
+    //   Debug.Log("adding ascend action");
+    //   AddContextualAction("ascend", AscendOneFloor);
+    // }
+    // if (GridManager.Instance.AdjacentTileIsValid(GetTileLocation(), TilemapDirection.Below) && GridManager.Instance.CanDescendThroughCurrentTile(GetTileLocation(), this))
+    // {
+    //   AddContextualAction("descend", DescendOneFloor);
+    // }
     if (selectedContextualActionIdx > 0 && selectedContextualActionIdx >= availableContextualActions.Count)
     {
       selectedContextualActionIdx = 0;
     }
   }
 
+  void TryToLayEgg()
+  {
+    Debug.Log("Trying to lay egg");
+    if (GameMaster.Instance.collectedFood.Count >= GameMaster.Instance.foodRequiredForEgg)
+    {
+      Debug.Log("gonna do it!");
+      GameMaster.Instance.LayEgg();
+    }
+    else
+    {
+      Debug.Log("get more food babe!");
+    }
+  }
   // public void UseSelectedSkill()
   // {
   //   if (characterSkills[selectedSkillIdx] != null)
