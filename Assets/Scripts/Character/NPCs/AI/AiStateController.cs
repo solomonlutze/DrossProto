@@ -542,18 +542,19 @@ public class AiStateController : Character
     alreadyDroppedItems = true;
     foreach (PickupItem item in itemDrops)
     {
-      TraitPickupItem traitItem = (TraitPickupItem)item;
+      FoodPickupItem traitItem = (FoodPickupItem)item;
       if (traitItem != null)
       {
         traitItem.traits = new TraitSlotToTraitDictionary();
-        List<TraitSlot> validSlots = GetValidTraitSlotsForPickupItem();
-        if (validSlots.Count == 0)
-        {
-          Debug.Log("no valid slots, not dropping item");
-          return;
-        }
-        TraitSlot slot = validSlots[UnityEngine.Random.Range(0, validSlots.Count)];
-        traitItem.traits[slot] = traits[slot];
+        traitItem.traits = traits;
+        // List<TraitSlot> validSlots = GetValidTraitSlotsForPickupItem();
+        // if (validSlots.Count == 0)
+        // {
+        //   Debug.Log("no valid slots, not dropping item");
+        //   return;
+        // }
+        // TraitSlot slot = validSlots[UnityEngine.Random.Range(0, validSlots.Count)];
+        // traitItem.traits[slot] = traits[slot];
       }
       GameObject instantiatedItem = Instantiate(item.gameObject, transform.position, transform.rotation);
       WorldObject.ChangeLayersRecursively(instantiatedItem.transform, GetFloorLayer());

@@ -260,9 +260,9 @@ public class GameMaster : Singleton<GameMaster>
       yield return null;
     }
     UnpauseGame();
+    DoDestroyOnPlayerRespawn();
     // AkSoundEngine.PostEvent("PlayClergyLoop", GameMaster.Instance.gameObject);
     DoActivateOnPlayerRespawn();
-    DoDestroyOnPlayerRespawn();
     SetGameStatus(DrossConstants.GameState.Play);
   }
 
@@ -392,7 +392,7 @@ public class GameMaster : Singleton<GameMaster>
     for (int i = 0; i < foodRequiredForEgg; i++)
     {
       UnityEngine.Debug.Log("food count: " + collectedFood.Count + ", food: " + collectedFood[0].foodType + ", trait: " + collectedFood[0].traits);
-      if (collectedFood[0].foodType == FoodType.Lymph && collectedFood[0].traits != null)
+      if (collectedFood[0].foodType == FoodType.Lymph && collectedFood[0].traits != null && collectedFood[0].traits[shuffledSlots[0]] != null)
       {
         UnityEngine.Debug.Log("assigning trait " + shuffledSlots[0]);
         info.slots[shuffledSlots[0]] = collectedFood[0].traits[shuffledSlots[0]];
