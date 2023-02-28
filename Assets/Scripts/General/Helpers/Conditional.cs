@@ -2,7 +2,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public enum ConditionType { TileType, TouchingTileWithTag, TouchingWall, ChargeLevel, PartBroken, MoveInputNormalizedMagnitude, VelocityNormalizedMagnitude } // NOTE: move input normalized against min scramble velocity (see character)
+public enum ConditionType { TileType, TouchingTileWithTag, TouchingWall, ChargeLevel, PartBroken, MoveInputNormalizedMagnitude, VelocityNormalizedMagnitude, CurrentFoodCount } // NOTE: move input normalized against min scramble velocity (see character)
 public enum Comparator { Equals, LessThan, LessOrEqual, GreaterThan, GreaterOrEqual, NotEqual }
 
 [System.Serializable]
@@ -13,6 +13,7 @@ public class Condition
   public TileTag _tileType;
   public TileTag _touchingTileType;
   public int _chargeLevel;
+  public int _currentFoodCount;
   public float _moveInputMagnitude;
   public float _velocityMagnitude;
 }
@@ -52,6 +53,12 @@ public class Conditional<T>
           break;
         case ConditionType.ChargeLevel:
           if (!DoComparison(c.chargeLevel, condition._chargeLevel, condition.comparator))
+          {
+            return false;
+          }
+          break;
+        case ConditionType.CurrentFoodCount:
+          if (!DoComparison(GameMaster.Instance.collectedFood.Count, condition._currentFoodCount, condition.comparator))
           {
             return false;
           }

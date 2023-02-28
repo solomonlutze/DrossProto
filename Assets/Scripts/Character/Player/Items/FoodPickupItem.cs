@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum FoodType { Mushroom = 0, Lymph = 1 }
+public enum FoodType { Mushroom = 0, Tarball = 2, Godfossil = 3, Lymph = 1 }
 
 public class FoodInfo
 {
@@ -30,7 +30,7 @@ public class FoodPickupItem : PickupItem
   public override void PlayerActivate()
   {
     Debug.Log("activate food?");
-    if (GameMaster.Instance.collectedFood.Count < GameMaster.Instance.maxFood)
+    if (GameMaster.Instance.CanEat(foodType))
     {
       GameMaster.Instance.AddCollectedFoodItem(new FoodInfo(foodType, traits));
       Destroy(gameObject);

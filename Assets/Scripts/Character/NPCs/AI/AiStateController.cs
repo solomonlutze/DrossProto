@@ -18,6 +18,7 @@ public class AiStateController : Character
     }
   }
   [HideInInspector] public float timeSpentInState;
+  [HideInInspector] public int timeSkillUsed = 0;
   [HideInInspector] public float attackCooldownTimer;
 
   [Header("AI Attributes")]
@@ -106,6 +107,7 @@ public class AiStateController : Character
 
   public override void BeginSkill(CharacterSkillData skill)
   {
+    timeSkillUsed++;
     base.BeginSkill(skill);
   }
 
@@ -125,6 +127,7 @@ public class AiStateController : Character
     if (nextState != remainState)
     {
       timeSpentInState = 0f;
+      timeSkillUsed = 0;
       currentState.OnExit(this);
       currentState = nextState;
       // Debug.Log("transitioned to state " + currentState);

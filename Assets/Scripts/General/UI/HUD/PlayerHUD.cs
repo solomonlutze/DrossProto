@@ -14,6 +14,8 @@ public class PlayerHUD : MonoBehaviour
   public ElementalBuildupBar fungalBuildupBar;
   // public StaminaBar staminaBar;
   public SuperTextMesh grubCountText;
+  public SuperTextMesh dietText;
+  public SuperTextMesh eggProgressText;
   private SuperTextMesh diedText;
   private SuperTextMesh victoryText;
   private SuperTextMesh respawnText;
@@ -76,6 +78,18 @@ public class PlayerHUD : MonoBehaviour
           selectedSkillTexts[i].text = playerController.characterSkills[Trait.slots[i]].displayName;
         }
       }
+      List<string> dietString = new List<string>() { "Diet: " };
+      foreach (FoodType food in GameMaster.Instance.GetDiet().Keys)
+      {
+        dietString.Add(food.ToString());
+        dietString.Add(GameMaster.Instance.GetEatenFoodOfType(food).ToString());
+        dietString.Add("/");
+        dietString.Add(GameMaster.Instance.GetDiet()[food].ToString());
+        dietString.Add(", ");
+      }
+      UnityEngine.Debug.Log(System.String.Join("", dietString));
+      dietText.text = System.String.Join("", dietString);
+      eggProgressText.text = "Food for egg: " + GameMaster.Instance.collectedFood.Count + "/" + GameMaster.Instance.foodRequiredForEgg;
     }
     else if (playerExists && playerController == null)
     { //  Character just died (presumably)

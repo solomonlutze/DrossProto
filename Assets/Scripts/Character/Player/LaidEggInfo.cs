@@ -5,11 +5,13 @@ using UnityEngine;
 public class LaidEggInfo
 {
   public TileLocation location;
-  public TraitSlotToTraitDictionary slots;
+  public TraitSlotToTraitDictionary traits;
+  public GameObject eggInstance;
 
-  public LaidEggInfo(TileLocation tl, TraitSlotToTraitDictionary t)
+  public LaidEggInfo(TileLocation tl, TraitSlotToTraitDictionary t, GameObject e)
   {
     location = tl;
-    slots = t;
+    traits = new TraitSlotToTraitDictionary(t);
+    eggInstance = e;
   }
 }

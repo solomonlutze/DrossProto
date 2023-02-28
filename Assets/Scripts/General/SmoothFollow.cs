@@ -25,8 +25,17 @@ public class SmoothFollow : MonoBehaviour
     if (GameMaster.Instance.GetPlayerController() != null)
     {
       target = GameMaster.Instance.GetPlayerController().transform;
-      Vector3 calculatedOffset = (offset + (GameMaster.Instance.GetPlayerController().InCrit() ? critOffset : Vector3.zero));
-      transform.position = Vector3.SmoothDamp(truePosition, target.transform.position + calculatedOffset, ref velocity, dampTime);
+    }
+    else
+    {
+      if (GameMaster.Instance.laidEggs.Count > 0)
+      {
+        target = GameMaster.Instance.GetSelectedEggLocation();
+      }
+    }
+    if (target != null)
+    {
+      transform.position = Vector3.SmoothDamp(truePosition, target.transform.position + offset, ref velocity, dampTime);
       truePosition = transform.position;
     }
     if (cameraShakeTime > 0)

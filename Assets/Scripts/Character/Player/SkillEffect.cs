@@ -95,6 +95,7 @@ public class SkillEffect
   [Tooltip("Max time to spend in skill effect. Only for continuous effects!")]
   public Overrideable<float> maxDuration;
 
+  public Overrideable<int> foodConsumed;
   public SkillEffectPropertyToFloat properties;
   public SkillEffectDamageMultiplierToFloat damageMultipliers;
   public SkillEffectMovementPropertyToCurve movement;
@@ -115,6 +116,14 @@ public class SkillEffect
     if (restoreBrokenParts)
     {
       owner.RestoreBrokenParts();
+    }
+    if (foodConsumed.Resolve(owner) > 0)
+    {
+      for (int i = 0; i < foodConsumed.Resolve(owner); i++)
+      {
+        if (GameMaster.Instance.collectedFood.Count == 0) { break; }
+        GameMaster.Instance.collectedFood.RemoveAt(0);
+      }
     }
     foreach (AttackSpawn weaponSpawn in weaponSpawns)
     {

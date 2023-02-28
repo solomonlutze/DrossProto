@@ -199,6 +199,7 @@ public class Character : WorldObject
   public void InitializeVisuals()
   {
     characterVisuals.SetCharacterVisuals(traits);
+    ChangeLayersRecursively(transform, currentFloor);
   }
   private void InitializeFromCharacterData()
   {
@@ -1576,7 +1577,7 @@ public class Character : WorldObject
     {
       BreakRandomBodyPart(knockback);
     }
-    Debug.Log("Adjust body part health and stamina, count " + unbrokenBodyParts.Count);
+    Debug.Log("Adjust body part health and stamina, unbroken count " + unbrokenBodyParts.Count);
     // if (lastActiveSkill == null || GetBodyPartHealthForSkill(lastActiveSkill) <= 0 || !lastActiveOnly) // last active part broken; all other parts split damage
     if (unbrokenBodyParts.Count > 0)
     {

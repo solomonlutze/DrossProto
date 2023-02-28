@@ -37,6 +37,13 @@ public class ConditionDrawer : PropertyDrawer
           EditorGUI.PropertyField(conditionWithComparatorValueRect, property.FindPropertyRelative("_chargeLevel"), new GUIContent(""));
           break;
         }
+      case ConditionType.CurrentFoodCount:
+        {
+          int _comparatorIndex = EditorGUI.Popup(comparatorValueRect, property.FindPropertyRelative("comparator").intValue, _comparatorChoices);
+          property.FindPropertyRelative("comparator").intValue = _comparatorIndex;
+          EditorGUI.PropertyField(conditionWithComparatorValueRect, property.FindPropertyRelative("_currentFoodCount"), new GUIContent(""));
+          break;
+        }
       case ConditionType.MoveInputNormalizedMagnitude:
         {
           int _comparatorIndex = EditorGUI.Popup(comparatorValueRect, property.FindPropertyRelative("comparator").intValue, _comparatorChoices);

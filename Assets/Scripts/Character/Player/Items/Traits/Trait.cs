@@ -169,6 +169,7 @@ public class Trait : ScriptableObject
   public string traitName;
   public BugSpecies bugSpecies_DEPRECATED;
   public BugInfo bugInfo;
+  public FoodType diet;
 
   [TextArea]
   public string traitDescription;

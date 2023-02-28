@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using Yarn.Unity;
@@ -141,14 +142,26 @@ public class GameMaster : Singleton<GameMaster>
 
   public void ConfirmEquipAndRespawn(TraitSlotToTraitDictionary overrideTraits = null)
   {
+
     canvasHandler.CloseMenus();
     collectedTraitItems.Clear();
-    StartCoroutine(Respawn(overrideTraits == null ? cachedPupa : overrideTraits));
+    TraitSlotToTraitDictionary traits = cachedPupa;
+    if (overrideTraits != null) { traits = overrideTraits; }
+    if (laidEggs.Count > 0) { traits = laidEggs[selectedEgg].traits; }
+    string eggInfo = "";
+    foreach (TraitSlot slot in new TraitSlot[] { TraitSlot.Head, TraitSlot.Thorax, TraitSlot.Abdomen, TraitSlot.Legs, TraitSlot.Wings })
+    {
+      eggInfo += slot.ToString();
+      eggInfo += ": ";
+      eggInfo += traits[slot].traitName;
+    }
+    StartCoroutine(Respawn(traits));
   }
   private void HandleDeadInput()
   {
     if (rewiredPlayer.GetButtonDown("UISubmit"))
     {
+      UnityEngine.Debug.Log("selecting egg " + selectedEgg);
       selectedEgg = Mathf.FloorToInt(Mathf.Repeat(selectedEgg + 1, laidEggs.Count));
     }
     if (rewiredPlayer.GetButtonDown("Respawn"))
@@ -157,6 +170,15 @@ public class GameMaster : Singleton<GameMaster>
       // SetGameStatus(DrossConstants.GameState.EquipTraits);
       // canvasHandler.DisplayEquipTraitsView();
     }
+  }
+
+  public Transform GetSelectedEggLocation()
+  {
+    if (laidEggs.Count > 0)
+    {
+      return laidEggs[selectedEgg].eggInstance.transform;
+    }
+    return null;
   }
 
   public void SetGameMenu()
@@ -222,6 +244,7 @@ public class GameMaster : Singleton<GameMaster>
     GridManager.Instance.DestroyTilesOnPlayerRespawn();
     GridManager.Instance.RestoreTilesOnPlayerRespawn();
     GameObject player = GameObject.FindGameObjectWithTag("Player");
+    collectedFood.Clear();
     if (player != null)
     { // Should only be valid for a player placed in the scene
       playerController = player.GetComponent<PlayerController>();
@@ -318,6 +341,7 @@ public class GameMaster : Singleton<GameMaster>
     if (laidEggs.Count > 0)
     {
       TileLocation loc = laidEggs[selectedEgg].location;
+      Destroy(laidEggs[selectedEgg].eggInstance);
       laidEggs.RemoveAt(selectedEgg);
       return loc;
     }
@@ -341,6 +365,7 @@ public class GameMaster : Singleton<GameMaster>
 
   public void KillPlayer(TraitSlotToTraitDictionary pupa)
   {
+    selectedEgg = 0;
     cachedPupa = pupa;
     playerController = null;
     SetGameStatus(DrossConstants.GameState.Dead);
@@ -373,11 +398,47 @@ public class GameMaster : Singleton<GameMaster>
     collectedTraitItems.Clear();
   }
 
+  public Dictionary<FoodType, int> GetDiet()
+  {
+    Dictionary<FoodType, int> ret = new Dictionary<FoodType, int>();
+    if (playerController == null) { return null; }
+    TraitSlotToTraitDictionary traits = playerController.traits;
+    foreach (TraitSlot slot in traits.Keys)
+    {
+      if (!ret.ContainsKey(traits[slot].diet))
+      {
+        ret[traits[slot].diet] = 0;
+      }
+      ret[traits[slot].diet]++;
+    }
+    return ret;
+  }
+
+  public bool CanEat(FoodType food)
+  {
+    if (collectedFood.Count >= maxFood) { return false; }
+    if (food == FoodType.Lymph) { return true; }
+    Dictionary<FoodType, int> diet = GetDiet();
+    return diet.ContainsKey(food) && diet[food] > GetEatenFoodOfType(food);
+  }
+
+  public int GetEatenFoodOfType(FoodType food)
+  {
+    int ret = 0;
+    foreach (FoodInfo eatenFood in collectedFood)
+    {
+      if (eatenFood.foodType == food)
+      {
+        ret++;
+      }
+    }
+    return ret;
+  }
   public void AddCollectedFoodItem(FoodInfo food)
   {
     collectedFood.Add(food);
-    UnityEngine.Debug.Log("Collected food " + food + ", collected " + collectedFood.Count + "/" + maxFood);
   }
+
   public void ClearCollectedFoodItems()
   {
     collectedFood.Clear();
@@ -387,20 +448,31 @@ public class GameMaster : Singleton<GameMaster>
   {
     Egg newEgg = Instantiate(eggPrefab, playerController.transform.position, Quaternion.identity);
     WorldObject.ChangeLayersRecursively(newEgg.transform, playerController.gameObject.layer);
-    LaidEggInfo info = new LaidEggInfo(playerController.GetTileLocation(), playerController.traits);
+    string playerTraits = "";
+    foreach (TraitSlot slot in new TraitSlot[] { TraitSlot.Head, TraitSlot.Thorax, TraitSlot.Abdomen, TraitSlot.Legs, TraitSlot.Wings })
+    {
+      playerTraits += slot.ToString();
+      playerTraits += ": ";
+      playerTraits += playerController.traits[slot].traitName;
+    }
+    LaidEggInfo info = new LaidEggInfo(playerController.GetTileLocation(), playerController.traits, newEgg.gameObject);
     List<TraitSlot> shuffledSlots = Utils.ShuffleEnum<TraitSlot>();
     for (int i = 0; i < foodRequiredForEgg; i++)
     {
-      UnityEngine.Debug.Log("food count: " + collectedFood.Count + ", food: " + collectedFood[0].foodType + ", trait: " + collectedFood[0].traits);
       if (collectedFood[0].foodType == FoodType.Lymph && collectedFood[0].traits != null && collectedFood[0].traits[shuffledSlots[0]] != null)
       {
-        UnityEngine.Debug.Log("assigning trait " + shuffledSlots[0]);
-        info.slots[shuffledSlots[0]] = collectedFood[0].traits[shuffledSlots[0]];
+        info.traits[shuffledSlots[0]] = collectedFood[0].traits[shuffledSlots[0]];
         shuffledSlots.RemoveAt(0);
       }
       collectedFood.RemoveAt(0);
     }
-    UnityEngine.Debug.Log("laid an egg!");
+    string eggInfo = "";
+    foreach (TraitSlot slot in new TraitSlot[] { TraitSlot.Head, TraitSlot.Thorax, TraitSlot.Abdomen, TraitSlot.Legs, TraitSlot.Wings })
+    {
+      eggInfo += slot.ToString();
+      eggInfo += ": ";
+      eggInfo += info.traits[slot].traitName;
+    }
     laidEggs.Add(info);
 
   }
