@@ -562,6 +562,10 @@ public class GridManager : Singleton<GridManager>
     }
     chunkLoadCoroutine = StartCoroutine(LoadAndUnloadChunksCoroutine(chunksToLoad));
   }
+  public bool ChunkIsLoaded(Vector2Int chunk)
+  {
+    return loadedChunks.Contains(chunk);
+  }
   public void LoadAndUnloadChunks(TileLocation centeredOnLocation)
   {
     List<Vector2Int> chunksToLoad = new List<Vector2Int>();

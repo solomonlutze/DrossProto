@@ -15,8 +15,9 @@ public class PathfindAiAction : AiAction
 
   protected void PathfindTowardsObjectOfInterest(AiStateController controller)
   {
-    Vector2 movementInput = Vector2.zero;
 
+    Vector2 movementInput = Vector2.zero;
+    if (!GridManager.Instance.ChunkIsLoaded(controller.GetTileLocation().chunkCoordinates)) { return; }
     // MoveLocally(controller, GameMaster.Instance.GetPlayerController().transform.position);
     // return;
     WorldObject targetWorldLocation;
