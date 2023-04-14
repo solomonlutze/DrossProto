@@ -187,6 +187,7 @@ public class Character : WorldObject
       awareness.transform.localScale = new Vector3(awarenessRange, 1, 1);
     }
     lastActiveSkill = characterSkills[TraitSlot.Head];
+    lastSafeTileLocation = currentTileLocation;
     InitializeFromCharacterData();
     InitializeAnimationParameters();
   }

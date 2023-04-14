@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 public class WallObject : MonoBehaviour, IPoolable
 {
@@ -42,6 +43,7 @@ public class WallObject : MonoBehaviour, IPoolable
     {
       progress = 1f / numberOfPieces * (i + 1);
       wallPiece = wallPieces[i];
+      Undo.RecordObject(wallPiece, "");
       spriteRenderer = wallPiece.GetComponent<SpriteRenderer>();
       if (wallPieces[i] != null)
       {

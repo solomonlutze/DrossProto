@@ -72,6 +72,7 @@ namespace UnityEditor.Tilemaps
         }
         // set height
         base.BoxFill(gridLayout, brushTarget, position);
+        Debug.Log("box filled " + brushTarget + ", " + position);
         // this section insures a given tile ONLY has water OR ground, not both
         GameObject tilemapToEraseOn = null;
         bool shouldSetTileHeight = false;
@@ -147,7 +148,7 @@ namespace UnityEditor.Tilemaps
       LayerFloor parentLayerFloor = brushTarget.GetComponentInParent<LayerFloor>();
       SceneView sceneView = SceneView.lastActiveSceneView;
       int cameraZ = Mathf.RoundToInt(sceneView.camera.transform.position.z);
-      FloorLayer targetLayerFromCameraPosition = GridManager.GetFloorLayerFromZPosition(cameraZ + 5);
+      FloorLayer targetLayerFromCameraPosition = GridManager.GetFloorLayerFromZPosition(cameraZ + 6);
       Debug.Log("target layer: " + targetLayerFromCameraPosition);
       if (parentLayerFloor == null)
       {

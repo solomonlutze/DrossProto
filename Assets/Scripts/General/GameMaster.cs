@@ -101,9 +101,10 @@ public class GameMaster : Singleton<GameMaster>
   void Update()
   {
     HandleInput();
+    UnityEngine.Debug.Log("Cycle Length " + cycleLength + ", gameobject name " + gameObject.name);
     if (playerController && timeSinceStartup.ElapsedMilliseconds / 1000f > cycleLength)
     {
-      playerController.Die();
+      // playerController.Die();
     }
   }
 

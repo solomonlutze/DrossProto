@@ -23,6 +23,7 @@ public class LayerRenderer : MonoBehaviour
   {
     if (ShouldExecute())
     {
+      Debug.Log("should execute?", gameObject);
       currentOpacity = .001f; // dumb hack; will force a changeOpacity update that will turn off renderers
     }
     else
@@ -33,28 +34,33 @@ public class LayerRenderer : MonoBehaviour
 
   void Update()
   {
+    Debug.Log("update?");
     if (ShouldExecute())
     {
-      if (!FinishedChangingOpacity(becomingVisible, currentOpacity, GetTargetOpacity()))
-      {
-        // WARNING: AI and LayerRenderer tightly coupled for camouflage.
-        // See AiStateController.HandleVisibility. 
-        // AiStateController ai = GetComponent<AiStateController>();
-        // if (ai != null && shouldBeVisible) // AI handling opacity
-        // {
-        //   return;
-        // }
-        currentOpacity += Time.deltaTime / fadeTime * (becomingVisible ? 1 : -1);
-        if (FinishedChangingOpacity(becomingVisible, currentOpacity, GetTargetOpacity()))
-        {
-          currentOpacity = GetTargetOpacity();
-          ChangeOpacityRecursively(transform, currentOpacity); // prevent overshooting our desired opagcity
-        }
-        else
-        {
-          ChangeOpacityRecursively(transform, currentOpacity);
-        }
-      }
+      Debug.Log("should execute?");
+      // ChangeOpacityRecursively(transform, 1);
+
+      // if (!FinishedChangingOpacity(becomingVisible, currentOpacity, GetTargetOpacity()))
+      // {
+      //   // WARNING: AI and LayerRenderer tightly coupled for camouflage.
+      //   // See AiStateController.HandleVisibility. 
+      //   // AiStateController ai = GetComponent<AiStateController>();
+      //   // if (ai != null && shouldBeVisible) // AI handling opacity
+      //   // {
+      //   //   return;
+      //   // }
+      //   currentOpacity += Time.deltaTime / fadeTime * (becomingVisible ? 1 : -1);
+      //   if (FinishedChangingOpacity(becomingVisible, currentOpacity, GetTargetOpacity()))
+      //   {
+      //     currentOpacity = GetTargetOpacity();
+      //     ChangeOpacityRecursively(transform, currentOpacity); // prevent overshooting our desired opagcity
+      //   }
+      //   else
+      //   {
+      //     Debug.Log("changing opacity?" + currentOpacity, gameObject);
+      //     ChangeOpacityRecursively(transform, currentOpacity);
+      //   }
+      // }
     }
   }
 
@@ -64,15 +70,15 @@ public class LayerRenderer : MonoBehaviour
     int floorOffsetFromCurrentLayer = (int)WorldObject.GetFloorLayerFromGameObjectLayer(gameObject.layer) - currentFloorLayer.Value;
     if (floorOffsetFromCurrentLayer > 1 || floorOffsetFromCurrentLayer < -3)
     {
-      return 0;
+      return 1;
     }
     if (floorOffsetFromCurrentLayer == 1)
     {
       if (showFloorAbove)
       {
-        return .2f;
+        return 1f;
       }
-      return 0;
+      return 1;
     }
     return 1;
   }
@@ -103,11 +109,12 @@ public class LayerRenderer : MonoBehaviour
 
   public static void ChangeOpacityRecursively(Transform trans, float currentOpacity)
   {
+    Debug.Log("changeOpacityRecursively " + trans.gameObject.name + " " + currentOpacity, trans.gameObject);
     SpriteRenderer r = trans.gameObject.GetComponent<SpriteRenderer>();
     if (r != null)
     {
       r.color = new Color(r.color.r, r.color.g, r.color.b, currentOpacity);
-      if (currentOpacity <= 0) { r.enabled = false; }
+      if (false) { r.enabled = false; }
       else { r.enabled = true; }
     }
     Tilemap t = trans.gameObject.GetComponent<Tilemap>();
@@ -118,7 +125,7 @@ public class LayerRenderer : MonoBehaviour
     TilemapRenderer tr = trans.GetComponent<TilemapRenderer>();
     if (tr != null)
     {
-      if (currentOpacity <= 0)
+      if (false)
       {
         tr.enabled = false;
       }

@@ -87,7 +87,7 @@ public class PlayerHUD : MonoBehaviour
         dietString.Add(GameMaster.Instance.GetDiet()[food].ToString());
         dietString.Add(", ");
       }
-      UnityEngine.Debug.Log(System.String.Join("", dietString));
+      Debug.Log("diet text " + dietText + ", gameobject name " + gameObject.name);
       dietText.text = System.String.Join("", dietString);
       eggProgressText.text = "Food for egg: " + GameMaster.Instance.collectedFood.Count + "/" + GameMaster.Instance.foodRequiredForEgg;
     }

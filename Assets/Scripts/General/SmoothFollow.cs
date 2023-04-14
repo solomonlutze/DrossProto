@@ -17,6 +17,8 @@ public class SmoothFollow : MonoBehaviour
   void Start()
   {
     c = GetComponent<Camera>();
+    c.transparencySortMode = TransparencySortMode.Orthographic;
+
     truePosition = transform.position;
   }
 

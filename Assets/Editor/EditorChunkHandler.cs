@@ -26,6 +26,7 @@ public static class EditorChunkHandler
         // {
         //   Debug.Log("number of currently-loaded chunks: " + GridManager.Instance.loadedChunks.Count);
         // }
+        // TODO: move this out of GridManager!
         GridManager.Instance.StartLoadAndUnloadChunks(cameraLocation);
       }
     }

@@ -29,6 +29,8 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
       Destroy(spawnedObj); // I just have a terrible feeling about this but I don't know why
     }
     spawnedObj = Instantiate(objectToSpawn, transform.position, transform.rotation);
+    spawnedObj.transform.position = transform.position;
+    Debug.Log("spawner going " + transform.position + ", " + WorldObject.GetFloorLayerOfGameObject(gameObject), gameObject);
     GameMaster.Instance.RegisterObjectToDestroyOnRespawn(spawnedObj);
     WorldObject wObj = spawnedObj.GetComponent<WorldObject>();
     if (wObj != null)
@@ -36,6 +38,7 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
       wObj.currentFloor = WorldObject.GetFloorLayerOfGameObject(gameObject);
     }
     WorldObject.ChangeLayersRecursively(spawnedObj.transform, wObj.currentFloor);
+    Debug.Log("spawned object info " + spawnedObj.transform.position + ", " + WorldObject.GetFloorLayerOfGameObject(spawnedObj), spawnedObj);
     spawnedObj.SendMessage("Init", SendMessageOptions.DontRequireReceiver);
     if (spawnOnlyOnce)
     {

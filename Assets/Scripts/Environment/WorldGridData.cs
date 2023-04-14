@@ -283,6 +283,10 @@ public class WorldGridData : ScriptableObject
       tilePlacedObjects.wallObject.transform.position = tileLocation.cellCenterWorldPosition;
       tilePlacedObjects.wallObject.transform.SetParent(GridManager.Instance.wallObjectContainer, true);
     }
+    Undo.IncrementCurrentGroup();
+    Undo.SetCurrentGroupName("Changed wall object");
+    var undoGroupIndex = Undo.GetCurrentGroup();
+    Undo.RegisterFullObjectHierarchyUndo(tilePlacedObjects.wallObject, "");
     if (eti.groundTileType != null)
     {
       tilePlacedObjects.wallObject.SetGroundInfo(eti.groundTileType, tileData.groundHeight);
@@ -292,6 +296,7 @@ public class WorldGridData : ScriptableObject
       tilePlacedObjects.wallObject.SetCeilingInfo(eti.objectTileType, tileData.ceilingHeight);
     }
     tilePlacedObjects.wallObject.Init(tileLocation);
+    Undo.CollapseUndoOperations(undoGroupIndex);
   }
 
   public void RemoveEnvironmentTileDataAtLocation(FloorLayer layer, Vector2Int location)
