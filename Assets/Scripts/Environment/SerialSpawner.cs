@@ -84,7 +84,7 @@ public class SerialSpawner : ActivateOnPlayerRespawn
     }
   }
 
-  public override void Activate()
+  public override void Activate(bool newGame = false)
   {
     GameMaster.Instance.ClearVictoryText();
     spawnedObjects = new List<GameObject>();

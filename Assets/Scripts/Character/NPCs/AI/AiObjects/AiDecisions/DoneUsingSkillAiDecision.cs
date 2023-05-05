@@ -17,7 +17,7 @@ public class DoneUsingSkillAiDecision : AiDecision
       controller.pressingSkill = null;
       return true;
     }
-    if ((controller.activeSkill.IsContinuous(controller) || controller.timeSkillUsed >= 1) && controller.timeSpentInState > maxTimeInState)
+    if ((controller.activeSkill.IsContinuous(controller) || controller.activeSkill.SkillEffectIsRepeatable(controller) || controller.timeSkillUsed >= 1) && controller.timeSpentInState > maxTimeInState)
     {
       controller.pressingSkill = null;
       return true;

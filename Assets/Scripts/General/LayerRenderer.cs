@@ -23,7 +23,6 @@ public class LayerRenderer : MonoBehaviour
   {
     if (ShouldExecute())
     {
-      Debug.Log("should execute?", gameObject);
       currentOpacity = .001f; // dumb hack; will force a changeOpacity update that will turn off renderers
     }
     else
@@ -34,10 +33,8 @@ public class LayerRenderer : MonoBehaviour
 
   void Update()
   {
-    Debug.Log("update?");
     if (ShouldExecute())
     {
-      Debug.Log("should execute?");
       // ChangeOpacityRecursively(transform, 1);
 
       // if (!FinishedChangingOpacity(becomingVisible, currentOpacity, GetTargetOpacity()))

@@ -19,10 +19,11 @@ public class InteractableObjectsTrigger : MonoBehaviour
 
   }
 
-  void OnTriggerEnter2D(Collider2D collider)
+  void OnTriggerStay2D(Collider2D collider)
   {
     if (collider.gameObject.GetComponentInChildren<Interactable>() != null && WorldObject.HaveApproximatelySameElevation(collider.gameObject, gameObject))
     {
+      Debug.Log("adding interactable " + collider.gameObject, collider.gameObject);
       player.AddInteractable(collider.gameObject.GetComponentInChildren<Interactable>());
     }
   }

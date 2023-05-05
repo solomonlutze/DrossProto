@@ -81,7 +81,7 @@ public class LayerFloor : MonoBehaviour
         infoTilemap.gameObject.layer = LayerMask.NameToLayer(gameObject.name);
         infoTilemap.gameObject.name = gameObject.name + "_Info";
         infoTilemap.GetComponent<TilemapRenderer>().sortingLayerName = gameObject.name;
-        infoTilemap.GetComponent<TilemapRenderer>().sortingOrder = 1;
+        infoTilemap.GetComponent<TilemapRenderer>().sortingOrder = 2;
       }
     }
   }

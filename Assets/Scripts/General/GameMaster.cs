@@ -167,7 +167,14 @@ public class GameMaster : Singleton<GameMaster>
     }
     if (rewiredPlayer.GetButtonDown("Respawn"))
     {
-      ConfirmEquipAndRespawn();
+      if (laidEggs.Count > 0)
+      {
+        ConfirmEquipAndRespawn();
+      }
+      else
+      {
+        Restart();
+      }
       // SetGameStatus(DrossConstants.GameState.EquipTraits);
       // canvasHandler.DisplayEquipTraitsView();
     }
@@ -245,6 +252,7 @@ public class GameMaster : Singleton<GameMaster>
     GridManager.Instance.DestroyTilesOnPlayerRespawn();
     GridManager.Instance.RestoreTilesOnPlayerRespawn();
     GameObject player = GameObject.FindGameObjectWithTag("Player");
+    bool isNewGame = laidEggs.Count == 0;
     collectedFood.Clear();
     if (player != null)
     { // Should only be valid for a player placed in the scene
@@ -286,7 +294,7 @@ public class GameMaster : Singleton<GameMaster>
     UnpauseGame();
     DoDestroyOnPlayerRespawn();
     // AkSoundEngine.PostEvent("PlayClergyLoop", GameMaster.Instance.gameObject);
-    DoActivateOnPlayerRespawn();
+    DoActivateOnPlayerRespawn(isNewGame);
     SetGameStatus(DrossConstants.GameState.Play);
   }
 
@@ -314,12 +322,12 @@ public class GameMaster : Singleton<GameMaster>
     }
   }
 
-  private void DoActivateOnPlayerRespawn()
+  private void DoActivateOnPlayerRespawn(bool isNewGame)
   {
     GameObject[] objectsToActivate = GameObject.FindGameObjectsWithTag("ActivateOnPlayerRespawn");
     foreach (GameObject obj in objectsToActivate)
     {
-      obj.SendMessage("Activate", SendMessageOptions.RequireReceiver);
+      obj.SendMessage("Activate", isNewGame, SendMessageOptions.RequireReceiver);
     }
   }
 

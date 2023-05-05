@@ -6,7 +6,7 @@ using UnityEditor;
 
 public class WorldObject : MonoBehaviour
 {
-
+  [SerializeField]
   public FloorLayer currentFloor;
   public static Dictionary<FloorLayer, int> floorLayerToGameObjectLayer = new Dictionary<FloorLayer, int>() {
     {FloorLayer.B6, 9},

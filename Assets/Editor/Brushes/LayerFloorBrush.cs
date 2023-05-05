@@ -14,15 +14,12 @@ namespace UnityEditor.Tilemaps
   {
     public override void BoxFill(GridLayout gridLayout, GameObject brushTarget, BoundsInt position)
     {
-      Debug.Log("boxfill");
       EnvironmentTile tile = null;
 
       if (cells.Length > 0)
       {
-        Debug.Log("cells exist");
         tile = cells[0].tile as EnvironmentTile;
       }
-      Debug.Log("tile: " + tile);
 
       if (tile != null)
       {
@@ -48,31 +45,14 @@ namespace UnityEditor.Tilemaps
             Debug.LogError("tilemap type not one of ground, object, water, info??");
             break;
         }
-        Debug.Log("brushTargetName: " + brushTargetName + ", brushTarget.name " + brushTarget.name);
         if (brushTargetName != brushTarget.name)
         {
           brushTarget = brushTargetParent.Find(brushTargetName).gameObject;
           SelectAppropriateTilemapForBrushTileType();
         }
-        if (tile.autoPlaceTileOnPaint_Above != null)
-        {
-          LayerFloor layerFloorAbove = GridManager.Instance.GetFloorLayerAbove(WorldObject.GetFloorLayerOfGameObject(brushTarget));
 
-          if (layerFloorAbove != null)
-          {
-            Tilemap groundTilemapAbove = layerFloorAbove.groundTilemap;
-            foreach (Vector3Int location in position.allPositionsWithin)
-            {
-              if (groundTilemapAbove.GetTile(location) == null)
-              {
-                groundTilemapAbove.SetTile(location, tile.autoPlaceTileOnPaint_Above);
-              }
-            }
-          }
-        }
         // set height
         base.BoxFill(gridLayout, brushTarget, position);
-        Debug.Log("box filled " + brushTarget + ", " + position);
         // this section insures a given tile ONLY has water OR ground, not both
         GameObject tilemapToEraseOn = null;
         bool shouldSetTileHeight = false;
@@ -89,6 +69,33 @@ namespace UnityEditor.Tilemaps
         if (tilemapToEraseOn != null)
         {
           base.BoxErase(gridLayout, tilemapToEraseOn, position);
+        }
+        EnvironmentTile tileToPaintAbove = null;
+
+        if (tile.autoPlaceTileOnPaint_Above != null)
+        {
+          tileToPaintAbove = tile.autoPlaceTileOnPaint_Above;
+        }
+        if (shouldSetTileHeight && WorldGridData.heightToPaint > .9f)
+        {
+          Debug.Log("should paint above");
+          tileToPaintAbove = tile;
+        }
+        if (tileToPaintAbove != null)
+        {
+          LayerFloor layerFloorAbove = GridManager.Instance.GetFloorLayerAbove(WorldObject.GetFloorLayerOfGameObject(brushTarget));
+
+          if (layerFloorAbove != null)
+          {
+            Tilemap groundTilemapAbove = layerFloorAbove.groundTilemap;
+            foreach (Vector3Int location in position.allPositionsWithin)
+            {
+              if (groundTilemapAbove.GetTile(location) == null)
+              {
+                groundTilemapAbove.SetTile(location, tileToPaintAbove);
+              }
+            }
+          }
         }
         if (shouldSetTileHeight)
         {
@@ -149,7 +156,6 @@ namespace UnityEditor.Tilemaps
       SceneView sceneView = SceneView.lastActiveSceneView;
       int cameraZ = Mathf.RoundToInt(sceneView.camera.transform.position.z);
       FloorLayer targetLayerFromCameraPosition = GridManager.GetFloorLayerFromZPosition(cameraZ + 6);
-      Debug.Log("target layer: " + targetLayerFromCameraPosition);
       if (parentLayerFloor == null)
       {
         base.Pick(gridLayout, brushTarget, position, pickStart);
@@ -198,7 +204,6 @@ namespace UnityEditor.Tilemaps
       }
       GridBrush brush = GridPaintingState.gridBrush as GridBrush;
       GridBrush.BrushCell cell = brush.cells.Length > 0 ? brush.cells[0] : null;
-      Debug.Log("cell tile " + cell.tile);
       GameObject tilemapToPaint = GridPaintingState.scenePaintTarget;
       Tilemap selectedTilemap = tilemapToPaint ? tilemapToPaint.GetComponent<Tilemap>() : null;
       LayerFloor desiredLayerFloor = targetLayerFloor;
@@ -211,8 +216,6 @@ namespace UnityEditor.Tilemaps
         FloorTilemapType floorTilemapType = (cell.tile as EnvironmentTile)?.floorTilemapType ?? (cell.tile as InfoTile)?.floorTilemapType ?? FloorTilemapType.Ground;
 
         // TilemapEditorTool.SetActiveEditorTool(typeof(EraseTool));
-        Debug.Log("floorTilemapType " + floorTilemapType);
-        Debug.Log("selected tiletype " + cell.tile);
         Tilemap desiredTilemap;
         if (floorTilemapType == FloorTilemapType.Ground)
         {

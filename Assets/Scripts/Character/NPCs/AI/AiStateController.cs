@@ -17,8 +17,8 @@ public class AiStateController : Character
       return waitingToAttack || UsingSkill();
     }
   }
-  [HideInInspector] public float timeSpentInState;
-  [HideInInspector] public int timeSkillUsed = 0;
+  public float timeSpentInState;
+  public int timeSkillUsed = 0;
   [HideInInspector] public float attackCooldownTimer;
 
   [Header("AI Attributes")]

@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class ActivateOnPlayerRespawn : MonoBehaviour
 {
-    // Update is called once per frame
-    public virtual void Activate() {
-      Debug.Log("BaseActivate??");
-    }
+  // Update is called once per frame
+  public virtual void Activate(bool newGame = false)
+  {
+    Debug.Log("BaseActivate??");
+  }
 }

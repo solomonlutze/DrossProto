@@ -7,6 +7,11 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
 {
   // Update is called once per frame
   public GameObject objectToSpawn;
+  // after being consumed, respawn in min (inclusive) to max (exclusive) turns
+
+  public int minTurnsToSpawn = 0;
+  public int maxTurnsToSpawn = 1;
+  public int turnsUntilSpawn = 0;
   public bool spawnOnlyOnce;
   private GameObject spawnedObj;
   private GameObject prevObjectToSpawn;
@@ -22,8 +27,13 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
     }
   }
 
-  public override void Activate()
+  public override void Activate(bool newGame = false)
   {
+    if (!newGame && spawnedObj == null && turnsUntilSpawn > 0)
+    {
+      turnsUntilSpawn -= 1;
+      return;
+    }
     if (spawnedObj != null)
     {
       Destroy(spawnedObj); // I just have a terrible feeling about this but I don't know why
@@ -44,6 +54,7 @@ public class SpawnsOnPlayerRespawn : ActivateOnPlayerRespawn
     {
       Destroy(gameObject);
     }
+    turnsUntilSpawn = Random.Range(minTurnsToSpawn, maxTurnsToSpawn);
   }
 
 #if UNITY_EDITOR
